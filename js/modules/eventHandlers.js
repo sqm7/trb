@@ -294,16 +294,18 @@ export function handlePriceBandRoomFilterClick(e) {
     reportRenderer.renderPriceBandReport();
 }
 
-// --- 新增函式 ---
 export function handlePriceBandDetailsClick(e) {
     const button = e.target.closest('.price-band-details-button');
     if (!button) return;
 
     const roomType = button.dataset.roomType;
     const bathrooms = button.dataset.bathrooms;
+
+    // --- 偵錯指令 ---
+    console.log(`[Event Handler] 按鈕被點擊。讀取到的資料: 房型=${roomType}, 衛浴=${bathrooms}`);
+    
     reportRenderer.renderPriceBandDetails(roomType, bathrooms);
 }
-// --- 新增結束 ---
 
 export function handleVelocityRoomFilterClick(e) {
     const button = e.target.closest('.capsule-btn'); if (!button) return;
