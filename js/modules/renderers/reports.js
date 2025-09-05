@@ -309,15 +309,15 @@ export function renderPriceBandDetails(roomType, bathrooms) {
     const container = dom.priceBandDetailsContainer;
     if (!container) return;
 
-    if (!roomType || bathrooms === null || !state.analysisDataCache || !state.analysisDataCache.rawData) {
+    if (!roomType || bathrooms === null || !state.analysisDataCache || !state.analysisDataCache.transactionDetails) {
         container.innerHTML = `<div class="flex items-center justify-center h-full"><p class="text-center text-gray-500">點擊左側 <i class="fas fa-chart-bar mx-1"></i> 按鈕<br>查看房型詳細資訊</p></div>`;
         return;
     }
     
-    const filteredData = state.analysisDataCache.rawData.filter(item => {
-        // ▼▼▼ 最終修正點 ▼▼▼
-        // 後端 rawData 使用的欄位是 roomType，而非 room_type_group
-        const roomMatch = item.roomType === roomType;
+    // ▼▼▼ 最終修正點 ▼▼▼
+    const filteredData = state.analysisDataCache.transactionDetails.filter(item => {
+        // 後端 transactionDetails 使用的欄位是 room_type_group
+        const roomMatch = item.room_type_group === roomType;
         const bathroomMatch = String(item.layout_bath) === String(bathrooms);
         return roomMatch && bathroomMatch;
     });
