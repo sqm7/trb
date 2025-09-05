@@ -308,27 +308,19 @@ export function renderPriceGridAnalysis() {
 export function renderPriceBandDetails(roomType, bathrooms) {
     const container = dom.priceBandDetailsContainer;
     if (!container) return;
-    
-    // --- 偵錯指令 1 ---
-    console.log(`[Renderer] 函式被呼叫。收到的參數: 房型=${roomType}, 衛浴=${bathrooms}`);
 
     if (!roomType || bathrooms === null || !state.analysisDataCache || !state.analysisDataCache.rawData) {
         container.innerHTML = `<div class="flex items-center justify-center h-full"><p class="text-center text-gray-500">點擊左側 <i class="fas fa-chart-bar mx-1"></i> 按鈕<br>查看房型詳細資訊</p></div>`;
         return;
     }
     
-    // --- 偵錯指令 2 ---
-    if (state.analysisDataCache.rawData.length > 0) {
-        console.log('[Renderer] 用來比對的第一筆原始資料:', state.analysisDataCache.rawData[0]);
-    }
-
     const filteredData = state.analysisDataCache.rawData.filter(item => {
+        // ▼▼▼ 最終修正點 ▼▼▼
+        // 後端 rawData 使用的欄位是 roomType，而非 room_type_group
+        const roomMatch = item.roomType === roomType;
         const bathroomMatch = String(item.layout_bath) === String(bathrooms);
-        return item.room_type_group === roomType && bathroomMatch;
+        return roomMatch && bathroomMatch;
     });
-
-    // --- 偵錯指令 3 ---
-    console.log(`[Renderer] 篩選完成。共找到 ${filteredData.length} 筆符合條件的資料。`);
 
     if (filteredData.length === 0) {
         container.innerHTML = `
