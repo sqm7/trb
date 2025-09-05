@@ -198,7 +198,7 @@ export function onDistrictSuggestionClick(e) {
             dom.districtSuggestions.querySelectorAll('label:not([data-name="all"]) input[type="checkbox"]').forEach(cb => { cb.checked = isChecked; });
         } else {
             if (isChecked) {
-              if (!state.selectedDistricts.includes(name)) state.selectedDistricts.push(name);
+                if (!state.selectedDistricts.includes(name)) state.selectedDistricts.push(name);
             } else {
                 state.selectedDistricts = state.selectedDistricts.filter(d => d !== name);
             }
@@ -293,6 +293,17 @@ export function handlePriceBandRoomFilterClick(e) {
     
     reportRenderer.renderPriceBandReport();
 }
+
+// --- 新增函式 ---
+export function handlePriceBandDetailsClick(e) {
+    const button = e.target.closest('.price-band-details-button');
+    if (!button) return;
+
+    const roomType = button.dataset.roomType;
+    const bathrooms = button.dataset.bathrooms;
+    reportRenderer.renderPriceBandDetails(roomType, bathrooms);
+}
+// --- 新增結束 ---
 
 export function handleVelocityRoomFilterClick(e) {
     const button = e.target.closest('.capsule-btn'); if (!button) return;
