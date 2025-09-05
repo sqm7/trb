@@ -300,10 +300,6 @@ export function handlePriceBandDetailsClick(e) {
 
     const roomType = button.dataset.roomType;
     const bathrooms = button.dataset.bathrooms;
-
-    // --- 偵錯指令 ---
-    console.log(`[Event Handler] 按鈕被點擊。讀取到的資料: 房型=${roomType}, 衛浴=${bathrooms}`);
-    
     reportRenderer.renderPriceBandDetails(roomType, bathrooms);
 }
 
