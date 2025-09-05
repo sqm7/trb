@@ -8,6 +8,44 @@ import { renderVelocityTable } from './tables.js';
 import { renderAreaHeatmap, renderSalesVelocityChart, renderPriceBandChart, renderRankingChart } from './charts.js';
 import { displayCurrentPriceGrid } from './heatmap.js';
 
+// --- 新增開始：從後端複製並改寫的房型分組邏輯 ---
+/**
+ * @description 根據後端 analysis-engine.ts 的邏輯，在前端為交易紀錄進行房型分類。
+ * @param {object} record - 一筆交易資料，需包含 building_type, main_use, layout_room 等欄位。
+ * @returns {string} - 分類後的房型名稱。
+ */
+function getRoomTypeGroupOnFrontend(record) {
+    const buildingType = record.building_type || '';
+    const mainPurpose = record.main_use || '';
+    const rooms = record.layout_room;
+
+    // 第一優先級：特殊商業用途
+    if (buildingType.includes('店舖') || buildingType.includes('店面')) return '店舖';
+    if (buildingType.includes('工廠') || buildingType.includes('倉庫') || buildingType.includes('廠辦')) return '廠辦/工廠';
+    if (mainPurpose.includes('商業') || buildingType.includes('辦公') || buildingType.includes('事務所')) return '辦公/事務所';
+
+    // 根據後端邏輯，'其他' 類型的優先級較高
+    if (buildingType === '其他') return '其他';
+    
+    // '住商用' 且 0 房視為 '毛胚'
+    if (mainPurpose === '住商用' && rooms === 0) return '毛胚';
+    
+    // 第三優先級：標準住宅房型
+    switch (rooms) {
+        case 0: return '毛胚';
+        case 1:
+            // 根據後端邏輯，'套房(1房(1廳)1衛)' 類型會被特別歸類為 '套房'
+            return buildingType === '套房(1房(1廳)1衛)' ? '套房' : '1房';
+        case 2: return '2房';
+        case 3: return '3房';
+        case 4: return '4房';
+        default:
+            return rooms >= 5 ? '5房以上' : '其他';
+    }
+}
+// --- 新增結束 ---
+
+
 function renderStatsBlock(stats, averageType, tableContainerId, extraInfoContainerId, noDataMessage) {
     const tableContainer = document.getElementById(tableContainerId);
     const extraInfoContainer = document.getElementById(extraInfoContainerId);
@@ -316,10 +354,13 @@ export function renderPriceBandDetails(roomType, bathrooms) {
     
     const filteredData = state.analysisDataCache.transactionDetails.filter(item => {
         // ▼▼▼ 最終修正點 ▼▼▼
-        // A 表格的 'roomType' 對應 transactionDetails 的 'room_type_group'
-        const roomMatch = item.room_type_group === roomType;
-        // A 表格的 'bathrooms' 對應 transactionDetails 的 'layout_bath'
+        // 1. 在前端使用與後端完全相同的邏輯，為每一筆原始資料即時計算出它的房型分組
+        const itemRoomGroup = getRoomTypeGroupOnFrontend(item);
+        
+        // 2. 使用計算出的房型分組，以及正確的衛浴欄位名稱來進行比對
+        const roomMatch = itemRoomGroup === roomType;
         const bathroomMatch = String(item.layout_bath) === String(bathrooms);
+        
         return roomMatch && bathroomMatch;
     });
 
