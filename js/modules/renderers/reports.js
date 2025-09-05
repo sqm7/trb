@@ -347,22 +347,31 @@ export function renderPriceBandDetails(roomType, bathrooms) {
     const container = dom.priceBandDetailsContainer;
     if (!container) return;
 
-    if (!roomType || bathrooms === null || !state.analysisDataCache || !state.analysisDataCache.transactionDetails) {
+    if (!roomType || bathrooms === undefined || !state.analysisDataCache || !state.analysisDataCache.transactionDetails) {
         container.innerHTML = `<div class="flex items-center justify-center h-full"><p class="text-center text-gray-500">點擊左側 <i class="fas fa-chart-bar mx-1"></i> 按鈕<br>查看房型詳細資訊</p></div>`;
         return;
     }
     
+    // --- 修改開始 ---
     const filteredData = state.analysisDataCache.transactionDetails.filter(item => {
-        // ▼▼▼ 最終修正點 ▼▼▼
-        // 1. 在前端使用與後端完全相同的邏輯，為每一筆原始資料即時計算出它的房型分組
+        // 1. 使用與後端相同的邏輯，為每一筆原始資料即時計算出它的房型分組
         const itemRoomGroup = getRoomTypeGroupOnFrontend(item);
         
-        // 2. 使用計算出的房型分組，以及正確的衛浴欄位名稱 '衛浴數' 來進行比對
+        // 2. 檢查房型是否匹配
         const roomMatch = itemRoomGroup === roomType;
-        const bathroomMatch = String(item['衛浴數']) === String(bathrooms);
-        
-        return roomMatch && bathroomMatch;
+
+        // 3. 根據 bathrooms 的值決定篩選邏輯
+        // 當 button 傳來的 bathrooms 是 'null' (例如「店舖」)，我們只比對房型
+        if (String(bathrooms) === 'null') {
+            return roomMatch;
+        } 
+        // 否則，我們需要同時比對房型和衛浴數量
+        else {
+            const bathroomMatch = String(item['衛浴數']) === String(bathrooms);
+            return roomMatch && bathroomMatch;
+        }
     });
+    // --- 修改結束 ---
 
     if (filteredData.length === 0) {
         container.innerHTML = `
