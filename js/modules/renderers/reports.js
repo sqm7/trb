@@ -133,14 +133,30 @@ export function renderPriceBandReport() {
         return (a.bathrooms || 0) - (b.bathrooms || 0);
     });
     
-    const tableHeaders = ['房型', '衛浴', '筆數', '平均總價(萬)', '最低總價(萬)', '1/4位總價(萬)', '中位數總價(萬)', '3/4位總價(萬)', '最高總價(萬)'];
+    // --- 修改開始 ---
+    const tableHeaders = ['詳情', '房型', '衛浴', '筆數', '平均總價(萬)', '最低總價(萬)', '1/4位總價(萬)', '中位數總價(萬)', '3/4位總價(萬)', '最高總價(萬)'];
 
-    let headerHtml = '<thead><tr>' + tableHeaders.map(h => `<th>${h}</th>`).join('') + '</tr></thead>';
+    let headerHtml = '<thead><tr>' + tableHeaders.map(h => `<th class="${h === '詳情' ? 'text-center' : ''}">${h}</th>`).join('') + '</tr></thead>';
     let bodyHtml = '<tbody>';
 
     if (filteredDataForTable.length > 0) {
         filteredDataForTable.forEach(item => { 
-            bodyHtml += `<tr class="hover:bg-dark-card transition-colors"><td>${item.roomType}</td><td>${item.bathrooms !== null ? item.bathrooms : '-'}</td><td>${item.count.toLocaleString()}</td><td>${ui.formatNumber(item.avgPrice, 0)}</td><td>${ui.formatNumber(item.minPrice, 0)}</td><td>${ui.formatNumber(item.q1Price, 0)}</td><td>${ui.formatNumber(item.medianPrice, 0)}</td><td>${ui.formatNumber(item.q3Price, 0)}</td><td>${ui.formatNumber(item.maxPrice, 0)}</td></tr>`; 
+            bodyHtml += `<tr class="hover:bg-dark-card transition-colors">
+                <td class="text-center">
+                    <button class="price-band-details-button" data-room-type="${item.roomType}" data-bathrooms="${item.bathrooms}" title="查看詳細資料">
+                        <i class="fas fa-chart-bar"></i>
+                    </button>
+                </td>
+                <td>${item.roomType}</td>
+                <td>${item.bathrooms !== null ? item.bathrooms : '-'}</td>
+                <td>${item.count.toLocaleString()}</td>
+                <td>${ui.formatNumber(item.avgPrice, 0)}</td>
+                <td>${ui.formatNumber(item.minPrice, 0)}</td>
+                <td>${ui.formatNumber(item.q1Price, 0)}</td>
+                <td>${ui.formatNumber(item.medianPrice, 0)}</td>
+                <td>${ui.formatNumber(item.q3Price, 0)}</td>
+                <td>${ui.formatNumber(item.maxPrice, 0)}</td>
+            </tr>`; 
         });
     } else {
         bodyHtml += `<tr><td colspan="${tableHeaders.length}" class="text-center p-4 text-gray-500">請至少選擇一個房型以顯示數據</td></tr>`;
@@ -149,8 +165,12 @@ export function renderPriceBandReport() {
     bodyHtml += '</tbody>';
     dom.priceBandTable.innerHTML = headerHtml + bodyHtml;
 
+    // Render chart and initial details view
     renderPriceBandChart();
+    renderPriceBandDetails(null, null); // Render empty state initially
+    // --- 修改結束 ---
 }
+
 
 export function renderUnitPriceReport() {
     if (!state.analysisDataCache || !state.analysisDataCache.unitPriceAnalysis) {
@@ -286,4 +306,59 @@ export function renderPriceGridAnalysis() {
         dom.unitColorLegendContainer.innerHTML = '';
         dom.horizontalPriceGridContainer.innerHTML = '<p class="text-gray-500 p-4 text-center">無特定建案資料可供分析。</p>';
     }
+}
+
+// --- 新增函式 ---
+export function renderPriceBandDetails(roomType, bathrooms) {
+    const container = dom.priceBandDetailsContainer;
+    if (!container) return;
+
+    if (!roomType || bathrooms === null || !state.analysisDataCache.rawData) {
+        container.innerHTML = `<div class="flex items-center justify-center h-full"><p class="text-center text-gray-500">點擊左側 <i class="fas fa-chart-bar mx-1"></i> 按鈕<br>查看房型詳細資訊</p></div>`;
+        return;
+    }
+
+    const filteredData = state.analysisDataCache.rawData.filter(item => {
+        const bathroomMatch = (item.layout_bath === null && bathrooms === 'null') || (item.layout_bath == bathrooms);
+        return item.room_type_group === roomType && bathroomMatch;
+    });
+
+    if (filteredData.length === 0) {
+        container.innerHTML = `
+            <h3 class="report-section-title !mb-6 !pb-3">${roomType} / ${bathrooms !== 'null' ? `${bathrooms}衛` : '衛浴未分'} 詳細資料</h3>
+            <p class="text-center text-gray-500 mt-4">沒有找到符合條件的原始交易資料。</p>
+        `;
+        return;
+    }
+
+    const projectNames = [...new Set(filteredData.map(item => item.project_name))];
+    const totalCount = filteredData.length;
+    const areas = filteredData.map(item => item.main_area).filter(a => a && a > 0);
+    const minArea = areas.length > 0 ? Math.min(...areas) : 0;
+    const maxArea = areas.length > 0 ? Math.max(...areas) : 0;
+    const areaRange = areas.length > 0 ? `${ui.formatNumber(minArea, 2)} - ${ui.formatNumber(maxArea, 2)} 坪` : '無資料';
+
+    container.innerHTML = `
+        <h3 class="report-section-title !mb-6 !pb-3">
+            ${roomType} / ${bathrooms !== 'null' ? `${bathrooms}衛` : '衛浴未分'} 詳細資料
+        </h3>
+        <ul class="details-list">
+            <li class="details-list-item">
+                <span class="details-list-label">總交易筆數</span>
+                <span class="details-list-value">${totalCount} 筆</span>
+            </li>
+            <li class="details-list-item">
+                <span class="details-list-label">主建物坪數範圍</span>
+                <span class="details-list-value">${areaRange}</span>
+            </li>
+            <li class="details-list-item">
+                <span class="details-list-label">相關建案</span>
+                <span class="details-list-value">
+                    <div class="project-name-list">
+                        ${projectNames.map(name => `<span>${name}</span>`).join('')}
+                    </div>
+                </span>
+            </li>
+        </ul>
+    `;
 }
