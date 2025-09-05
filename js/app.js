@@ -22,6 +22,7 @@ import {
     handleGlobalClick,
     switchAverageType,
     handlePriceBandRoomFilterClick,
+    handlePriceBandDetailsClick, // --- 新增匯入 ---
     handleVelocityRoomFilterClick,
     handleVelocitySubTabClick,
     handleHeatmapMetricToggle,
@@ -154,6 +155,8 @@ function initialize() {
     
     // --- 去化分析與垂直水平分析相關事件 ---
     dom.priceBandRoomFilterContainer.addEventListener('click', handlePriceBandRoomFilterClick);
+    dom.priceBandReportContent.addEventListener('click', handlePriceBandDetailsClick); // --- 新增事件綁定 ---
+
     dom.velocityRoomFilterContainer.addEventListener('click', handleVelocityRoomFilterClick);
     dom.velocitySubTabsContainer.addEventListener('click', handleVelocitySubTabClick);
     dom.priceGridProjectFilterContainer.addEventListener('click', handlePriceGridProjectFilterClick);
