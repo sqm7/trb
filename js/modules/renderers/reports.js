@@ -308,18 +308,27 @@ export function renderPriceGridAnalysis() {
 export function renderPriceBandDetails(roomType, bathrooms) {
     const container = dom.priceBandDetailsContainer;
     if (!container) return;
+    
+    // --- 偵錯指令 1 ---
+    console.log(`[Renderer] 函式被呼叫。收到的參數: 房型=${roomType}, 衛浴=${bathrooms}`);
 
-    if (!roomType || bathrooms === null || !state.analysisDataCache.rawData) {
+    if (!roomType || bathrooms === null || !state.analysisDataCache || !state.analysisDataCache.rawData) {
         container.innerHTML = `<div class="flex items-center justify-center h-full"><p class="text-center text-gray-500">點擊左側 <i class="fas fa-chart-bar mx-1"></i> 按鈕<br>查看房型詳細資訊</p></div>`;
         return;
     }
     
+    // --- 偵錯指令 2 ---
+    if (state.analysisDataCache.rawData.length > 0) {
+        console.log('[Renderer] 用來比對的第一筆原始資料:', state.analysisDataCache.rawData[0]);
+    }
+
     const filteredData = state.analysisDataCache.rawData.filter(item => {
-        // ▼▼▼ 唯一的修改點在這裡 ▼▼▼
-        // 將 item.layout_bath (可能是 null 或數字) 轉換為字串，再與來自 data attribute 的 bathrooms (字串) 進行比較
         const bathroomMatch = String(item.layout_bath) === String(bathrooms);
         return item.room_type_group === roomType && bathroomMatch;
     });
+
+    // --- 偵錯指令 3 ---
+    console.log(`[Renderer] 篩選完成。共找到 ${filteredData.length} 筆符合條件的資料。`);
 
     if (filteredData.length === 0) {
         container.innerHTML = `
