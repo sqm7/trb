@@ -8,33 +8,6 @@ import { renderVelocityTable } from './tables.js';
 import { renderAreaHeatmap, renderSalesVelocityChart, renderPriceBandChart, renderRankingChart } from './charts.js';
 import { displayCurrentPriceGrid } from './heatmap.js';
 
-// --- 新增開始：從後端複製的房型分組邏輯 ---
-/**
- * 在前端重建 room_type_group 欄位，以彌補後端資料處理的缺陷。
- * @param {object} item - 一筆交易紀錄
- * @returns {string} - 該筆紀錄所屬的房型分組
- */
-function getRoomTypeGroupOnFrontend(item) {
-    if (['店面(店鋪)', '店舖'].includes(item.building_type)) return '店舖';
-    if (['辦公商業大樓', '辦公'].includes(item.building_type)) return '辦公/事務所';
-    if (['工廠', '倉庫', '廠辦'].includes(item.building_type)) return '廠辦/工廠';
-    if (item.building_type === '其他') return '其他';
-    if (item.main_use === '住商用' && item.layout_room === 0) return '毛胚';
-
-    switch (item.layout_room) {
-        case 0: return '毛胚';
-        case 1:
-            return item.building_type === '套房(1房(1廳)1衛)' ? '套房' : '1房';
-        case 2: return '2房';
-        case 3: return '3房';
-        case 4: return '4房';
-        default:
-            return item.layout_room >= 5 ? '5房以上' : '其他';
-    }
-}
-// --- 新增結束 ---
-
-
 function renderStatsBlock(stats, averageType, tableContainerId, extraInfoContainerId, noDataMessage) {
     const tableContainer = document.getElementById(tableContainerId);
     const extraInfoContainer = document.getElementById(extraInfoContainerId);
@@ -341,20 +314,11 @@ export function renderPriceBandDetails(roomType, bathrooms) {
         return;
     }
     
-    const transactionData = state.analysisDataCache.transactionDetails;
-
-    // ▼▼▼ 最終修正點 ▼▼▼
-    // 檢查 transactionData 的第一筆資料是否缺少 room_type_group 欄位。
-    // 如果缺少，就表示後端傳來的資料不完整，我們需要在前端手動把它補上。
-    if (transactionData.length > 0 && typeof transactionData[0].room_type_group === 'undefined') {
-        transactionData.forEach(item => {
-            item.room_type_group = getRoomTypeGroupOnFrontend(item);
-        });
-    }
-
-    const filteredData = transactionData.filter(item => {
-        // 現在可以保證 item.room_type_group 和 item.layout_bath 欄位一定存在
+    const filteredData = state.analysisDataCache.transactionDetails.filter(item => {
+        // ▼▼▼ 最終修正點 ▼▼▼
+        // A 表格的 'roomType' 對應 transactionDetails 的 'room_type_group'
         const roomMatch = item.room_type_group === roomType;
+        // A 表格的 'bathrooms' 對應 transactionDetails 的 'layout_bath'
         const bathroomMatch = String(item.layout_bath) === String(bathrooms);
         return roomMatch && bathroomMatch;
     });
