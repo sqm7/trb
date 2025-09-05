@@ -8,7 +8,12 @@ import { renderVelocityTable } from './tables.js';
 import { renderAreaHeatmap, renderSalesVelocityChart, renderPriceBandChart, renderRankingChart } from './charts.js';
 import { displayCurrentPriceGrid } from './heatmap.js';
 
-// --- 從後端複製並改寫的房型分組邏輯 ---
+// --- 新增開始：從後端複製並改寫的房型分組邏輯 ---
+/**
+ * @description 根據後端 analysis-engine.ts 的邏輯，在前端為交易紀錄進行房型分類。
+ * @param {object} record - 一筆交易資料，需包含 建物型態, 主要用途, 房數, 房屋面積(坪) 等欄位。
+ * @returns {string} - 分類後的房型名稱。
+ */
 function getRoomTypeGroupOnFrontend(record) {
     const buildingType = record['建物型態'] || '';
     const mainPurpose = record['主要用途'] || '';
@@ -38,6 +43,7 @@ function getRoomTypeGroupOnFrontend(record) {
     
     return '其他';
 }
+// --- 新增結束 ---
 
 
 function renderStatsBlock(stats, averageType, tableContainerId, extraInfoContainerId, noDataMessage) {
@@ -346,39 +352,17 @@ export function renderPriceBandDetails(roomType, bathrooms) {
         return;
     }
     
-    // --- 偵錯指令 1: 檢查 transactionDetails 是否存在，並顯示第一筆資料的結構 ---
-    console.log("--- 開始偵錯 ---");
-    console.log("收到的篩選條件: ", { roomType, bathrooms });
-    if (state.analysisDataCache.transactionDetails && state.analysisDataCache.transactionDetails.length > 0) {
-        console.log("用來篩選的第一筆原始資料: ", state.analysisDataCache.transactionDetails[0]);
-    } else {
-        console.log("錯誤: 找不到 transactionDetails 或其為空陣列。");
-    }
-
-    const filteredData = state.analysisDataCache.transactionDetails.filter((item, index) => {
-        // --- 偵錯指令 2: 在迴圈中，印出每一筆資料的比對過程 ---
+    const filteredData = state.analysisDataCache.transactionDetails.filter(item => {
+        // ▼▼▼ 最終修正點 ▼▼▼
+        // 1. 在前端使用與後端完全相同的邏輯，為每一筆原始資料即時計算出它的房型分組
         const itemRoomGroup = getRoomTypeGroupOnFrontend(item);
-        const itemBathrooms = item['衛浴數'];
         
+        // 2. 使用計算出的房型分組，以及正確的衛浴欄位名稱 '衛浴數' 來進行比對
         const roomMatch = itemRoomGroup === roomType;
-        const bathroomMatch = String(itemBathrooms) === String(bathrooms);
-        
-        // 只印出前 5 筆的比對過程，避免洗版
-        if(index < 5) {
-            console.log(`第 ${index+1} 筆比對:
-            - 原始資料房型: ${itemRoomGroup} (來自'${item['建物型態']}', ${item['房數']}房)
-            - 原始資料衛浴: ${itemBathrooms}
-            - -> 房型比對結果: ${roomMatch} ('${itemRoomGroup}' === '${roomType}')
-            - -> 衛浴比對結果: ${bathroomMatch} ('${String(itemBathrooms)}' === '${String(bathrooms)}')
-            - ==> ${roomMatch && bathroomMatch ? '符合' : '不符合'}`);
-        }
+        const bathroomMatch = String(item['衛浴數']) === String(bathrooms);
         
         return roomMatch && bathroomMatch;
     });
-    
-    // --- 偵錯指令 3: 顯示最終篩選結果 ---
-    console.log(`篩選完成，共找到 ${filteredData.length} 筆資料。`);
-    console.log("--- 偵錯結束 ---");
 
     if (filteredData.length === 0) {
         container.innerHTML = `
@@ -390,6 +374,7 @@ export function renderPriceBandDetails(roomType, bathrooms) {
 
     const projectNames = [...new Set(filteredData.map(item => item['建案名稱']))];
     const totalCount = filteredData.length;
+    // 使用 '房屋面積(坪)' 這個中文鍵名
     const areas = filteredData.map(item => item['房屋面積(坪)']).filter(a => a && a > 0);
     const minArea = areas.length > 0 ? Math.min(...areas) : 0;
     const maxArea = areas.length > 0 ? Math.max(...areas) : 0;
