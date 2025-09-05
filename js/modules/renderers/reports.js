@@ -342,39 +342,48 @@ export function renderPriceGridAnalysis() {
     }
 }
 
+// ▼▼▼ 【 最終且唯一的修正點 】 ▼▼▼
 export function renderPriceBandDetails(roomType, bathrooms) {
     const container = dom.priceBandDetailsContainer;
     if (!container) return;
 
-    if (!roomType || bathrooms === undefined || !state.analysisDataCache || !state.analysisDataCache.transactionDetails) {
+    // 當沒有傳入 roomType 時，顯示初始提示訊息
+    if (!roomType) {
         container.innerHTML = `<div class="flex items-center justify-center h-full"><p class="text-center text-gray-500">點擊左側 <i class="fas fa-chart-bar mx-1"></i> 按鈕<br>查看房型詳細資訊</p></div>`;
         return;
     }
+
+    // 檢查是否有分析資料
+    if (!state.analysisDataCache || !state.analysisDataCache.transactionDetails) {
+        container.innerHTML = `<p class="text-center text-gray-500 mt-4">缺少必要的分析資料，無法顯示詳情。</p>`;
+        return;
+    }
     
-    // ▼▼▼ 【 最終修正點 】 ▼▼▼
+    // 【 修正後的篩選邏輯 】
     const filteredData = state.analysisDataCache.transactionDetails.filter(item => {
         // 1. 使用與後端完全相同的邏輯，為每一筆原始資料即時計算出它的房型分組
         const itemRoomGroup = getRoomTypeGroupOnFrontend(item);
         
         // 2. 檢查房型是否匹配，這是最基本的要求
-        const roomMatch = itemRoomGroup === roomType;
+        if (itemRoomGroup !== roomType) {
+            return false;
+        }
 
         // 3. 根據 bathrooms 的值決定篩選邏輯
         // 後端對於「店舖」等類型，回傳的 bathrooms 是 `null`。
         // 當它被放到按鈕的 data-bathrooms 時，會變成字串 "null"。
         if (String(bathrooms) === 'null') {
-            // 如果 bathrooms 是 'null'，代表我們只關心房型，因此只回傳 roomMatch 的結果
-            return roomMatch;
+            // 如果 bathrooms 是 'null'，代表我們只關心房型，房型已匹配成功，所以回傳 true
+            return true;
         } 
         else {
-            // 否則 (bathrooms 是一個數字)，我們需要同時比對房型和衛浴數量
+            // 否則 (bathrooms 是一個數字)，我們需要同時比對衛浴數量
             // 後端邏輯是 `record['衛浴數'] || 0`，這裡也同步
             const itemBathrooms = item['衛浴數'] || 0;
-            const bathroomMatch = String(itemBathrooms) === String(bathrooms);
-            return roomMatch && bathroomMatch;
+            return String(itemBathrooms) === String(bathrooms);
         }
     });
-    // ▲▲▲ 【 修正結束 】 ▲▲▲
+    // 【 修正結束 】
 
     if (filteredData.length === 0) {
         container.innerHTML = `
@@ -386,7 +395,6 @@ export function renderPriceBandDetails(roomType, bathrooms) {
 
     const projectNames = [...new Set(filteredData.map(item => item['建案名稱']))];
     const totalCount = filteredData.length;
-    // 使用 '房屋面積(坪)' 這個中文鍵名
     const areas = filteredData.map(item => item['房屋面積(坪)']).filter(a => a && a > 0);
     const minArea = areas.length > 0 ? Math.min(...areas) : 0;
     const maxArea = areas.length > 0 ? Math.max(...areas) : 0;
