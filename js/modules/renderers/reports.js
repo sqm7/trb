@@ -357,7 +357,7 @@ export function renderPriceBandDetails(roomType, bathrooms) {
         // 1. 在前端使用與後端完全相同的邏輯，為每一筆原始資料即時計算出它的房型分組
         const itemRoomGroup = getRoomTypeGroupOnFrontend(item);
         
-        // 2. 使用計算出的房型分組，以及正確的衛浴欄位名稱來進行比對
+        // 2. 使用計算出的房型分組，以及正確的衛浴欄位名稱 '衛浴數' 來進行比對
         const roomMatch = itemRoomGroup === roomType;
         const bathroomMatch = String(item['衛浴數']) === String(bathrooms);
         
@@ -374,6 +374,7 @@ export function renderPriceBandDetails(roomType, bathrooms) {
 
     const projectNames = [...new Set(filteredData.map(item => item['建案名稱']))];
     const totalCount = filteredData.length;
+    // 使用 '房屋面積(坪)' 這個中文鍵名
     const areas = filteredData.map(item => item['房屋面積(坪)']).filter(a => a && a > 0);
     const minArea = areas.length > 0 ? Math.min(...areas) : 0;
     const maxArea = areas.length > 0 ? Math.max(...areas) : 0;
