@@ -1,4 +1,4 @@
-// js/app.js (最終修正版，適配所有拆分後的模組)
+// js/app.js (最終修正版，適配所有拆分後的模組)f
 
 import { districtData } from './modules/config.js';
 import * as api from './modules/api.js';
