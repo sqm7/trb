@@ -11,14 +11,14 @@ import { displayCurrentPriceGrid } from './heatmap.js';
 // --- 新增開始：從後端複製並改寫的房型分組邏輯 ---
 /**
  * @description 根據後端 analysis-engine.ts 的邏輯，在前端為交易紀錄進行房型分類。
- * @param {object} record - 一筆交易資料，需包含 building_type, main_use, layout_room 等欄位。
+ * @param {object} record - 一筆交易資料，需包含 建物型態, 主要用途, 房數, 房屋面積(坪) 等欄位。
  * @returns {string} - 分類後的房型名稱。
  */
 function getRoomTypeGroupOnFrontend(record) {
-    const buildingType = record.building_type || '';
-    const mainPurpose = record.main_use || '';
-    const rooms = record.layout_room;
-    const houseArea = record.main_area;
+    const buildingType = record['建物型態'] || '';
+    const mainPurpose = record['主要用途'] || '';
+    const rooms = record['房數'];
+    const houseArea = record['房屋面積(坪)'];
 
     // 第一優先級：特殊商業用途
     if (buildingType.includes('店舖') || buildingType.includes('店面')) return '店舖';
@@ -31,7 +31,7 @@ function getRoomTypeGroupOnFrontend(record) {
         if (houseArea > 35) return '毛胚';
         if (houseArea <= 35) return '套房';
     }
-
+    
     // 第三優先級：標準住宅房型
     if (typeof rooms === 'number' && !isNaN(rooms)) {
         if (rooms === 1) return '1房';
@@ -359,7 +359,7 @@ export function renderPriceBandDetails(roomType, bathrooms) {
         
         // 2. 使用計算出的房型分組，以及正確的衛浴欄位名稱來進行比對
         const roomMatch = itemRoomGroup === roomType;
-        const bathroomMatch = String(item.layout_bath) === String(bathrooms);
+        const bathroomMatch = String(item['衛浴數']) === String(bathrooms);
         
         return roomMatch && bathroomMatch;
     });
@@ -372,9 +372,9 @@ export function renderPriceBandDetails(roomType, bathrooms) {
         return;
     }
 
-    const projectNames = [...new Set(filteredData.map(item => item.project_name))];
+    const projectNames = [...new Set(filteredData.map(item => item['建案名稱']))];
     const totalCount = filteredData.length;
-    const areas = filteredData.map(item => item.main_area).filter(a => a && a > 0);
+    const areas = filteredData.map(item => item['房屋面積(坪)']).filter(a => a && a > 0);
     const minArea = areas.length > 0 ? Math.min(...areas) : 0;
     const maxArea = areas.length > 0 ? Math.max(...areas) : 0;
     const areaRange = areas.length > 0 ? `${ui.formatNumber(minArea, 2)} - ${ui.formatNumber(maxArea, 2)} 坪` : '無資料';
