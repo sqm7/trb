@@ -18,30 +18,30 @@ function getRoomTypeGroupOnFrontend(record) {
     const buildingType = record.building_type || '';
     const mainPurpose = record.main_use || '';
     const rooms = record.layout_room;
+    const houseArea = record.main_area;
 
     // 第一優先級：特殊商業用途
     if (buildingType.includes('店舖') || buildingType.includes('店面')) return '店舖';
     if (buildingType.includes('工廠') || buildingType.includes('倉庫') || buildingType.includes('廠辦')) return '廠辦/工廠';
     if (mainPurpose.includes('商業') || buildingType.includes('辦公') || buildingType.includes('事務所')) return '辦公/事務所';
 
-    // 根據後端邏輯，'其他' 類型的優先級較高
-    if (buildingType === '其他') return '其他';
-    
-    // '住商用' 且 0 房視為 '毛胚'
-    if (mainPurpose === '住商用' && rooms === 0) return '毛胚';
-    
-    // 第三優先級：標準住宅房型
-    switch (rooms) {
-        case 0: return '毛胚';
-        case 1:
-            // 根據後端邏輯，'套房(1房(1廳)1衛)' 類型會被特別歸類為 '套房'
-            return buildingType === '套房(1房(1廳)1衛)' ? '套房' : '1房';
-        case 2: return '2房';
-        case 3: return '3房';
-        case 4: return '4房';
-        default:
-            return rooms >= 5 ? '5房以上' : '其他';
+    // 第二優先級：特殊住宅格局 (0房)
+    const isResidentialBuilding = buildingType.includes('住宅大樓') || buildingType.includes('華廈');
+    if (isResidentialBuilding && rooms === 0) {
+        if (houseArea > 35) return '毛胚';
+        if (houseArea <= 35) return '套房';
     }
+
+    // 第三優先級：標準住宅房型
+    if (typeof rooms === 'number' && !isNaN(rooms)) {
+        if (rooms === 1) return '1房';
+        if (rooms === 2) return '2房';
+        if (rooms === 3) return '3房';
+        if (rooms === 4) return '4房';
+        if (rooms >= 5) return '5房以上';
+    }
+    
+    return '其他';
 }
 // --- 新增結束 ---
 
