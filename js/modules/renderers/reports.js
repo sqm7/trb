@@ -8,7 +8,7 @@ import { renderVelocityTable } from './tables.js';
 import { renderAreaHeatmap, renderSalesVelocityChart, renderPriceBandChart, renderRankingChart } from './charts.js';
 import { displayCurrentPriceGrid } from './heatmap.js';
 
-// --- 新增開始：從後端複製並改寫的房型分組邏輯 ---
+// --- 從後端複製並改寫的房型分組邏輯 ---
 /**
  * @description 根據後端 analysis-engine.ts 的邏輯，在前端為交易紀錄進行房型分類。
  * @param {object} record - 一筆交易資料，需包含 建物型態, 主要用途, 房數, 房屋面積(坪) 等欄位。
@@ -43,7 +43,6 @@ function getRoomTypeGroupOnFrontend(record) {
     
     return '其他';
 }
-// --- 新增結束 ---
 
 
 function renderStatsBlock(stats, averageType, tableContainerId, extraInfoContainerId, noDataMessage) {
@@ -352,30 +351,34 @@ export function renderPriceBandDetails(roomType, bathrooms) {
         return;
     }
     
-    // --- 修改開始 ---
+    // ▼▼▼ 【 最終修正點 】 ▼▼▼
     const filteredData = state.analysisDataCache.transactionDetails.filter(item => {
-        // 1. 使用與後端相同的邏輯，為每一筆原始資料即時計算出它的房型分組
+        // 1. 使用與後端完全相同的邏輯，為每一筆原始資料即時計算出它的房型分組
         const itemRoomGroup = getRoomTypeGroupOnFrontend(item);
         
-        // 2. 檢查房型是否匹配
+        // 2. 檢查房型是否匹配，這是最基本的要求
         const roomMatch = itemRoomGroup === roomType;
 
         // 3. 根據 bathrooms 的值決定篩選邏輯
-        // 當 button 傳來的 bathrooms 是 'null' (例如「店舖」)，我們只比對房型
+        // 後端對於「店舖」等類型，回傳的 bathrooms 是 `null`。
+        // 當它被放到按鈕的 data-bathrooms 時，會變成字串 "null"。
         if (String(bathrooms) === 'null') {
+            // 如果 bathrooms 是 'null'，代表我們只關心房型，因此只回傳 roomMatch 的結果
             return roomMatch;
         } 
-        // 否則，我們需要同時比對房型和衛浴數量
         else {
-            const bathroomMatch = String(item['衛浴數']) === String(bathrooms);
+            // 否則 (bathrooms 是一個數字)，我們需要同時比對房型和衛浴數量
+            // 後端邏輯是 `record['衛浴數'] || 0`，這裡也同步
+            const itemBathrooms = item['衛浴數'] || 0;
+            const bathroomMatch = String(itemBathrooms) === String(bathrooms);
             return roomMatch && bathroomMatch;
         }
     });
-    // --- 修改結束 ---
+    // ▲▲▲ 【 修正結束 】 ▲▲▲
 
     if (filteredData.length === 0) {
         container.innerHTML = `
-            <h3 class="report-section-title !mb-6 !pb-3">${roomType} / ${bathrooms !== 'null' ? `${bathrooms}衛` : '衛浴未分'} 詳細資料</h3>
+            <h3 class="report-section-title !mb-6 !pb-3">${roomType} / ${String(bathrooms) !== 'null' ? `${bathrooms}衛` : '衛浴未分'} 詳細資料</h3>
             <p class="text-center text-gray-500 mt-4">沒有找到符合條件的原始交易資料。</p>
         `;
         return;
@@ -391,7 +394,7 @@ export function renderPriceBandDetails(roomType, bathrooms) {
 
     container.innerHTML = `
         <h3 class="report-section-title !mb-6 !pb-3">
-            ${roomType} / ${bathrooms !== 'null' ? `${bathrooms}衛` : '衛浴未分'} 詳細資料
+            ${roomType} / ${String(bathrooms) !== 'null' ? `${bathrooms}衛` : '衛浴未分'} 詳細資料
         </h3>
         <ul class="details-list">
             <li class="details-list-item">
