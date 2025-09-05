@@ -317,8 +317,8 @@ export function renderPriceBandDetails(roomType, bathrooms) {
     const filteredData = state.analysisDataCache.transactionDetails.filter(item => {
         // ▼▼▼ 最終修正點 ▼▼▼
         const roomMatch = item.room_type_group === roomType;
-        // 後端 transactionDetails 使用的衛浴欄位是 bathrooms
-        const bathroomMatch = String(item.bathrooms) === String(bathrooms);
+        // 後端 transactionDetails 使用的衛浴欄位是 layout_bath
+        const bathroomMatch = String(item.layout_bath) === String(bathrooms);
         return roomMatch && bathroomMatch;
     });
 
