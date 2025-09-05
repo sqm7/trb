@@ -133,7 +133,6 @@ export function renderPriceBandReport() {
         return (a.bathrooms || 0) - (b.bathrooms || 0);
     });
     
-    // --- 修改開始 ---
     const tableHeaders = ['詳情', '房型', '衛浴', '筆數', '平均總價(萬)', '最低總價(萬)', '1/4位總價(萬)', '中位數總價(萬)', '3/4位總價(萬)', '最高總價(萬)'];
 
     let headerHtml = '<thead><tr>' + tableHeaders.map(h => `<th class="${h === '詳情' ? 'text-center' : ''}">${h}</th>`).join('') + '</tr></thead>';
@@ -165,10 +164,8 @@ export function renderPriceBandReport() {
     bodyHtml += '</tbody>';
     dom.priceBandTable.innerHTML = headerHtml + bodyHtml;
 
-    // Render chart and initial details view
     renderPriceBandChart();
-    renderPriceBandDetails(null, null); // Render empty state initially
-    // --- 修改結束 ---
+    renderPriceBandDetails(null, null);
 }
 
 
@@ -308,7 +305,6 @@ export function renderPriceGridAnalysis() {
     }
 }
 
-// --- 新增函式 ---
 export function renderPriceBandDetails(roomType, bathrooms) {
     const container = dom.priceBandDetailsContainer;
     if (!container) return;
@@ -317,9 +313,11 @@ export function renderPriceBandDetails(roomType, bathrooms) {
         container.innerHTML = `<div class="flex items-center justify-center h-full"><p class="text-center text-gray-500">點擊左側 <i class="fas fa-chart-bar mx-1"></i> 按鈕<br>查看房型詳細資訊</p></div>`;
         return;
     }
-
+    
     const filteredData = state.analysisDataCache.rawData.filter(item => {
-        const bathroomMatch = (item.layout_bath === null && bathrooms === 'null') || (item.layout_bath == bathrooms);
+        // ▼▼▼ 唯一的修改點在這裡 ▼▼▼
+        // 將 item.layout_bath (可能是 null 或數字) 轉換為字串，再與來自 data attribute 的 bathrooms (字串) 進行比較
+        const bathroomMatch = String(item.layout_bath) === String(bathrooms);
         return item.room_type_group === roomType && bathroomMatch;
     });
 
