@@ -352,24 +352,37 @@ export function renderPriceBandDetails(roomType, bathrooms) {
         return;
     }
     
-    const filteredData = state.analysisDataCache.transactionDetails.filter(item => {
-        // 檢查房型是否匹配
-        const itemRoomGroup = getRoomTypeGroupOnFrontend(item);
-        if (itemRoomGroup !== roomType) return false;
+    // --- ▼▼▼ 檢查碼 & 修正邏輯 開始 ▼▼▼ ---
+    console.log(`--- 開始篩選詳細資料 ---`);
+    console.log(`按鈕點擊的房型: ${roomType}, 衛浴數: ${bathrooms} (類型: ${typeof bathrooms})`);
+    console.log(`總共有 ${state.analysisDataCache.transactionDetails.length} 筆原始交易資料可供篩選。`);
 
-        // 檢查衛浴數是否匹配 (核心修正點)
-        // 來自 data- attribute 的 bathrooms 是字串 ("0", "1", "null")
-        if (String(bathrooms) === 'null') {
-            // 如果目標是 'null' (例如 "店舖")，則房型匹配就足夠了
-            return true;
+    const filteredData = state.analysisDataCache.transactionDetails.filter(item => {
+        const itemRoomGroup = getRoomTypeGroupOnFrontend(item);
+        const roomMatch = itemRoomGroup === roomType;
+        if (!roomMatch) return false;
+
+        const clickedBathroomsStr = String(bathrooms);
+        const itemBathroomsValue = item['衛浴數'];
+        let bathroomMatch = false;
+
+        if (clickedBathroomsStr === 'null') {
+            bathroomMatch = itemBathroomsValue === null || typeof itemBathroomsValue === 'undefined';
         } else {
-            // 否則，將 item 的衛浴數 (可能是 null, 0, 1, 2...) 與目標衛浴數進行比較
-            // 關鍵：將 item 的 null 或 undefined 衛浴數視為 0，以匹配後端的分組邏輯
-            const itemBathrooms = item['衛浴數'] === null || typeof item['衛浴數'] === 'undefined' ? 0 : item['衛浴數'];
-            const targetBathrooms = parseInt(bathrooms, 10);
-            return itemBathrooms === targetBathrooms;
+            const targetBathrooms = parseInt(clickedBathroomsStr, 10);
+            if (targetBathrooms === 0) {
+                // 如果點擊的是 "0衛"，則原始資料中為 0 或 null 的都算
+                bathroomMatch = itemBathroomsValue === 0 || itemBathroomsValue === null || typeof itemBathroomsValue === 'undefined';
+            } else {
+                // 如果點擊的是 "1衛", "2衛" 等，則嚴格匹配
+                bathroomMatch = itemBathroomsValue === targetBathrooms;
+            }
         }
+        return bathroomMatch;
     });
+
+    console.log(`篩選完畢，找到 ${filteredData.length} 筆符合條件的資料。`);
+    // --- ▲▲▲ 檢查碼 & 修正邏輯 結束 ▲▲▲ ---
 
     if (filteredData.length === 0) {
         container.innerHTML = `
@@ -379,7 +392,7 @@ export function renderPriceBandDetails(roomType, bathrooms) {
         return;
     }
 
-    const projectNames = [...new Set(filteredData.map(item => item['建案名稱']))];
+    const projectNames = [...new Set(filteredData.map(item => item['建案名稱']))].filter(Boolean); // 過濾掉空建案名稱
     const totalCount = filteredData.length;
     const areas = filteredData.map(item => item['房屋面積(坪)']).filter(a => a && a > 0);
     const minArea = areas.length > 0 ? Math.min(...areas) : 0;
@@ -403,7 +416,7 @@ export function renderPriceBandDetails(roomType, bathrooms) {
                 <span class="details-list-label">相關建案</span>
                 <span class="details-list-value">
                     <div class="project-name-list">
-                        ${projectNames.map(name => `<span>${name}</span>`).join('')}
+                        ${projectNames.length > 0 ? projectNames.map(name => `<span>${name}</span>`).join('') : '<span>無特定建案名稱</span>'}
                     </div>
                 </span>
             </li>
