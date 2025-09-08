@@ -1,4 +1,4 @@
-// js/modules/renderers/reports.js
+// js/modules/renderers/reports.js (完整偵錯版)
 
 import { dom } from '../dom.js';
 import { state } from '../state.js';
@@ -342,62 +342,78 @@ export function renderPriceGridAnalysis() {
     }
 }
 
-// ▼▼▼ 【 最終且唯一的修正點 】 ▼▼▼
+// ▼▼▼ 【 這裡是我們植入探針的重點區域 】 ▼▼▼
 export function renderPriceBandDetails(roomType, bathrooms) {
-    const container = dom.priceBandDetailsContainer;
-    if (!container) return;
+    console.log('--- 總價帶詳情報表 (reports.js) 偵錯開始 ---');
+    console.log(`探針 #A: 函式成功接收到參數: roomType="${roomType}", bathrooms="${bathrooms}"`);
 
-    // 當沒有傳入 roomType 時，顯示初始提示訊息
-    if (!roomType) {
-        container.innerHTML = `<div class="flex items-center justify-center h-full"><p class="text-center text-gray-500">點擊左側 <i class="fas fa-chart-bar mx-1"></i> 按鈕<br>查看房型詳細資訊</p></div>`;
+    const container = dom.priceBandDetailsContainer;
+    if (!container) {
+        console.error('探針 #B回報: 致命錯誤！找不到ID為 priceBandDetailsContainer 的DOM元素。');
         return;
     }
 
-    // 檢查是否有分析資料
+    if (!roomType) {
+        container.innerHTML = `<div class="flex items-center justify-center h-full"><p class="text-center text-gray-500">點擊左側 <i class="fas fa-chart-bar mx-1"></i> 按鈕<br>查看房型詳細資訊</p></div>`;
+        console.log('探針 #B回報: 參數 roomType 為空，顯示初始提示訊息。');
+        return;
+    }
+
     if (!state.analysisDataCache || !state.analysisDataCache.transactionDetails) {
         container.innerHTML = `<p class="text-center text-gray-500 mt-4">缺少必要的分析資料，無法顯示詳情。</p>`;
+        console.error('探針 #C回報: 致命錯誤！state.analysisDataCache.transactionDetails 不存在。');
         return;
     }
     
-    // 【 修正後的篩選邏輯 】
+    console.log(`探針 #C回報: 原始交易資料庫 (transactionDetails) 存在，共有 ${state.analysisDataCache.transactionDetails.length} 筆記錄。`);
+    
+    // 取前5筆資料進行抽樣檢查
+    console.log('探針 #D: 抽樣檢查前5筆原始資料:');
+    console.table(state.analysisDataCache.transactionDetails.slice(0, 5));
+
+    let iterationCount = 0;
     const filteredData = state.analysisDataCache.transactionDetails.filter(item => {
-        // 1. 使用與後端完全相同的邏輯，為每一筆原始資料即時計算出它的房型分組
         const itemRoomGroup = getRoomTypeGroupOnFrontend(item);
+        const itemBathrooms = item['衛浴數'] || 0;
+
+        const isRoomMatch = (itemRoomGroup === roomType);
         
-        // 2. 檢查房型是否匹配，這是最基本的要求
-        if (itemRoomGroup !== roomType) {
-            return false;
+        let isBathMatch = false;
+        if (String(bathrooms) === 'null') {
+            isBathMatch = true; // 對於店舖等類型，不檢查衛浴
+        } else {
+            isBathMatch = (String(itemBathrooms) === String(bathrooms));
+        }
+        
+        // 只在篩選的前幾次印出詳細比對過程，避免洗版
+        if(iterationCount < 5) {
+            console.log(`[篩選過程 #${iterationCount + 1}]
+- 目標: {房型: "${roomType}", 衛浴: "${bathrooms}"}
+- 本筆資料: {房型分組: "${itemRoomGroup}", 衛浴數: ${itemBathrooms}}
+- 比對結果: {房型匹配: ${isRoomMatch}, 衛浴匹配: ${isBathMatch}}
+- 最終是否保留: ${isRoomMatch && isBathMatch}`);
+            iterationCount++;
         }
 
-        // 3. 根據 bathrooms 的值決定篩選邏輯
-        // 後端對於「店舖」等類型，回傳的 bathrooms 是 `null`。
-        // 當它被放到按鈕的 data-bathrooms 時，會變成字串 "null"。
-        if (String(bathrooms) === 'null') {
-            // 如果 bathrooms 是 'null'，代表我們只關心房型，房型已匹配成功，所以回傳 true
-            return true;
-        } 
-        else {
-            // 否則 (bathrooms 是一個數字)，我們需要同時比對衛浴數量
-            // 後端邏輯是 `record['衛浴數'] || 0`，這裡也同步
-            const itemBathrooms = item['衛浴數'] || 0;
-            return String(itemBathrooms) === String(bathrooms);
-        }
+        return isRoomMatch && isBathMatch;
     });
-    // 【 修正結束 】
+
+    console.log(`探針 #E回報: 篩選完成，最終找到 ${filteredData.length} 筆符合條件的資料。`);
 
     if (filteredData.length === 0) {
         container.innerHTML = `
             <h3 class="report-section-title !mb-6 !pb-3">${roomType} / ${String(bathrooms) !== 'null' ? `${bathrooms}衛` : '衛浴未分'} 詳細資料</h3>
             <p class="text-center text-gray-500 mt-4">沒有找到符合條件的原始交易資料。</p>
         `;
+        console.log('探針 #F回報: 因找不到資料，已顯示「沒有找到資料」的訊息。');
         return;
     }
 
     const projectNames = [...new Set(filteredData.map(item => item['建案名稱']))];
     const totalCount = filteredData.length;
     const areas = filteredData.map(item => item['房屋面積(坪)']).filter(a => a && a > 0);
-    const minArea = areas.length > 0 ? Math.min(...areas) : 0;
-    const maxArea = areas.length > 0 ? Math.max(...areas) : 0;
+    const minArea = areas.length > 0 ? Math.min(...areas);
+    const maxArea = areas.length > 0 ? Math.max(...areas);
     const areaRange = areas.length > 0 ? `${ui.formatNumber(minArea, 2)} - ${ui.formatNumber(maxArea, 2)} 坪` : '無資料';
 
     container.innerHTML = `
@@ -423,4 +439,7 @@ export function renderPriceBandDetails(roomType, bathrooms) {
             </li>
         </ul>
     `;
+    console.log('探針 #G回報: 成功渲染詳細資料表格。');
+    console.log('--- reports.js 偵錯結束 ---');
 }
+// ▲▲▲ 【 探針植入結束 】 ▲▲▲
