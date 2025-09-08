@@ -37,11 +37,6 @@ export function switchTab(targetTab) {
     const buttonEl = document.querySelector(`button[data-tab="${targetTab}"]`);
     if(contentEl) contentEl.classList.add('active');
     if(buttonEl) buttonEl.classList.add('active');
-
-    // 這段邏輯因為與 renderAreaHeatmap 耦合，暫時保留在 app.js 中處理
-    // if (targetTab === 'velocity-report' && analysisDataCache) {
-    //     renderAreaHeatmap();
-    // }
 }
 
 export function createPaginationControls(container, totalItems, currentPage, pageSize, onPageChange) {
@@ -119,4 +114,33 @@ export function createPaginationControls(container, totalItems, currentPage, pag
         `;
         document.head.appendChild(style);
     }
+}
+
+// --- NEW FUNCTIONS ADDED HERE ---
+
+/**
+ * 顯示建案列表的彈出視窗
+ * @param {string} title - 視窗標題
+ * @param {string[]} names - 建案名稱陣列
+ */
+export function showBuildingNamesModal(title, names) {
+    dom.buildingNamesModalTitle.textContent = title;
+    
+    if (names && names.length > 0) {
+        const listHtml = names.map(name => 
+            `<li class="py-2 px-3 border-b border-gray-700 last:border-b-0 hover:bg-dark-card rounded-md transition-colors">${name}</li>`
+        ).join('');
+        dom.buildingNamesModalContent.innerHTML = `<ul class="space-y-1">${listHtml}</ul>`;
+    } else {
+        dom.buildingNamesModalContent.innerHTML = '<p class="text-gray-400 text-center py-4">此分類下沒有找到相關建案名稱。</p>';
+    }
+
+    dom.buildingNamesModal.classList.remove('hidden');
+}
+
+/**
+ * 隱藏建案列表的彈出視窗
+ */
+export function hideBuildingNamesModal() {
+    dom.buildingNamesModal.classList.add('hidden');
 }
