@@ -133,14 +133,34 @@ export function renderPriceBandReport() {
         return (a.bathrooms || 0) - (b.bathrooms || 0);
     });
     
-    const tableHeaders = ['房型', '衛浴', '筆數', '平均總價(萬)', '最低總價(萬)', '1/4位總價(萬)', '中位數總價(萬)', '3/4位總價(萬)', '最高總價(萬)'];
+    // --- MODIFIED HERE ---
+    const tableHeaders = ['詳情', '房型', '衛浴', '筆數', '平均總價(萬)', '最低總價(萬)', '1/4位總價(萬)', '中位數總價(萬)', '3/4位總價(萬)', '最高總價(萬)'];
 
     let headerHtml = '<thead><tr>' + tableHeaders.map(h => `<th>${h}</th>`).join('') + '</tr></thead>';
     let bodyHtml = '<tbody>';
 
     if (filteredDataForTable.length > 0) {
         filteredDataForTable.forEach(item => { 
-            bodyHtml += `<tr class="hover:bg-dark-card transition-colors"><td>${item.roomType}</td><td>${item.bathrooms !== null ? item.bathrooms : '-'}</td><td>${item.count.toLocaleString()}</td><td>${ui.formatNumber(item.avgPrice, 0)}</td><td>${ui.formatNumber(item.minPrice, 0)}</td><td>${ui.formatNumber(item.q1Price, 0)}</td><td>${ui.formatNumber(item.medianPrice, 0)}</td><td>${ui.formatNumber(item.q3Price, 0)}</td><td>${ui.formatNumber(item.maxPrice, 0)}</td></tr>`; 
+            const bathroomsData = item.bathrooms !== null ? item.bathrooms : 'null';
+            bodyHtml += `<tr class="hover:bg-dark-card transition-colors">
+                <td class="text-center">
+                    <button class="building-details-btn text-cyan-400 hover:text-cyan-300" 
+                            data-room-type="${item.roomType}" 
+                            data-bathrooms="${bathroomsData}" 
+                            title="查看建案列表">
+                        <i class="fas fa-list-ul"></i>
+                    </button>
+                </td>
+                <td>${item.roomType}</td>
+                <td>${item.bathrooms !== null ? item.bathrooms : '-'}</td>
+                <td>${item.count.toLocaleString()}</td>
+                <td>${ui.formatNumber(item.avgPrice, 0)}</td>
+                <td>${ui.formatNumber(item.minPrice, 0)}</td>
+                <td>${ui.formatNumber(item.q1Price, 0)}</td>
+                <td>${ui.formatNumber(item.medianPrice, 0)}</td>
+                <td>${ui.formatNumber(item.q3Price, 0)}</td>
+                <td>${ui.formatNumber(item.maxPrice, 0)}</td>
+            </tr>`; 
         });
     } else {
         bodyHtml += `<tr><td colspan="${tableHeaders.length}" class="text-center p-4 text-gray-500">請至少選擇一個房型以顯示數據</td></tr>`;
@@ -148,6 +168,7 @@ export function renderPriceBandReport() {
 
     bodyHtml += '</tbody>';
     dom.priceBandTable.innerHTML = headerHtml + bodyHtml;
+    // --- END MODIFICATION ---
 
     renderPriceBandChart();
 }
