@@ -8,44 +8,6 @@ import { renderVelocityTable } from './tables.js';
 import { renderAreaHeatmap, renderSalesVelocityChart, renderPriceBandChart, renderRankingChart } from './charts.js';
 import { displayCurrentPriceGrid } from './heatmap.js';
 
-// --- 新增開始：從後端複製並改寫的房型分組邏輯 ---
-/**
- * @description 根據後端 analysis-engine.ts 的邏輯，在前端為交易紀錄進行房型分類。
- * @param {object} record - 一筆交易資料，需包含 建物型態, 主要用途, 房數, 房屋面積(坪) 等欄位。
- * @returns {string} - 分類後的房型名稱。
- */
-function getRoomTypeGroupOnFrontend(record) {
-    const buildingType = record['建物型態'] || '';
-    const mainPurpose = record['主要用途'] || '';
-    const rooms = record['房數'];
-    const houseArea = record['房屋面積(坪)'];
-
-    // 第一優先級：特殊商業用途
-    if (buildingType.includes('店舖') || buildingType.includes('店面')) return '店舖';
-    if (buildingType.includes('工廠') || buildingType.includes('倉庫') || buildingType.includes('廠辦')) return '廠辦/工廠';
-    if (mainPurpose.includes('商業') || buildingType.includes('辦公') || buildingType.includes('事務所')) return '辦公/事務所';
-
-    // 第二優先級：特殊住宅格局 (0房)
-    const isResidentialBuilding = buildingType.includes('住宅大樓') || buildingType.includes('華廈');
-    if (isResidentialBuilding && rooms === 0) {
-        if (houseArea > 35) return '毛胚';
-        if (houseArea <= 35) return '套房';
-    }
-    
-    // 第三優先級：標準住宅房型
-    if (typeof rooms === 'number' && !isNaN(rooms)) {
-        if (rooms === 1) return '1房';
-        if (rooms === 2) return '2房';
-        if (rooms === 3) return '3房';
-        if (rooms === 4) return '4房';
-        if (rooms >= 5) return '5房以上';
-    }
-    
-    return '其他';
-}
-// --- 新增結束 ---
-
-
 function renderStatsBlock(stats, averageType, tableContainerId, extraInfoContainerId, noDataMessage) {
     const tableContainer = document.getElementById(tableContainerId);
     const extraInfoContainer = document.getElementById(extraInfoContainerId);
@@ -343,77 +305,50 @@ export function renderPriceGridAnalysis() {
     }
 }
 
-// ▼▼▼ 【 最終修正的函式 】 ▼▼▼
+// ▼▼▼ 【 最終修正的函式，符合您的新需求 】 ▼▼▼
 export function renderPriceBandDetails(roomType, bathrooms) {
     const container = dom.priceBandDetailsContainer;
     if (!container) return;
 
-    if (!roomType || !state.analysisDataCache || !state.analysisDataCache.transactionDetails) {
-        container.innerHTML = `<div class="flex items-center justify-center h-full"><p class="text-center text-gray-500">點擊左側 <i class="fas fa-chart-bar mx-1"></i> 按鈕<br>查看房型詳細資訊</p></div>`;
+    // 狀態1: 初始畫面或沒有點擊任何項目
+    if (!roomType) {
+        container.innerHTML = `<div class="flex items-center justify-center h-full"><p class="text-center text-gray-500">點擊左側 <i class="fas fa-chart-bar mx-1"></i> 按鈕<br>查看包含的建案列表</p></div>`;
         return;
     }
     
-    // 從按鈕的 data-bathrooms 傳來的是字串 'null' 或 '2'，需要正確處理
-    const targetBathrooms = bathrooms === 'null' ? null : parseInt(bathrooms, 10);
+    // 根據後端邏輯，組合查詢的 key
     const residentialTypes = ['套房', '1房', '2房', '3房', '4房', '5房以上', '毛胚'];
-
-    const filteredData = state.analysisDataCache.transactionDetails.filter(item => {
-        // 使用與後端完全一致的分類邏輯，來判斷每一筆原始資料屬於哪個房型
-        const itemRoomGroup = getRoomTypeGroupOnFrontend(item);
-        
-        // 如果點擊的是住宅類型 (需要比對衛浴)
-        if (residentialTypes.includes(roomType)) {
-            // 關鍵邏輯：將原始資料中的 `null` 或 `undefined` 衛浴數視為 0，與後端 `|| 0` 的邏輯同步
-            const itemBathrooms = item['衛浴數'] || 0;
-            const targetBathroomsNormalized = targetBathrooms === null ? 0 : targetBathrooms;
-
-            const roomMatch = itemRoomGroup === roomType;
-            const bathroomMatch = itemBathrooms === targetBathroomsNormalized;
-
-            return roomMatch && bathroomMatch;
-        } else {
-            // 如果點擊的是非住宅類型 (店舖、辦公室等)，則只比對房型分組
-            return itemRoomGroup === roomType;
-        }
-    });
-
-    if (filteredData.length === 0) {
-        container.innerHTML = `
-            <h3 class="report-section-title !mb-6 !pb-3">${roomType} / ${bathrooms !== 'null' ? `${bathrooms}衛` : '不分衛浴'} 詳細資料</h3>
-            <p class="text-center text-gray-500 mt-4">沒有找到符合條件的原始交易資料。</p>
-        `;
-        return;
+    let key;
+    if (residentialTypes.includes(roomType)) {
+        // 從 data- attribute 來的 bathrooms 是字串 'null' 或 '2'
+        const bathroomsNum = bathrooms === 'null' ? 0 : parseInt(bathrooms, 10);
+        key = `${roomType}-${bathroomsNum}`;
+    } else {
+        key = roomType;
     }
 
-    const projectNames = [...new Set(filteredData.map(item => item['建案名稱']))].filter(Boolean);
-    const totalCount = filteredData.length;
-    const areas = filteredData.map(item => item['房屋面積(坪)']).filter(a => typeof a === 'number' && a > 0);
-    const minArea = areas.length > 0 ? Math.min(...areas) : 0;
-    const maxArea = areas.length > 0 ? Math.max(...areas) : 0;
-    const areaRange = areas.length > 0 ? `${ui.formatNumber(minArea, 2)} - ${ui.formatNumber(maxArea, 2)} 坪` : '無資料';
+    // 從預先建立好的 Map 中直接查找建案列表
+    const projectSet = state.priceBandProjectMap.get(key);
+    const projectNames = projectSet ? Array.from(projectSet).sort() : [];
 
-    container.innerHTML = `
-        <h3 class="report-section-title !mb-6 !pb-3">
-            ${roomType} / ${bathrooms !== 'null' ? `${bathrooms}衛` : '不分衛浴'} 詳細資料
-        </h3>
-        <ul class="details-list">
-            <li class="details-list-item">
-                <span class="details-list-label">總交易筆數</span>
-                <span class="details-list-value">${totalCount} 筆</span>
-            </li>
-            <li class="details-list-item">
-                <span class="details-list-label">房屋坪數範圍</span>
-                <span class="details-list-value">${areaRange}</span>
-            </li>
-            <li class="details-list-item">
-                <span class="details-list-label">相關建案</span>
-                <span class="details-list-value">
-                    <div class="project-name-list">
-                        ${projectNames.length > 0 ? projectNames.map(name => `<span>${name}</span>`).join('') : '<span>無特定建案</span>'}
-                    </div>
-                </span>
-            </li>
-        </ul>
-    `;
+    // 狀態2: 點擊後，顯示建案列表或無資料訊息
+    if (projectNames.length > 0) {
+        container.innerHTML = `
+            <h3 class="report-section-title !mb-6 !pb-3">
+                ${roomType} / ${bathrooms !== 'null' ? `${bathrooms}衛` : '不分衛浴'}
+            </h3>
+            <p class="text-sm text-gray-400 mb-4">此組合包含以下 ${projectNames.length} 個建案：</p>
+            <div class="project-name-list">
+                ${projectNames.map(name => `<span>${name}</span>`).join('')}
+            </div>
+        `;
+    } else {
+        container.innerHTML = `
+            <h3 class="report-section-title !mb-6 !pb-3">
+                ${roomType} / ${bathrooms !== 'null' ? `${bathrooms}衛` : '不分衛浴'}
+            </h3>
+            <p class="text-center text-gray-500 mt-8">在當前篩選條件下，找不到包含此組合的建案。</p>
+        `;
+    }
 }
 // ▲▲▲ 【 修改結束 】 ▲▲▲
