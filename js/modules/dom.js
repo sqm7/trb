@@ -12,12 +12,14 @@ export const dom = {
     districtInputArea: document.getElementById('district-input-area'),
     districtSuggestions: document.getElementById('district-suggestions'),
     clearDistrictsBtn: document.getElementById('clear-districts-btn'),
+    districtFilterWrapper: document.getElementById('district-filter-wrapper'),
 
     // Project Name
     projectNameContainer: document.getElementById('project-name-container'),
     projectNameInput: document.getElementById('project-name-input'),
     projectNameSuggestions: document.getElementById('project-name-suggestions'),
     clearProjectsBtn: document.getElementById('clear-projects-btn'),
+    projectFilterWrapper: document.getElementById('project-filter-wrapper'),
 
     // Other Filters
     typeSelect: document.getElementById('type'),
