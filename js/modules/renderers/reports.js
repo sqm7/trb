@@ -1,5 +1,3 @@
-// js/modules/renderers/reports.js
-
 import { dom } from '../dom.js';
 import { state } from '../state.js';
 import * as ui from '../ui.js';
@@ -133,18 +131,37 @@ export function renderPriceBandReport() {
         return (a.bathrooms || 0) - (b.bathrooms || 0);
     });
     
-    const tableHeaders = ['房型', '衛浴', '筆數', '平均總價(萬)', '最低總價(萬)', '1/4位總價(萬)', '中位數總價(萬)', '3/4位總價(萬)', '最高總價(萬)'];
+    // ===== 修改開始 =====
+    const tableHeaders = ['房型', '衛浴', '筆數', '平均總價(萬)', '最低總價(萬)', '1/4位總價(萬)', '中位數總價(萬)', '3/4位總價(萬)', '最高總價(萬)', '詳情'];
 
     let headerHtml = '<thead><tr>' + tableHeaders.map(h => `<th>${h}</th>`).join('') + '</tr></thead>';
     let bodyHtml = '<tbody>';
 
     if (filteredDataForTable.length > 0) {
         filteredDataForTable.forEach(item => { 
-            bodyHtml += `<tr class="hover:bg-dark-card transition-colors"><td>${item.roomType}</td><td>${item.bathrooms !== null ? item.bathrooms : '-'}</td><td>${item.count.toLocaleString()}</td><td>${ui.formatNumber(item.avgPrice, 0)}</td><td>${ui.formatNumber(item.minPrice, 0)}</td><td>${ui.formatNumber(item.q1Price, 0)}</td><td>${ui.formatNumber(item.medianPrice, 0)}</td><td>${ui.formatNumber(item.q3Price, 0)}</td><td>${ui.formatNumber(item.maxPrice, 0)}</td></tr>`; 
+            bodyHtml += `<tr class="hover:bg-dark-card transition-colors">
+                            <td>${item.roomType}</td>
+                            <td>${item.bathrooms !== null ? item.bathrooms : '-'}</td>
+                            <td>${item.count.toLocaleString()}</td>
+                            <td>${ui.formatNumber(item.avgPrice, 0)}</td>
+                            <td>${ui.formatNumber(item.minPrice, 0)}</td>
+                            <td>${ui.formatNumber(item.q1Price, 0)}</td>
+                            <td>${ui.formatNumber(item.medianPrice, 0)}</td>
+                            <td>${ui.formatNumber(item.q3Price, 0)}</td>
+                            <td>${ui.formatNumber(item.maxPrice, 0)}</td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-primary view-price-band-details-btn" 
+                                        data-room-type="${item.roomType}" 
+                                        data-bathrooms="${item.bathrooms === null ? '' : item.bathrooms}">
+                                   <i class="fas fa-search"></i>
+                                </button>
+                            </td>
+                         </tr>`; 
         });
     } else {
         bodyHtml += `<tr><td colspan="${tableHeaders.length}" class="text-center p-4 text-gray-500">請至少選擇一個房型以顯示數據</td></tr>`;
     }
+    // ===== 修改結束 =====
 
     bodyHtml += '</tbody>';
     dom.priceBandTable.innerHTML = headerHtml + bodyHtml;
@@ -287,3 +304,51 @@ export function renderPriceGridAnalysis() {
         dom.horizontalPriceGridContainer.innerHTML = '<p class="text-gray-500 p-4 text-center">無特定建案資料可供分析。</p>';
     }
 }
+
+
+// ===== 新增函式開始 =====
+/**
+ * 渲染總價帶分析的建案詳情
+ * @param {Array<string> | null} buildingNames - 建案名稱列表，傳入 null 來顯示載入中
+ */
+export function renderPriceBandDetails(buildingNames) {
+    const detailsContainer = dom.priceBandDetailsContainer;
+    if (!detailsContainer) {
+        console.error('#price-band-details-container not found in DOM');
+        return;
+    }
+
+    // 清空並準備顯示
+    detailsContainer.innerHTML = ''; 
+    detailsContainer.classList.remove('hidden');
+
+    const title = document.createElement('h4');
+    title.className = 'text-lg font-bold text-white mb-2';
+    title.textContent = '建案組成列表';
+    detailsContainer.appendChild(title);
+
+    if (buildingNames === null) {
+        const loadingText = document.createElement('p');
+        loadingText.className = 'text-gray-400';
+        loadingText.textContent = '載入中...';
+        detailsContainer.appendChild(loadingText);
+        return;
+    }
+    
+    if (buildingNames.length === 0) {
+        const noDataText = document.createElement('p');
+        noDataText.className = 'text-gray-500';
+        noDataText.textContent = '查無對應的建案名稱。';
+        detailsContainer.appendChild(noDataText);
+    } else {
+        const list = document.createElement('ul');
+        list.className = 'list-disc list-inside text-gray-300 space-y-1';
+        buildingNames.forEach(name => {
+            const listItem = document.createElement('li');
+            listItem.textContent = name;
+            list.appendChild(listItem);
+        });
+        detailsContainer.appendChild(list);
+    }
+}
+// ===== 新增函式結束 =====
