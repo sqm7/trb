@@ -13,35 +13,6 @@ import * as chartRenderer from './renderers/charts.js';
 import * as heatmapRenderer from './renderers/heatmap.js';
 import * as componentRenderer from './renderers/uiComponents.js';
 
-// ▼▼▼ 【 新增函式 】: 這個函式是為了讓 eventHandlers 也能使用 reports.js 中的分類邏輯 ▼▼▼
-function getRoomTypeGroupOnFrontend(record) {
-    const buildingType = record['建物型態'] || '';
-    const mainPurpose = record['主要用途'] || '';
-    const rooms = record['房數'];
-    const houseArea = record['房屋面積(坪)'];
-
-    if (buildingType.includes('店舖') || buildingType.includes('店面')) return '店舖';
-    if (buildingType.includes('工廠') || buildingType.includes('倉庫') || buildingType.includes('廠辦')) return '廠辦/工廠';
-    if (mainPurpose.includes('商業') || buildingType.includes('辦公') || buildingType.includes('事務所')) return '辦公/事務所';
-
-    const isResidentialBuilding = buildingType.includes('住宅大樓') || buildingType.includes('華廈');
-    if (isResidentialBuilding && rooms === 0) {
-        if (houseArea > 35) return '毛胚';
-        if (houseArea <= 35) return '套房';
-    }
-    
-    if (typeof rooms === 'number' && !isNaN(rooms)) {
-        if (rooms === 1) return '1房';
-        if (rooms === 2) return '2房';
-        if (rooms === 3) return '3房';
-        if (rooms === 4) return '4房';
-        if (rooms >= 5) return '5房以上';
-    }
-    
-    return '其他';
-}
-// ▲▲▲ 【 新增結束 】 ▲▲▲
-
 // Main data fetching and analysis functions
 export async function mainFetchData() {
     ui.showLoading('查詢中，請稍候...');
@@ -81,33 +52,9 @@ export async function mainAnalyzeData() {
             return;
         }
 
-        // ▼▼▼ 【 新增核心邏輯 】: 預先處理總價帶與建案的對應關係 ▼▼▼
-        state.priceBandProjectMap.clear(); // 清空舊的資料
-        const residentialTypes = ['套房', '1房', '2房', '3房', '4房', '5房以上', '毛胚'];
-        if (state.analysisDataCache.transactionDetails) {
-            state.analysisDataCache.transactionDetails.forEach(record => {
-                const projectName = record['建案名稱'];
-                if (!projectName) return; // 忽略沒有建案名稱的資料
-
-                const roomGroup = getRoomTypeGroupOnFrontend(record);
-                let key;
-                if (residentialTypes.includes(roomGroup)) {
-                    // 對於住宅類型，使用 "房型-衛浴數" 當 key，並將 null/undefined 的衛浴數視為 0
-                    const bathrooms = record['衛浴數'] || 0;
-                    key = `${roomGroup}-${bathrooms}`;
-                } else {
-                    // 對於非住宅類型，直接使用房型當 key
-                    key = roomGroup;
-                }
-                
-                if (!state.priceBandProjectMap.has(key)) {
-                    state.priceBandProjectMap.set(key, new Set());
-                }
-                state.priceBandProjectMap.get(key).add(projectName);
-            });
-        }
-        // ▲▲▲ 【 新增結束 】 ▲▲▲
-
+        // ▼▼▼ 【 修改核心邏輯 】: 直接接收後端傳來的地圖 ▼▼▼
+        state.priceBandProjectMap = new Map(Object.entries(state.analysisDataCache.priceBandProjectMap || {}));
+        // ▲▲▲ 【 修改結束 】 ▲▲▲
 
         dom.messageArea.classList.add('hidden');
         dom.tabsContainer.classList.remove('hidden');
