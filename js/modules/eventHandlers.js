@@ -1,4 +1,4 @@
-// js/modules/eventHandlers.js
+// js/modules/eventHandlers.js (偵錯版)
 
 import { state, getFilters } from './state.js';
 import { dom } from './dom.js';
@@ -294,14 +294,41 @@ export function handlePriceBandRoomFilterClick(e) {
     reportRenderer.renderPriceBandReport();
 }
 
-export function handlePriceBandDetailsClick(e) {
-    const button = e.target.closest('.price-band-details-button');
-    if (!button) return;
 
+// ▼▼▼ 【 這裡是我們植入探針的重點區域 】 ▼▼▼
+export function handlePriceBandDetailsClick(e) {
+    // 探針 #1: 檢查點擊事件是否被觸發
+    console.log('--- 總價帶詳情按鈕偵錯開始 ---');
+    console.log('探針 #1: handlePriceBandDetailsClick 函式已成功觸發。');
+
+    const button = e.target.closest('.price-band-details-button');
+
+    // 探針 #2: 檢查是否成功捕捉到按鈕元素
+    if (!button) {
+        console.log('探針 #2回報: 偵測失敗。點擊的目標不是詳情按鈕或其子元素。');
+        console.log('--- 偵錯結束 ---');
+        return;
+    }
+    console.log('探針 #2回報: 成功捕捉到詳情按鈕元素:', button);
+
+    // 探針 #3: 讀取按鈕上的 data-* 屬性
     const roomType = button.dataset.roomType;
     const bathrooms = button.dataset.bathrooms;
+    console.log(`探針 #3回報: 從按鈕讀取到
+        - 房型 (roomType): "${roomType}" (類型: ${typeof roomType})
+        - 衛浴 (bathrooms): "${bathrooms}" (類型: ${typeof bathrooms})`);
+
+    // 探針 #4: 準備呼叫核心處理函式
+    console.log('探針 #4: 即將呼叫 reportRenderer.renderPriceBandDetails 函式，並傳入以上參數...');
+    
+    // 呼叫位於 reports.js 的核心函式
     reportRenderer.renderPriceBandDetails(roomType, bathrooms);
+
+    console.log('探針 #5: 已完成呼叫。');
+    console.log('--- 偵錯結束 ---');
 }
+// ▲▲▲ 【 探針植入結束 】 ▲▲▲
+
 
 export function handleVelocityRoomFilterClick(e) {
     const button = e.target.closest('.capsule-btn'); if (!button) return;
