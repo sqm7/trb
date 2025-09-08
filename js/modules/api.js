@@ -131,3 +131,27 @@ export async function generateShareLink(payload) {
     }
     return response.json();
 }
+
+// --- NEW FUNCTION ADDED HERE ---
+export async function getBuildingNamesByType(filters, roomType, bathrooms) {
+    const headers = await getAuthHeaders();
+    if (!headers) throw new Error("認證失敗");
+
+    const payload = {
+        filters,
+        roomType,
+        bathrooms: bathrooms === null ? 0 : bathrooms
+    };
+
+    const response = await fetch(API_ENDPOINTS.GET_BUILDING_NAMES_BY_TYPE, {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) {
+        const err = await response.json().catch(() => ({ error: '查詢建案名稱失敗' }));
+        throw new Error(err.error);
+    }
+    return response.json();
+}
