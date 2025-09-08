@@ -343,33 +343,36 @@ export function renderPriceGridAnalysis() {
     }
 }
 
-// ▼▼▼ 【 唯一修改的函式 】 ▼▼▼
+// ▼▼▼ 【 最終修正的函式 】 ▼▼▼
 export function renderPriceBandDetails(roomType, bathrooms) {
     const container = dom.priceBandDetailsContainer;
     if (!container) return;
 
-    // 如果沒有傳入有效的房型，則顯示預設提示訊息
     if (!roomType || !state.analysisDataCache || !state.analysisDataCache.transactionDetails) {
         container.innerHTML = `<div class="flex items-center justify-center h-full"><p class="text-center text-gray-500">點擊左側 <i class="fas fa-chart-bar mx-1"></i> 按鈕<br>查看房型詳細資訊</p></div>`;
         return;
     }
-
-    // 定義哪些房型需要嚴格匹配衛浴數量
+    
+    // 從按鈕的 data-bathrooms 傳來的是字串 'null' 或 '2'，需要正確處理
+    const targetBathrooms = bathrooms === 'null' ? null : parseInt(bathrooms, 10);
     const residentialTypes = ['套房', '1房', '2房', '3房', '4房', '5房以上', '毛胚'];
 
     const filteredData = state.analysisDataCache.transactionDetails.filter(item => {
-        // 為每一筆原始資料，即時計算出它在總價帶分析中的分類
+        // 使用與後端完全一致的分類邏輯，來判斷每一筆原始資料屬於哪個房型
         const itemRoomGroup = getRoomTypeGroupOnFrontend(item);
         
-        // 判斷當前點擊的房型是否需要比對衛浴數
+        // 如果點擊的是住宅類型 (需要比對衛浴)
         if (residentialTypes.includes(roomType)) {
-            // 如果是住宅類型，則必須同時匹配房型分組和衛浴數
+            // 關鍵邏輯：將原始資料中的 `null` 或 `undefined` 衛浴數視為 0，與後端 `|| 0` 的邏輯同步
+            const itemBathrooms = item['衛浴數'] || 0;
+            const targetBathroomsNormalized = targetBathrooms === null ? 0 : targetBathrooms;
+
             const roomMatch = itemRoomGroup === roomType;
-            // 'bathrooms' 從 data- attribute 來的是字串，'衛浴數' 是數字或 null，需轉換
-            const bathroomMatch = String(item['衛浴數'] || 'null') === String(bathrooms);
+            const bathroomMatch = itemBathrooms === targetBathroomsNormalized;
+
             return roomMatch && bathroomMatch;
         } else {
-            // 如果是非住宅類型 (如店舖、辦公室)，則只匹配房型分組，忽略衛浴數
+            // 如果點擊的是非住宅類型 (店舖、辦公室等)，則只比對房型分組
             return itemRoomGroup === roomType;
         }
     });
