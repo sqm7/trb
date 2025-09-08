@@ -343,66 +343,55 @@ export function renderPriceGridAnalysis() {
     }
 }
 
+// ▼▼▼ 【 唯一修改的函式 】 ▼▼▼
 export function renderPriceBandDetails(roomType, bathrooms) {
     const container = dom.priceBandDetailsContainer;
     if (!container) return;
 
-    if (!roomType || bathrooms === null || !state.analysisDataCache || !state.analysisDataCache.transactionDetails) {
+    // 如果沒有傳入有效的房型，則顯示預設提示訊息
+    if (!roomType || !state.analysisDataCache || !state.analysisDataCache.transactionDetails) {
         container.innerHTML = `<div class="flex items-center justify-center h-full"><p class="text-center text-gray-500">點擊左側 <i class="fas fa-chart-bar mx-1"></i> 按鈕<br>查看房型詳細資訊</p></div>`;
         return;
     }
-    
-    // --- ▼▼▼ 檢查碼 & 修正邏輯 開始 ▼▼▼ ---
-    console.log(`--- 開始篩選詳細資料 ---`);
-    console.log(`按鈕點擊的房型: ${roomType}, 衛浴數: ${bathrooms} (類型: ${typeof bathrooms})`);
-    console.log(`總共有 ${state.analysisDataCache.transactionDetails.length} 筆原始交易資料可供篩選。`);
+
+    // 定義哪些房型需要嚴格匹配衛浴數量
+    const residentialTypes = ['套房', '1房', '2房', '3房', '4房', '5房以上', '毛胚'];
 
     const filteredData = state.analysisDataCache.transactionDetails.filter(item => {
+        // 為每一筆原始資料，即時計算出它在總價帶分析中的分類
         const itemRoomGroup = getRoomTypeGroupOnFrontend(item);
-        const roomMatch = itemRoomGroup === roomType;
-        if (!roomMatch) return false;
-
-        const clickedBathroomsStr = String(bathrooms);
-        const itemBathroomsValue = item['衛浴數'];
-        let bathroomMatch = false;
-
-        if (clickedBathroomsStr === 'null') {
-            // 適用於 "店舖" 等無衛浴數分類的房型
-            bathroomMatch = itemBathroomsValue === null || typeof itemBathroomsValue === 'undefined';
+        
+        // 判斷當前點擊的房型是否需要比對衛浴數
+        if (residentialTypes.includes(roomType)) {
+            // 如果是住宅類型，則必須同時匹配房型分組和衛浴數
+            const roomMatch = itemRoomGroup === roomType;
+            // 'bathrooms' 從 data- attribute 來的是字串，'衛浴數' 是數字或 null，需轉換
+            const bathroomMatch = String(item['衛浴數'] || 'null') === String(bathrooms);
+            return roomMatch && bathroomMatch;
         } else {
-            const targetBathrooms = parseInt(clickedBathroomsStr, 10);
-            if (targetBathrooms === 0) {
-                // 如果點擊的是 "0衛"，則原始資料中為 0 或 null 的都算
-                bathroomMatch = itemBathroomsValue === 0 || itemBathroomsValue === null || typeof itemBathroomsValue === 'undefined';
-            } else {
-                // 如果點擊的是 "1衛", "2衛" 等，則嚴格匹配
-                bathroomMatch = itemBathroomsValue === targetBathrooms;
-            }
+            // 如果是非住宅類型 (如店舖、辦公室)，則只匹配房型分組，忽略衛浴數
+            return itemRoomGroup === roomType;
         }
-        return bathroomMatch;
     });
-
-    console.log(`篩選完畢，找到 ${filteredData.length} 筆符合條件的資料。`);
-    // --- ▲▲▲ 檢查碼 & 修正邏輯 結束 ▲▲▲ ---
 
     if (filteredData.length === 0) {
         container.innerHTML = `
-            <h3 class="report-section-title !mb-6 !pb-3">${roomType} / ${bathrooms !== 'null' ? `${bathrooms}衛` : '衛浴未分'} 詳細資料</h3>
+            <h3 class="report-section-title !mb-6 !pb-3">${roomType} / ${bathrooms !== 'null' ? `${bathrooms}衛` : '不分衛浴'} 詳細資料</h3>
             <p class="text-center text-gray-500 mt-4">沒有找到符合條件的原始交易資料。</p>
         `;
         return;
     }
 
-    const projectNames = [...new Set(filteredData.map(item => item['建案名稱']))].filter(Boolean); // 過濾掉空建案名稱
+    const projectNames = [...new Set(filteredData.map(item => item['建案名稱']))].filter(Boolean);
     const totalCount = filteredData.length;
-    const areas = filteredData.map(item => item['房屋面積(坪)']).filter(a => a && a > 0);
+    const areas = filteredData.map(item => item['房屋面積(坪)']).filter(a => typeof a === 'number' && a > 0);
     const minArea = areas.length > 0 ? Math.min(...areas) : 0;
     const maxArea = areas.length > 0 ? Math.max(...areas) : 0;
     const areaRange = areas.length > 0 ? `${ui.formatNumber(minArea, 2)} - ${ui.formatNumber(maxArea, 2)} 坪` : '無資料';
 
     container.innerHTML = `
         <h3 class="report-section-title !mb-6 !pb-3">
-            ${roomType} / ${bathrooms !== 'null' ? `${bathrooms}衛` : '衛浴未分'} 詳細資料
+            ${roomType} / ${bathrooms !== 'null' ? `${bathrooms}衛` : '不分衛浴'} 詳細資料
         </h3>
         <ul class="details-list">
             <li class="details-list-item">
@@ -417,10 +406,11 @@ export function renderPriceBandDetails(roomType, bathrooms) {
                 <span class="details-list-label">相關建案</span>
                 <span class="details-list-value">
                     <div class="project-name-list">
-                        ${projectNames.length > 0 ? projectNames.map(name => `<span>${name}</span>`).join('') : '<span>無特定建案名稱</span>'}
+                        ${projectNames.length > 0 ? projectNames.map(name => `<span>${name}</span>`).join('') : '<span>無特定建案</span>'}
                     </div>
                 </span>
             </li>
         </ul>
     `;
 }
+// ▲▲▲ 【 修改結束 】 ▲▲▲
