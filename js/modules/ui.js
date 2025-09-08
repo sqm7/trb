@@ -6,11 +6,13 @@ export function showLoading(message) {
     dom.messageArea.innerHTML = `<div class="loader mx-auto"></div><p class="mt-4">${message}</p>`;
     dom.messageArea.classList.remove('hidden');
     dom.tabsContainer.classList.add('hidden');
-    document.querySelectorAll('.report-header').forEach(el => el.style.display = 'none');
-    ['ranking-report-content', 'price-band-report-content', 'unit-price-report-content', 'parking-report-content', 'velocity-report-content', 'price-grid-report-content', 'data-list-content'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.classList.remove('active');
+    
+    // Hide all tab contents
+    document.querySelectorAll('.tab-content').forEach(el => {
+        el.classList.remove('active');
     });
+    // Hide all report headers specifically
+    document.querySelectorAll('.report-header').forEach(el => el.style.display = 'none');
 }
 
 export function showMessage(message, isError = false) {
@@ -18,6 +20,10 @@ export function showMessage(message, isError = false) {
     dom.messageArea.innerHTML = `<div class="${messageClass}">${message}</div>`;
     dom.messageArea.classList.remove('hidden');
     dom.tabsContainer.classList.add('hidden');
+    
+    document.querySelectorAll('.tab-content').forEach(el => {
+        el.classList.remove('active');
+    });
     document.querySelectorAll('.report-header').forEach(el => el.style.display = 'none');
 }
 
@@ -116,13 +122,6 @@ export function createPaginationControls(container, totalItems, currentPage, pag
     }
 }
 
-// --- NEW FUNCTIONS ADDED HERE ---
-
-/**
- * 顯示建案列表的彈出視窗
- * @param {string} title - 視窗標題
- * @param {string[]} names - 建案名稱陣列
- */
 export function showBuildingNamesModal(title, names) {
     dom.buildingNamesModalTitle.textContent = title;
     
@@ -138,9 +137,6 @@ export function showBuildingNamesModal(title, names) {
     dom.buildingNamesModal.classList.remove('hidden');
 }
 
-/**
- * 隱藏建案列表的彈出視窗
- */
 export function hideBuildingNamesModal() {
     dom.buildingNamesModal.classList.add('hidden');
 }
