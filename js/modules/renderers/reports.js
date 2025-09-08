@@ -353,15 +353,22 @@ export function renderPriceBandDetails(roomType, bathrooms) {
     }
     
     const filteredData = state.analysisDataCache.transactionDetails.filter(item => {
-        // ▼▼▼ 最終修正點 ▼▼▼
-        // 1. 在前端使用與後端完全相同的邏輯，為每一筆原始資料即時計算出它的房型分組
+        // 檢查房型是否匹配
         const itemRoomGroup = getRoomTypeGroupOnFrontend(item);
-        
-        // 2. 使用計算出的房型分組，以及正確的衛浴欄位名稱 '衛浴數' 來進行比對
-        const roomMatch = itemRoomGroup === roomType;
-        const bathroomMatch = String(item['衛浴數']) === String(bathrooms);
-        
-        return roomMatch && bathroomMatch;
+        if (itemRoomGroup !== roomType) return false;
+
+        // 檢查衛浴數是否匹配 (核心修正點)
+        // 來自 data- attribute 的 bathrooms 是字串 ("0", "1", "null")
+        if (String(bathrooms) === 'null') {
+            // 如果目標是 'null' (例如 "店舖")，則房型匹配就足夠了
+            return true;
+        } else {
+            // 否則，將 item 的衛浴數 (可能是 null, 0, 1, 2...) 與目標衛浴數進行比較
+            // 關鍵：將 item 的 null 或 undefined 衛浴數視為 0，以匹配後端的分組邏輯
+            const itemBathrooms = item['衛浴數'] === null || typeof item['衛浴數'] === 'undefined' ? 0 : item['衛浴數'];
+            const targetBathrooms = parseInt(bathrooms, 10);
+            return itemBathrooms === targetBathrooms;
+        }
     });
 
     if (filteredData.length === 0) {
@@ -374,7 +381,6 @@ export function renderPriceBandDetails(roomType, bathrooms) {
 
     const projectNames = [...new Set(filteredData.map(item => item['建案名稱']))];
     const totalCount = filteredData.length;
-    // 使用 '房屋面積(坪)' 這個中文鍵名
     const areas = filteredData.map(item => item['房屋面積(坪)']).filter(a => a && a > 0);
     const minArea = areas.length > 0 ? Math.min(...areas) : 0;
     const maxArea = areas.length > 0 ? Math.max(...areas) : 0;
@@ -390,7 +396,7 @@ export function renderPriceBandDetails(roomType, bathrooms) {
                 <span class="details-list-value">${totalCount} 筆</span>
             </li>
             <li class="details-list-item">
-                <span class="details-list-label">主建物坪數範圍</span>
+                <span class="details-list-label">房屋坪數範圍</span>
                 <span class="details-list-value">${areaRange}</span>
             </li>
             <li class="details-list-item">
