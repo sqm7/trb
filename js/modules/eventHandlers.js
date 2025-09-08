@@ -13,6 +13,41 @@ import * as chartRenderer from './renderers/charts.js';
 import * as heatmapRenderer from './renderers/heatmap.js';
 import * as componentRenderer from './renderers/uiComponents.js';
 
+// --- NEW FUNCTION: Handle building details click ---
+async function handleBuildingDetailsClick(event) {
+    const button = event.target.closest('.building-details-btn');
+    if (!button) return;
+
+    event.preventDefault();
+    event.stopPropagation(); // 防止觸發其他點擊事件
+
+    const { roomType, bathrooms } = button.dataset;
+    if (!roomType) return;
+    
+    const bathroomsNum = bathrooms === 'null' ? null : parseInt(bathrooms, 10);
+    const title = `${roomType}${bathroomsNum !== null ? `-${bathroomsNum}衛` : ''} 的建案列表`;
+    
+    ui.showLoading('正在查詢建案列表...');
+
+    try {
+        const currentFilters = getFilters();
+        const result = await api.getBuildingNamesByType(currentFilters, roomType, bathroomsNum);
+        ui.showBuildingNamesModal(title, result.buildingNames);
+    } catch (error) {
+        console.error('查詢建案列表失敗:', error);
+        // 使用 ui.showMessage 來顯示錯誤，並在短暫延遲後切回報表，避免載入畫面卡住
+        ui.showMessage(`查詢建案列表失敗: ${error.message}`, true);
+        setTimeout(() => {
+            if (state.analysisDataCache) {
+                 dom.messageArea.classList.add('hidden');
+                 dom.tabsContainer.classList.remove('hidden');
+                 ui.switchTab('price-band-report');
+            }
+        }, 2500);
+    }
+}
+
+
 // Main data fetching and analysis functions
 export async function mainFetchData() {
     ui.showLoading('查詢中，請稍候...');
@@ -89,7 +124,7 @@ export async function mainShowSubTableDetails(btn) {
     const { id, type, county } = btn.dataset;
     dom.modalTitle.textContent = `附表詳細資料 (編號: ${id})`;
     dom.modalContent.innerHTML = '<div class="loader mx-auto"></div>';
-    dom.modal.classList.remove('hidden');
+    dom.detailsModal.classList.remove('hidden');
     try {
         const result = await api.fetchSubData(id, type, county);
         let contentHTML = '<div class="space-y-6">';
@@ -483,6 +518,9 @@ export function handleLegendClick(e) {
 }
 
 export function handleGlobalClick(e) {
+    // --- ADDED: New building details click handler ---
+    handleBuildingDetailsClick(e);
+    
     const isClickInsideProject = dom.projectFilterWrapper.contains(e.target);
     if (!isClickInsideProject) {
         dom.projectNameSuggestions.classList.add('hidden');
