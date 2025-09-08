@@ -1,4 +1,4 @@
-// js/modules/renderers/reports.js (完整偵錯版)
+// js/modules/renderers/reports.js (安全偵錯版)
 
 import { dom } from '../dom.js';
 import { state } from '../state.js';
@@ -342,78 +342,83 @@ export function renderPriceGridAnalysis() {
     }
 }
 
-// ▼▼▼ 【 這裡是我們植入探針的重點區域 】 ▼▼▼
+// ▼▼▼ 【 唯一的偵錯點 】 ▼▼▼
 export function renderPriceBandDetails(roomType, bathrooms) {
-    console.log('--- 總價帶詳情報表 (reports.js) 偵錯開始 ---');
-    console.log(`探針 #A: 函式成功接收到參數: roomType="${roomType}", bathrooms="${bathrooms}"`);
+    // 探針 A: 檢查函式是否被呼叫，以及傳入的參數是否正確
+    console.log('--- [reports.js] 偵錯開始 ---');
+    console.log(`探針 #A: renderPriceBandDetails 已被呼叫。接收參數 -> 房型: "${roomType}", 衛浴: "${bathrooms}"`);
 
     const container = dom.priceBandDetailsContainer;
     if (!container) {
-        console.error('探針 #B回報: 致命錯誤！找不到ID為 priceBandDetailsContainer 的DOM元素。');
+        console.error('探針 #B 回報: 致命錯誤！在DOM中找不到 ID 為 "priceBandDetailsContainer" 的元素。');
         return;
     }
 
     if (!roomType) {
         container.innerHTML = `<div class="flex items-center justify-center h-full"><p class="text-center text-gray-500">點擊左側 <i class="fas fa-chart-bar mx-1"></i> 按鈕<br>查看房型詳細資訊</p></div>`;
-        console.log('探針 #B回報: 參數 roomType 為空，顯示初始提示訊息。');
+        console.log('探針 #B 回報: 參數 "roomType" 為空，已顯示初始提示訊息。');
         return;
     }
 
     if (!state.analysisDataCache || !state.analysisDataCache.transactionDetails) {
         container.innerHTML = `<p class="text-center text-gray-500 mt-4">缺少必要的分析資料，無法顯示詳情。</p>`;
-        console.error('探針 #C回報: 致命錯誤！state.analysisDataCache.transactionDetails 不存在。');
+        console.error('探針 #C 回報: 致命錯誤！ "state.analysisDataCache.transactionDetails" 不存在或為空。');
         return;
     }
     
-    console.log(`探針 #C回報: 原始交易資料庫 (transactionDetails) 存在，共有 ${state.analysisDataCache.transactionDetails.length} 筆記錄。`);
+    console.log(`探針 #C 回報: 成功讀取 transactionDetails，共 ${state.analysisDataCache.transactionDetails.length} 筆原始交易資料。`);
     
-    // 取前5筆資料進行抽樣檢查
-    console.log('探針 #D: 抽樣檢查前5筆原始資料:');
-    console.table(state.analysisDataCache.transactionDetails.slice(0, 5));
+    // 探針 D: 抽樣檢查，確保我們知道原始資料的結構
+    console.log('探針 #D: 抽樣檢查前 3 筆原始資料的結構:');
+    console.table(state.analysisDataCache.transactionDetails.slice(0, 3));
 
     let iterationCount = 0;
     const filteredData = state.analysisDataCache.transactionDetails.filter(item => {
         const itemRoomGroup = getRoomTypeGroupOnFrontend(item);
+        // 後端回傳的衛浴數可能是 null，前端處理時統一預設為 0，以利比對
         const itemBathrooms = item['衛浴數'] || 0;
 
         const isRoomMatch = (itemRoomGroup === roomType);
         
         let isBathMatch = false;
+        // 按鈕傳來的 data-bathrooms="null" 會是字串 "null"
         if (String(bathrooms) === 'null') {
-            isBathMatch = true; // 對於店舖等類型，不檢查衛浴
+            isBathMatch = true; // 對於店舖、辦公室等類型，我們不檢查衛浴數量，所以直接視為匹配成功
         } else {
+            // 對於住宅類型，嚴格比對衛浴數量
             isBathMatch = (String(itemBathrooms) === String(bathrooms));
         }
         
-        // 只在篩選的前幾次印出詳細比對過程，避免洗版
+        // 只在篩選的前 5 次印出詳細比對過程，避免主控台被洗版
         if(iterationCount < 5) {
             console.log(`[篩選過程 #${iterationCount + 1}]
-- 目標: {房型: "${roomType}", 衛浴: "${bathrooms}"}
-- 本筆資料: {房型分組: "${itemRoomGroup}", 衛浴數: ${itemBathrooms}}
-- 比對結果: {房型匹配: ${isRoomMatch}, 衛浴匹配: ${isBathMatch}}
-- 最終是否保留: ${isRoomMatch && isBathMatch}`);
+  - [目標]   房型: "${roomType}" | 衛浴: "${bathrooms}"
+  - [本筆資料] 房型分組: "${itemRoomGroup}" | 衛浴數: ${itemBathrooms}
+  - [比對結果] 房型匹配: ${isRoomMatch} | 衛浴匹配: ${isBathMatch}
+  - ==> 最終是否保留: ${isRoomMatch && isBathMatch}`);
             iterationCount++;
         }
 
         return isRoomMatch && isBathMatch;
     });
 
-    console.log(`探針 #E回報: 篩選完成，最終找到 ${filteredData.length} 筆符合條件的資料。`);
+    console.log(`探針 #E 回報: 篩選完成，最終找到 ${filteredData.length} 筆符合條件的資料。`);
 
     if (filteredData.length === 0) {
         container.innerHTML = `
             <h3 class="report-section-title !mb-6 !pb-3">${roomType} / ${String(bathrooms) !== 'null' ? `${bathrooms}衛` : '衛浴未分'} 詳細資料</h3>
             <p class="text-center text-gray-500 mt-4">沒有找到符合條件的原始交易資料。</p>
         `;
-        console.log('探針 #F回報: 因找不到資料，已顯示「沒有找到資料」的訊息。');
+        console.log('探針 #F 回報: 因找不到任何資料，已顯示「沒有找到資料」的訊息。');
+        console.log('--- [reports.js] 偵錯結束 ---');
         return;
     }
 
     const projectNames = [...new Set(filteredData.map(item => item['建案名稱']))];
     const totalCount = filteredData.length;
     const areas = filteredData.map(item => item['房屋面積(坪)']).filter(a => a && a > 0);
-    const minArea = areas.length > 0 ? Math.min(...areas);
-    const maxArea = areas.length > 0 ? Math.max(...areas);
+    const minArea = areas.length > 0 ? Math.min(...areas) : 0;
+    const maxArea = areas.length > 0 ? Math.max(...areas) : 0;
     const areaRange = areas.length > 0 ? `${ui.formatNumber(minArea, 2)} - ${ui.formatNumber(maxArea, 2)} 坪` : '無資料';
 
     container.innerHTML = `
@@ -439,7 +444,7 @@ export function renderPriceBandDetails(roomType, bathrooms) {
             </li>
         </ul>
     `;
-    console.log('探針 #G回報: 成功渲染詳細資料表格。');
-    console.log('--- reports.js 偵錯結束 ---');
+    console.log('探針 #G 回報: 成功渲染 ${totalCount} 筆詳細資料。');
+    console.log('--- [reports.js] 偵錯結束 ---');
 }
-// ▲▲▲ 【 探針植入結束 】 ▲▲▲
+// ▲▲▲ 【 偵錯點結束 】 ▲▲▲
