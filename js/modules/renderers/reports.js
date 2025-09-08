@@ -133,7 +133,6 @@ export function renderPriceBandReport() {
         return (a.bathrooms || 0) - (b.bathrooms || 0);
     });
     
-    // --- MODIFIED HERE ---
     const tableHeaders = ['詳情', '房型', '衛浴', '筆數', '平均總價(萬)', '最低總價(萬)', '1/4位總價(萬)', '中位數總價(萬)', '3/4位總價(萬)', '最高總價(萬)'];
 
     let headerHtml = '<thead><tr>' + tableHeaders.map(h => `<th>${h}</th>`).join('') + '</tr></thead>';
@@ -168,7 +167,6 @@ export function renderPriceBandReport() {
 
     bodyHtml += '</tbody>';
     dom.priceBandTable.innerHTML = headerHtml + bodyHtml;
-    // --- END MODIFICATION ---
 
     renderPriceBandChart();
 }
