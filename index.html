@@ -97,7 +97,7 @@
             <div><label for="date-start" class="block text-sm font-medium text-gray-300">起始日期</label><input type="date" id="date-start" class="form-input mt-1 block w-full pl-3 pr-2 py-2 text-base rounded-md"></div>
             <div>
                 <div class="flex justify-between items-center">
-                      <label for="date-end" class="block text-sm font-medium text-gray-300">結束日期</label>
+                    <label for="date-end" class="block text-sm font-medium text-gray-300">結束日期</label>
                     <button id="set-today-btn" class="text-xs text-cyan-400 hover:text-cyan-300 transition-opacity">抓取今日日期</button>
                 </div>
                 <input type="date" id="date-end" class="form-input mt-1 block w-full pl-3 pr-2 py-2 text-base rounded-md">
@@ -109,9 +109,9 @@
                 <button id="analyze-btn" class="bg-purple-600 hover:bg-purple-500 text-white font-bold py-2 px-6 rounded-lg shadow-lg hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed">分析報表</button>
                 <button id="search-btn" class="bg-gradient-to-r from-cyan-accent to-purple-accent text-white font-bold py-2 px-6 rounded-lg shadow-lg hover:opacity-90 transition-all">查詢資料列表</button>
             </div>
-     </div>
+      </div>
     
-   </div>
+    </div>
     </div>
   
     <div id="results-container" class="glass-card p-6 rounded-xl shadow-lg">
@@ -140,7 +140,7 @@
             </div>
             <div id="metric-cards-container" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-8"></div>
            <div id="ranking-chart-container" class="mb-8"></div>
-           <div class="overflow-x-auto">
+            <div class="overflow-x-auto">
                 <table id="ranking-table" class="min-w-full divide-y divide-gray-800"></table>
             </div>
        </div>
@@ -160,10 +160,10 @@
             <div class="report-header flex justify-end items-center mb-4">
                  <label class="text-sm font-medium text-gray-400 mr-3">平均數類型:</label>
                  <div id="avg-type-toggle" class="inline-flex bg-dark-card p-1 rounded-lg">
-                     <button data-type="arithmetic" class="avg-type-btn active px-4 py-1 text-sm font-semibold rounded-md transition-colors">算術平均數</button>
-                     <button data-type="weighted" class="avg-type-btn px-4 py-1 text-sm font-semibold rounded-md transition-colors">加權平均數</button>
+                      <button data-type="arithmetic" class="avg-type-btn active px-4 py-1 text-sm font-semibold rounded-md transition-colors">算術平均數</button>
+                      <button data-type="weighted" class="avg-type-btn px-4 py-1 text-sm font-semibold rounded-md transition-colors">加權平均數</button>
                  </div>
-   
+    
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-8">
@@ -188,7 +188,7 @@
     <div id="type-comparison-table-container" class="overflow-x-auto mt-4"></div>
 </div>
             <div id="average-type-explanation" class="mt-8 p-4 bg-dark-card border border-gray-700 rounded-lg text-sm text-gray-400 space-y-3 report-header">
-       
+    
         <h4 class="font-bold text-gray-200">名詞解釋</h4>
                 <p><strong class="text-cyan-400">算術平均數 (Arithmetic Mean):</strong> 將每一筆交易的單價直接相加後，除以總筆數。它能反映「一筆典型交易」的單價，不受房屋坪數大小影響，適合了解普遍行情。</p>
                 <p><strong class="text-purple-400">加權平均數 (Weighted Average):</strong> 以「總房屋總價 ÷ 總房屋面積」計算。坪數越大的交易，對平均價格的影響力就越大。它更能反映市場的「整體價值」與資金結構。</p>
@@ -197,46 +197,46 @@
         <div id="parking-report-content" class="tab-content">
   
            <div class="mb-8 report-header">
-   
+    
               <h3 class="report-section-title">房車配比</h3>
-                   <div id="parking-ratio-table-container" class="overflow-x-auto"></div>
+                  <div id="parking-ratio-table-container" class="overflow-x-auto"></div>
             </div>
             <div class="mb-8 report-header">
                 <h3 class="report-section-title">各類型車位平均單價</h3>
         
-                   <div id="avg-price-by-type-table-container" class="overflow-x-auto"></div>
+                  <div id="avg-price-by-type-table-container" class="overflow-x-auto"></div>
     
-     </div>
+      </div>
                <div class="report-header">
-                     <h3 class="report-section-title">坡道平面車位分層價格</h3>
-                     <div id="ramp-plane-price-by-floor-table-container"></div>
-                   <p class="text-sm text-gray-500 mt-2">* 此數據僅統計主表中「車位類別」為「坡道平面」的交易，並根據其附表中的車位資料進行彙總。</p>
-   
+                      <h3 class="report-section-title">坡道平面車位分層價格</h3>
+                      <div id="ramp-plane-price-by-floor-table-container"></div>
+                    <p class="text-sm text-gray-500 mt-2">* 此數據僅統計主表中「車位類別」為「坡道平面」的交易，並根據其附表中的車位資料進行彙總。</p>
+    
                </div>
         </div>
-    
+  
   
         <div id="velocity-report-content" class="tab-content">
-               <div class="mb-4 report-header">
-                   <label class="block text-sm font-medium text-gray-300 mb-2">房型篩選器</label>
-                   <div id="velocity-room-filter-container" class="flex flex-wrap gap-2"></div>
+                 <div class="mb-4 report-header">
+                     <label class="block text-sm font-medium text-gray-300 mb-2">房型篩選器</label>
+                     <div id="velocity-room-filter-container" class="flex flex-wrap gap-2"></div>
         
-               </div>
-               <div id="velocity-sub-tabs-container" class="report-header">
-   
-                  <nav class="sub-tab-nav">
-                       <button data-view="weekly" class="sub-tab-btn">每週去化</button>
-                       <button data-view="monthly" class="sub-tab-btn active">每月去化</button>
-                      
-                 <button data-view="quarterly" class="sub-tab-btn">每季去化</button>
-                      
+                 </div>
+                 <div id="velocity-sub-tabs-container" class="report-header">
+    
+                   <nav class="sub-tab-nav">
+                        <button data-view="weekly" class="sub-tab-btn">每週去化</button>
+                        <button data-view="monthly" class="sub-tab-btn active">每月去化</button>
+                        
+                       <button data-view="quarterly" class="sub-tab-btn">每季去化</button>
+                        
    <button data-view="yearly" class="sub-tab-btn">年度去化</button>
                    </nav>
-               </div>
-               
-               <div id="sales-velocity-chart" class="report-header mb-6"></div>
+                 </div>
+                 
+                 <div id="sales-velocity-chart" class="report-header mb-6"></div>
 
-               <div id="velocity-table-container" class="overflow-x-auto"></div>
+                 <div id="velocity-table-container" class="overflow-x-auto"></div>
 
             <div class="report-header mt-8">
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -288,29 +288,29 @@
             </div>
             
             <div class="my-4 p-4 bg-dark-card border border-gray-700 rounded-lg flex items-center justify-between flex-wrap gap-4 report-header">
-   
+    
               <div>
-        
+    
             <h4 class="font-bold text-gray-200">進階分析：建案調價熱力圖</h4>
                     <p class="text-sm text-gray-400 mt-1">
                         啟用此功能可分析建案的調價軌跡。顏色越深，代表該戶成交價相比開盤時的漲幅越大。
-                
+                    
                 </p>
                 </div>
     
-        
+    
                 <div class="flex items-end gap-4">
                     <div>
                         <label for="floor-premium-input" class="block text-xs font-medium text-gray-300 mb-1">
-                       
-      錨定樓層價差
-                               <span class="has-tooltip text-gray-500" data-tooltip="輸入每高一層樓，房屋每坪單價增加的萬數。例如：0.3">
-                                   <i class="fas fa-info-circle"></i>
+                        
+    錨定樓層價差
+                                <span class="has-tooltip text-gray-500" data-tooltip="輸入每高一層樓，房屋每坪單價增加的萬數。例如：0.3">
+                                    <i class="fas fa-info-circle"></i>
   
                                 </span>
                         </label>
                         <input type="number" id="floor-premium-input" class="form-input w-28 pl-3 pr-2 py-2 text-base rounded-md" value="0.3" step="0.05" min="0">
-                  
+                    
                     </div>
                     
   <button id="back-to-grid-btn" class="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg shadow-lg transition-all hidden"><i class="fas fa-table mr-2"></i>返回銷控表</button>
@@ -320,11 +320,11 @@
             </div>
 
             <div id="heatmap-info-container" class="hidden my-4 space-y-4">
-     
+    
            <div class="p-4 bg-dark-card border border-gray-700 rounded-lg text-sm text-gray-400 space-y-3">
                     <h4 class="font-bold text-gray-200">名詞解釋</h4>
                        <p><strong class="text-cyan-400">樓層調整:</strong> <code>(成交樓層 - 基準樓層) * 樓層價差</code>。此數值模擬了因樓層不同而產生的理論價差。</p>
-   
+    
                       <p><strong class="text-purple-400">調價幅度 (%):</strong> <code>(成交單價 - 基準單價 - 樓層調整) / (基準單價 + 樓層調整)</code>。此數值反映了相較於「開盤基準」，該戶在特定時間點成交時的價格漲跌幅。正值代表漲價，負值代表跌價。背景顏色深淺即代表此數值。</p>
   
                 </div>
@@ -335,13 +335,13 @@
   
                               <div id="heatmap-color-legend" class="flex flex-wrap gap-x-4 gap-y-2 text-sm"></div>
                         </div>
-                      
-                 <div class="p-4 bg-dark-card border border-gray-700 rounded-lg">
+                        
+                       <div class="p-4 bg-dark-card border border-gray-700 rounded-lg">
                         
     <h4 class="font-bold text-gray-200 mb-2">特殊交易圖例 (點擊可篩選)</h4>
                               <div id="heatmap-icon-legend" class="flex flex-wrap gap-x-4 gap-y-2 text-sm"></div>
                         </div>
-                  
+                       
                 </div>
             </div>
 
@@ -353,7 +353,7 @@
   
                        <i class="fas fa-share-alt mr-2"></i>分享/內嵌
         
-                 </button>
+                   </button>
                </h3>
                 <div id="unit-color-legend-container" class="flex flex-wrap gap-x-4 gap-y-2 my-4 text-sm"></div>
                 
@@ -366,11 +366,11 @@
         </div>
         
         <div id="data-list-content" class="tab-content">
-               
+                
           <div id="table-container" class="table-container overflow-x-auto">
                 <table id="results-table" class="min-w-full divide-y divide-gray-800"></table>
         
-     </div>
+      </div>
             <div id="pagination-controls" class="flex justify-between items-center mt-4 text-sm text-gray-400"></div>
         </div>
     </div>
@@ -400,11 +400,11 @@
 <div id="details-modal" class="modal-overlay hidden">
      <div class="modal-container">
          <div class="flex justify-between items-center mb-6">
-       
+    
              <h2 id="modal-title" class="text-2xl font-bold text-white">附表詳細資料</h2>
              <button id="modal-close-btn" class="text-gray-400 hover:text-white text-3xl font-bold">&times;</button>
-       
- </div>
+    
+</div>
          <div id="modal-content" class="text-gray-300"></div>
      </div>
 </div>
@@ -426,6 +426,17 @@
             <div id="copy-feedback" class="text-green-400 text-sm hidden">已成功複製到剪貼簿！</div>
         </div>
  
+    </div>
+</div>
+
+<div id="building-names-modal" class="modal-overlay hidden">
+    <div class="modal-container">
+        <div class="flex justify-between items-center mb-6">
+            <h2 id="building-names-modal-title" class="text-2xl font-bold text-white">建案列表</h2>
+            <button id="building-names-modal-close-btn" class="text-gray-400 hover:text-white text-3xl font-bold">&times;</button>
+        </div>
+        <div id="building-names-modal-content" class="text-gray-300 max-h-[60vh] overflow-y-auto pr-2">
+            </div>
     </div>
 </div>
 
