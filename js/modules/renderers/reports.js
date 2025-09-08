@@ -320,23 +320,21 @@ export function renderPriceBandDetails(roomType, bathrooms) {
     const residentialTypes = ['套房', '1房', '2房', '3房', '4房', '5房以上', '毛胚'];
     let key;
     if (residentialTypes.includes(roomType)) {
-        // 從 data- attribute 來的 bathrooms 是字串 'null' 或 '2'
         const bathroomsNum = bathrooms === 'null' ? 0 : parseInt(bathrooms, 10);
         key = `${roomType}-${bathroomsNum}`;
     } else {
         key = roomType;
     }
 
-    // 從預先建立好的 Map 中直接查找建案列表
-    const projectSet = state.priceBandProjectMap.get(key);
-    const projectNames = projectSet ? Array.from(projectSet).sort() : [];
+    // 從 state 中直接查找預先處理好的建案列表
+    const projectNames = state.priceBandProjectMap.get(key) || [];
 
     // 狀態2: 點擊後，顯示建案列表或無資料訊息
+    const title = `${roomType} / ${bathrooms !== 'null' ? `${bathrooms}衛` : '不分衛浴'}`;
+
     if (projectNames.length > 0) {
         container.innerHTML = `
-            <h3 class="report-section-title !mb-6 !pb-3">
-                ${roomType} / ${bathrooms !== 'null' ? `${bathrooms}衛` : '不分衛浴'}
-            </h3>
+            <h3 class="report-section-title !mb-6 !pb-3">${title}</h3>
             <p class="text-sm text-gray-400 mb-4">此組合包含以下 ${projectNames.length} 個建案：</p>
             <div class="project-name-list">
                 ${projectNames.map(name => `<span>${name}</span>`).join('')}
@@ -344,9 +342,7 @@ export function renderPriceBandDetails(roomType, bathrooms) {
         `;
     } else {
         container.innerHTML = `
-            <h3 class="report-section-title !mb-6 !pb-3">
-                ${roomType} / ${bathrooms !== 'null' ? `${bathrooms}衛` : '不分衛浴'}
-            </h3>
+            <h3 class="report-section-title !mb-6 !pb-3">${title}</h3>
             <p class="text-center text-gray-500 mt-8">在當前篩選條件下，找不到包含此組合的建案。</p>
         `;
     }
