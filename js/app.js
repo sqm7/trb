@@ -1,15 +1,15 @@
-// js/app.js (最終修正版，適配所有拆分後的模組)f
+// js/app.js (最終修正版，適配所有拆分後的模組)
 
 import { districtData } from './modules/config.js';
 import * as api from './modules/api.js';
 import { dom } from './modules/dom.js';
 import * as ui from './modules/ui.js';
-import { 
-    mainFetchData, 
-    mainAnalyzeData, 
-    mainShowSubTableDetails, 
-    updateDistrictOptions, 
-    toggleAnalyzeButtonState, 
+import {
+    mainFetchData,
+    mainAnalyzeData,
+    mainShowSubTableDetails,
+    updateDistrictOptions,
+    toggleAnalyzeButtonState,
     handleDateRangeChange,
     onDistrictContainerClick,
     onDistrictSuggestionClick,
@@ -155,7 +155,10 @@ function initialize() {
     
     // --- 去化分析與垂直水平分析相關事件 ---
     dom.priceBandRoomFilterContainer.addEventListener('click', handlePriceBandRoomFilterClick);
-    dom.priceBandReportContent.addEventListener('click', handlePriceBandDetailsClick); // 綁定總價帶詳情按鈕事件
+    
+    // ▼▼▼ 【 最終且唯一的修正點 】 ▼▼▼
+    // 綁定總價帶報表內容區域的點擊事件，以處理詳情按鈕
+    dom.priceBandReportContent.addEventListener('click', handlePriceBandDetailsClick);
 
     dom.velocityRoomFilterContainer.addEventListener('click', handleVelocityRoomFilterClick);
     dom.velocitySubTabsContainer.addEventListener('click', handleVelocitySubTabClick);
