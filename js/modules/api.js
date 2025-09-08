@@ -25,7 +25,6 @@ export async function checkAuth() {
     }
 }
 
-{/* */}
 export async function getUser() {
     const { data: { user } } = await supabase.auth.getUser();
     return user;
@@ -38,8 +37,6 @@ export async function signOut() {
         throw error;
     }
 }
-{/* */}
-
 
 export async function fetchData(filters, pagination) {
     const headers = await getAuthHeaders();
@@ -132,7 +129,6 @@ export async function generateShareLink(payload) {
     return response.json();
 }
 
-// --- NEW FUNCTION ADDED HERE ---
 export async function getBuildingNamesByType(filters, roomType, bathrooms) {
     const headers = await getAuthHeaders();
     if (!headers) throw new Error("認證失敗");
