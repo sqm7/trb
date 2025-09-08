@@ -19,6 +19,7 @@ export const state = {
     currentVelocityView: 'monthly',
     selectedVelocityRooms: [],
     selectedPriceBandRoomTypes: [],
+    priceBandProjectMap: new Map(), // 【新增】用來預存總價帶的建案對應表
     selectedPriceGridProject: null,
     isHeatmapActive: false,
     currentLegendFilter: { type: null, value: null },
