@@ -367,6 +367,7 @@ export function renderPriceBandDetails(roomType, bathrooms) {
         let bathroomMatch = false;
 
         if (clickedBathroomsStr === 'null') {
+            // 適用於 "店舖" 等無衛浴數分類的房型
             bathroomMatch = itemBathroomsValue === null || typeof itemBathroomsValue === 'undefined';
         } else {
             const targetBathrooms = parseInt(clickedBathroomsStr, 10);
