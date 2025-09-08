@@ -15,19 +15,20 @@ import * as componentRenderer from './renderers/uiComponents.js';
 
 // --- NEW FUNCTION: Handle building details click ---
 async function handleBuildingDetailsClick(event) {
+    // This function will be called from within the global click handler
     const button = event.target.closest('.building-details-btn');
     if (!button) return;
 
     event.preventDefault();
-    event.stopPropagation(); // 防止觸發其他點擊事件
+    event.stopPropagation();
 
     const { roomType, bathrooms } = button.dataset;
     if (!roomType) return;
-    
+
     const bathroomsNum = bathrooms === 'null' ? null : parseInt(bathrooms, 10);
     const title = `${roomType}${bathroomsNum !== null ? `-${bathroomsNum}衛` : ''} 的建案列表`;
-    
-    ui.showLoading('正在查詢建案列表...');
+
+    ui.showLoading('正在查詢建案名稱...');
 
     try {
         const currentFilters = getFilters();
@@ -35,7 +36,6 @@ async function handleBuildingDetailsClick(event) {
         ui.showBuildingNamesModal(title, result.buildingNames);
     } catch (error) {
         console.error('查詢建案列表失敗:', error);
-        // 使用 ui.showMessage 來顯示錯誤，並在短暫延遲後切回報表，避免載入畫面卡住
         ui.showMessage(`查詢建案列表失敗: ${error.message}`, true);
         setTimeout(() => {
             if (state.analysisDataCache) {
@@ -110,12 +110,8 @@ export async function mainAnalyzeData() {
  * 處理「排除商辦店面」開關的變更事件
  */
 export function handleExcludeCommercialToggle() {
-    // 1. 從 DOM 讀取開關狀態，並更新 state
     state.excludeCommercialInRanking = dom.excludeCommercialToggle.checked;
-
-    // 2. 檢查是否已經有分析資料。如果有，就重新觸發分析
     if (state.analysisDataCache) {
-        // 重新呼叫主分析函式，它會使用 getFilters() 獲取包含最新開關狀態的篩選條件
         mainAnalyzeData();
     }
 }
@@ -518,21 +514,116 @@ export function handleLegendClick(e) {
 }
 
 export function handleGlobalClick(e) {
-    // --- ADDED: New building details click handler ---
+    // This now also handles the new building details button clicks
     handleBuildingDetailsClick(e);
     
     const isClickInsideProject = dom.projectFilterWrapper.contains(e.target);
     if (!isClickInsideProject) {
         dom.projectNameSuggestions.classList.add('hidden');
-        dom.projectNameInput.value = '';
+        // Do not clear input on every click outside, it's annoying
+        // dom.projectNameInput.value = ''; 
     }
     const isClickInsideDistrict = dom.districtFilterWrapper.contains(e.target);
     if (!isClickInsideDistrict) dom.districtSuggestions.classList.add('hidden');
+
     if (!isClickInsideDistrict && !isClickInsideProject) dom.filterCard.classList.remove('z-elevate-filters');
+    
     const isClickInsideHeatmap = dom.horizontalPriceGridContainer.contains(e.target) || dom.heatmapLegendContainer.contains(e.target);
     if (state.currentLegendFilter.type && !isClickInsideHeatmap) {
         dom.heatmapLegendContainer.querySelectorAll('.legend-item.active').forEach(item => item.classList.remove('active'));
         state.currentLegendFilter = { type: null, value: null };
         heatmapRenderer.applyHeatmapGridFilter();
     }
+}
+
+// This function needs to be exported so it can be called from app.js
+export function initializeEventListeners() {
+    dom.analyzeBtn.addEventListener('click', mainAnalyzeData);
+    dom.searchBtn.addEventListener('click', mainFetchData);
+    dom.countySelect.addEventListener('change', updateDistrictOptions);
+    dom.dateRangeSelect.addEventListener('change', handleDateRangeChange);
+    dom.setTodayBtn.addEventListener('click', () => { dom.dateEndInput.value = ui.formatDate(new Date()); });
+
+    // District filter
+    dom.districtContainer.addEventListener('click', onDistrictContainerClick);
+    dom.districtSuggestions.addEventListener('click', onDistrictSuggestionClick);
+    dom.clearDistrictsBtn.addEventListener('click', clearSelectedDistricts);
+
+    // Project filter
+    dom.projectNameInput.addEventListener('focus', onProjectInputFocus);
+    dom.projectNameInput.addEventListener('input', onProjectInput);
+    dom.projectNameSuggestions.addEventListener('click', onSuggestionClick);
+    dom.projectFilterWrapper.addEventListener('click', (e) => {
+        if (e.target.classList.contains('multi-tag-remove')) {
+            removeProject(e.target.dataset.name);
+        }
+    });
+    dom.clearProjectsBtn.addEventListener('click', clearSelectedProjects);
+
+    // Tabs
+    dom.tabsContainer.addEventListener('click', (e) => {
+        if (e.target.matches('.tab-button')) {
+            ui.switchTab(e.target.dataset.tab);
+        }
+    });
+    
+    // Modals
+    dom.modalCloseBtn.addEventListener('click', () => dom.detailsModal.classList.add('hidden'));
+    dom.detailsModal.addEventListener('click', (e) => { if (e.target === dom.detailsModal) dom.detailsModal.classList.add('hidden'); });
+
+    // --- New Modal Events ---
+    dom.buildingNamesModalCloseBtn.addEventListener('click', ui.hideBuildingNamesModal);
+    dom.buildingNamesModal.addEventListener('click', (e) => { if (e.target === dom.buildingNamesModal) ui.hideBuildingNamesModal(); });
+
+    // Reports
+    dom.excludeCommercialToggle.addEventListener('change', handleExcludeCommercialToggle);
+    dom.rankingTable.addEventListener('click', (e) => {
+        const th = e.target.closest('.sortable-th');
+        if (th) {
+            const key = th.dataset.sortKey;
+            if (state.currentSort.key === key) {
+                state.currentSort.order = state.currentSort.order === 'asc' ? 'desc' : 'asc';
+            } else {
+                state.currentSort.key = key;
+                state.currentSort.order = 'desc';
+            }
+            reportRenderer.renderRankingReport();
+        }
+    });
+    
+    dom.avgTypeToggle.addEventListener('click', e => {
+        const btn = e.target.closest('.avg-type-btn');
+        if(btn) switchAverageType(btn.dataset.type);
+    });
+
+    dom.priceBandRoomFilterContainer.addEventListener('click', handlePriceBandRoomFilterClick);
+    dom.velocityRoomFilterContainer.addEventListener('click', handleVelocityRoomFilterClick);
+    dom.velocitySubTabsContainer.addEventListener('click', handleVelocitySubTabClick);
+    dom.heatmapMetricToggle.addEventListener('click', handleHeatmapMetricToggle);
+    dom.priceGridProjectFilterContainer.addEventListener('click', handlePriceGridProjectFilterClick);
+    dom.analyzeHeatmapBtn.addEventListener('click', analyzeHeatmap);
+    dom.backToGridBtn.addEventListener('click', handleBackToGrid);
+
+    // Heatmap Area Inputs
+    const heatmapAreaInputs = [dom.heatmapMinAreaInput, dom.heatmapMaxAreaInput, dom.heatmapIntervalInput];
+    heatmapAreaInputs.forEach(input => {
+        input.addEventListener('change', () => {
+            if (state.analysisDataCache && state.analysisDataCache.salesVelocityAnalysis) {
+                chartRenderer.renderAreaHeatmap();
+            }
+        });
+    });
+    dom.heatmapIntervalDecrement.addEventListener('click', () => { dom.heatmapIntervalInput.stepDown(); dom.heatmapIntervalInput.dispatchEvent(new Event('change')); });
+    dom.heatmapIntervalIncrement.addEventListener('click', () => { dom.heatmapIntervalInput.stepUp(); dom.heatmapIntervalInput.dispatchEvent(new Event('change')); });
+    
+    // Share modal
+    dom.sharePriceGridBtn.addEventListener('click', () => handleShareClick('price_grid'));
+    dom.shareModalCloseBtn.addEventListener('click', () => dom.shareModal.classList.add('hidden'));
+    dom.copyShareUrlBtn.addEventListener('click', copyShareUrl);
+
+    // Legends
+    dom.heatmapLegendContainer.addEventListener('click', handleLegendClick);
+    
+    // Global click listener for closing popups
+    document.addEventListener('click', handleGlobalClick);
 }
