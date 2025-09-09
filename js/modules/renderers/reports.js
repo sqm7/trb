@@ -138,26 +138,26 @@ export function renderPriceBandReport() {
     let headerHtml = '<thead><tr>' + tableHeaders.map(h => `<th>${h}</th>`).join('') + '</tr></thead>';
     let bodyHtml = '<tbody>';
 
-    if (filteredDataForTable.length > 0) {
-        filteredDataForTable.forEach(item => { 
-     // ▼▼▼【關鍵修改處】▼▼▼
+    // ▼▼▼【 請用這整段程式碼替換掉您原本的 forEach 迴圈 】▼▼▼
+    if (filteredDataForTable.length > 0) {
+        filteredDataForTable.forEach(item => { 
+            // 1. 準備一個變數來存放「筆數」欄位的 HTML
+            let countCellHtml = `<td>${item.count.toLocaleString()}</td>`;
             
-            // 1. 先準備好「筆數」欄位的 HTML
-            let countCellHtml = `<td>${item.count.toLocaleString()}</td>`; // 預設值
-            
-            // 2. 檢查後端傳來的資料中是否有 buildingNames 陣列
+            // 2. 檢查 item 物件中，是否有我們從後端傳來的 buildingNames 陣列
             if (item.buildingNames && item.buildingNames.length > 0) {
-                // 如果有，就將陣列轉換為用換行符號分隔的字串
+                // 如果有，就把陣列中的建案名稱用「換行」串接起來
                 const tooltipText = item.buildingNames.join('\n');
-                // 重新定義「筆數」欄位的 HTML，並加上 title 屬性
+                // 重新產生「筆數」欄位的 HTML，並把建案清單加到 title 屬性中
+                // 同時加上 has-tooltip class，方便未來做樣式調整
                 countCellHtml = `<td class="has-tooltip" title="${tooltipText}">${item.count.toLocaleString()}</td>`;
             }
 
-            // 3. 在組合整行 row 的 HTML 時，使用我們剛剛準備好的 countCellHtml 變數
+            // 3. 組合出完整的整行 <tr> HTML
             bodyHtml += `<tr class="hover:bg-dark-card transition-colors">
                 <td>${item.roomType}</td>
                 <td>${item.bathrooms !== null ? item.bathrooms : '-'}</td>
-                ${countCellHtml} 
+                ${countCellHtml}
                 <td>${ui.formatNumber(item.avgPrice, 0)}</td>
                 <td>${ui.formatNumber(item.minPrice, 0)}</td>
                 <td>${ui.formatNumber(item.q1Price, 0)}</td>
@@ -165,11 +165,11 @@ export function renderPriceBandReport() {
                 <td>${ui.formatNumber(item.q3Price, 0)}</td>
                 <td>${ui.formatNumber(item.maxPrice, 0)}</td>
             </tr>`; 
-            // ▲▲▲【修改結束】▲▲▲
         });
     } else {
         bodyHtml += `<tr><td colspan="${tableHeaders.length}" class="text-center p-4 text-gray-500">請至少選擇一個房型以顯示數據</td></tr>`;
     }
+    // ▲▲▲ 【 替換結束 】 ▲▲▲
 
     bodyHtml += '</tbody>';
     dom.priceBandTable.innerHTML = headerHtml + bodyHtml;
