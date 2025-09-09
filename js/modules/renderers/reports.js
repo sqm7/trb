@@ -1,5 +1,4 @@
 // js/modules/renderers/reports.js
-
 import { dom } from '../dom.js';
 import { state } from '../state.js';
 import * as ui from '../ui.js';
@@ -82,7 +81,6 @@ export function renderRankingReport() {
     renderRankingPagination(projectRanking.length);
 }
 
-// ▼▼▼【 唯一需要修改的函式 】▼▼▼
 export function renderPriceBandReport() {
     if (!state.analysisDataCache || !state.analysisDataCache.priceBandAnalysis) return;
     
@@ -175,8 +173,6 @@ export function renderPriceBandReport() {
 
     renderPriceBandChart();
 }
-// ▲▲▲ 【 修改結束 】 ▲▲▲
-
 
 export function renderUnitPriceReport() {
     if (!state.analysisDataCache || !state.analysisDataCache.unitPriceAnalysis) {
