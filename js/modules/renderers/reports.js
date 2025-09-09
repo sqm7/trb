@@ -363,21 +363,22 @@ export function renderPriceBandDetails(roomType, bathrooms) {
 
     if (filteredData.length === 0) {
         container.innerHTML = `
-            <h3>${roomType} / ${bathrooms !== 'null' ? `${bathrooms}衛` : '衛浴未分'} 詳細資料</h3>
+            <h3 class="report-section-title !mb-6 !pb-3">${roomType} / ${bathrooms !== 'null' ? `${bathrooms}衛` : '衛浴未分'} 詳細資料</h3>
             <p class="text-center text-gray-500 mt-4">沒有找到符合條件的原始交易資料。</p>
         `;
         return;
     }
 
-    const projectNames = [...new Set(filteredData.map(item => item['建案名稱']).filter(Boolean))];
+    const projectNames = [...new Set(filteredData.map(item => item['建案名稱']))];
     const totalCount = filteredData.length;
+    // 使用 '房屋面積(坪)' 這個中文鍵名
     const areas = filteredData.map(item => item['房屋面積(坪)']).filter(a => a && a > 0);
     const minArea = areas.length > 0 ? Math.min(...areas) : 0;
     const maxArea = areas.length > 0 ? Math.max(...areas) : 0;
     const areaRange = areas.length > 0 ? `${ui.formatNumber(minArea, 2)} - ${ui.formatNumber(maxArea, 2)} 坪` : '無資料';
 
     container.innerHTML = `
-        <h3>
+        <h3 class="report-section-title !mb-6 !pb-3">
             ${roomType} / ${bathrooms !== 'null' ? `${bathrooms}衛` : '衛浴未分'} 詳細資料
         </h3>
         <ul class="details-list">
@@ -393,7 +394,7 @@ export function renderPriceBandDetails(roomType, bathrooms) {
                 <span class="details-list-label">相關建案</span>
                 <span class="details-list-value">
                     <div class="project-name-list">
-                        ${projectNames.length > 0 ? projectNames.map(name => `<span>${name}</span>`).join('') : '<span>無特定建案名稱</span>'}
+                        ${projectNames.map(name => `<span>${name}</span>`).join('')}
                     </div>
                 </span>
             </li>
