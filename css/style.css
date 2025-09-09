@@ -254,3 +254,10 @@ thead th { background-color: var(--color-dark-card); position: sticky; top: 0; z
 .report-section-title.text-center {
     text-align: center;
 }
+.project-name-list {
+  max-height: 80px;
+  overflow-y: auto;
+  font-size: 0.8rem;
+  padding-right: 5px;
+  white-space: nowrap;
+}
