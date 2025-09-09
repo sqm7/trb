@@ -1,4 +1,4 @@
-// js/app.js (最終修正版，適配所有拆分後的模組)
+// js/app.js (最終修正版，適配所有拆分後的模組)f
 
 import { districtData } from './modules/config.js';
 import * as api from './modules/api.js';
@@ -22,6 +22,7 @@ import {
     handleGlobalClick,
     switchAverageType,
     handlePriceBandRoomFilterClick,
+    handlePriceBandDetailsClick,
     handleVelocityRoomFilterClick,
     handleVelocitySubTabClick,
     handleHeatmapMetricToggle,
@@ -154,6 +155,8 @@ function initialize() {
     
     // --- 去化分析與垂直水平分析相關事件 ---
     dom.priceBandRoomFilterContainer.addEventListener('click', handlePriceBandRoomFilterClick);
+    dom.priceBandReportContent.addEventListener('click', handlePriceBandDetailsClick); // 綁定總價帶詳情按鈕事件
+
     dom.velocityRoomFilterContainer.addEventListener('click', handleVelocityRoomFilterClick);
     dom.velocitySubTabsContainer.addEventListener('click', handleVelocitySubTabClick);
     dom.priceGridProjectFilterContainer.addEventListener('click', handlePriceGridProjectFilterClick);
