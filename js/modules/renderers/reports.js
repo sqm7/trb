@@ -1,4 +1,5 @@
 // js/modules/renderers/reports.js
+
 import { dom } from '../dom.js';
 import { state } from '../state.js';
 import * as ui from '../ui.js';
@@ -137,35 +138,13 @@ export function renderPriceBandReport() {
     let headerHtml = '<thead><tr>' + tableHeaders.map(h => `<th>${h}</th>`).join('') + '</tr></thead>';
     let bodyHtml = '<tbody>';
 
-    // ▼▼▼【 唯一的修改處 】▼▼▼
     if (filteredDataForTable.length > 0) {
         filteredDataForTable.forEach(item => { 
-            // 1. 檢查 item 物件中是否有 `buildingNames` 陣列且裡面有資料
-            const hasBuildingNames = item.buildingNames && item.buildingNames.length > 0;
-            
-            // 2. 如果有，就把陣列中的建案名稱用「換行符號」串接成一個字串
-            const tooltipText = hasBuildingNames ? item.buildingNames.join('\n') : '無建案名稱資訊';
-            
-            // 3. 產生「筆數」欄位的 HTML，並將 tooltip 字串加到 title 屬性中
-            const countCellHtml = `<td class="has-tooltip" title="${tooltipText}">${item.count.toLocaleString()}</td>`;
-
-            // 4. 組合出完整的整行 <tr> HTML
-            bodyHtml += `<tr class="hover:bg-dark-card transition-colors">
-                <td>${item.roomType}</td>
-                <td>${item.bathrooms !== null ? item.bathrooms : '-'}</td>
-                ${countCellHtml}
-                <td>${ui.formatNumber(item.avgPrice, 0)}</td>
-                <td>${ui.formatNumber(item.minPrice, 0)}</td>
-                <td>${ui.formatNumber(item.q1Price, 0)}</td>
-                <td>${ui.formatNumber(item.medianPrice, 0)}</td>
-                <td>${ui.formatNumber(item.q3Price, 0)}</td>
-                <td>${ui.formatNumber(item.maxPrice, 0)}</td>
-            </tr>`; 
+            bodyHtml += `<tr class="hover:bg-dark-card transition-colors"><td>${item.roomType}</td><td>${item.bathrooms !== null ? item.bathrooms : '-'}</td><td>${item.count.toLocaleString()}</td><td>${ui.formatNumber(item.avgPrice, 0)}</td><td>${ui.formatNumber(item.minPrice, 0)}</td><td>${ui.formatNumber(item.q1Price, 0)}</td><td>${ui.formatNumber(item.medianPrice, 0)}</td><td>${ui.formatNumber(item.q3Price, 0)}</td><td>${ui.formatNumber(item.maxPrice, 0)}</td></tr>`; 
         });
     } else {
         bodyHtml += `<tr><td colspan="${tableHeaders.length}" class="text-center p-4 text-gray-500">請至少選擇一個房型以顯示數據</td></tr>`;
     }
-    // ▲▲▲ 【 修改結束 】 ▲▲▲
 
     bodyHtml += '</tbody>';
     dom.priceBandTable.innerHTML = headerHtml + bodyHtml;
