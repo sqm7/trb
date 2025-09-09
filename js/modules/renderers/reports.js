@@ -343,6 +343,7 @@ export function renderPriceGridAnalysis() {
     }
 }
 
+// ▼▼▼ 【最終修正函式】 ▼▼▼
 export function renderPriceBandDetails(roomType, bathrooms) {
     const container = dom.priceBandDetailsContainer;
     if (!container) return;
@@ -353,25 +354,28 @@ export function renderPriceBandDetails(roomType, bathrooms) {
     }
     
     const filteredData = state.analysisDataCache.transactionDetails.filter(item => {
+        // 步驟 1: 使用統一的分類函式，取得該筆資料的房型
         const itemRoomGroup = getRoomTypeGroupOnFrontend(item);
         
+        // 步驟 2: 比對房型是否相符
         const roomMatch = itemRoomGroup === roomType;
         if (!roomMatch) return false;
 
-        // ▼▼▼ 【最終修正點】 ▼▼▼
-        // 修正衛浴數量的比對邏輯，明確區分 'null' (無資料) 和 '0' (0間)
-        const itemBathrooms = item['衛浴數']; // 原始資料中的衛浴數 (number | null)
+        // 步驟 3: 【關鍵修正】比對衛浴數量
+        const itemBathrooms = item['衛浴數']; // 這是從原始資料來的，可能是數字 (如 0, 1, 2) 或 null
 
         let bathroomMatch = false;
         if (bathrooms === 'null') {
-            // 如果點擊的按鈕是'衛浴未分'，則只匹配衛浴數為 null 或 undefined 的資料
+            // 如果按鈕傳來的是 'null' 字串 (代表 "衛浴未分")
+            // 我們就去找原始資料中，衛浴是 null 或 undefined 的紀錄
             bathroomMatch = itemBathrooms === null || typeof itemBathrooms === 'undefined';
         } else {
-            // 否則，直接比對數字是否相等 (轉為字串比對以統一型別)
+            // 如果按鈕傳來的是數字字串 (如 "0", "1", "2")
+            // 我們就把原始資料的衛浴數也轉成字串來比對
             bathroomMatch = String(itemBathrooms) === bathrooms;
         }
-        // ▲▲▲ 【修正結束】 ▲▲▲
         
+        // 最終回傳：必須房型和衛浴都匹配成功
         return bathroomMatch;
     });
 
