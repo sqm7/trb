@@ -198,7 +198,7 @@ export function onDistrictSuggestionClick(e) {
             dom.districtSuggestions.querySelectorAll('label:not([data-name="all"]) input[type="checkbox"]').forEach(cb => { cb.checked = isChecked; });
         } else {
             if (isChecked) {
-              if (!state.selectedDistricts.includes(name)) state.selectedDistricts.push(name);
+                if (!state.selectedDistricts.includes(name)) state.selectedDistricts.push(name);
             } else {
                 state.selectedDistricts = state.selectedDistricts.filter(d => d !== name);
             }
@@ -293,6 +293,27 @@ export function handlePriceBandRoomFilterClick(e) {
     
     reportRenderer.renderPriceBandReport();
 }
+
+// ▼▼▼ 【偵錯點】 ▼▼▼
+export function handlePriceBandDetailsClick(e) {
+    console.log("偵測到點擊事件!", e.target); // 偵錯點 1: 確認事件是否被觸發
+    const button = e.target.closest('.price-band-details-button');
+    if (!button) {
+        console.log("點擊的不是詳情按鈕，忽略。");
+        return;
+    }
+
+    const roomType = button.dataset.roomType;
+    const bathrooms = button.dataset.bathrooms;
+    
+    // 偵錯點 2: 確認是否成功抓到按鈕上的資料
+    console.log(`準備顯示詳情: 房型=${roomType}, 衛浴=${bathrooms}`);
+    console.log(`房型資料型態: ${typeof roomType}, 衛浴資料型態: ${typeof bathrooms}`);
+
+    reportRenderer.renderPriceBandDetails(roomType, bathrooms);
+}
+// ▲▲▲ 【偵錯結束】 ▲▲▲
+
 
 export function handleVelocityRoomFilterClick(e) {
     const button = e.target.closest('.capsule-btn'); if (!button) return;
