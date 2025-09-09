@@ -344,23 +344,21 @@ thead th { background-color: var(--color-dark-card); position: sticky; top: 0; z
   border-radius: 20px;
 }
 
-/* ▼▼▼ 【本次新增樣式】 ▼▼▼ */
-.project-composition-cell {
+.scrollable-cell-y {
     max-height: 4.8em; /* 預設顯示約 3 行的高度 (1.6em * 3) */
     overflow-y: auto;
     white-space: normal; /* 允許文字換行 */
     display: block; /* 讓 max-height 生效 */
     padding-right: 8px; /* 避免文字與卷軸重疊 */
 }
-.project-composition-cell::-webkit-scrollbar {
+.scrollable-cell-y::-webkit-scrollbar {
     width: 6px;
     height: 6px;
 }
-.project-composition-cell::-webkit-scrollbar-track {
+.scrollable-cell-y::-webkit-scrollbar-track {
     background: transparent;
 }
-.project-composition-cell::-webkit-scrollbar-thumb {
+.scrollable-cell-y::-webkit-scrollbar-thumb {
     background-color: var(--color-border-default);
     border-radius: 20px;
 }
-/* ▲▲▲ 【新增結束】 ▲▲▲ */
