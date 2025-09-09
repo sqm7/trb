@@ -137,17 +137,17 @@ export function renderPriceBandReport() {
     let headerHtml = '<thead><tr>' + tableHeaders.map(h => `<th>${h}</th>`).join('') + '</tr></thead>';
     let bodyHtml = '<tbody>';
 
+    // ▼▼▼【 唯一修改處 】▼▼▼
     if (filteredDataForTable.length > 0) {
         filteredDataForTable.forEach(item => { 
             // 1. 準備一個變數來存放「筆數」欄位的 HTML
             let countCellHtml = `<td>${item.count.toLocaleString()}</td>`;
             
-            // 2. 檢查 item 物件中，是否有我們從後端傳來的 buildingNames 陣列
+            // 2. 檢查 item 物件中，是否有我們從後端傳來的 buildingNames 陣列且裡面有資料
             if (item.buildingNames && item.buildingNames.length > 0) {
                 // 如果有，就把陣列中的建案名稱用「換行」串接起來
                 const tooltipText = item.buildingNames.join('\n');
                 // 重新產生「筆數」欄位的 HTML，並把建案清單加到 title 屬性中
-                // 同時加上 has-tooltip class，方便未來做樣式調整
                 countCellHtml = `<td class="has-tooltip" title="${tooltipText}">${item.count.toLocaleString()}</td>`;
             }
 
@@ -167,6 +167,7 @@ export function renderPriceBandReport() {
     } else {
         bodyHtml += `<tr><td colspan="${tableHeaders.length}" class="text-center p-4 text-gray-500">請至少選擇一個房型以顯示數據</td></tr>`;
     }
+    // ▲▲▲ 【 修改結束 】 ▲▲▲
 
     bodyHtml += '</tbody>';
     dom.priceBandTable.innerHTML = headerHtml + bodyHtml;
