@@ -356,9 +356,23 @@ export function renderPriceBandDetails(roomType, bathrooms) {
         const itemRoomGroup = getRoomTypeGroupOnFrontend(item);
         
         const roomMatch = itemRoomGroup === roomType;
-        const bathroomMatch = String(item['衛浴數'] || '0') === String(bathrooms === 'null' ? '0' : bathrooms);
+        if (!roomMatch) return false;
+
+        // ▼▼▼ 【最終修正點】 ▼▼▼
+        // 修正衛浴數量的比對邏輯，明確區分 'null' (無資料) 和 '0' (0間)
+        const itemBathrooms = item['衛浴數']; // 原始資料中的衛浴數 (number | null)
+
+        let bathroomMatch = false;
+        if (bathrooms === 'null') {
+            // 如果點擊的按鈕是'衛浴未分'，則只匹配衛浴數為 null 或 undefined 的資料
+            bathroomMatch = itemBathrooms === null || typeof itemBathrooms === 'undefined';
+        } else {
+            // 否則，直接比對數字是否相等 (轉為字串比對以統一型別)
+            bathroomMatch = String(itemBathrooms) === bathrooms;
+        }
+        // ▲▲▲ 【修正結束】 ▲▲▲
         
-        return roomMatch && bathroomMatch;
+        return bathroomMatch;
     });
 
     if (filteredData.length === 0) {
@@ -371,7 +385,6 @@ export function renderPriceBandDetails(roomType, bathrooms) {
 
     const projectNames = [...new Set(filteredData.map(item => item['建案名稱']))];
     const totalCount = filteredData.length;
-    // 使用 '房屋面積(坪)' 這個中文鍵名
     const areas = filteredData.map(item => item['房屋面積(坪)']).filter(a => a && a > 0);
     const minArea = areas.length > 0 ? Math.min(...areas) : 0;
     const maxArea = areas.length > 0 ? Math.max(...areas) : 0;
