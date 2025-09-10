@@ -74,39 +74,45 @@ export function renderHeatmapDetailsTable() {
 }
 // ▲▲▲ 【修改結束】 ▲▲▲
 
+// js/modules/renderers/tables.js
+
+// ... (檔案中其他的函式保持不變)
+
 export function renderTable(data) {
     if (!data || data.length === 0) {
         dom.resultsTable.innerHTML = '<tbody><tr><td colspan="99" class="text-center p-4">無資料</td></tr></tbody>';
         return;
     }
     const isPresale = data[0]['交易類型'] === '預售交易';
+    // 【修正 #1】在這裡隱藏 '戶別' 和 '戶型'，因為我們會手動加上新的「戶型」欄
     const hiddenColumns = ['編號', '縣市代碼', '交易類型', '戶型', '戶別'];
     const headers = Object.keys(data[0]);
     const headerRow = document.createElement('tr');
+    
+    // --- 建立表頭 (Header) ---
     const actionTh = document.createElement('th');
     actionTh.textContent = '操作';
     headerRow.appendChild(actionTh);
+    
     headers.forEach(header => {
         if (!hiddenColumns.includes(header)) {
             const th = document.createElement('th');
             th.textContent = header;
             headerRow.appendChild(th);
-            if (isPresale && header === '地址') { // 我們借用一個一定會經過的欄位來安插邏輯
-                    const unitTypeTd = document.createElement('td');
-                    const unitType = row['戶型'] || '-';
-                    const originalUnit = row['戶別'] || '無資料';
-
-                    // 加上 tooltip 所需的 class 和 data 屬性
-                    unitTypeTd.className = 'has-tooltip';
-                    unitTypeTd.dataset.tooltip = `原始戶別: ${originalUnit}`;
-                    
-                    unitTypeTd.textContent = unitType;
-                    tr.appendChild(unitTypeTd);
-                }
         }
     });
+
+    // 如果是預售交易，手動加上「戶型」的表頭
+    if (isPresale) {
+        const newTh = document.createElement('th');
+        newTh.textContent = '戶型';
+        headerRow.appendChild(newTh);
+    }
+    
     const thead = document.createElement('thead');
     thead.appendChild(headerRow);
+    
+    // --- 建立表格內容 (Body) ---
     const tbody = document.createElement('tbody');
     data.forEach(row => {
         const tr = document.createElement('tr');
@@ -115,6 +121,8 @@ export function renderTable(data) {
         if (remark.includes('露台') || remark.includes('親友') || remark.includes('員工')) {
             tr.classList.add('special-remark-row');
         }
+        
+        // 建立「操作」按鈕的儲存格
         const actionTd = document.createElement('td');
         const detailsBtn = document.createElement('button');
         detailsBtn.className = 'details-btn bg-purple-600 hover:bg-purple-500 text-white text-xs px-3 py-1 rounded-md';
@@ -124,6 +132,8 @@ export function renderTable(data) {
         detailsBtn.dataset.county = row['縣市代碼'];
         actionTd.appendChild(detailsBtn);
         tr.appendChild(actionTd);
+        
+        // 建立其他標準欄位的儲存格
         headers.forEach(header => {
             if (!hiddenColumns.includes(header)) {
                 const td = document.createElement('td');
@@ -134,18 +144,31 @@ export function renderTable(data) {
                     td.textContent = (typeof value === 'number' && !Number.isInteger(value)) ? ui.formatNumber(value) : (value ?? "-");
                 }
                 tr.appendChild(td);
-                if (isPresale && header === '戶別') {
-                    const unitTypeTd = document.createElement('td');
-                    unitTypeTd.textContent = row['戶型'] || '-';
-                    tr.appendChild(unitTypeTd);
-                }
             }
         });
+
+        // 【修正 #2】在這裡，我們已經處理完所有標準欄位，現在來獨立新增「戶型」欄位
+        if (isPresale) {
+            const unitTypeTd = document.createElement('td');
+            const unitType = row['戶型'] || '-';
+            const originalUnit = row['戶別'] || '無資料';
+
+            // 加上 tooltip 所需的 class 和 data 屬性
+            unitTypeTd.className = 'has-tooltip';
+            unitTypeTd.dataset.tooltip = `原始戶別: ${originalUnit}`;
+            
+            unitTypeTd.textContent = unitType;
+            tr.appendChild(unitTypeTd);
+        }
+        
         tbody.appendChild(tr);
     });
+    
     dom.resultsTable.innerHTML = '';
     dom.resultsTable.append(thead, tbody);
 }
+
+// ... (檔案中其他的函式保持不變)
 
 // ▼▼▼ 【需求修改處】 ▼▼▼
 export function renderSubTable(title, records) {
