@@ -295,7 +295,7 @@ thead th { background-color: var(--color-dark-card); position: sticky; top: 0; z
   width: 5px;
 }
 .project-name-list::-webkit-scrollbar-track {
-  background: transparent;
+  background: #252836;
 }
 .project-name-list::-webkit-scrollbar-thumb {
   background-color: transparent;
