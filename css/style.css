@@ -284,12 +284,12 @@ thead th { background-color: var(--color-dark-card); position: sticky; top: 0; z
     padding-right: 5px;
 }
 
-/* 【最終修正】讓 span 之間可以換行 */
+/* ▼▼▼ 【最終修正】強制每個 span 獨佔一行 ▼▼▼ */
 .project-name-list span {
-    display: inline-block; /* 讓 span 像單字一樣可以並排和換行 */
-    margin-right: 6px;   /* 增加一點間距，避免黏在一起 */
-    line-height: 1.5;      /* 增加行高，讓換行後不擁擠 */
+    display: block; /* 強制每個建案名稱都換行 */
+    line-height: 1.5;
 }
+/* ▲▲▲ 【修改結束】 ▲▲▲ */
 
 .project-name-list::-webkit-scrollbar {
   width: 5px;
