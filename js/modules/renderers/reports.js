@@ -5,7 +5,7 @@ import { state } from '../state.js';
 import * as ui from '../ui.js';
 import { renderRankingPagination } from './uiComponents.js';
 import { renderVelocityTable } from './tables.js';
-import { renderAreaHeatmap, renderSalesVelocityChart, renderPriceBandChart, renderRankingChart } from './charts.js';
+import { renderAreaHeatmap, renderSalesVelocityChart, renderPriceBandChart, renderRankingChart, renderParkingRatioChart } from './charts.js';
 import { displayCurrentPriceGrid } from './heatmap.js';
 
 // --- 新增開始：從後端複製並改寫的房型分組邏輯 ---
@@ -247,6 +247,7 @@ export function renderParkingAnalysisReport() {
     const { parkingRatio, avgPriceByType, rampPlanePriceByFloor } = state.analysisDataCache.parkingAnalysis;
     if (parkingRatio) {
         dom.parkingRatioTableContainer.innerHTML = `<table class="min-w-full divide-y divide-gray-800"><thead><tr><th>配置類型</th><th>交易筆數</th><th>佔比(%)</th></tr></thead><tbody><tr class="hover:bg-dark-card"><td>有搭車位</td><td>${parkingRatio.withParking.count.toLocaleString()}</td><td>${ui.formatNumber(parkingRatio.withParking.percentage, 2)}%</td></tr><tr class="hover:bg-dark-card"><td>沒搭車位</td><td>${parkingRatio.withoutParking.count.toLocaleString()}</td><td>${ui.formatNumber(parkingRatio.withoutParking.percentage, 2)}%</td></tr></tbody></table>`;
+        renderParkingRatioChart(); // <-- 新增這一行
     } else {
         dom.parkingRatioTableContainer.innerHTML = '<p class="text-gray-500">無車位配比資料可供分析。</p>';
     }
