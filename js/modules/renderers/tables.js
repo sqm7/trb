@@ -4,7 +4,6 @@ import { dom } from '../dom.js';
 import * as ui from '../ui.js';
 import { state } from '../state.js';
 
-// ▼▼▼ 【重構 renderHeatmapDetailsTable 函式，修正亂碼 Bug 並更新結構與標頭邏輯】 ▼▼▼
 export function renderHeatmapDetailsTable() {
     const { details, roomType, areaRange } = state.lastHeatmapDetails || {};
     const metricType = state.currentHeatmapDetailMetric;
@@ -24,7 +23,6 @@ export function renderHeatmapDetailsTable() {
         arithmetic: '算術平均(萬)'
     }[metricType];
     
-    // 總價的標頭邏輯：當中位數時顯示中位數，否則一律顯示算術平均
     const totalPriceMetricLabel = metricType === 'median' ? '中位數(萬)' : '算術平均(萬)';
 
     let tableHtml = `
@@ -49,7 +47,6 @@ export function renderHeatmapDetailsTable() {
     `;
 
     details.forEach(item => {
-        // 根據選擇的 metricType 決定要顯示的總價數據
         const totalPriceToShow = metricType === 'median' ? item.metrics.median.totalPrice : item.metrics.arithmetic.totalPrice;
         const unitPriceToShow = item.metrics[metricType].unitPrice;
 
@@ -85,29 +82,27 @@ export function renderTable(data) {
     const isPresale = data[0]['交易類型'] === '預售交易';
     const originalHeaders = Object.keys(data[0]);
 
-    // 【第1步】從原始數據的欄位中，過濾掉我們不想直接顯示的
+    // 【第1步】建立一個基礎的、要顯示的欄位列表。這個變數在整個函式中都可存取。
     let headersToShow = originalHeaders.filter(header => 
         !['編號', '縣市代碼', '交易類型', '戶別', '戶型'].includes(header)
     );
 
-    // 【第2步】如果是預售屋，手動將 '戶型' 插入到正確的位置
+    // 【第2步】如果是預售屋，才修改這個列表，將 '戶型' 插入到正確的位置
     if (isPresale) {
         const insertAfter = '交易筆棟數';
         const insertIndex = headersToShow.indexOf(insertAfter);
         if (insertIndex > -1) {
-            // 在「交易筆棟數」後面插入 '戶型'
             headersToShow.splice(insertIndex + 1, 0, '戶型');
         } else {
-            headersToShow.push('戶型'); // 保險起見，如果找不到就加在最後
+            headersToShow.push('戶型'); // 備用方案
         }
     }
 
     // --- 建立表頭 (<thead>) ---
     const thead = document.createElement('thead');
     const headerRow = document.createElement('tr');
-    let headerHtml = '<th>操作</th>'; // 加上固定的「操作」欄
+    let headerHtml = '<th>操作</th>';
     
-    // 根據我們重新排序過的欄位列表來產生表頭
     headersToShow.forEach(header => {
         headerHtml += `<th>${header}</th>`;
     });
@@ -125,7 +120,6 @@ export function renderTable(data) {
             tr.classList.add('special-remark-row');
         }
 
-        // 建立「操作」按鈕的儲存格
         const actionTd = document.createElement('td');
         const detailsBtn = document.createElement('button');
         detailsBtn.className = 'details-btn bg-purple-600 hover:bg-purple-500 text-white text-xs px-3 py-1 rounded-md';
@@ -136,16 +130,14 @@ export function renderTable(data) {
         actionTd.appendChild(detailsBtn);
         tr.appendChild(actionTd);
 
-        // 【第3步】根據重新排序過的欄位列表來產生每一格的內容
+        // 【第3步】根據最終排好序的 'headersToShow' 列表來產生每一格的內容
         headersToShow.forEach(header => {
             const td = document.createElement('td');
-
-            // 如果當前欄位是我們手動插入的 '戶型'
-            if (header === '戶型') {
+            if (header === '戶型') { // 如果輪到 '戶型'，就產生帶 tooltip 的儲存格
                 td.className = 'has-tooltip';
                 td.dataset.tooltip = `原始戶別: ${row['戶別'] || '無資料'}`;
                 td.textContent = row['戶型'] || '-';
-            } else { // 否則，就照舊產生一般的儲存格
+            } else { // 否則，就產生一般的儲存格
                 const value = row[header];
                 if (header === '地址' || header === '備註') {
                     td.innerHTML = `<div class="scrollable-cell">${value ?? "-"}</div>`;
