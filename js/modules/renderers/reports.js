@@ -8,7 +8,7 @@ import { renderVelocityTable } from './tables.js';
 import { renderAreaHeatmap, renderSalesVelocityChart, renderPriceBandChart, renderRankingChart } from './charts.js';
 import { displayCurrentPriceGrid } from './heatmap.js';
 
-// --- 新增開始：從後端複製並改寫的房型分組 logique ---
+// --- 新增開始：從後端複製並改寫的房型分組 lfogique ---
 /**
  * @description 根據後端 analysis-engine.ts 的邏輯，在前端為交易紀錄進行房型分類。
  * @param {object} record - 一筆交易資料，需包含 建物型態, 主要用途, 房數, 房屋面積(坪) 等欄位。
