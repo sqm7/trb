@@ -314,3 +314,8 @@ background-color: var(--color-border-default); /* 賦予滑塊一個固定的顏
     left: 0;
     transform: translateX(0) translateY(8px);
 }
+
+/* 專門修正資料查詢列表的表格寬度，使其可以水平滾動 */
+#results-table {
+    width: auto;
+}
