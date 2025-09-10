@@ -255,7 +255,7 @@ thead th { background-color: var(--color-dark-card); position: sticky; top: 0; z
     text-align: center;
 }
 
-/* --- ▼▼▼ 【修改處】總價帶分析報表樣式 ▼▼▼ --- */
+/* --- ▼▼▼ 【總價帶分析報表樣式】(已修正排版問題) ▼▼▼ --- */
 #price-band-details-container {
     background-color: var(--color-dark-bg);
     border: 1px solid var(--color-border-default);
@@ -321,14 +321,18 @@ thead th { background-color: var(--color-dark-card); position: sticky; top: 0; z
     word-break: break-word;
 }
 
+/* 【修正點 1】移除 flex 相關屬性，讓 max-height 生效 */
 .details-list-value .project-name-list {
-    max-height: 200px;
+    max-height: 200px; /* 您可以調整這個最大高度 */
     overflow-y: auto;
     padding-right: 0.5rem;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 0.25rem;
+    text-align: right; /* 確保文字靠右對齊 */
+}
+
+/* 【修正點 2】新增此規則，讓每個建案名稱獨立一行 */
+.details-list-value .project-name-list span {
+    display: block;
+    margin-bottom: 0.25rem; /* 增加一點點行距 */
 }
 
 .project-name-list::-webkit-scrollbar {
@@ -343,7 +347,7 @@ thead th { background-color: var(--color-dark-card); position: sticky; top: 0; z
 .project-name-list::-webkit-scrollbar-thumb {
   background: transparent;
   border-radius: 20px;
-  transition: background-color 0.3s ease; /* 加入過渡效果 */
+  transition: background-color 0.3s ease;
 }
 
 /* 滑鼠懸停時顯示捲軸滑塊 */
