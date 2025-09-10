@@ -306,3 +306,9 @@ background-color: var(--color-border-default); /* 賦予滑塊一個固定的顏
 .project-name-list:hover::-webkit-scrollbar-thumb {
   background-color: var(--color-border-default);
 }
+
+/* --- 新增：修正 velocity-table 中 tooltip 被裁切的問題 --- */
+.velocity-table td:first-child .has-tooltip::after {
+    left: 0;
+    transform: translateX(0) translateY(8px);
+}
