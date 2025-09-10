@@ -219,6 +219,8 @@ thead th { background-color: var(--color-dark-card); position: sticky; top: 0; z
 }
 .velocity-table tbody tr:hover {
     background-color: var(--color-dark-card);
+    position: relative; /* 讓 z-index 生效 */
+    z-index: 20;      /* 提升 hovered row 的層級 */
 }
 .velocity-table td {
     border-top: 1px solid var(--color-disabled-bg);
