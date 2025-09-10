@@ -54,12 +54,13 @@ export const dom = {
     storeStatsExtraInfo: document.getElementById('store-stats-extra-info'),
     typeComparisonTableContainer: document.getElementById('type-comparison-table-container'),
 
-    // Parking report
+// Parking report
     parkingReportContent: document.getElementById('parking-report-content'),
     parkingRatioTableContainer: document.getElementById('parking-ratio-table-container'),
+    parkingRatioChartContainer: document.getElementById('parking-ratio-chart-container'), // <-- 新增這一行
     avgPriceByTypeTableContainer: document.getElementById('avg-price-by-type-table-container'),
     rampPlanePriceByFloorTableContainer: document.getElementById('ramp-plane-price-by-floor-table-container'),
-
+    
     // Sales velocity report
     velocityReportContent: document.getElementById('velocity-report-content'),
     velocityRoomFilterContainer: document.getElementById('velocity-room-filter-container'),
