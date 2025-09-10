@@ -181,8 +181,19 @@ export function renderVelocityTable() {
     timeKeys.forEach(timeKey => {
         const periodData = dataForView[timeKey];
         let rowTotal = { count: 0, priceSum: 0, areaSum: 0 };
-        let rowHtml = `<tr class="hover:bg-dark-card"><td class="sticky left-0 bg-dark-card hover:bg-gray-800 z-10 font-mono">${timeKey}</td>`;
+
+        // --- 新增的邏輯開始 ---
+        let tdClass = "sticky left-0 bg-dark-card hover:bg-gray-800 z-10 font-mono";
+        let tdTooltip = "";
+        if (state.currentVelocityView === 'weekly') {
+            tdClass += " has-tooltip"; // 加上啟用提示框的 class
+            tdTooltip = `data-tooltip="${ui.getDateRangeOfWeek(timeKey)}"`; // 產生日期區間並設定為 tooltip 內容
+        }
+        let rowHtml = `<tr class="hover:bg-dark-card"><td class="${tdClass}" ${tdTooltip}>${timeKey}</td>`;
+        // --- 新增的邏輯結束 ---
+        
         state.selectedVelocityRooms.forEach(roomType => {
+//...
             const stats = periodData[roomType];
             if (stats) {
                    rowHtml += `<td>${stats.count.toLocaleString()}</td><td>${ui.formatNumber(stats.priceSum, 0)}</td><td>${ui.formatNumber(stats.areaSum, 2)}</td>`;
