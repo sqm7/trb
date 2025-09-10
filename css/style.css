@@ -99,31 +99,7 @@ thead th { background-color: var(--color-dark-card); position: sticky; top: 0; z
 .sub-tab-nav { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; border-bottom: 1px solid var(--color-disabled-bg); padding-bottom: 0.75rem; }
 .sub-tab-btn { padding: 0.5rem 1rem; border-radius: 0.5rem; color: var(--color-text-dark); font-weight: 500; cursor: pointer; transition: background-color 0.2s; }
 .sub-tab-btn.active, .sub-tab-btn:hover { background-color: var(--color-dark-card); color: var(--color-text-light); }
-.has-tooltip { position: relative; cursor: help; display: inline-block; }
-.has-tooltip::after {
-    content: attr(data-tooltip);
-    position: absolute;
-    top: 100%;
-    left: 50%;
-    transform: translateX(-50%) translateY(8px);
-    background-color: var(--color-tooltip-bg);
-    color: white;
-    padding: 8px 12px;
-    border-radius: 8px;
-    font-size: 0.875rem;
-    font-family: 'Noto Sans TC', sans-serif;
-    text-align: left;
-    z-index: 100;
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.2s, visibility 0.2s;
-    pointer-events: none;
-    white-space: pre-line;
-    border: 1px solid var(--color-tooltip-border);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-    min-width: 240px;
-}
-.has-tooltip:hover::after { opacity: 1; visibility: visible; }
+
 .parking-icon { color: var(--color-icon-parking); margin-left: 4px; font-size: 0.75rem; }
 .grid-cell-content { line-height: 1.6; display: flex; flex-direction: column; align-items: flex-start; }
 .special-remark-row { background-color: var(--color-special-remark-bg); }
@@ -433,4 +409,26 @@ span.flatpickr-weekday {
 
 .flatpickr-current-month input.cur-year {
     color: var(--color-text-light);
+}
+
+/* --- Tippy.js Dark Theme Customization --- */
+.tippy-box[data-theme~='dark-trb'] {
+    background-color: var(--color-tooltip-bg);
+    color: white;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    font-family: 'Noto Sans TC', sans-serif;
+    text-align: left;
+    border: 1px solid var(--color-tooltip-border);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+.tippy-box[data-theme~='dark-trb'][data-placement^='top'] > .tippy-arrow::before {
+    border-top-color: var(--color-tooltip-bg);
+}
+.tippy-box[data-theme~='dark-trb'][data-placement^='bottom'] > .tippy-arrow::before {
+    border-bottom-color: var(--color-tooltip-bg);
+}
+.tippy-content {
+    white-space: pre-line;
+    padding: 8px 12px;
 }
