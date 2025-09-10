@@ -169,18 +169,17 @@ export function renderPriceBandReport() {
         return (a.bathrooms || 0) - (b.bathrooms || 0);
     });
     
-    // 1. 從表頭移除「詳情」
     const tableHeaders = ['房型', '衛浴', '總成建案', '筆數', '平均總價(萬)', '最低總價(萬)', '1/4位總價(萬)', '中位數總價(萬)', '3/4位總價(萬)', '最高總價(萬)'];
     let headerHtml = '<thead><tr>' + tableHeaders.map(h => `<th>${h}</th>`).join('') + '</tr></thead>';
     let bodyHtml = '<tbody>';
 
     if (filteredDataForTable.length > 0) {
         filteredDataForTable.forEach(item => { 
+            // 【最終修正】在每個 span 後面加上一個空格，讓瀏覽器知道可以在此換行
             const projectListHtml = (item.projectNames && item.projectNames.length > 0) 
-                ? item.projectNames.map(name => `<span>${name}</span>`).join('') 
+                ? item.projectNames.map(name => `<span>${name}</span> `).join('') 
                 : '-';
 
-            // 2. 從表格內容中移除「詳情」按鈕的 <td>
             bodyHtml += `<tr class="hover:bg-dark-card transition-colors">
                 <td>${item.roomType}</td>
                 <td>${item.bathrooms !== null ? item.bathrooms : '-'}</td>
@@ -204,8 +203,6 @@ export function renderPriceBandReport() {
     dom.priceBandTable.innerHTML = headerHtml + bodyHtml;
 
     renderPriceBandChart();
-    // 3. 移除對 renderPriceBandDetails 的呼叫，因為按鈕已經不存在了
-    // renderPriceBandDetails(null, null); 
 }
 // ▲▲▲ 【修改結束】 ▲▲▲
 
@@ -356,11 +353,7 @@ export function renderPriceBandDetails(roomType, bathrooms) {
     }
     
     const filteredData = state.analysisDataCache.transactionDetails.filter(item => {
-        // ▼▼▼ 最終修正點 ▼▼▼
-        // 1. 在前端使用與後端完全相同的邏輯，為每一筆原始資料即時計算出它的房型分組
         const itemRoomGroup = getRoomTypeGroupOnFrontend(item);
-        
-        // 2. 使用計算出的房型分組，以及正確的衛浴欄位名稱 '衛浴數' 來進行比對
         const roomMatch = itemRoomGroup === roomType;
         const bathroomMatch = String(item['衛浴數']) === String(bathrooms);
         
@@ -377,7 +370,6 @@ export function renderPriceBandDetails(roomType, bathrooms) {
 
     const projectNames = [...new Set(filteredData.map(item => item['建案名稱']))];
     const totalCount = filteredData.length;
-    // 使用 '房屋面積(坪)' 這個中文鍵名
     const areas = filteredData.map(item => item['房屋面積(坪)']).filter(a => a && a > 0);
     const minArea = areas.length > 0 ? Math.min(...areas) : 0;
     const maxArea = areas.length > 0 ? Math.max(...areas) : 0;
