@@ -8,7 +8,7 @@ import { renderVelocityTable } from './tables.js';
 import { renderAreaHeatmap, renderSalesVelocityChart, renderPriceBandChart, renderRankingChart } from './charts.js';
 import { displayCurrentPriceGrid } from './heatmap.js';
 
-// --- 新增開始：從後端複製並改寫的房型分組 lfogique ---
+// --- 新增開始：從後端複製並改寫的房型分組邏輯 ---
 /**
  * @description 根據後端 analysis-engine.ts 的邏輯，在前端為交易紀錄進行房型分類。
  * @param {object} record - 一筆交易資料，需包含 建物型態, 主要用途, 房數, 房屋面積(坪) 等欄位。
@@ -169,31 +169,24 @@ export function renderPriceBandReport() {
         return (a.bathrooms || 0) - (b.bathrooms || 0);
     });
     
-    // 1. 新增「總成建案」到表頭
-    const tableHeaders = ['詳情', '房型', '衛浴', '總成建案', '筆數', '平均總價(萬)', '最低總價(萬)', '1/4位總價(萬)', '中位數總價(萬)', '3/4位總價(萬)', '最高總價(萬)'];
+    // 1. 從表頭移除「詳情」
+    const tableHeaders = ['房型', '衛浴', '總成建案', '筆數', '平均總價(萬)', '最低總價(萬)', '1/4位總價(萬)', '中位數總價(萬)', '3/4位總價(萬)', '最高總價(萬)'];
     let headerHtml = '<thead><tr>' + tableHeaders.map(h => `<th>${h}</th>`).join('') + '</tr></thead>';
     let bodyHtml = '<tbody>';
 
     if (filteredDataForTable.length > 0) {
         filteredDataForTable.forEach(item => { 
-            // 2. 準備建案列表的 HTML
             const projectListHtml = (item.projectNames && item.projectNames.length > 0) 
                 ? item.projectNames.map(name => `<span>${name}</span>`).join('') 
                 : '-';
 
+            // 2. 從表格內容中移除「詳情」按鈕的 <td>
             bodyHtml += `<tr class="hover:bg-dark-card transition-colors">
-                <td class="text-center">
-                    <button class="price-band-details-button" data-room-type="${item.roomType}" data-bathrooms="${item.bathrooms}" title="查看詳細資料">
-                        <i class="fas fa-chart-bar"></i>
-                    </button>
-                </td>
                 <td>${item.roomType}</td>
                 <td>${item.bathrooms !== null ? item.bathrooms : '-'}</td>
-                
                 <td class="project-list-cell">
                     <div class="project-name-list">${projectListHtml}</div>
                 </td>
-                
                 <td>${item.count.toLocaleString()}</td>
                 <td>${ui.formatNumber(item.avgPrice, 0)}</td>
                 <td>${ui.formatNumber(item.minPrice, 0)}</td>
@@ -211,7 +204,8 @@ export function renderPriceBandReport() {
     dom.priceBandTable.innerHTML = headerHtml + bodyHtml;
 
     renderPriceBandChart();
-    renderPriceBandDetails(null, null);
+    // 3. 移除對 renderPriceBandDetails 的呼叫，因為按鈕已經不存在了
+    // renderPriceBandDetails(null, null); 
 }
 // ▲▲▲ 【修改結束】 ▲▲▲
 
