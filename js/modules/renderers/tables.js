@@ -89,6 +89,16 @@ export function renderTable(data) {
     const headersToShow = originalHeaders.filter(header => 
         !['編號', '縣市代碼', '交易類型', '戶別', '戶型'].includes(header)
     );
+    // 【【【新增修改點 #1】】】
+    // 如果是預售屋，找到「交易筆棟數」的位置，並將「戶型」安插在它後面
+    if (isPresale) {
+        const transactionCountIndex = columnsToShow.indexOf('交易筆棟數');
+        if (transactionCountIndex > -1) {
+            columnsToShow.splice(transactionCountIndex + 1, 0, '戶型'); // 插入 '戶型'
+        } else {
+            columnsToShow.push('戶型'); // 如果找不到，就還是加在最後面
+        }
+    }
 
     // --- 建立表頭 (<thead>) ---
     const thead = document.createElement('thead');
