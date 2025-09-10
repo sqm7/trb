@@ -315,7 +315,10 @@ background-color: var(--color-border-default); /* 賦予滑塊一個固定的顏
     transform: translateX(0) translateY(8px);
 }
 
-/* 專門修正資料查詢列表的表格寬度，使其可以水平滾動 */
-#results-table {
-    width: auto;
+/* 【最終修正】
+  使用高權重選擇器，強制資料列表的表格寬度由內容決定，
+  以解決欄位文字變垂直的問題。
+*/
+#data-list-content #results-table {
+    min-width: max-content;
 }
