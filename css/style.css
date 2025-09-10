@@ -322,3 +322,91 @@ background-color: var(--color-border-default); /* 賦予滑塊一個固定的顏
 #data-list-content #results-table {
     min-width: max-content;
 }
+/* --- flatpickr Dark Theme Customization --- */
+.flatpickr-calendar {
+    background: var(--color-dark-card);
+    border: 1px solid var(--color-border-default);
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    width: 320px;
+}
+
+.flatpickr-months .flatpickr-month {
+    color: var(--color-text-light);
+    fill: var(--color-text-light);
+}
+
+.flatpickr-months .flatpickr-prev-month,
+.flatpickr-months .flatpickr-next-month {
+    color: var(--color-text-dark);
+    fill: var(--color-text-dark);
+    transition: color 0.2s;
+}
+
+.flatpickr-months .flatpickr-prev-month:hover,
+.flatpickr-months .flatpickr-next-month:hover {
+    color: var(--color-cyan-accent);
+    fill: var(--color-cyan-accent);
+}
+
+span.flatpickr-weekday {
+    color: var(--color-text-dark);
+    font-weight: 500;
+}
+
+.flatpickr-day {
+    color: var(--color-text-light);
+    border: 1px solid transparent;
+    transition: background-color 0.2s, border-color 0.2s;
+}
+
+.flatpickr-day:hover,
+.flatpickr-day:focus {
+    background: var(--color-form-bg);
+    border-color: var(--color-form-bg);
+}
+
+.flatpickr-day.today {
+    border-color: var(--color-cyan-accent);
+}
+
+.flatpickr-day.selected,
+.flatpickr-day.startRange,
+.flatpickr-day.endRange {
+    background: var(--color-cyan-accent);
+    color: #fff;
+    border-color: var(--color-cyan-accent);
+}
+
+.flatpickr-day.disabled,
+.flatpickr-day.disabled:hover {
+    background: none;
+    color: #4b5563;
+    cursor: not-allowed;
+}
+
+.numInputWrapper span:hover {
+    background: var(--color-disabled-bg);
+}
+
+.flatpickr-time input.flatpickr-hour,
+.flatpickr-time input.flatpickr-minute {
+    color: var(--color-text-light);
+}
+
+.flatpickr-current-month .flatpickr-monthDropdown-months {
+    background: var(--color-dark-card);
+    color: var(--color-text-light);
+}
+
+.flatpickr-current-month .flatpickr-monthDropdown-months .flatpickr-monthDropdown-month {
+    color: var(--color-text-light);
+}
+
+.flatpickr-current-month .flatpickr-monthDropdown-months .flatpickr-monthDropdown-month:hover {
+    background: var(--color-form-bg);
+}
+
+.flatpickr-current-month input.cur-year {
+    color: var(--color-text-light);
+}
