@@ -4,7 +4,6 @@ import { dom } from '../dom.js';
 import * as ui from '../ui.js';
 import { state } from '../state.js';
 
-// ▼▼▼ 【重構 renderHeatmapDetailsTable 函式，修正亂碼 Bug 並更新結構與標頭邏輯】 ▼▼▼
 export function renderHeatmapDetailsTable() {
     const { details, roomType, areaRange } = state.lastHeatmapDetails || {};
     const metricType = state.currentHeatmapDetailMetric;
@@ -72,7 +71,7 @@ export function renderHeatmapDetailsTable() {
 }
 
 // =================================================================
-// 【【【 以下是本次修正的核心區域 】】】
+// 【【【 本次修正的函式 】】】
 // =================================================================
 export function renderTable(data) {
     if (!data || data.length === 0) {
@@ -80,34 +79,27 @@ export function renderTable(data) {
         return;
     }
     const isPresale = data[0]['交易類型'] === '預售交易';
-    // 隱藏原始的 '戶別' 和 '戶型'，因為我們會手動新增一個帶有 tooltip 的新“戶型”欄
-    const hiddenColumns = ['編號', '縣市代碼', '交易類型', '戶型', '戶別'];
-    const headers = Object.keys(data[0]);
+    const originalHeaders = Object.keys(data[0]);
     
+    // 【第1步】定義要顯示的欄位，直接過濾掉 '戶別' 和其他不需要的欄位
+    const columnsToShow = originalHeaders.filter(h => 
+        !['編號', '縣市代碼', '交易類型', '戶型', '戶別'].includes(h)
+    );
+
     // --- 建立表頭 (Header) ---
+    const thead = document.createElement('thead');
     const headerRow = document.createElement('tr');
-    const actionTh = document.createElement('th');
-    actionTh.textContent = '操作';
-    headerRow.appendChild(actionTh);
+    headerRow.innerHTML = '<th>操作</th>'; // 加上操作欄
     
-    headers.forEach(header => {
-        if (!hiddenColumns.includes(header)) {
-            const th = document.createElement('th');
-            th.textContent = header;
-            headerRow.appendChild(th);
-        }
+    columnsToShow.forEach(header => {
+        headerRow.innerHTML += `<th>${header}</th>`;
     });
 
-    // 如果是預售屋，手動加上「戶型」的表頭
     if (isPresale) {
-        const newTh = document.createElement('th');
-        newTh.textContent = '戶型';
-        headerRow.appendChild(newTh);
+        headerRow.innerHTML += '<th>戶型</th>'; // 手動加上「戶型」表頭
     }
-    
-    const thead = document.createElement('thead');
     thead.appendChild(headerRow);
-    
+
     // --- 建立表格內容 (Body) ---
     const tbody = document.createElement('tbody');
     data.forEach(row => {
@@ -117,8 +109,8 @@ export function renderTable(data) {
         if (remark.includes('露台') || remark.includes('親友') || remark.includes('員工')) {
             tr.classList.add('special-remark-row');
         }
-        
-        // 操作按鈕
+
+        // 建立「操作」按鈕
         const actionTd = document.createElement('td');
         const detailsBtn = document.createElement('button');
         detailsBtn.className = 'details-btn bg-purple-600 hover:bg-purple-500 text-white text-xs px-3 py-1 rounded-md';
@@ -128,22 +120,20 @@ export function renderTable(data) {
         detailsBtn.dataset.county = row['縣市代碼'];
         actionTd.appendChild(detailsBtn);
         tr.appendChild(actionTd);
-        
-        // 其他標準欄位
-        headers.forEach(header => {
-            if (!hiddenColumns.includes(header)) {
-                const td = document.createElement('td');
-                const value = row[header];
-                if (header === '地址' || header === '備註') {
-                    td.innerHTML = `<div class="scrollable-cell">${value ?? "-"}</div>`;
-                } else {
-                    td.textContent = (typeof value === 'number' && !Number.isInteger(value)) ? ui.formatNumber(value) : (value ?? "-");
-                }
-                tr.appendChild(td);
+
+        // 【第2步】根據過濾後的欄位清單來產生儲存格
+        columnsToShow.forEach(header => {
+            const td = document.createElement('td');
+            const value = row[header];
+            if (header === '地址' || header === '備註') {
+                td.innerHTML = `<div class="scrollable-cell">${value ?? "-"}</div>`;
+            } else {
+                td.textContent = (typeof value === 'number' && !Number.isInteger(value)) ? ui.formatNumber(value) : (value ?? "-");
             }
+            tr.appendChild(td);
         });
 
-        // 手動新增帶有 Tooltip 的「戶型」欄位
+        // 【第3步】在所有欄位都產生後，手動加上帶有 Tooltip 的「戶型」儲存格
         if (isPresale) {
             const unitTypeTd = document.createElement('td');
             const unitType = row['戶型'] || '-';
@@ -157,14 +147,10 @@ export function renderTable(data) {
         
         tbody.appendChild(tr);
     });
-    
-    dom.resultsTable.innerHTML = '';
-    dom.resultsTable.append(thead, tbody);
-}
-// =================================================================
-// 【【【 以上是本次修正的核心區域 】】】
-// =================================================================
 
+    dom.resultsTable.innerHTML = ''; // 清空舊表格
+    dom.resultsTable.append(thead, tbody); // 放入新產生的表頭和內容
+}
 
 export function renderSubTable(title, records) {
     if (!records || !Array.isArray(records) || records.length === 0) {
