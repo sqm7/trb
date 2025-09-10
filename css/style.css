@@ -292,15 +292,16 @@ thead th { background-color: var(--color-dark-card); position: sticky; top: 0; z
 /* ▲▲▲ 【修改結束】 ▲▲▲ */
 
 .project-name-list::-webkit-scrollbar {
-  width: 5px;
+ width: 8px; /* 加寬一點讓它更明顯 */
+  background-color: #252836; /* 給予捲軸區域塊一個底色 */
 }
 .project-name-list::-webkit-scrollbar-track {
-  background: #252836;
+  background: #252836; /* 軌道顏色與底色一致 */
 }
 .project-name-list::-webkit-scrollbar-thumb {
-  background-color: transparent;
+background-color: var(--color-border-default); /* 賦予滑塊一個固定的顏色 */
   border-radius: 20px;
-  transition: background-color 0.3s ease;
+  border: 2px solid #252836; /* 增加邊框創造一點間距感 */
 }
 .project-name-list:hover::-webkit-scrollbar-thumb {
   background-color: var(--color-border-default);
