@@ -182,15 +182,18 @@ export function renderVelocityTable() {
         const periodData = dataForView[timeKey];
         let rowTotal = { count: 0, priceSum: 0, areaSum: 0 };
 
-        // --- 新增的邏輯開始 ---
-        let tdClass = "sticky left-0 bg-dark-card hover:bg-gray-800 z-10 font-mono";
-        let tdTooltip = "";
+      // --- 修正後的邏輯開始 ---
+        let timeCellContent;
         if (state.currentVelocityView === 'weekly') {
-            tdClass += " has-tooltip"; // 加上啟用提示框的 class
-            tdTooltip = `data-tooltip="${ui.getDateRangeOfWeek(timeKey)}"`; // 產生日期區間並設定為 tooltip 內容
+            const dateRange = ui.getDateRangeOfWeek(timeKey);
+            // 將提示框功能改為只包覆在文字外層的 span
+            timeCellContent = `<span class="has-tooltip" data-tooltip="${dateRange}">${timeKey}</span>`;
+        } else {
+            timeCellContent = timeKey; // 其他視圖則維持原樣
         }
-        let rowHtml = `<tr class="hover:bg-dark-card"><td class="${tdClass}" ${tdTooltip}>${timeKey}</td>`;
-        // --- 新增的邏輯結束 ---
+        // <td> 維持原本固定的 class，確保排版正確
+        let rowHtml = `<tr class="hover:bg-dark-card"><td class="sticky left-0 bg-dark-card hover:bg-gray-800 z-10 font-mono">${timeCellContent}</td>`;
+        // --- 修正後的邏輯結束 ---
         
         state.selectedVelocityRooms.forEach(roomType => {
 //...
