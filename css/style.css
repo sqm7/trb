@@ -255,17 +255,7 @@ thead th { background-color: var(--color-dark-card); position: sticky; top: 0; z
     text-align: center;
 }
 
-/* --- ▼▼▼ 【總價帶分析報表樣式】(已修正排版問題) ▼▼▼ --- */
-#price-band-details-container {
-    background-color: var(--color-dark-bg);
-    border: 1px solid var(--color-border-default);
-    border-radius: 0.75rem;
-    padding: 1.5rem;
-    color: var(--color-text-dark);
-    min-height: 400px;
-    align-self: start;
-}
-
+/* --- 總價帶分析報表樣式 --- */
 #price-band-details-container h3 {
     font-size: 1.125rem;
     font-weight: 600;
@@ -275,83 +265,44 @@ thead th { background-color: var(--color-dark-card); position: sticky; top: 0; z
     padding-bottom: 0.75rem;
 }
 
-.price-band-details-button {
-    background: none;
-    border: none;
-    color: var(--color-text-dark);
-    cursor: pointer;
-    padding: 0.25rem 0.5rem;
-    font-size: 0.9rem;
-    transition: all 0.2s ease-in-out;
+/* ▼▼▼ 【最終修正】 ▼▼▼ */
+
+/* 1. 讓表格佈局固定，並為建案欄位設定一個合理的寬度 */
+#price-band-table {
+    table-layout: fixed;
+    width: 100%;
 }
 
-.price-band-details-button:hover {
-    color: var(--color-cyan-accent);
-    transform: scale(1.15);
+/* 2. 針對我們新加的 class，覆寫文字換行屬性，並設定寬度 */
+.project-list-cell {
+    white-space: normal; /* 覆寫全域的 nowrap，允許此欄位內容換行 */
+    width: 220px;       /* 給定一個固定的寬度 */
+    max-width: 220px;
+    vertical-align: top; /* 垂直對齊頂部 */
 }
 
-.details-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-}
-
-.details-list-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    padding-bottom: 0.75rem;
-    border-bottom: 1px solid var(--color-border-default);
-    font-size: 0.875rem;
-}
-
-.details-list-label {
-    font-weight: 500;
-    color: var(--color-text-light);
-    flex-shrink: 0;
-    margin-right: 1rem;
-}
-
-.details-list-value {
-    font-weight: 400;
-    text-align: right;
-    word-break: break-word;
-}
-
-/* 【修正點 1】移除 flex 相關屬性，讓 max-height 生效 */
-.details-list-value .project-name-list {
-    max-height: 200px; /* 您可以調整這個最大高度 */
+/* 3. 對內部的 div 設定最大高度和捲軸 */
+.project-name-list {
+    max-height: 90px; /* 最大高度，超過此高度會出現捲軸 */
     overflow-y: auto;
-    padding-right: 0.5rem;
-    text-align: right; /* 確保文字靠右對齊 */
+    font-size: 0.8rem;
+    padding-right: 5px;
 }
 
-/* 【修正點 2】新增此規則，讓每個建案名稱獨立一行 */
-.details-list-value .project-name-list span {
-    display: block;
-    margin-bottom: 0.25rem; /* 增加一點點行距 */
-}
-
+/* 4. 讓捲軸預設透明，滑鼠移上去才顯示 */
 .project-name-list::-webkit-scrollbar {
-  width: 4px;
+  width: 5px;
 }
-
 .project-name-list::-webkit-scrollbar-track {
   background: transparent;
 }
-
-/* 預設隱藏捲軸滑塊 */
 .project-name-list::-webkit-scrollbar-thumb {
-  background: transparent;
+  background-color: transparent;
   border-radius: 20px;
   transition: background-color 0.3s ease;
 }
-
-/* 滑鼠懸停時顯示捲軸滑塊 */
 .project-name-list:hover::-webkit-scrollbar-thumb {
-  background: var(--color-border-default);
+  background-color: var(--color-border-default);
 }
+
 /* --- ▲▲▲ 【修改結束】 ▲▲▲ --- */
