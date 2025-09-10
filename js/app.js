@@ -86,6 +86,19 @@ function initialize() {
     dom.rankingPaginationControls.className = 'flex justify-between items-center mt-4 text-sm text-gray-400';
     dom.rankingReportContent.querySelector('.overflow-x-auto').insertAdjacentElement('afterend', dom.rankingPaginationControls);
 
+
+// --- 日期選擇器初始化 ---
+    const flatpickrConfig = {
+        locale: "zh_tw", // 使用繁體中文語系
+        dateFormat: "Y-m-d", // 設定日期格式
+        onChange: function(selectedDates, dateStr, instance) {
+            // 當使用者手動選擇日期時，自動將快捷選單切換至 "自訂範圍"
+            dom.dateRangeSelect.value = 'custom';
+        }
+    };
+    flatpickr(dom.dateStartInput, flatpickrConfig);
+    flatpickr(dom.dateEndInput, flatpickrConfig);
+    
     // --- 主要按鈕與篩選器事件 ---
     dom.searchBtn.addEventListener('click', () => { state.currentPage = 1; mainFetchData(); });
     dom.analyzeBtn.addEventListener('click', mainAnalyzeData);
@@ -94,8 +107,6 @@ function initialize() {
     
     // --- 日期相關事件 ---
     dom.dateRangeSelect.addEventListener('change', handleDateRangeChange);
-    dom.dateStartInput.addEventListener('input', () => { if (document.activeElement === dom.dateStartInput) dom.dateRangeSelect.value = 'custom'; });
-    dom.dateEndInput.addEventListener('input', () => { if (document.activeElement === dom.dateEndInput) dom.dateRangeSelect.value = 'custom'; });
     dom.setTodayBtn.addEventListener('click', () => {
         dom.dateEndInput.value = ui.formatDate(new Date());
         dom.dateRangeSelect.value = 'custom';
