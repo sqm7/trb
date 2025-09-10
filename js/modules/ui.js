@@ -120,3 +120,41 @@ export function createPaginationControls(container, totalItems, currentPage, pag
         document.head.appendChild(style);
     }
 }
+
+/**
+ * 將 YYYY-Www 格式的週數轉換為日期區間字串
+ * @param {string} weekString - 例如 "2025-W29"
+ * @returns {string} - 例如 "2025/07/14 ~ 2025/07/20"
+ */
+export function getDateRangeOfWeek(weekString) {
+    try {
+        const [year, weekNumber] = weekString.replace('W', '').split('-').map(Number);
+        
+        // 找到該年的1月4日，這一天保證在第一週
+        const simple = new Date(year, 0, 4);
+        // 取得1月4日是星期幾 (0=週日, 1=週一...)
+        const dayOfWeek = simple.getDay() || 7; // 將週日(0)視為7
+        // 移至該週的週一
+        simple.setDate(simple.getDate() - dayOfWeek + 1);
+        
+        // 計算目標週的開始日期
+        const weekStart = new Date(simple);
+        weekStart.setDate(simple.getDate() + (weekNumber - 1) * 7);
+        
+        // 計算結束日期
+        const weekEnd = new Date(weekStart);
+        weekEnd.setDate(weekStart.getDate() + 6);
+
+        const formatDate = (d) => {
+            const y = d.getFullYear();
+            const m = String(d.getMonth() + 1).padStart(2, '0');
+            const dt = String(d.getDate()).padStart(2, '0');
+            return `${y}/${m}/${dt}`;
+        };
+
+        return `${formatDate(weekStart)} ~ ${formatDate(weekEnd)}`;
+    } catch (e) {
+        console.error("解析週數失敗:", weekString, e);
+        return "日期解析錯誤";
+    }
+}
