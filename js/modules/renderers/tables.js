@@ -85,37 +85,32 @@ export function renderTable(data) {
     const isPresale = data[0]['交易類型'] === '預售交易';
     const originalHeaders = Object.keys(data[0]);
 
-    // 【第1步】定義最終要顯示的欄位標題，直接從源頭過濾掉我們不想要的
-    const headersToShow = originalHeaders.filter(header => 
+    // 【第1步】從原始數據的欄位中，過濾掉我們不想直接顯示的
+    let headersToShow = originalHeaders.filter(header => 
         !['編號', '縣市代碼', '交易類型', '戶別', '戶型'].includes(header)
     );
-    // 【【【新增修改點 #1】】】
-    // 如果是預售屋，找到「交易筆棟數」的位置，並將「戶型」安插在它後面
+
+    // 【第2步】如果是預售屋，手動將 '戶型' 插入到正確的位置
     if (isPresale) {
-        const transactionCountIndex = columnsToShow.indexOf('交易筆棟數');
-        if (transactionCountIndex > -1) {
-            columnsToShow.splice(transactionCountIndex + 1, 0, '戶型'); // 插入 '戶型'
+        const insertAfter = '交易筆棟數';
+        const insertIndex = headersToShow.indexOf(insertAfter);
+        if (insertIndex > -1) {
+            // 在「交易筆棟數」後面插入 '戶型'
+            headersToShow.splice(insertIndex + 1, 0, '戶型');
         } else {
-            columnsToShow.push('戶型'); // 如果找不到，就還是加在最後面
+            headersToShow.push('戶型'); // 保險起見，如果找不到就加在最後
         }
     }
 
     // --- 建立表頭 (<thead>) ---
     const thead = document.createElement('thead');
     const headerRow = document.createElement('tr');
+    let headerHtml = '<th>操作</th>'; // 加上固定的「操作」欄
     
-    // 固定的「操作」欄
-    let headerHtml = '<th>操作</th>';
-    
-    // 根據過濾後的清單產生表頭
+    // 根據我們重新排序過的欄位列表來產生表頭
     headersToShow.forEach(header => {
         headerHtml += `<th>${header}</th>`;
     });
-    
-    // 如果是預售屋，才手動加上「戶型」表頭
-    if (isPresale) {
-        headerHtml += '<th>戶型</th>';
-    }
     
     headerRow.innerHTML = headerHtml;
     thead.appendChild(headerRow);
@@ -130,7 +125,7 @@ export function renderTable(data) {
             tr.classList.add('special-remark-row');
         }
 
-        // 建立「操作」按鈕的儲存格 (<td>)
+        // 建立「操作」按鈕的儲存格
         const actionTd = document.createElement('td');
         const detailsBtn = document.createElement('button');
         detailsBtn.className = 'details-btn bg-purple-600 hover:bg-purple-500 text-white text-xs px-3 py-1 rounded-md';
@@ -141,29 +136,25 @@ export function renderTable(data) {
         actionTd.appendChild(detailsBtn);
         tr.appendChild(actionTd);
 
-        // 根據過濾後的清單，建立每一筆資料的儲存格
+        // 【第3步】根據重新排序過的欄位列表來產生每一格的內容
         headersToShow.forEach(header => {
             const td = document.createElement('td');
-            const value = row[header];
-            if (header === '地址' || header === '備註') {
-                td.innerHTML = `<div class="scrollable-cell">${value ?? "-"}</div>`;
-            } else {
-                td.textContent = (typeof value === 'number' && !Number.isInteger(value)) ? ui.formatNumber(value) : (value ?? "-");
+
+            // 如果當前欄位是我們手動插入的 '戶型'
+            if (header === '戶型') {
+                td.className = 'has-tooltip';
+                td.dataset.tooltip = `原始戶別: ${row['戶別'] || '無資料'}`;
+                td.textContent = row['戶型'] || '-';
+            } else { // 否則，就照舊產生一般的儲存格
+                const value = row[header];
+                if (header === '地址' || header === '備註') {
+                    td.innerHTML = `<div class="scrollable-cell">${value ?? "-"}</div>`;
+                } else {
+                    td.textContent = (typeof value === 'number' && !Number.isInteger(value)) ? ui.formatNumber(value) : (value ?? "-");
+                }
             }
             tr.appendChild(td);
         });
-
-        // 如果是預售屋，才手動加上帶有 tooltip 的「戶型」儲存格
-        if (isPresale) {
-            const unitTypeTd = document.createElement('td');
-            const unitType = row['戶型'] || '-';
-            const originalUnit = row['戶別'] || '無資料';
-
-            unitTypeTd.className = 'has-tooltip';
-            unitTypeTd.dataset.tooltip = `原始戶別: ${originalUnit}`;
-            unitTypeTd.textContent = unitType;
-            tr.appendChild(unitTypeTd);
-        }
         
         tbody.appendChild(tr);
     });
@@ -173,12 +164,11 @@ export function renderTable(data) {
     dom.resultsTable.append(thead, tbody);
 }
 
-// ▼▼▼ 【需求修改處】 ▼▼▼
+
 export function renderSubTable(title, records) {
     if (!records || !Array.isArray(records) || records.length === 0) {
         return `<div class="mb-4"><h3 class="text-lg font-semibold text-cyan-400 mb-2">${title}</h3><p class="text-sm text-gray-500">無資料</p></div>`;
     }
-    // 增加過濾條件，移除 '土地持分面積', '車位價格', '車位面積'
     const headers = Object.keys(records[0]).filter(h => 
         h !== 'id' && 
         h !== '編號' && 
@@ -197,7 +187,6 @@ export function renderSubTable(title, records) {
     html += '</tbody></table></div></div>';
     return html;
 }
-// ▲▲▲ 【修改結束】 ▲▲▲
 
 export function renderVelocityTable() {
     if (!state.analysisDataCache || !state.analysisDataCache.salesVelocityAnalysis) return;
