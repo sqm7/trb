@@ -217,4 +217,22 @@ function initialize() {
     updateDistrictOptions();
 }
 
+// --- Tooltip 初始化 ---
+    // 監聽 body，當有新元素加入時也能套用
+    document.body.addEventListener('mouseover', (e) => {
+        const target = e.target.closest('[data-tooltip]');
+        if (target && !target._tippy) {
+            tippy(target, {
+                content: target.getAttribute('data-tooltip'),
+                theme: 'dark-trb',
+                allowHTML: true,
+                placement: 'top',
+                delay: [100, 200], // 延遲顯示與隱藏
+            });
+            target._tippy.show(); // 立即顯示第一次
+        }
+    });
+
+    // --- 初始化應用狀態 ---
+
 initialize();
