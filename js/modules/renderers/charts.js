@@ -9,6 +9,8 @@ import { THEME_COLORS } from '../config.js'; // 引入佈景主題顏色
 let salesVelocityChartInstance = null;
 let priceBandChartInstance = null;
 let rankingChartInstance = null;
+let parkingRatioChartInstance = null; // <-- 新增這一行
+
 
 /**
  * 渲染核心指標與排名的圖表
@@ -738,4 +740,75 @@ export function renderAreaHeatmap() {
 
     state.areaHeatmapChart = new ApexCharts(dom.areaHeatmapChart, options);
     state.areaHeatmapChart.render();
+}
+/**
+ * 渲染房車配比圓餅圖
+ */
+export function renderParkingRatioChart() {
+    if (parkingRatioChartInstance) {
+        parkingRatioChartInstance.destroy();
+        parkingRatioChartInstance = null;
+    }
+
+    if (!state.analysisDataCache || !state.analysisDataCache.parkingAnalysis || !state.analysisDataCache.parkingAnalysis.parkingRatio) {
+        dom.parkingRatioChartContainer.innerHTML = '<p class="text-gray-500 p-4 text-center">無資料</p>';
+        return;
+    }
+
+    const { parkingRatio } = state.analysisDataCache.parkingAnalysis;
+    const { withParking, withoutParking } = parkingRatio;
+
+    if (withParking.count === 0 && withoutParking.count === 0) {
+        dom.parkingRatioChartContainer.innerHTML = '<p class="text-gray-500 p-4 text-center">無資料</p>';
+        return;
+    }
+
+    const options = {
+        series: [withParking.count, withoutParking.count],
+        labels: ['有搭車位', '沒搭車位'],
+        chart: {
+            type: 'donut',
+            height: 250,
+            background: 'transparent',
+            foreColor: THEME_COLORS['text-light']
+        },
+        plotOptions: {
+            pie: {
+                donut: {
+                    size: '65%',
+                    labels: {
+                        show: true,
+                        total: {
+                            show: true,
+                            label: '總筆數',
+                            formatter: function (w) {
+                                return (withParking.count + withoutParking.count).toLocaleString();
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        colors: [THEME_COLORS['cyan-accent'], THEME_COLORS['purple-accent']],
+        dataLabels: {
+            enabled: true,
+            formatter: function (val, opts) {
+                return `${opts.w.config.labels[opts.seriesIndex]}: ${val.toFixed(1)}%`
+            },
+        },
+        legend: {
+            show: false
+        },
+        tooltip: {
+            theme: 'dark',
+            y: {
+                formatter: function(value) {
+                    return `${value.toLocaleString()} 筆`;
+                }
+            }
+        }
+    };
+
+    parkingRatioChartInstance = new ApexCharts(dom.parkingRatioChartContainer, options);
+    parkingRatioChartInstance.render();
 }
