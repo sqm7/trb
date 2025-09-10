@@ -4,7 +4,7 @@ import { dom } from '../dom.js';
 import * as ui from '../ui.js';
 import { state } from '../state.js';
 
-// ▼▼▼ 【修改處】重構 renderHeatmapDetailsTable 函式，修正亂碼 Bug 並更新結構與標頭邏輯 ▼▼▼
+// ▼▼▼ 【重構 renderHeatmapDetailsTable 函式，修正亂碼 Bug 並更新結構與標頭邏輯】 ▼▼▼
 export function renderHeatmapDetailsTable() {
     const { details, roomType, areaRange } = state.lastHeatmapDetails || {};
     const metricType = state.currentHeatmapDetailMetric;
@@ -24,7 +24,6 @@ export function renderHeatmapDetailsTable() {
         arithmetic: '算術平均(萬)'
     }[metricType];
     
-    // 總價的標頭邏輯：當中位數時顯示中位數，否則一律顯示算術平均
     const totalPriceMetricLabel = metricType === 'median' ? '中位數(萬)' : '算術平均(萬)';
 
     let tableHtml = `
@@ -49,7 +48,6 @@ export function renderHeatmapDetailsTable() {
     `;
 
     details.forEach(item => {
-        // 根據選擇的 metricType 決定要顯示的總價數據
         const totalPriceToShow = metricType === 'median' ? item.metrics.median.totalPrice : item.metrics.arithmetic.totalPrice;
         const unitPriceToShow = item.metrics[metricType].unitPrice;
 
@@ -72,24 +70,22 @@ export function renderHeatmapDetailsTable() {
     
     contentContainer.innerHTML = tableHtml;
 }
-// ▲▲▲ 【修改結束】 ▲▲▲
 
-// js/modules/renderers/tables.js
-
-// ... (檔案中其他的函式保持不變)
-
+// =================================================================
+// 【【【 以下是本次修正的核心區域 】】】
+// =================================================================
 export function renderTable(data) {
     if (!data || data.length === 0) {
         dom.resultsTable.innerHTML = '<tbody><tr><td colspan="99" class="text-center p-4">無資料</td></tr></tbody>';
         return;
     }
     const isPresale = data[0]['交易類型'] === '預售交易';
-    // 【修正 #1】在這裡隱藏 '戶別' 和 '戶型'，因為我們會手動加上新的「戶型」欄
+    // 隱藏原始的 '戶別' 和 '戶型'，因為我們會手動新增一個帶有 tooltip 的新“戶型”欄
     const hiddenColumns = ['編號', '縣市代碼', '交易類型', '戶型', '戶別'];
     const headers = Object.keys(data[0]);
-    const headerRow = document.createElement('tr');
     
     // --- 建立表頭 (Header) ---
+    const headerRow = document.createElement('tr');
     const actionTh = document.createElement('th');
     actionTh.textContent = '操作';
     headerRow.appendChild(actionTh);
@@ -102,7 +98,7 @@ export function renderTable(data) {
         }
     });
 
-    // 如果是預售交易，手動加上「戶型」的表頭
+    // 如果是預售屋，手動加上「戶型」的表頭
     if (isPresale) {
         const newTh = document.createElement('th');
         newTh.textContent = '戶型';
@@ -122,7 +118,7 @@ export function renderTable(data) {
             tr.classList.add('special-remark-row');
         }
         
-        // 建立「操作」按鈕的儲存格
+        // 操作按鈕
         const actionTd = document.createElement('td');
         const detailsBtn = document.createElement('button');
         detailsBtn.className = 'details-btn bg-purple-600 hover:bg-purple-500 text-white text-xs px-3 py-1 rounded-md';
@@ -133,7 +129,7 @@ export function renderTable(data) {
         actionTd.appendChild(detailsBtn);
         tr.appendChild(actionTd);
         
-        // 建立其他標準欄位的儲存格
+        // 其他標準欄位
         headers.forEach(header => {
             if (!hiddenColumns.includes(header)) {
                 const td = document.createElement('td');
@@ -147,16 +143,14 @@ export function renderTable(data) {
             }
         });
 
-        // 【修正 #2】在這裡，我們已經處理完所有標準欄位，現在來獨立新增「戶型」欄位
+        // 手動新增帶有 Tooltip 的「戶型」欄位
         if (isPresale) {
             const unitTypeTd = document.createElement('td');
             const unitType = row['戶型'] || '-';
             const originalUnit = row['戶別'] || '無資料';
 
-            // 加上 tooltip 所需的 class 和 data 屬性
             unitTypeTd.className = 'has-tooltip';
             unitTypeTd.dataset.tooltip = `原始戶別: ${originalUnit}`;
-            
             unitTypeTd.textContent = unitType;
             tr.appendChild(unitTypeTd);
         }
@@ -167,15 +161,15 @@ export function renderTable(data) {
     dom.resultsTable.innerHTML = '';
     dom.resultsTable.append(thead, tbody);
 }
+// =================================================================
+// 【【【 以上是本次修正的核心區域 】】】
+// =================================================================
 
-// ... (檔案中其他的函式保持不變)
 
-// ▼▼▼ 【需求修改處】 ▼▼▼
 export function renderSubTable(title, records) {
     if (!records || !Array.isArray(records) || records.length === 0) {
         return `<div class="mb-4"><h3 class="text-lg font-semibold text-cyan-400 mb-2">${title}</h3><p class="text-sm text-gray-500">無資料</p></div>`;
     }
-    // 增加過濾條件，移除 '土地持分面積', '車位價格', '車位面積'
     const headers = Object.keys(records[0]).filter(h => 
         h !== 'id' && 
         h !== '編號' && 
@@ -194,7 +188,6 @@ export function renderSubTable(title, records) {
     html += '</tbody></table></div></div>';
     return html;
 }
-// ▲▲▲ 【修改結束】 ▲▲▲
 
 export function renderVelocityTable() {
     if (!state.analysisDataCache || !state.analysisDataCache.salesVelocityAnalysis) return;
@@ -211,22 +204,8 @@ export function renderVelocityTable() {
     timeKeys.forEach(timeKey => {
         const periodData = dataForView[timeKey];
         let rowTotal = { count: 0, priceSum: 0, areaSum: 0 };
-
-      // --- 修正後的邏輯開始 ---
-        let timeCellContent;
-        if (state.currentVelocityView === 'weekly') {
-            const dateRange = ui.getDateRangeOfWeek(timeKey);
-            // 將提示框功能改為只包覆在文字外層的 span
-            timeCellContent = `<span class="has-tooltip" data-tooltip="${dateRange}">${timeKey}</span>`;
-        } else {
-            timeCellContent = timeKey; // 其他視圖則維持原樣
-        }
-        // <td> 維持原本固定的 class，確保排版正確
-        let rowHtml = `<tr class="hover:bg-dark-card"><td class="sticky left-0 bg-dark-card hover:bg-gray-800 z-10 font-mono">${timeCellContent}</td>`;
-        // --- 修正後的邏輯結束 ---
-        
+        let rowHtml = `<tr class="hover:bg-dark-card"><td class="sticky left-0 bg-dark-card hover:bg-gray-800 z-10 font-mono">${timeKey}</td>`;
         state.selectedVelocityRooms.forEach(roomType => {
-//...
             const stats = periodData[roomType];
             if (stats) {
                    rowHtml += `<td>${stats.count.toLocaleString()}</td><td>${ui.formatNumber(stats.priceSum, 0)}</td><td>${ui.formatNumber(stats.areaSum, 2)}</td>`;
