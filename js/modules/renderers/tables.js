@@ -80,7 +80,7 @@ export function renderTable(data) {
         return;
     }
     const isPresale = data[0]['交易類型'] === '預售交易';
-    const hiddenColumns = ['編號', '縣市代碼', '交易類型', '戶型'];
+    const hiddenColumns = ['編號', '縣市代碼', '交易類型', '戶型', '戶別'];
     const headers = Object.keys(data[0]);
     const headerRow = document.createElement('tr');
     const actionTh = document.createElement('th');
@@ -91,11 +91,18 @@ export function renderTable(data) {
             const th = document.createElement('th');
             th.textContent = header;
             headerRow.appendChild(th);
-            if (isPresale && header === '戶別') {
-                const newTh = document.createElement('th');
-                newTh.textContent = '戶型';
-                headerRow.appendChild(newTh);
-            }
+            if (isPresale && header === '地址') { // 我們借用一個一定會經過的欄位來安插邏輯
+                    const unitTypeTd = document.createElement('td');
+                    const unitType = row['戶型'] || '-';
+                    const originalUnit = row['戶別'] || '無資料';
+
+                    // 加上 tooltip 所需的 class 和 data 屬性
+                    unitTypeTd.className = 'has-tooltip';
+                    unitTypeTd.dataset.tooltip = `原始戶別: ${originalUnit}`;
+                    
+                    unitTypeTd.textContent = unitType;
+                    tr.appendChild(unitTypeTd);
+                }
         }
     });
     const thead = document.createElement('thead');
