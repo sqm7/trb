@@ -792,9 +792,15 @@ export function renderParkingRatioChart() {
         colors: [THEME_COLORS['cyan-accent'], THEME_COLORS['purple-accent']],
         dataLabels: {
             enabled: true,
-            formatter: function (val, opts) {
-                return `${opts.w.config.labels[opts.seriesIndex]}: ${val.toFixed(1)}%`
+            formatter: function (val) {
+                return `${val.toFixed(1)}%` // 只顯示百分比
             },
+            style: {
+                colors: [THEME_COLORS['text-light']] // 確保文字顏色與主題一致
+            },
+            dropShadow: {
+                enabled: false // 移除陰影，讓文字更清晰
+            }
         },
         legend: {
             show: false
