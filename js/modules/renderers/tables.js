@@ -180,18 +180,17 @@ export function renderSubTable(title, records) {
     return html;
 }
 
-// ▼▼▼ 【需求修改處】 ▼▼▼
+// ▼▼▼ 【最終修正版】 ▼▼▼
 export function renderVelocityTable() {
     if (!state.analysisDataCache || !state.analysisDataCache.salesVelocityAnalysis) return;
 
-    // 新增：將週標籤轉換為日期區間的輔助函式
+    // 輔助函式：將週標籤轉換為日期區間
     const getWeekDates = (weekLabel) => {
         const [year, week] = weekLabel.split('-W').map(Number);
-        const date = new Date(year, 0, 1 + (week - 1) * 7);
-        // ISO 週曆中，週一是第一天。我們需要校正 Date 物件預設從週日開始的行為。
-        const day = date.getDay() || 7; // 將週日(0)視為第7天
+        const date = new Date(Date.UTC(year, 0, 1 + (week - 1) * 7));
+        const day = date.getUTCDay() || 7;
         if (day !== 1) {
-            date.setHours(-24 * (day - 1));
+            date.setUTCDate(date.getUTCDate() - (day - 1));
         }
         const startDate = new Date(date);
         const endDate = new Date(startDate);
@@ -214,13 +213,19 @@ export function renderVelocityTable() {
     timeKeys.forEach(timeKey => {
         const periodData = dataForView[timeKey];
         let rowTotal = { count: 0, priceSum: 0, areaSum: 0 };
-
-        // 核心修改：如果是每週去化，則加上 tooltip
-        const isWeeklyView = state.currentVelocityView === 'weekly';
-        const tooltipAttribute = isWeeklyView ? `data-tooltip="${getWeekDates(timeKey)}"` : '';
-        const timeCellContent = isWeeklyView ? `<span class="has-tooltip">${timeKey}</span>` : timeKey;
         
-        let rowHtml = `<tr class="hover:bg-dark-card"><td class="sticky left-0 bg-dark-card hover:bg-gray-800 z-10 font-mono" ${tooltipAttribute}>${timeCellContent}</td>`;
+        // --- 核心修正點 ---
+        // 將 tooltip 屬性與 class 放在同一個 <span> 元素上
+        let timeCellHtml;
+        const isWeeklyView = state.currentVelocityView === 'weekly';
+        if (isWeeklyView) {
+            timeCellHtml = `<span class="has-tooltip" data-tooltip="${getWeekDates(timeKey)}">${timeKey}</span>`;
+        } else {
+            timeCellHtml = timeKey;
+        }
+
+        let rowHtml = `<tr class="hover:bg-dark-card"><td class="sticky left-0 bg-dark-card hover:bg-gray-800 z-10 font-mono">${timeCellHtml}</td>`;
+        // --- 修正結束 ---
         
         state.selectedVelocityRooms.forEach(roomType => {
             const stats = periodData[roomType];
@@ -239,4 +244,3 @@ export function renderVelocityTable() {
     bodyHtml += '</tbody>';
     dom.velocityTableContainer.innerHTML = timeKeys.length > 0 ? `<table class="min-w-full velocity-table">${headerHtml}${bodyHtml}</table>` : '<p class="text-gray-500 p-4 text-center">在此條件下無資料。</p>';
 }
-// ▲▲▲ 【修改結束】 ▲▲▲
