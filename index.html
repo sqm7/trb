@@ -200,28 +200,28 @@
                 <p><strong class="text-purple-400">加權平均數 (Weighted Average):</strong> 以「總房屋總價 ÷ 總房屋面積」計算。坪數越大的交易，對平均價格的影響力就越大。它更能反映市場的「整體價值」與資金結構。</p>
             </div>
         </div>
+
         <div id="parking-report-content" class="tab-content">
-  
-           <div class="mb-8 report-header">
-    
-                 <h3 class="report-section-title">房車配比</h3>
-                     <div id="parking-ratio-table-container" class="overflow-x-auto"></div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8 report-header">
+                <div>
+                    <h3 class="report-section-title">房車配比</h3>
+                    <div id="parking-ratio-table-container" class="overflow-x-auto"></div>
+                </div>
+                <div id="parking-ratio-chart-container" class="flex items-center justify-center"></div>
             </div>
+
             <div class="mb-8 report-header">
                 <h3 class="report-section-title">各類型車位平均單價</h3>
-                
-                     <div id="avg-price-by-type-table-container" class="overflow-x-auto"></div>
-   
-   </div>
-               <div class="report-header">
-                       <h3 class="report-section-title">坡道平面車位分層價格</h3>
-                       <div id="ramp-plane-price-by-floor-table-container"></div>
-                      <p class="text-sm text-gray-500 mt-2">* 此數據僅統計主表中「車位類別」為「坡道平面」的交易，並根據其附表中的車位資料進行彙總。</p>
-    
-               </div>
+                <div id="avg-price-by-type-table-container" class="overflow-x-auto"></div>
+            </div>
+
+            <div class="report-header">
+                <h3 class="report-section-title">坡道平面車位分層價格</h3>
+                <div id="ramp-plane-price-by-floor-table-container"></div>
+                <p class="text-sm text-gray-500 mt-2">* 此數據僅統計主表中「車位類別」為「坡道平面」的交易，並根據其附表中的車位資料進行彙總。</p>
+            </div>
         </div>
    
-  
         <div id="velocity-report-content" class="tab-content">
                  <div class="mb-4 report-header">
                      <label class="block text-sm font-medium text-gray-300 mb-2">房型篩選器</label>
@@ -248,7 +248,8 @@
                          <button data-metric="areaSum" class="avg-type-btn px-4 py-1 text-sm font-semibold rounded-md transition-colors">房屋坪數(坪)</button>
                     </div>
                 </div>
-                <div id="sales-velocity-chart" class="report-header mb-6"></div>
+
+                 <div id="sales-velocity-chart" class="report-header mb-6"></div>
 
                  <div id="velocity-table-container" class="overflow-x-auto"></div>
 
