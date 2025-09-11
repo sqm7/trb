@@ -361,6 +361,9 @@ export function renderPriceBandChart() {
 /**
  * 渲染銷售速度趨勢圖
  */
+/**
+ * 渲染銷售速度趨勢圖
+ */
 export function renderSalesVelocityChart() {
     if (salesVelocityChartInstance) {
         salesVelocityChartInstance.destroy();
@@ -373,6 +376,8 @@ export function renderSalesVelocityChart() {
     }
     
     const view = state.currentVelocityView;
+    // 【新邏輯】讀取當前選擇的指標
+    const metric = state.currentVelocityMetric; 
     const dataForView = state.analysisDataCache.salesVelocityAnalysis[view] || {};
     const timeKeys = Object.keys(dataForView).sort();
 
@@ -381,10 +386,30 @@ export function renderSalesVelocityChart() {
         return;
     }
     
+    // 【新邏輯】定義不同指標的設定
+    const metricConfig = {
+        count: {
+            yAxisTitle: '交易筆數',
+            formatter: (val) => val.toLocaleString(),
+            unit: '筆'
+        },
+        priceSum: {
+            yAxisTitle: '產權總價 (萬)',
+            formatter: (val) => ui.formatNumber(val, 0),
+            unit: '萬'
+        },
+        areaSum: {
+            yAxisTitle: '房屋坪數 (坪)',
+            formatter: (val) => ui.formatNumber(val, 2),
+            unit: '坪'
+        }
+    }[metric];
+
+    // 【新邏輯】根據選擇的指標 (metric) 從資料中提取對應的值
     const series = state.selectedVelocityRooms.map(roomType => {
         return {
             name: roomType,
-            data: timeKeys.map(timeKey => dataForView[timeKey][roomType]?.count || 0)
+            data: timeKeys.map(timeKey => dataForView[timeKey][roomType]?.[metric] || 0)
         };
     });
 
@@ -419,9 +444,10 @@ export function renderSalesVelocityChart() {
                 }
             }
         },
+        // 【新邏輯】動態更新 Y 軸標題與格式化函式
         yaxis: {
             title: {
-                text: '交易筆數',
+                text: metricConfig.yAxisTitle,
                 style: {
                     color: '#9ca3af'
                 }
@@ -429,7 +455,8 @@ export function renderSalesVelocityChart() {
             labels: {
                 style: {
                     colors: '#9ca3af'
-                }
+                },
+                formatter: (val) => metricConfig.formatter(val)
             }
         },
         legend: {
@@ -438,7 +465,10 @@ export function renderSalesVelocityChart() {
             offsetY: -5
         },
         tooltip: {
-            theme: 'dark'
+            theme: 'dark',
+            y: {
+                formatter: (val) => `${metricConfig.formatter(val)} ${metricConfig.unit}`
+            }
         },
         grid: {
             borderColor: '#374151'
