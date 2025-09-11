@@ -15,6 +15,12 @@ import { displayCurrentPriceGrid } from './heatmap.js';
  * @returns {string} - 分類後的房型名稱。
  */
 function getRoomTypeGroupOnFrontend(record) {
+    const unitName = record['戶別'] || '';
+
+    // 第零優先級：從「戶別」文字直接判斷
+    if (unitName.includes('店舖') || unitName.includes('店面')) return '店舖';
+    if (unitName.includes('事務所') || unitName.includes('辦公')) return '辦公/事務所';
+    
     const buildingType = record['建物型態'] || '';
     const mainPurpose = record['主要用途'] || '';
     const rooms = record['房數'];
