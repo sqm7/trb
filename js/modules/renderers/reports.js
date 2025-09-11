@@ -8,26 +8,37 @@ import { renderVelocityTable } from './tables.js';
 import { renderAreaHeatmap, renderSalesVelocityChart, renderPriceBandChart, renderRankingChart, renderParkingRatioChart } from './charts.js';
 import { displayCurrentPriceGrid } from './heatmap.js';
 
-// --- 新增開始：從後端複製並改寫的房型分組邏輯 ---
+// js/modules/renderers/reports.js -> inside the file
+
 /**
  * @description 根據後端 analysis-engine.ts 的邏輯，在前端為交易紀錄進行房型分類。
- * @param {object} record - 一筆交易資料，需包含 建物型態, 主要用途, 房數, 房屋面積(坪) 等欄位。
+ * @param {object} record - 一筆交易資料，需包含 建物型態, 主要用途, 戶別, 房數, 房屋面積(坪) 等欄位。
  * @returns {string} - 分類後的房型名稱。
  */
 function getRoomTypeGroupOnFrontend(record) {
-    const unitName = record['戶別'] || '';
+    // 為了與後端邏輯一致，也進行標準化處理
+    const normalizeString = (str) => {
+        if (!str) return '';
+        return str.normalize('NFKC').toUpperCase().replace(/\s+/g, '');
+    };
 
-    // 第零優先級：從「戶別」文字直接判斷
-    if (unitName.includes('店舖') || unitName.includes('店面')) return '店舖';
-    if (unitName.includes('事務所') || unitName.includes('辦公')) return '辦公/事務所';
-    
-    const buildingType = record['建物型態'] || '';
-    const mainPurpose = record['主要用途'] || '';
+    const buildingType = normalizeString(record['建物型態']);
+    const mainPurpose = normalizeString(record['主要用途']);
+    const unitName = normalizeString(record['戶別']); // 新增戶別的標準化
     const rooms = record['房數'];
     const houseArea = record['房屋面積(坪)'];
 
-    // 第一優先級：特殊商業用途
-    if (buildingType.includes('店舖') || buildingType.includes('店面')) return '店舖';
+    // 【新增規則】處理住宅大樓內含 'S' 的特殊店舖情況
+    if (buildingType.includes('住宅大樓') && unitName.includes('S')) {
+        return '店舖';
+    }
+
+    // 第零優先級：從「戶別」文字直接判斷 (補全關鍵字)
+    if (unitName.includes('店舖') || unitName.includes('店面') || unitName.includes('店鋪')) return '店舖';
+    if (unitName.includes('事務所') || unitName.includes('辦公')) return '辦公/事務所';
+
+    // 第一優先級：特殊商業用途 (建物型態/主要用途) (補全關鍵字)
+    if (buildingType.includes('店舖') || buildingType.includes('店面') || buildingType.includes('店鋪')) return '店舖';
     if (buildingType.includes('工廠') || buildingType.includes('倉庫') || buildingType.includes('廠辦')) return '廠辦/工廠';
     if (mainPurpose.includes('商業') || buildingType.includes('辦公') || buildingType.includes('事務所')) return '辦公/事務所';
 
