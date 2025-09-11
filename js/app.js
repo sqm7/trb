@@ -24,6 +24,9 @@ import {
     handlePriceBandRoomFilterClick,
     handleVelocityRoomFilterClick,
     handleVelocitySubTabClick,
+     // ▼▼▼ 請在此處新增 handleVelocityMetricClick ▼▼▼
+    handleVelocityMetricClick,
+    // ▲▲▲ 新增結束 ▲▲▲
     handleHeatmapMetricToggle,
     handlePriceGridProjectFilterClick,
     analyzeHeatmap,
@@ -167,6 +170,9 @@ function initialize() {
     dom.priceBandRoomFilterContainer.addEventListener('click', handlePriceBandRoomFilterClick);
     dom.velocityRoomFilterContainer.addEventListener('click', handleVelocityRoomFilterClick);
     dom.velocitySubTabsContainer.addEventListener('click', handleVelocitySubTabClick);
+    // ▼▼▼ 請在此處新增以下這一行 ▼▼▼
+    dom.velocityMetricToggle.addEventListener('click', handleVelocityMetricClick);
+// ▲▲▲ 新增結束 ▲▲▲
     dom.priceGridProjectFilterContainer.addEventListener('click', handlePriceGridProjectFilterClick);
     dom.analyzeHeatmapBtn.addEventListener('click', analyzeHeatmap);
     dom.backToGridBtn.addEventListener('click', handleBackToGrid);
