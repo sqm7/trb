@@ -198,7 +198,7 @@ export function onDistrictSuggestionClick(e) {
             dom.districtSuggestions.querySelectorAll('label:not([data-name="all"]) input[type="checkbox"]').forEach(cb => { cb.checked = isChecked; });
         } else {
             if (isChecked) {
-              if (!state.selectedDistricts.includes(name)) state.selectedDistricts.push(name);
+                if (!state.selectedDistricts.includes(name)) state.selectedDistricts.push(name);
             } else {
                 state.selectedDistricts = state.selectedDistricts.filter(d => d !== name);
             }
@@ -294,6 +294,15 @@ export function handlePriceBandRoomFilterClick(e) {
     reportRenderer.renderPriceBandReport();
 }
 
+export function handlePriceBandDetailsClick(e) {
+    const button = e.target.closest('.price-band-details-button');
+    if (!button) return;
+
+    const roomType = button.dataset.roomType;
+    const bathrooms = button.dataset.bathrooms;
+    reportRenderer.renderPriceBandDetails(roomType, bathrooms);
+}
+
 export function handleVelocityRoomFilterClick(e) {
     const button = e.target.closest('.capsule-btn'); if (!button) return;
     const roomType = button.dataset.roomType;
@@ -320,6 +329,25 @@ export function handleVelocitySubTabClick(e) {
     chartRenderer.renderSalesVelocityChart();
     chartRenderer.renderAreaHeatmap();
 }
+
+// ▼▼▼ 【新增的函式】 ▼▼▼
+export function handleVelocityMetricClick(e) {
+    const button = e.target.closest('.avg-type-btn');
+    if (!button || button.classList.contains('active')) return;
+
+    const metric = button.dataset.metric;
+    if (!metric) return;
+
+    state.currentVelocityMetric = metric;
+
+    // 更新按鈕的 active 狀態
+    dom.velocityMetricToggle.querySelector('.active').classList.remove('active');
+    button.classList.add('active');
+
+    // 重新渲染圖表
+    chartRenderer.renderSalesVelocityChart();
+}
+// ▲▲▲ 【新增結束】 ▲▲▲
 
 export function handleHeatmapMetricToggle(e) {
     const button = e.target.closest('.avg-type-btn');
