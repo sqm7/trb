@@ -65,6 +65,9 @@ export const dom = {
     velocityReportContent: document.getElementById('velocity-report-content'),
     velocityRoomFilterContainer: document.getElementById('velocity-room-filter-container'),
     velocitySubTabsContainer: document.getElementById('velocity-sub-tabs-container'),
+    // ▼▼▼ 請在此處新增以下這一行 ▼▼▼
+    velocityMetricToggle: document.getElementById('velocity-metric-toggle'),
+    // ▲▲▲ 新增結束 ▲▲▲
     salesVelocityChart: document.getElementById('sales-velocity-chart'),
     velocityTableContainer: document.getElementById('velocity-table-container'),
     areaHeatmapChart: document.getElementById('area-heatmap-chart'),
