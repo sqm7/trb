@@ -4,13 +4,12 @@ import { dom } from '../dom.js';
 import { state } from '../state.js';
 import { renderHeatmapDetailsTable } from './tables.js';
 import { THEME_COLORS } from '../config.js'; // 引入佈景主題顏色
+import * as ui from '../ui.js';
 
 // --- 全局圖表實例 ---
 let salesVelocityChartInstance = null;
 let priceBandChartInstance = null;
 let rankingChartInstance = null;
-let parkingRatioChartInstance = null; // <-- 新增這一行
-
 
 /**
  * 渲染核心指標與排名的圖表
@@ -361,9 +360,6 @@ export function renderPriceBandChart() {
 /**
  * 渲染銷售速度趨勢圖
  */
-/**
- * 渲染銷售速度趨勢圖
- */
 export function renderSalesVelocityChart() {
     if (salesVelocityChartInstance) {
         salesVelocityChartInstance.destroy();
@@ -374,10 +370,15 @@ export function renderSalesVelocityChart() {
         dom.salesVelocityChart.innerHTML = '<p class="text-gray-500 p-4 text-center">請先選擇房型以生成趨勢圖。</p>';
         return;
     }
+
+    const metricDetails = {
+        count: { key: 'count', title: '交易筆數', unit: '筆', decimals: 0 },
+        priceSum: { key: 'priceSum', title: '產權總價', unit: '萬', decimals: 0 },
+        areaSum: { key: 'areaSum', title: '房屋坪數', unit: '坪', decimals: 2 }
+    };
+    const selectedMetric = metricDetails[state.currentVelocityChartMetric] || metricDetails.count;
     
     const view = state.currentVelocityView;
-    // 【新邏輯】讀取當前選擇的指標
-    const metric = state.currentVelocityMetric; 
     const dataForView = state.analysisDataCache.salesVelocityAnalysis[view] || {};
     const timeKeys = Object.keys(dataForView).sort();
 
@@ -386,30 +387,10 @@ export function renderSalesVelocityChart() {
         return;
     }
     
-    // 【新邏輯】定義不同指標的設定
-    const metricConfig = {
-        count: {
-            yAxisTitle: '交易筆數',
-            formatter: (val) => val.toLocaleString(),
-            unit: '筆'
-        },
-        priceSum: {
-            yAxisTitle: '產權總價 (萬)',
-            formatter: (val) => ui.formatNumber(val, 0),
-            unit: '萬'
-        },
-        areaSum: {
-            yAxisTitle: '房屋坪數 (坪)',
-            formatter: (val) => ui.formatNumber(val, 2),
-            unit: '坪'
-        }
-    }[metric];
-
-    // 【新邏輯】根據選擇的指標 (metric) 從資料中提取對應的值
     const series = state.selectedVelocityRooms.map(roomType => {
         return {
             name: roomType,
-            data: timeKeys.map(timeKey => dataForView[timeKey][roomType]?.[metric] || 0)
+            data: timeKeys.map(timeKey => dataForView[timeKey][roomType]?.[selectedMetric.key] || 0)
         };
     });
 
@@ -444,10 +425,9 @@ export function renderSalesVelocityChart() {
                 }
             }
         },
-        // 【新邏輯】動態更新 Y 軸標題與格式化函式
         yaxis: {
             title: {
-                text: metricConfig.yAxisTitle,
+                text: `${selectedMetric.title} (${selectedMetric.unit})`,
                 style: {
                     color: '#9ca3af'
                 }
@@ -456,7 +436,9 @@ export function renderSalesVelocityChart() {
                 style: {
                     colors: '#9ca3af'
                 },
-                formatter: (val) => metricConfig.formatter(val)
+                formatter: function(val) {
+                    return ui.formatNumber(val, selectedMetric.decimals);
+                }
             }
         },
         legend: {
@@ -467,7 +449,9 @@ export function renderSalesVelocityChart() {
         tooltip: {
             theme: 'dark',
             y: {
-                formatter: (val) => `${metricConfig.formatter(val)} ${metricConfig.unit}`
+                formatter: function(val) {
+                    return `${ui.formatNumber(val, selectedMetric.decimals)} ${selectedMetric.unit}`;
+                }
             }
         },
         grid: {
@@ -607,12 +591,7 @@ export function renderAreaHeatmap() {
                     // ▼▼▼【已根據您的要求修正】▼▼▼
                     // 移除第四站邏輯，不符合前三站的都歸類為"其他"
                     const getRoomCategory = (record) => {
-                        const unitName = record['戶別'] || ''; // <--- 在此行下方加入
-                        // 第零優先級：從「戶別」文字直接判斷
-                        if (unitName.includes('店舖') || unitName.includes('店面')) return '店舖';
-                        if (unitName.includes('事務所') || unitName.includes('辦公')) return '辦公/事務所';
                         const buildingType = record['建物型態'] || '';
-        
                         const mainPurpose = record['主要用途'] || '';
                         const rooms = record['房數'];
                         const houseArea = record['房屋面積(坪)'];
@@ -775,81 +754,4 @@ export function renderAreaHeatmap() {
 
     state.areaHeatmapChart = new ApexCharts(dom.areaHeatmapChart, options);
     state.areaHeatmapChart.render();
-}
-/**
- * 渲染房車配比圓餅圖
- */
-export function renderParkingRatioChart() {
-    if (parkingRatioChartInstance) {
-        parkingRatioChartInstance.destroy();
-        parkingRatioChartInstance = null;
-    }
-
-    if (!state.analysisDataCache || !state.analysisDataCache.parkingAnalysis || !state.analysisDataCache.parkingAnalysis.parkingRatio) {
-        dom.parkingRatioChartContainer.innerHTML = '<p class="text-gray-500 p-4 text-center">無資料</p>';
-        return;
-    }
-
-    const { parkingRatio } = state.analysisDataCache.parkingAnalysis;
-    const { withParking, withoutParking } = parkingRatio;
-
-    if (withParking.count === 0 && withoutParking.count === 0) {
-        dom.parkingRatioChartContainer.innerHTML = '<p class="text-gray-500 p-4 text-center">無資料</p>';
-        return;
-    }
-
-    const options = {
-        series: [withParking.count, withoutParking.count],
-        labels: ['有搭車位', '沒搭車位'],
-        chart: {
-            type: 'donut',
-            height: 250,
-            background: 'transparent',
-            foreColor: THEME_COLORS['text-light']
-        },
-        plotOptions: {
-            pie: {
-                donut: {
-                    size: '65%',
-                    labels: {
-                        show: true,
-                        total: {
-                            show: true,
-                            label: '總筆數',
-                            formatter: function (w) {
-                                return (withParking.count + withoutParking.count).toLocaleString();
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        colors: [THEME_COLORS['cyan-accent'], THEME_COLORS['purple-accent']],
-        dataLabels: {
-            enabled: true,
-            formatter: function (val) {
-                return `${val.toFixed(1)}%` // 只顯示百分比
-            },
-            style: {
-                colors: [THEME_COLORS['text-light']] // 確保文字顏色與主題一致
-            },
-            dropShadow: {
-                enabled: false // 移除陰影，讓文字更清晰
-            }
-        },
-        legend: {
-            show: false
-        },
-        tooltip: {
-            theme: 'dark',
-            y: {
-                formatter: function(value) {
-                    return `${value.toLocaleString()} 筆`;
-                }
-            }
-        }
-    };
-
-    parkingRatioChartInstance = new ApexCharts(dom.parkingRatioChartContainer, options);
-    parkingRatioChartInstance.render();
 }
