@@ -17,9 +17,7 @@ export const state = {
     rankingPageSize: 15,
     currentAverageType: 'arithmetic',
     currentVelocityView: 'monthly',
-      // ▼▼▼ 請在此處新增以下這一行 ▼▼▼
-    currentVelocityMetric: 'count', // 'count', 'priceSum', or 'areaSum'
-    // ▲▲▲ 新增結束 ▲▲▲
+    currentVelocityChartMetric: 'count', //
     selectedVelocityRooms: [],
     selectedPriceBandRoomTypes: [],
     selectedPriceGridProject: null,
