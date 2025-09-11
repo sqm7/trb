@@ -65,6 +65,7 @@ export const dom = {
     velocityReportContent: document.getElementById('velocity-report-content'),
     velocityRoomFilterContainer: document.getElementById('velocity-room-filter-container'),
     velocitySubTabsContainer: document.getElementById('velocity-sub-tabs-container'),
+    velocityMetricToggle: document.getElementById('velocity-metric-toggle'),
     salesVelocityChart: document.getElementById('sales-velocity-chart'),
     velocityTableContainer: document.getElementById('velocity-table-container'),
     areaHeatmapChart: document.getElementById('area-heatmap-chart'),
