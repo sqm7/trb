@@ -54,20 +54,17 @@ export const dom = {
     storeStatsExtraInfo: document.getElementById('store-stats-extra-info'),
     typeComparisonTableContainer: document.getElementById('type-comparison-table-container'),
 
-// Parking report
+    // Parking report
     parkingReportContent: document.getElementById('parking-report-content'),
     parkingRatioTableContainer: document.getElementById('parking-ratio-table-container'),
-    parkingRatioChartContainer: document.getElementById('parking-ratio-chart-container'), // <-- 新增這一行
     avgPriceByTypeTableContainer: document.getElementById('avg-price-by-type-table-container'),
     rampPlanePriceByFloorTableContainer: document.getElementById('ramp-plane-price-by-floor-table-container'),
-    
+
     // Sales velocity report
     velocityReportContent: document.getElementById('velocity-report-content'),
     velocityRoomFilterContainer: document.getElementById('velocity-room-filter-container'),
     velocitySubTabsContainer: document.getElementById('velocity-sub-tabs-container'),
-    // ▼▼▼ 請在此處新增以下這一行 ▼▼▼
-    velocityMetricToggle: document.getElementById('velocity-metric-toggle'),
-    // ▲▲▲ 新增結束 ▲▲▲
+    velocityChartMetricToggle: document.getElementById('velocity-chart-metric-toggle'), //
     salesVelocityChart: document.getElementById('sales-velocity-chart'),
     velocityTableContainer: document.getElementById('velocity-table-container'),
     areaHeatmapChart: document.getElementById('area-heatmap-chart'),
