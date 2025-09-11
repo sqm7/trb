@@ -321,6 +321,27 @@ export function handleVelocitySubTabClick(e) {
     chartRenderer.renderAreaHeatmap();
 }
 
+// ▼▼▼ 【新增函式】 ▼▼▼
+export function handleVelocityMetricChange(e) {
+    const button = e.target.closest('.avg-type-btn');
+    if (!button) return;
+
+    const metric = button.dataset.metric;
+    // 如果點擊的是當前已經啟用的指標，則不執行任何動作
+    if (state.currentVelocityMetric === metric) return;
+
+    // 更新 state
+    state.currentVelocityMetric = metric;
+
+    // 更新按鈕的 active 樣式
+    dom.velocityMetricToggle.querySelector('.active').classList.remove('active');
+    button.classList.add('active');
+
+    // 重新渲染圖表
+    chartRenderer.renderSalesVelocityChart();
+}
+// ▲▲▲ 【新增結束】 ▲▲▲
+
 export function handleHeatmapMetricToggle(e) {
     const button = e.target.closest('.avg-type-btn');
     if (!button || button.classList.contains('active')) return;
