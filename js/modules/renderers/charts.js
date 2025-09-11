@@ -9,7 +9,7 @@ import { THEME_COLORS } from '../config.js'; // 引入佈景主題顏色
 let salesVelocityChartInstance = null;
 let priceBandChartInstance = null;
 let rankingChartInstance = null;
-let parkingRatioChartInstance = null; // <-- 新增這一行
+let parkingRatioChartInstance = null; // <-- 您的新增
 
 
 /**
@@ -18,6 +18,7 @@ let parkingRatioChartInstance = null; // <-- 新增這一行
  * Bar Chart 增加了 Y 軸標籤的間距與對齊樣式。
  */
 export function renderRankingChart() {
+    // ... (此函式內容未變更，省略以節省篇幅)
     if (rankingChartInstance) {
         rankingChartInstance.destroy();
         rankingChartInstance = null;
@@ -216,7 +217,6 @@ export function renderRankingChart() {
         rankingChartInstance = new ApexCharts(dom.rankingChartContainer, options);
         rankingChartInstance.render();
     }
-    // ▲▲▲ 【修改結束】 ▲▲▲
 }
 
 
@@ -224,6 +224,7 @@ export function renderRankingChart() {
  * 渲染總價帶分佈箱型圖
  */
 export function renderPriceBandChart() {
+    // ... (此函式內容未變更，省略以節省篇幅)
     if (priceBandChartInstance) {
         priceBandChartInstance.destroy();
         priceBandChartInstance = null;
@@ -357,9 +358,10 @@ export function renderPriceBandChart() {
     priceBandChartInstance.render();
 }
 
-
+// ▼▼▼ 【已替換為新版本】 ▼▼▼
 /**
  * 渲染銷售速度趨勢圖
+ * @description 此函式已重構，可根據 state.currentVelocityMetric 動態切換指標。
  */
 export function renderSalesVelocityChart() {
     if (salesVelocityChartInstance) {
@@ -373,6 +375,7 @@ export function renderSalesVelocityChart() {
     }
     
     const view = state.currentVelocityView;
+    const metric = state.currentVelocityMetric; // 獲取當前選擇的指標
     const dataForView = state.analysisDataCache.salesVelocityAnalysis[view] || {};
     const timeKeys = Object.keys(dataForView).sort();
 
@@ -380,11 +383,32 @@ export function renderSalesVelocityChart() {
         dom.salesVelocityChart.innerHTML = '<p class="text-gray-500 p-4 text-center">在此條件下無銷售趨勢資料。</p>';
         return;
     }
+
+    // 根據不同指標定義圖表設定
+    const metricConfig = {
+        count: {
+            label: '資料筆數',
+            unit: '筆',
+            formatter: (val) => val.toLocaleString() + ' 筆'
+        },
+        priceSum: {
+            label: '產權總價(萬)',
+            unit: '萬',
+            formatter: (val) => val.toLocaleString(undefined, { maximumFractionDigits: 0 }) + ' 萬'
+        },
+        areaSum: {
+            label: '房屋坪數(坪)',
+            unit: '坪',
+            formatter: (val) => val.toLocaleString(undefined, { maximumFractionDigits: 2 }) + ' 坪'
+        }
+    };
+    const currentMetricConfig = metricConfig[metric];
     
+    // 動態地從資料中選取對應的指標
     const series = state.selectedVelocityRooms.map(roomType => {
         return {
             name: roomType,
-            data: timeKeys.map(timeKey => dataForView[timeKey][roomType]?.count || 0)
+            data: timeKeys.map(timeKey => dataForView[timeKey][roomType]?.[metric] || 0)
         };
     });
 
@@ -420,8 +444,9 @@ export function renderSalesVelocityChart() {
             }
         },
         yaxis: {
+            // 動態 Y 軸標題
             title: {
-                text: '交易筆數',
+                text: currentMetricConfig.label,
                 style: {
                     color: '#9ca3af'
                 }
@@ -429,6 +454,13 @@ export function renderSalesVelocityChart() {
             labels: {
                 style: {
                     colors: '#9ca3af'
+                },
+                // Y 軸標籤格式化，讓大數字更易讀
+                formatter: function (val) {
+                    if (val >= 100000) return (val / 10000).toFixed(0) + '萬';
+                    if (val >= 10000) return (val / 10000).toFixed(1) + '萬';
+                    if (val >= 1000) return val.toLocaleString(undefined, { maximumFractionDigits: 0 });
+                    return val.toFixed(0);
                 }
             }
         },
@@ -437,8 +469,14 @@ export function renderSalesVelocityChart() {
             horizontalAlign: 'right',
             offsetY: -5
         },
+        // 動態提示框格式
         tooltip: {
-            theme: 'dark'
+            theme: 'dark',
+            y: {
+                formatter: function(value) {
+                    return currentMetricConfig.formatter(value);
+                }
+            }
         },
         grid: {
             borderColor: '#374151'
@@ -457,12 +495,14 @@ export function renderSalesVelocityChart() {
     salesVelocityChartInstance = new ApexCharts(dom.salesVelocityChart, options);
     salesVelocityChartInstance.render();
 }
+// ▲▲▲ 【替換結束】 ▲▲▲
 
 
 /**
  * 動態生成熱力圖的顏色區間
  */
 function generateColorRanges(maxValue) {
+    // ... (此函式內容未變更，省略以節省篇幅)
     const palette = ['#fef9c3', '#fef08a', '#fde047', '#facc15', '#fbbf24', '#f97316', '#ea580c', '#dc2626', '#b91c1c'];
     const ranges = [{
         from: 0, to: 0, color: '#252836', name: '0 戶'
@@ -504,6 +544,7 @@ function generateColorRanges(maxValue) {
 
 
 export function renderAreaHeatmap() {
+    // ... (此函式內容未變更，省略以節省篇幅)
     if (state.areaHeatmapChart) {
         state.areaHeatmapChart.destroy();
         state.areaHeatmapChart = null;
@@ -746,10 +787,12 @@ export function renderAreaHeatmap() {
     state.areaHeatmapChart = new ApexCharts(dom.areaHeatmapChart, options);
     state.areaHeatmapChart.render();
 }
+
 /**
  * 渲染房車配比圓餅圖
  */
 export function renderParkingRatioChart() {
+    // ... (此函式內容未變更，省略以節省篇幅)
     if (parkingRatioChartInstance) {
         parkingRatioChartInstance.destroy();
         parkingRatioChartInstance = null;
