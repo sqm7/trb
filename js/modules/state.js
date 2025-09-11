@@ -17,6 +17,7 @@ export const state = {
     rankingPageSize: 15,
     currentAverageType: 'arithmetic',
     currentVelocityView: 'monthly',
+    currentVelocityMetric: 'count', // count, priceSum, areaSum
     selectedVelocityRooms: [],
     selectedPriceBandRoomTypes: [],
     selectedPriceGridProject: null,
