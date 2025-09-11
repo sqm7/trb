@@ -577,7 +577,12 @@ export function renderAreaHeatmap() {
                     // ▼▼▼【已根據您的要求修正】▼▼▼
                     // 移除第四站邏輯，不符合前三站的都歸類為"其他"
                     const getRoomCategory = (record) => {
+                        const unitName = record['戶別'] || ''; // <--- 在此行下方加入
+                        // 第零優先級：從「戶別」文字直接判斷
+                        if (unitName.includes('店舖') || unitName.includes('店面')) return '店舖';
+                        if (unitName.includes('事務所') || unitName.includes('辦公')) return '辦公/事務所';
                         const buildingType = record['建物型態'] || '';
+        
                         const mainPurpose = record['主要用途'] || '';
                         const rooms = record['房數'];
                         const houseArea = record['房屋面積(坪)'];
