@@ -1,4 +1,4 @@
-// js/app.js (最終修正版，適配所有拆分後的模組)
+// js/app.js (最終修正版，適配所有拆分後的模組)f
 
 import { districtData } from './modules/config.js';
 import * as api from './modules/api.js';
@@ -22,11 +22,10 @@ import {
     handleGlobalClick,
     switchAverageType,
     handlePriceBandRoomFilterClick,
+    handlePriceBandDetailsClick,
     handleVelocityRoomFilterClick,
     handleVelocitySubTabClick,
-     // ▼▼▼ 請在此處新增 handleVelocityMetricClick ▼▼▼
-    handleVelocityMetricClick,
-    // ▲▲▲ 新增結束 ▲▲▲
+    handleVelocityChartMetricClick, //
     handleHeatmapMetricToggle,
     handlePriceGridProjectFilterClick,
     analyzeHeatmap,
@@ -89,19 +88,6 @@ function initialize() {
     dom.rankingPaginationControls.className = 'flex justify-between items-center mt-4 text-sm text-gray-400';
     dom.rankingReportContent.querySelector('.overflow-x-auto').insertAdjacentElement('afterend', dom.rankingPaginationControls);
 
-
-// --- 日期選擇器初始化 ---
-    const flatpickrConfig = {
-        locale: "zh_tw", // 使用繁體中文語系
-        dateFormat: "Y-m-d", // 設定日期格式
-        onChange: function(selectedDates, dateStr, instance) {
-            // 當使用者手動選擇日期時，自動將快捷選單切換至 "自訂範圍"
-            dom.dateRangeSelect.value = 'custom';
-        }
-    };
-    flatpickr(dom.dateStartInput, flatpickrConfig);
-    flatpickr(dom.dateEndInput, flatpickrConfig);
-    
     // --- 主要按鈕與篩選器事件 ---
     dom.searchBtn.addEventListener('click', () => { state.currentPage = 1; mainFetchData(); });
     dom.analyzeBtn.addEventListener('click', mainAnalyzeData);
@@ -110,6 +96,8 @@ function initialize() {
     
     // --- 日期相關事件 ---
     dom.dateRangeSelect.addEventListener('change', handleDateRangeChange);
+    dom.dateStartInput.addEventListener('input', () => { if (document.activeElement === dom.dateStartInput) dom.dateRangeSelect.value = 'custom'; });
+    dom.dateEndInput.addEventListener('input', () => { if (document.activeElement === dom.dateEndInput) dom.dateRangeSelect.value = 'custom'; });
     dom.setTodayBtn.addEventListener('click', () => {
         dom.dateEndInput.value = ui.formatDate(new Date());
         dom.dateRangeSelect.value = 'custom';
@@ -168,11 +156,11 @@ function initialize() {
     
     // --- 去化分析與垂直水平分析相關事件 ---
     dom.priceBandRoomFilterContainer.addEventListener('click', handlePriceBandRoomFilterClick);
+    dom.priceBandReportContent.addEventListener('click', handlePriceBandDetailsClick); // 綁定總價帶詳情按鈕事件
+
     dom.velocityRoomFilterContainer.addEventListener('click', handleVelocityRoomFilterClick);
     dom.velocitySubTabsContainer.addEventListener('click', handleVelocitySubTabClick);
-    // ▼▼▼ 請在此處新增以下這一行 ▼▼▼
-    dom.velocityMetricToggle.addEventListener('click', handleVelocityMetricClick);
-// ▲▲▲ 新增結束 ▲▲▲
+    dom.velocityChartMetricToggle.addEventListener('click', handleVelocityChartMetricClick); //
     dom.priceGridProjectFilterContainer.addEventListener('click', handlePriceGridProjectFilterClick);
     dom.analyzeHeatmapBtn.addEventListener('click', analyzeHeatmap);
     dom.backToGridBtn.addEventListener('click', handleBackToGrid);
@@ -222,23 +210,5 @@ function initialize() {
     toggleAnalyzeButtonState();
     updateDistrictOptions();
 }
-
-// --- Tooltip 初始化 ---
-    // 監聽 body，當有新元素加入時也能套用
-    document.body.addEventListener('mouseover', (e) => {
-        const target = e.target.closest('[data-tooltip]');
-        if (target && !target._tippy) {
-            tippy(target, {
-                content: target.getAttribute('data-tooltip'),
-                theme: 'dark-trb',
-                allowHTML: true,
-                placement: 'top',
-                delay: [100, 200], // 延遲顯示與隱藏
-            });
-            target._tippy.show(); // 立即顯示第一次
-        }
-    });
-
-    // --- 初始化應用狀態 ---
 
 initialize();
