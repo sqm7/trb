@@ -9,8 +9,6 @@ import { THEME_COLORS } from '../config.js'; // 引入佈景主題顏色
 let salesVelocityChartInstance = null;
 let priceBandChartInstance = null;
 let rankingChartInstance = null;
-let parkingRatioChartInstance = null; // <-- 新增這一行
-
 
 /**
  * 渲染核心指標與排名的圖表
@@ -574,32 +572,43 @@ export function renderAreaHeatmap() {
                     const roomType = state.selectedVelocityRooms[dataPointIndex];
                     const [lower, upper] = areaRange.split('-').map(parseFloat);
 
-                    // ▼▼▼【已根據您的要求修正】▼▼▼
-                    // 移除第四站邏輯，不符合前三站的都歸類為"其他"
+                    // ▼▼▼【邏輯同步修正】▼▼▼
                     const getRoomCategory = (record) => {
-                        const unitName = record['戶別'] || ''; // <--- 在此行下方加入
-                        // 第零優先級：從「戶別」文字直接判斷
-                        if (unitName.includes('店舖') || unitName.includes('店面')) return '店舖';
-                        if (unitName.includes('事務所') || unitName.includes('辦公')) return '辦公/事務所';
-                        const buildingType = record['建物型態'] || '';
-        
-                        const mainPurpose = record['主要用途'] || '';
+                        const normalizeString = (str) => {
+                            if (!str) return '';
+                            return str.normalize('NFKC').toUpperCase().replace(/\s+/g, '');
+                        };
+
+                        const unitName = normalizeString(record['戶別']);
+                        const buildingType = normalizeString(record['建物型態']);
+                        const mainPurpose = normalizeString(record['主要用途']);
                         const rooms = record['房數'];
                         const houseArea = record['房屋面積(坪)'];
+                        const floor = record['樓層'];
+                        const note = normalizeString(record['備註']);
 
-                        // 優先級 1: 特殊商業用途
-                        if (buildingType.includes('店舖') || buildingType.includes('店面')) return '店舖';
+                        if (
+                            buildingType.includes('店舖') || buildingType.includes('店面') || buildingType.includes('店鋪') ||
+                            unitName.includes('店舖') || unitName.includes('店面') || unitName.includes('店鋪') ||
+                            note.includes('店面') || note.includes('店舖') || note.includes('店鋪') ||
+                            (mainPurpose === '商業用' && String(floor) === '1') ||
+                            (mainPurpose === '住商用' && String(floor) === '1') ||
+                            (buildingType.includes('住宅大樓') && String(floor) === '1' && rooms === 0) ||
+                            (buildingType.includes('住宅大樓') && unitName.includes('S'))
+                        ) {
+                            return '店舖';
+                        }
+
+                        if (unitName.includes('事務所') || unitName.includes('辦公')) return '辦公/事務所';
                         if (buildingType.includes('工廠') || buildingType.includes('倉庫') || buildingType.includes('廠辦')) return '廠辦/工廠';
                         if (mainPurpose.includes('商業') || buildingType.includes('辦公') || buildingType.includes('事務所')) return '辦公/事務所';
 
-                        // 優先級 2: 特殊住宅格局 (0房)
                         const isResidentialBuilding = buildingType.includes('住宅大樓') || buildingType.includes('華廈');
                         if (isResidentialBuilding && rooms === 0) {
                             if (houseArea > 35) return '毛胚';
                             if (houseArea <= 35) return '套房';
                         }
 
-                        // 優先級 3: 標準住宅房型
                         if (typeof rooms === 'number' && !isNaN(rooms)) {
                             if (rooms === 1) return '1房';
                             if (rooms === 2) return '2房';
@@ -608,9 +617,6 @@ export function renderAreaHeatmap() {
                             if (rooms >= 5) return '5房以上';
                         }
                         
-                        // ▼▼▼【第四站備用邏輯已移除】▼▼▼
-
-                        // 最終備用選項：以上皆不符合者，歸於此類
                         return '其他'; 
                     };
                     // ▲▲▲【修改結束】▲▲▲
@@ -745,81 +751,4 @@ export function renderAreaHeatmap() {
 
     state.areaHeatmapChart = new ApexCharts(dom.areaHeatmapChart, options);
     state.areaHeatmapChart.render();
-}
-/**
- * 渲染房車配比圓餅圖
- */
-export function renderParkingRatioChart() {
-    if (parkingRatioChartInstance) {
-        parkingRatioChartInstance.destroy();
-        parkingRatioChartInstance = null;
-    }
-
-    if (!state.analysisDataCache || !state.analysisDataCache.parkingAnalysis || !state.analysisDataCache.parkingAnalysis.parkingRatio) {
-        dom.parkingRatioChartContainer.innerHTML = '<p class="text-gray-500 p-4 text-center">無資料</p>';
-        return;
-    }
-
-    const { parkingRatio } = state.analysisDataCache.parkingAnalysis;
-    const { withParking, withoutParking } = parkingRatio;
-
-    if (withParking.count === 0 && withoutParking.count === 0) {
-        dom.parkingRatioChartContainer.innerHTML = '<p class="text-gray-500 p-4 text-center">無資料</p>';
-        return;
-    }
-
-    const options = {
-        series: [withParking.count, withoutParking.count],
-        labels: ['有搭車位', '沒搭車位'],
-        chart: {
-            type: 'donut',
-            height: 250,
-            background: 'transparent',
-            foreColor: THEME_COLORS['text-light']
-        },
-        plotOptions: {
-            pie: {
-                donut: {
-                    size: '65%',
-                    labels: {
-                        show: true,
-                        total: {
-                            show: true,
-                            label: '總筆數',
-                            formatter: function (w) {
-                                return (withParking.count + withoutParking.count).toLocaleString();
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        colors: [THEME_COLORS['cyan-accent'], THEME_COLORS['purple-accent']],
-        dataLabels: {
-            enabled: true,
-            formatter: function (val) {
-                return `${val.toFixed(1)}%` // 只顯示百分比
-            },
-            style: {
-                colors: [THEME_COLORS['text-light']] // 確保文字顏色與主題一致
-            },
-            dropShadow: {
-                enabled: false // 移除陰影，讓文字更清晰
-            }
-        },
-        legend: {
-            show: false
-        },
-        tooltip: {
-            theme: 'dark',
-            y: {
-                formatter: function(value) {
-                    return `${value.toLocaleString()} 筆`;
-                }
-            }
-        }
-    };
-
-    parkingRatioChartInstance = new ApexCharts(dom.parkingRatioChartContainer, options);
-    parkingRatioChartInstance.render();
 }
