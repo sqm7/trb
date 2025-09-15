@@ -44,11 +44,10 @@ export async function mainAnalyzeData() {
     if (!dom.countySelect.value) return ui.showMessage('請先選擇一個縣市再進行分析。');
     ui.showLoading('分析中，請稍候...');
     try {
-        // ▼▼▼ 【問題修正處】 ▼▼▼
-        // 後端 API 回傳的資料結構是 { "reports": { ... } }
-        // 我們需要先解開 "reports" 這一層，才能正確存取裡面的分析資料
-        const response = await api.analyzeData(getFilters());
-        state.analysisDataCache = response.reports; 
+        // ▼▼▼ 【最終問題修正處】 ▼▼▼
+        // 將 state.analysisDataCache 直接設定為 API 回傳的 response
+        // 因為我們統一後的後端 analyze-data function 回傳的就是一個扁平的 JSON 物件
+        state.analysisDataCache = await api.analyzeData(getFilters());
         // ▲▲▲ 【修改結束】 ▲▲▲
 
         if (!state.analysisDataCache || !state.analysisDataCache.coreMetrics || state.analysisDataCache.projectRanking.length === 0) {
