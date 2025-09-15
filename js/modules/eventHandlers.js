@@ -44,9 +44,14 @@ export async function mainAnalyzeData() {
     if (!dom.countySelect.value) return ui.showMessage('請先選擇一個縣市再進行分析。');
     ui.showLoading('分析中，請稍候...');
     try {
-        state.analysisDataCache = await api.analyzeData(getFilters());
+        // ▼▼▼ 【問題修正處】 ▼▼▼
+        // 後端 API 回傳的資料結構是 { "reports": { ... } }
+        // 我們需要先解開 "reports" 這一層，才能正確存取裡面的分析資料
+        const response = await api.analyzeData(getFilters());
+        state.analysisDataCache = response.reports; 
+        // ▲▲▲ 【修改結束】 ▲▲▲
 
-        if (!state.analysisDataCache.coreMetrics || state.analysisDataCache.projectRanking.length === 0) {
+        if (!state.analysisDataCache || !state.analysisDataCache.coreMetrics || state.analysisDataCache.projectRanking.length === 0) {
             const msg = state.analysisDataCache.message || '找不到符合條件的分析資料。';
             ui.showMessage(msg);
             return;
@@ -198,7 +203,7 @@ export function onDistrictSuggestionClick(e) {
             dom.districtSuggestions.querySelectorAll('label:not([data-name="all"]) input[type="checkbox"]').forEach(cb => { cb.checked = isChecked; });
         } else {
             if (isChecked) {
-              if (!state.selectedDistricts.includes(name)) state.selectedDistricts.push(name);
+                if (!state.selectedDistricts.includes(name)) state.selectedDistricts.push(name);
             } else {
                 state.selectedDistricts = state.selectedDistricts.filter(d => d !== name);
             }
@@ -292,6 +297,15 @@ export function handlePriceBandRoomFilterClick(e) {
     }
     
     reportRenderer.renderPriceBandReport();
+}
+
+export function handlePriceBandDetailsClick(e) {
+    const button = e.target.closest('.price-band-details-button');
+    if (!button) return;
+
+    const roomType = button.dataset.roomType;
+    const bathrooms = button.dataset.bathrooms;
+    reportRenderer.renderPriceBandDetails(roomType, bathrooms);
 }
 
 export function handleVelocityRoomFilterClick(e) {
