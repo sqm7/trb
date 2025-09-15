@@ -5,51 +5,57 @@ import { state } from '../state.js';
 import * as ui from '../ui.js';
 import { renderRankingPagination } from './uiComponents.js';
 import { renderVelocityTable } from './tables.js';
-import { renderAreaHeatmap, renderSalesVelocityChart, renderPriceBandChart, renderRankingChart, renderParkingRatioChart } from './charts.js';
+import { renderAreaHeatmap, renderSalesVelocityChart, renderPriceBandChart, renderRankingChart } from './charts.js';
 import { displayCurrentPriceGrid } from './heatmap.js';
 
-// js/modules/renderers/reports.js -> inside the file
-
+// ▼▼▼ 【邏輯同步修正】▼▼▼
+// --- 新增開始：從後端複製並改寫的房型分組邏輯 ---
 /**
  * @description 根據後端 analysis-engine.ts 的邏輯，在前端為交易紀錄進行房型分類。
- * @param {object} record - 一筆交易資料，需包含 建物型態, 主要用途, 戶別, 房數, 房屋面積(坪) 等欄位。
+ * @param {object} record - 一筆交易資料，需包含 建物型態, 主要用途, 房數, 房屋面積(坪) 等欄位。
  * @returns {string} - 分類後的房型名稱。
  */
 function getRoomTypeGroupOnFrontend(record) {
-    // 為了與後端邏輯一致，也進行標準化處理
+    // 標準化函式，確保比對一致性
     const normalizeString = (str) => {
         if (!str) return '';
         return str.normalize('NFKC').toUpperCase().replace(/\s+/g, '');
     };
 
+    const unitName = normalizeString(record['戶別']);
     const buildingType = normalizeString(record['建物型態']);
     const mainPurpose = normalizeString(record['主要用途']);
-    const unitName = normalizeString(record['戶別']); // 新增戶別的標準化
     const rooms = record['房數'];
     const houseArea = record['房屋面積(坪)'];
+    const floor = record['樓層'];
+    const note = normalizeString(record['備註']);
 
-    // 【新增規則】處理住宅大樓內含 'S' 的特殊店舖情況
-    if (buildingType.includes('住宅大樓') && unitName.includes('S')) {
+    // 優先級 1: 店舖判斷
+    if (
+        buildingType.includes('店舖') || buildingType.includes('店面') || buildingType.includes('店鋪') ||
+        unitName.includes('店舖') || unitName.includes('店面') || unitName.includes('店鋪') ||
+        note.includes('店面') || note.includes('店舖') || note.includes('店鋪') ||
+        (mainPurpose === '商業用' && String(floor) === '1') ||
+        (mainPurpose === '住商用' && String(floor) === '1') ||
+        (buildingType.includes('住宅大樓') && String(floor) === '1' && rooms === 0) || // 新增規則
+        (buildingType.includes('住宅大樓') && unitName.includes('S'))
+    ) {
         return '店舖';
     }
 
-    // 第零優先級：從「戶別」文字直接判斷 (補全關鍵字)
-    if (unitName.includes('店舖') || unitName.includes('店面') || unitName.includes('店鋪')) return '店舖';
+    // 優先級 2: 辦公/廠辦判斷
     if (unitName.includes('事務所') || unitName.includes('辦公')) return '辦公/事務所';
-
-    // 第一優先級：特殊商業用途 (建物型態/主要用途) (補全關鍵字)
-    if (buildingType.includes('店舖') || buildingType.includes('店面') || buildingType.includes('店鋪')) return '店舖';
     if (buildingType.includes('工廠') || buildingType.includes('倉庫') || buildingType.includes('廠辦')) return '廠辦/工廠';
     if (mainPurpose.includes('商業') || buildingType.includes('辦公') || buildingType.includes('事務所')) return '辦公/事務所';
 
-    // 第二優先級：特殊住宅格局 (0房)
+    // 優先級 3：特殊住宅格局 (0房)
     const isResidentialBuilding = buildingType.includes('住宅大樓') || buildingType.includes('華廈');
     if (isResidentialBuilding && rooms === 0) {
         if (houseArea > 35) return '毛胚';
         if (houseArea <= 35) return '套房';
     }
-    
-    // 第三優先級：標準住宅房型
+
+    // 優先級 4：標準住宅房型
     if (typeof rooms === 'number' && !isNaN(rooms)) {
         if (rooms === 1) return '1房';
         if (rooms === 2) return '2房';
@@ -61,6 +67,7 @@ function getRoomTypeGroupOnFrontend(record) {
     return '其他';
 }
 // --- 新增結束 ---
+// ▲▲▲ 【修改結束】 ▲▲▲
 
 
 function renderStatsBlock(stats, averageType, tableContainerId, extraInfoContainerId, noDataMessage) {
@@ -137,12 +144,13 @@ export function renderRankingReport() {
     renderRankingPagination(projectRanking.length);
 }
 
-// ▼▼▼ 【修改處】 ▼▼▼
 export function renderPriceBandReport() {
     if (!state.analysisDataCache || !state.analysisDataCache.priceBandAnalysis) return;
     
     const { priceBandAnalysis } = state.analysisDataCache;
+
     const allRoomTypes = [...new Set(priceBandAnalysis.map(item => item.roomType))];
+    
     const sortOrder = ['套房', '1房', '2房', '3房', '4房', '5房以上', '毛胚', '店舖', '辦公/事務所', '廠辦/工廠', '其他'];
 
     allRoomTypes.sort((a, b) => {
@@ -172,6 +180,7 @@ export function renderPriceBandReport() {
     }).join('');
 
     const filteredDataForTable = priceBandAnalysis.filter(item => state.selectedPriceBandRoomTypes.includes(item.roomType));
+
     filteredDataForTable.sort((a, b) => { 
         const mapToNewCategory = (type) => {
             if (type === '工廠/倉庫') return '廠辦/工廠';
@@ -186,23 +195,21 @@ export function renderPriceBandReport() {
         return (a.bathrooms || 0) - (b.bathrooms || 0);
     });
     
-    const tableHeaders = ['房型', '衛浴', '建案組成', '筆數', '平均總價(萬)', '最低總價(萬)', '1/4位總價(萬)', '中位數總價(萬)', '3/4位總價(萬)', '最高總價(萬)'];
-    let headerHtml = '<thead><tr>' + tableHeaders.map(h => `<th>${h}</th>`).join('') + '</tr></thead>';
+    const tableHeaders = ['詳情', '房型', '衛浴', '筆數', '平均總價(萬)', '最低總價(萬)', '1/4位總價(萬)', '中位數總價(萬)', '3/4位總價(萬)', '最高總價(萬)'];
+
+    let headerHtml = '<thead><tr>' + tableHeaders.map(h => `<th class="${h === '詳情' ? 'text-center' : ''}">${h}</th>`).join('') + '</tr></thead>';
     let bodyHtml = '<tbody>';
 
     if (filteredDataForTable.length > 0) {
         filteredDataForTable.forEach(item => { 
-            // 【最終修正】在每個 span 後面加上一個空格，讓瀏覽器知道可以在此換行
-            const projectListHtml = (item.projectNames && item.projectNames.length > 0) 
-                ? item.projectNames.map(name => `<span>${name}</span> `).join('') 
-                : '-';
-
             bodyHtml += `<tr class="hover:bg-dark-card transition-colors">
+                <td class="text-center">
+                    <button class="price-band-details-button" data-room-type="${item.roomType}" data-bathrooms="${item.bathrooms}" title="查看詳細資料">
+                        <i class="fas fa-chart-bar"></i>
+                    </button>
+                </td>
                 <td>${item.roomType}</td>
                 <td>${item.bathrooms !== null ? item.bathrooms : '-'}</td>
-                <td class="project-list-cell">
-                    <div class="project-name-list">${projectListHtml}</div>
-                </td>
                 <td>${item.count.toLocaleString()}</td>
                 <td>${ui.formatNumber(item.avgPrice, 0)}</td>
                 <td>${ui.formatNumber(item.minPrice, 0)}</td>
@@ -220,8 +227,8 @@ export function renderPriceBandReport() {
     dom.priceBandTable.innerHTML = headerHtml + bodyHtml;
 
     renderPriceBandChart();
+    renderPriceBandDetails(null, null);
 }
-// ▲▲▲ 【修改結束】 ▲▲▲
 
 
 export function renderUnitPriceReport() {
@@ -264,7 +271,6 @@ export function renderParkingAnalysisReport() {
     const { parkingRatio, avgPriceByType, rampPlanePriceByFloor } = state.analysisDataCache.parkingAnalysis;
     if (parkingRatio) {
         dom.parkingRatioTableContainer.innerHTML = `<table class="min-w-full divide-y divide-gray-800"><thead><tr><th>配置類型</th><th>交易筆數</th><th>佔比(%)</th></tr></thead><tbody><tr class="hover:bg-dark-card"><td>有搭車位</td><td>${parkingRatio.withParking.count.toLocaleString()}</td><td>${ui.formatNumber(parkingRatio.withParking.percentage, 2)}%</td></tr><tr class="hover:bg-dark-card"><td>沒搭車位</td><td>${parkingRatio.withoutParking.count.toLocaleString()}</td><td>${ui.formatNumber(parkingRatio.withoutParking.percentage, 2)}%</td></tr></tbody></table>`;
-        renderParkingRatioChart(); // <-- 新增這一行
     } else {
         dom.parkingRatioTableContainer.innerHTML = '<p class="text-gray-500">無車位配比資料可供分析。</p>';
     }
@@ -371,7 +377,11 @@ export function renderPriceBandDetails(roomType, bathrooms) {
     }
     
     const filteredData = state.analysisDataCache.transactionDetails.filter(item => {
+        // ▼▼▼ 最終修正點 ▼▼▼
+        // 1. 在前端使用與後端完全相同的邏輯，為每一筆原始資料即時計算出它的房型分組
         const itemRoomGroup = getRoomTypeGroupOnFrontend(item);
+        
+        // 2. 使用計算出的房型分組，以及正確的衛浴欄位名稱 '衛浴數' 來進行比對
         const roomMatch = itemRoomGroup === roomType;
         const bathroomMatch = String(item['衛浴數']) === String(bathrooms);
         
@@ -388,6 +398,7 @@ export function renderPriceBandDetails(roomType, bathrooms) {
 
     const projectNames = [...new Set(filteredData.map(item => item['建案名稱']))];
     const totalCount = filteredData.length;
+    // 使用 '房屋面積(坪)' 這個中文鍵名
     const areas = filteredData.map(item => item['房屋面積(坪)']).filter(a => a && a > 0);
     const minArea = areas.length > 0 ? Math.min(...areas) : 0;
     const maxArea = areas.length > 0 ? Math.max(...areas) : 0;
