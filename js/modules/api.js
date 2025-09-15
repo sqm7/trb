@@ -62,7 +62,7 @@ export async function analyzeData(filters) {
     const headers = await getAuthHeaders();
     if (!headers) throw new Error("認證失敗");
 
-    const response = await fetch(API_ENDPOINTS.RANKING_ANALYSIS, {
+    const response = await fetch(API_ENDPOINTS.ANALYZE_DATA, {
         method: 'POST',
         headers: headers,
         body: JSON.stringify({ filters })
