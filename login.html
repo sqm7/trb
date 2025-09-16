@@ -39,6 +39,26 @@
             color: #06b6d4;
             border-bottom-color: #06b6d4;
         }
+        /* 特色列表 */
+        .feature-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem; /* 16px */
+        }
+        .feature-icon {
+            background-color: rgba(6, 182, 212, 0.1);
+            color: #06b6d4;
+            border-radius: 0.5rem; /* 8px */
+            flex-shrink: 0;
+            width: 3rem; /* 48px */
+            height: 3rem; /* 48px */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .feature-icon i {
+            font-size: 1.5rem; /* 24px */
+        }
     </style>
     <script type="module">
         import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
@@ -171,62 +191,89 @@
 </head>
 <body class="bg-dark-bg text-gray-200 flex flex-col items-center justify-center min-h-screen p-4">
 
-    <header class="text-center mb-8">
-        <h1 class="text-4xl font-extrabold text-white tracking-tight leading-tight">平米內參<br><span class="text-3xl font-bold">預售屋數據儀表板</span></h1>
-    </header>
+    <div class="w-full max-w-6xl mx-auto">
+        <header class="text-center mb-10">
+            <h1 class="text-4xl font-extrabold text-white tracking-tight leading-tight">平米內參<br><span class="text-3xl font-bold">預售屋數據儀表板</span></h1>
+        </header>
 
-    <main class="bg-dark-card p-8 rounded-xl shadow-lg w-full max-w-sm">
-        
-        <div class="flex border-b border-gray-700 mb-6">
-            <button id="login-tab" class="tab-button active">登入</button>
-            <button id="register-tab" class="tab-button">註冊</button>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            
+            <div class="hidden lg:block space-y-8">
+                <div class="feature-item">
+                    <div class="feature-icon"><i class="fas fa-chart-pie"></i></div>
+                    <div>
+                        <h3 class="font-bold text-xl text-white">核心指標與排名</h3>
+                        <p class="text-gray-400 mt-2">洞悉市場全局，掌握建案銷售排行，快速了解各建案的銷售總額、面積、交易量與市場佔比。</p>
+                    </div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon"><i class="fas fa-search-dollar"></i></div>
+                    <div>
+                        <h3 class="font-bold text-xl text-white">多維度數據分析</h3>
+                        <p class="text-gray-400 mt-2">從總價、單價、車位到房型去化，進行深度剖析，提供您最完整的市場價格結構與銷售趨勢。</p>
+                    </div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon"><i class="fas fa-border-all"></i></div>
+                    <div>
+                        <h3 class="font-bold text-xl text-white">獨家垂直水平分析</h3>
+                        <p class="text-gray-400 mt-2">以視覺化銷控表與熱力圖，揭示建案的價格策略與調價軌跡，找出超值或溢價的戶型。</p>
+                    </div>
+                </div>
+            </div>
+
+            <main class="bg-dark-card p-8 rounded-xl shadow-lg w-full max-w-sm mx-auto">
+                <div class="flex border-b border-gray-700 mb-6">
+                    <button id="login-tab" class="tab-button active">登入</button>
+                    <button id="register-tab" class="tab-button">註冊</button>
+                </div>
+
+                <form id="login-form">
+                    <div class="space-y-6">
+                        <div>
+                            <label for="email" class="block text-sm font-medium text-gray-300 mb-2">電子郵件</label>
+                            <input type="email" id="email" name="email" class="form-input block w-full pl-3 pr-10 py-3 text-base rounded-md" required autocomplete="email">
+                        </div>
+                        <div>
+                            <label for="password" class="block text-sm font-medium text-gray-300 mb-2">密碼</label>
+                            <input type="password" id="password" name="password" class="form-input block w-full pl-3 pr-10 py-3 text-base rounded-md" required autocomplete="current-password">
+                        </div>
+                        <div>
+                            <button type="submit" id="login-submit-button" class="w-full flex justify-center items-center bg-cyan-accent hover:bg-opacity-90 text-white font-bold py-3 px-4 rounded-lg shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                                <div class="loader-sm hidden"></div>
+                                <span>登入</span>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+
+                <form id="register-form" class="hidden">
+                    <div class="space-y-6">
+                        <div>
+                            <label for="register-email" class="block text-sm font-medium text-gray-300 mb-2">電子郵件</label>
+                            <input type="email" id="register-email" name="register-email" class="form-input block w-full pl-3 pr-10 py-3 text-base rounded-md" required autocomplete="email">
+                        </div>
+                        <div>
+                            <label for="register-password" class="block text-sm font-medium text-gray-300 mb-2">密碼 (至少6位數)</label>
+                            <input type="password" id="register-password" name="register-password" class="form-input block w-full pl-3 pr-10 py-3 text-base rounded-md" required minlength="6">
+                        </div>
+                        <div>
+                            <label for="confirm-password" class="block text-sm font-medium text-gray-300 mb-2">確認密碼</label>
+                            <input type="password" id="confirm-password" name="confirm-password" class="form-input block w-full pl-3 pr-10 py-3 text-base rounded-md" required minlength="6">
+                        </div>
+                        <div>
+                            <button type="submit" id="register-submit-button" class="w-full flex justify-center items-center bg-cyan-accent hover:bg-opacity-90 text-white font-bold py-3 px-4 rounded-lg shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                                <div class="loader-sm hidden"></div>
+                                <span>註冊</span>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+
+                <div id="message" class="text-red-400 text-center min-h-[2.5rem] mt-4"></div>
+            </main>
         </div>
-
-        <form id="login-form">
-            <div class="space-y-6">
-                <div>
-                    <label for="email" class="block text-sm font-medium text-gray-300 mb-2">電子郵件</label>
-                    <input type="email" id="email" name="email" class="form-input block w-full pl-3 pr-10 py-3 text-base rounded-md" required autocomplete="email">
-                </div>
-                <div>
-                    <label for="password" class="block text-sm font-medium text-gray-300 mb-2">密碼</label>
-                    <input type="password" id="password" name="password" class="form-input block w-full pl-3 pr-10 py-3 text-base rounded-md" required autocomplete="current-password">
-                </div>
-                <div>
-                    <button type="submit" id="login-submit-button" class="w-full flex justify-center items-center bg-cyan-accent hover:bg-opacity-90 text-white font-bold py-3 px-4 rounded-lg shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed">
-                        <div class="loader-sm hidden"></div>
-                        <span>登入</span>
-                    </button>
-                </div>
-            </div>
-        </form>
-
-        <form id="register-form" class="hidden">
-            <div class="space-y-6">
-                <div>
-                    <label for="register-email" class="block text-sm font-medium text-gray-300 mb-2">電子郵件</label>
-                    <input type="email" id="register-email" name="register-email" class="form-input block w-full pl-3 pr-10 py-3 text-base rounded-md" required autocomplete="email">
-                </div>
-                <div>
-                    <label for="register-password" class="block text-sm font-medium text-gray-300 mb-2">密碼 (至少6位數)</label>
-                    <input type="password" id="register-password" name="register-password" class="form-input block w-full pl-3 pr-10 py-3 text-base rounded-md" required minlength="6">
-                </div>
-                <div>
-                    <label for="confirm-password" class="block text-sm font-medium text-gray-300 mb-2">確認密碼</label>
-                    <input type="password" id="confirm-password" name="confirm-password" class="form-input block w-full pl-3 pr-10 py-3 text-base rounded-md" required minlength="6">
-                </div>
-                <div>
-                    <button type="submit" id="register-submit-button" class="w-full flex justify-center items-center bg-cyan-accent hover:bg-opacity-90 text-white font-bold py-3 px-4 rounded-lg shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed">
-                        <div class="loader-sm hidden"></div>
-                        <span>註冊</span>
-                    </button>
-                </div>
-            </div>
-        </form>
-
-        <div id="message" class="text-red-400 text-center min-h-[2.5rem] mt-4"></div>
-
-    </main>
+    </div>
 
     <footer class="text-center py-8 mt-12 text-gray-500 text-sm">
         <div class="flex items-center justify-center space-x-4 md:space-x-6 flex-wrap gap-y-2">
