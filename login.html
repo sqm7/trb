@@ -21,12 +21,14 @@
         }
     </script>
     <style>
+        /* --- 基礎樣式 --- */
         body { font-family: 'Inter', 'Noto Sans TC', sans-serif; }
         .form-input { background-color: #1f2937; border: 1px solid #4b5563; color: #d1d5db; }
         .form-input:focus { border-color: #06b6d4; box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.5); outline: none; }
         .loader-sm { border: 2px solid #374151; border-top: 2px solid #06b6d4; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        /* 頁籤樣式 */
+
+        /* --- 頁籤樣式 --- */
         .tab-button {
             padding: 0.75rem 1rem;
             font-weight: 500;
@@ -39,7 +41,8 @@
             color: #06b6d4;
             border-bottom-color: #06b6d4;
         }
-        /* 特色列表 */
+
+        /* --- 功能亮點列表 --- */
         .feature-item {
             display: flex;
             align-items: flex-start;
@@ -59,6 +62,57 @@
         .feature-icon i {
             font-size: 1.5rem; /* 24px */
         }
+        
+        /* --- 【新增】解決版面位移問題 --- */
+        /* 為右側表單容器設定一個最小高度 */
+        #form-container {
+            min-height: 480px; 
+        }
+
+        /* --- 【教學】如何新增背景圖片或影片 --- */
+        /* ** 方法一：新增背景圖片 **
+        1. 將您的圖片 (例如: background.jpg) 放到您專案的 css/images/ 資料夾底下。
+        2. 取消底下 body 區塊的註解 (移除 /* 和 * /)。
+        
+        body {
+            background-image: url('css/images/background.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+        }
+        */
+
+        /* ** 方法二：新增背景影片 (進階) **
+        1. 將您的影片 (例如: background.mp4) 放到您專案的 css/videos/ 資料夾底下。
+        2. 在 <body> 標籤的最上方，加入下面的 <video> HTML 程式碼。
+        3. 取消底下 #bg-video 和 #bg-video-overlay 區塊的註解。
+        
+        <div id="bg-video-overlay"></div>
+        <video autoplay muted loop id="bg-video">
+            <source src="css/videos/background.mp4" type="video/mp4">
+            您的瀏覽器不支援影片標籤。
+        </video>
+
+        #bg-video {
+            position: fixed;
+            right: 0;
+            bottom: 0;
+            min-width: 100%;
+            min-height: 100%;
+            z-index: -2;
+        }
+        #bg-video-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(26, 29, 41, 0.8);
+            z-index: -1;
+        }
+        */
+
     </style>
     <script type="module">
         import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
@@ -160,24 +214,20 @@
 
                     if (error) throw error;
                     
-                    // ▼▼▼【新增功能：倒數計時並切換回登入頁】▼▼▼
                     let countdown = 10;
                     const successMessage = '註冊成功！請至您的電子信箱收取驗證信。';
                     
                     messageDiv.innerHTML = `<span class="text-green-400">${successMessage}<br>${countdown} 秒後將返回登入頁面...</span>`;
 
-                    // 將 interval 存儲在 window 物件上，以便在切換頁籤時可以清除它
                     window.registerCountdownInterval = setInterval(() => {
                         countdown--;
                         if (countdown > 0) {
                             messageDiv.innerHTML = `<span class="text-green-400">${successMessage}<br>${countdown} 秒後將返回登入頁面...</span>`;
                         } else {
                             clearInterval(window.registerCountdownInterval);
-                            // 模擬點擊登入頁籤來切換畫面
                             loginTab.click();
                         }
                     }, 1000);
-                    // ▲▲▲【新增結束】▲▲▲
 
                 } catch (error) {
                     messageDiv.textContent = `註冊失敗: ${error.message}`;
@@ -202,27 +252,27 @@
                 <div class="feature-item">
                     <div class="feature-icon"><i class="fas fa-chart-pie"></i></div>
                     <div>
-                        <h3 class="font-bold text-xl text-white">核心指標與排名</h3>
-                        <p class="text-gray-400 mt-2">洞悉市場全局，掌握建案銷售排行，快速了解各建案的銷售總額、面積、交易量與市場佔比。</p>
+                        <h3 class="font-bold text-xl text-white">預售屋核心指標與排名</h3>
+                        <p class="text-gray-400 mt-2">洞悉預售屋市場全局，掌握建案銷售排行，快速了解各建案的銷售總額、面積、交易量與市場佔比。</p>
                     </div>
                 </div>
                 <div class="feature-item">
                     <div class="feature-icon"><i class="fas fa-search-dollar"></i></div>
                     <div>
-                        <h3 class="font-bold text-xl text-white">多維度數據分析</h3>
-                        <p class="text-gray-400 mt-2">從總價、單價、車位到房型去化，進行深度剖析，提供您最完整的市場價格結構與銷售趨勢。</p>
+                        <h3 class="font-bold text-xl text-white">預售屋多維度數據分析</h3>
+                        <p class="text-gray-400 mt-2">從總價、單價、車位到房型去化，對預售屋市場進行深度剖析，提供您最完整的價格結構與銷售趨勢。</p>
                     </div>
                 </div>
                 <div class="feature-item">
                     <div class="feature-icon"><i class="fas fa-border-all"></i></div>
                     <div>
-                        <h3 class="font-bold text-xl text-white">獨家垂直水平分析</h3>
-                        <p class="text-gray-400 mt-2">以視覺化銷控表與熱力圖，揭示建案的價格策略與調價軌跡，找出超值或溢價的戶型。</p>
+                        <h3 class="font-bold text-xl text-white">獨家預售屋垂直水平分析</h3>
+                        <p class="text-gray-400 mt-2">以視覺化銷控表與熱力圖，揭示預售建案的價格策略與調價軌跡，找出超值或溢價的戶型。</p>
                     </div>
                 </div>
             </div>
 
-            <main class="bg-dark-card p-8 rounded-xl shadow-lg w-full max-w-sm mx-auto">
+            <main id="form-container" class="bg-dark-card p-8 rounded-xl shadow-lg w-full max-w-sm mx-auto">
                 <div class="flex border-b border-gray-700 mb-6">
                     <button id="login-tab" class="tab-button active">登入</button>
                     <button id="register-tab" class="tab-button">註冊</button>
