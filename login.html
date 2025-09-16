@@ -22,7 +22,27 @@
     </script>
     <style>
         /* --- 基礎樣式 --- */
-        body { font-family: 'Inter', 'Noto Sans TC', sans-serif; }
+        body { 
+            font-family: 'Inter', 'Noto Sans TC', sans-serif;
+            /* ▼▼▼ 【修改處】新增背景圖片 ▼▼▼ */
+            background-image: url('css/images/loginbackgroud.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+        }
+
+        /* ▼▼▼ 【修改處】新增半透明遮罩層樣式 ▼▼▼ */
+        #bg-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(26, 29, 41, 0.8); /* 深色半透明背景 */
+            z-index: -1; /* 將遮罩層置於內容之後、背景圖片之上 */
+        }
+
         .form-input { background-color: #1f2937; border: 1px solid #4b5563; color: #d1d5db; }
         .form-input:focus { border-color: #06b6d4; box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.5); outline: none; }
         .loader-sm { border: 2px solid #374151; border-top: 2px solid #06b6d4; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; }
@@ -194,8 +214,10 @@
         });
     </script>
 </head>
-<body class="bg-dark-bg text-gray-200 flex flex-col items-center justify-center min-h-screen p-4">
+<body class="text-gray-200 flex flex-col items-center justify-center min-h-screen p-4">
     
+    <div id="bg-overlay"></div>
+
     <div id="main-content-wrapper" class="w-full max-w-6xl mx-auto">
         <header class="text-center mb-16">
             <h1 class="text-4xl font-extrabold text-white tracking-tight leading-tight">平米內參<br><span class="text-3xl font-bold">預售屋數據儀表板</span></h1>
