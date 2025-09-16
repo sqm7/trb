@@ -21,20 +21,19 @@
         }
     </script>
     <style>
-        body { 
+        body {
             font-family: 'Inter', 'Noto Sans TC', sans-serif;
-            /* 【修改處】將背景圖片設定移到此處 */
-            background-image: url('css/image/loginbackground.jpg');
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            background-color: #1a1d29; /* 新增備用背景色 */
+            /* 【修改處 1】使用 !important 強制背景圖片生效，並設定備用色 */
+            background-image: url('css/image/loginbackground.jpg') !important;
+            background-size: cover !important;
+            background-position: center !important;
+            background-repeat: no-repeat !important;
+            background-color: #1a1d29; /* 圖片載入失敗時的深色背景 */
         }
         .form-input { background-color: #1f2937; border: 1px solid #4b5563; color: #d1d5db; }
         .form-input:focus { border-color: #06b6d4; box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.5); outline: none; }
         .loader-sm { border: 2px solid #374151; border-top: 2px solid #06b6d4; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        /* 頁籤樣式 */
         .tab-button {
             padding: 0.75rem 1rem;
             font-weight: 500;
@@ -56,7 +55,6 @@
         const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         document.addEventListener('DOMContentLoaded', () => {
-            // DOM 元素
             const loginForm = document.getElementById('login-form');
             const registerForm = document.getElementById('register-form');
             const loginTab = document.getElementById('login-tab');
@@ -65,14 +63,12 @@
             const loginSubmitBtn = document.getElementById('login-submit-button');
             const registerSubmitBtn = document.getElementById('register-submit-button');
 
-            // 頁籤切換邏輯
             loginTab.addEventListener('click', () => {
                 loginTab.classList.add('active');
                 registerTab.classList.remove('active');
                 loginForm.classList.remove('hidden');
                 registerForm.classList.add('hidden');
                 messageDiv.textContent = '';
-                // 清除可能正在進行的倒數計時
                 if (window.registerCountdownInterval) {
                     clearInterval(window.registerCountdownInterval);
                 }
@@ -86,7 +82,6 @@
                 messageDiv.textContent = '';
             });
 
-            // 登入表單提交
             loginForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const btn = loginSubmitBtn;
@@ -113,7 +108,6 @@
                 }
             });
 
-            // 註冊表單提交
             registerForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const btn = registerSubmitBtn;
@@ -148,24 +142,20 @@
 
                     if (error) throw error;
                     
-                    // ▼▼▼【新增功能：倒數計時並切換回登入頁】▼▼▼
                     let countdown = 10;
                     const successMessage = '註冊成功！請至您的電子信箱收取驗證信。';
                     
                     messageDiv.innerHTML = `<span class="text-green-400">${successMessage}<br>${countdown} 秒後將返回登入頁面...</span>`;
 
-                    // 將 interval 存儲在 window 物件上，以便在切換頁籤時可以清除它
                     window.registerCountdownInterval = setInterval(() => {
                         countdown--;
                         if (countdown > 0) {
                             messageDiv.innerHTML = `<span class="text-green-400">${successMessage}<br>${countdown} 秒後將返回登入頁面...</span>`;
                         } else {
                             clearInterval(window.registerCountdownInterval);
-                            // 模擬點擊登入頁籤來切換畫面
                             loginTab.click();
                         }
                     }, 1000);
-                    // ▲▲▲【新增結束】▲▲▲
 
                 } catch (error) {
                     messageDiv.textContent = `註冊失敗: ${error.message}`;
