@@ -432,3 +432,47 @@ span.flatpickr-weekday {
     white-space: pre-line;
     padding: 8px 12px;
 }
+
+/* --- 新增：響應式表格優化 --- */
+.table-responsive-wrapper {
+    position: relative;
+    overflow-x: auto;
+    width: 100%;
+}
+
+/* 增加一個右側陰影，提示使用者可以滾動 */
+.table-responsive-wrapper::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 30px;
+    background: linear-gradient(to right, transparent, var(--color-dark-bg));
+    pointer-events: none; /* 讓陰影不會影響到底下的元素互動 */
+    transition: opacity 0.2s;
+    opacity: 1;
+}
+
+/* 讓表格內的文字不換行，以觸發水平滾動 */
+.table-responsive-wrapper table th,
+.table-responsive-wrapper table td {
+    white-space: nowrap;
+}
+
+/* 移除 velocity-table 固有的邊框和圓角，交由 wrapper 處理 */
+.velocity-table {
+    border: none;
+    border-radius: 0;
+}
+
+/* 移除 velocity-table 內部的左右邊框，避免雙重邊框 */
+.velocity-table th, .velocity-table td {
+    border-left: none;
+    border-right: none;
+}
+/* ▼▼▼ 新增修正 ▼▼▼ */
+/* 補上「時間」欄位右側被遺漏的垂直分隔線 */
+.velocity-table .sticky {
+    border-right: 1px solid var(--color-disabled-bg);
+}
