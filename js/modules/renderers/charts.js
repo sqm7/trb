@@ -317,30 +317,36 @@ export function renderPriceBandChart() {
         },
         tooltip: {
             theme: 'dark',
+            // ▼▼▼ 【從這裡開始替換】 ▼▼▼
             y: {
-                formatter: function(value, { series, seriesIndex, dataPointIndex, w }) {
-                    // 從圖表實例中獲取對應的數據點，這裡包含了箱型圖的五個數值
+                formatter: function(value, { seriesIndex, dataPointIndex, w }) {
+                    // 這是 ApexCharts 獲取箱型圖完整數據的標準方法
                     const stats = w.globals.series[seriesIndex][dataPointIndex];
-                    
-                    // 確保 stats 是一個包含五個數字的陣列
+
+                    // 加上一個安全檢查，確保我們拿到的資料是正確的陣列格式
                     if (Array.isArray(stats) && stats.length === 5) {
-                        // 依照您的需求，建立一個包含中文標籤的 HTML 字串
-                        // stats[4] 是最大值, stats[3] 是 Q3, ... , stats[0] 是最小值
+                        const [min, q1, median, q3, max] = stats;
+                        
+                        // 建立一個乾淨、完全中文化的 HTML 字串並回傳
                         return `
-                            <div style="padding: 5px;">
-                                <div><strong>最高:</strong> ${stats[4].toLocaleString()} 萬</div>
-                                <div><strong>3/4位數:</strong> ${stats[3].toLocaleString()} 萬</div>
-                                <div><strong>中位數:</strong> ${stats[2].toLocaleString()} 萬</div>
-                                <div><strong>1/4位數:</strong> ${stats[1].toLocaleString()} 萬</div>
-                                <div><strong>最低:</strong> ${stats[0].toLocaleString()} 萬</div>
+                            <div style="padding: 6px 8px; font-family: 'Noto Sans TC', sans-serif;">
+                                <div><strong>最高價:</strong> ${max.toLocaleString()} 萬</div>
+                                <div><strong>3/4分位價:</strong> ${q3.toLocaleString()} 萬</div>
+                                <div><strong>中位數價:</strong> ${median.toLocaleString()} 萬</div>
+                                <div><strong>1/4分位價:</strong> ${q1.toLocaleString()} 萬</div>
+                                <div><strong>最低價:</strong> ${min.toLocaleString()} 萬</div>
                             </div>
                         `;
                     }
-                    // 如果資料格式不對，就回傳原始數值
-                    return value;
+                    
+                    // 如果資料有誤，就只顯示一個簡單的數值，避免報錯
+                    return `${value.toLocaleString()} 萬`;
+                },
+                // 移除預設的標題，讓我們的自訂內容更乾淨
+                title: {
+                    formatter: () => ''
                 }
             }
-            // ▲▲▲ 【修改結束】 ▲▲▲
         },
         grid: {
             borderColor: '#374151'
