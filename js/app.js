@@ -84,7 +84,8 @@ function initialize() {
     
     dom.rankingPaginationControls.id = 'ranking-pagination-controls';
     dom.rankingPaginationControls.className = 'flex justify-between items-center mt-4 text-sm text-gray-400';
-    dom.rankingReportContent.querySelector('.table-responsive-wrapper').insertAdjacentElement('afterend', dom.rankingPaginationControls);
+    // 【修正】改用更穩定的 .parentElement 方式來選取容器
+    dom.rankingTable.parentElement.insertAdjacentElement('afterend', dom.rankingPaginationControls);
 
 
 // --- 日期選擇器初始化 ---
