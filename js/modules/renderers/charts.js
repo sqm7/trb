@@ -235,7 +235,6 @@ export function renderPriceBandChart() {
     }
 
     const { priceBandAnalysis } = state.analysisDataCache;
-
     const filteredAnalysis = priceBandAnalysis.filter(item => state.selectedPriceBandRoomTypes.includes(item.roomType));
     
     if (filteredAnalysis.length === 0) {
@@ -243,31 +242,18 @@ export function renderPriceBandChart() {
         return;
     }
 
-    // ▼▼▼ 【關鍵修正】 在這裡加入資料檢查與清理 ▼▼▼
     const seriesData = filteredAnalysis
         .map(item => {
-            // 確保箱型圖需要的五個值都是有效的數字
-            const values = [
-                item.minPrice,
-                item.q1Price,
-                item.medianPrice,
-                item.q3Price,
-                item.maxPrice
-            ];
-
-            // 只要其中任何一個值不是數字或無效，就過濾掉這筆資料
+            const values = [item.minPrice, item.q1Price, item.medianPrice, item.q3Price, item.maxPrice];
             if (values.some(v => typeof v !== 'number' || isNaN(v))) {
-                console.warn("過濾掉一筆無效的總價帶資料:", item);
                 return null; 
             }
-
             return {
                 x: item.bathrooms !== null ? `${item.roomType}-${item.bathrooms}衛` : item.roomType,
-                y: values.map(v => Math.round(v)) // 將所有值取整數
+                y: values.map(v => Math.round(v))
             };
         })
-        .filter(Boolean); // 過濾掉上面檢查後為 null 的項目
-    // ▲▲▲ 【修正結束】 ▲▲▲
+        .filter(Boolean);
     
     const options = {
         series: [{
@@ -285,72 +271,49 @@ export function renderPriceBandChart() {
         title: {
             text: '各房型總價帶分佈箱型圖',
             align: 'center',
-            style: {
-                fontSize: '16px',
-                color: '#e5e7eb'
-            }
+            style: { fontSize: '16px', color: '#e5e7eb' }
         },
         plotOptions: {
-            boxPlot: {
-                colors: {
-                    upper: '#06b6d4',
-                    lower: '#8b5cf6'
-                }
-            }
+            boxPlot: { colors: { upper: '#06b6d4', lower: '#8b5cf6' } }
         },
         xaxis: {
             type: 'category',
-            labels: {
-                style: {
-                    colors: '#9ca3af'
-                },
-                rotate: -45,
-                offsetY: 5,
-            },
-            // 使用清理過的 seriesData 來產生分類
+            labels: { style: { colors: '#9ca3af' }, rotate: -45, offsetY: 5, },
             categories: seriesData.map(d => d.x).sort()
         },
         yaxis: {
-            title: {
-                text: '房屋總價 (萬)',
-                style: {
-                    color: '#9ca3af'
-                }
-            },
+            title: { text: '房屋總價 (萬)', style: { color: '#9ca3af' } },
             labels: {
-                formatter: function (val) {
-                    return val.toLocaleString() + " 萬";
-                },
-                style: {
-                    colors: '#9ca3af'
-                }
+                formatter: function (val) { return val.toLocaleString() + " 萬"; },
+                style: { colors: '#9ca3af' }
             }
         },
-        // 保持我們最終版的 tooltip 格式
+        // ▼▼▼ 【從這裡開始是本次修正的核心】 ▼▼▼
         tooltip: {
-            theme: 'dark',
-            y: {
-                formatter: function(value, { seriesIndex, dataPointIndex, w }) {
-                    const stats = w.globals.series[seriesIndex][dataPointIndex];
-                    if (Array.isArray(stats) && stats.length === 5) {
-                        const [min, q1, median, q3, max] = stats;
-                        return `
-                            <div style="padding: 6px 8px; font-family: 'Noto Sans TC', sans-serif;">
-                                <div><strong>最高總價:</strong> ${max.toLocaleString()} 萬</div>
-                                <div><strong>3/4位總價:</strong> ${q3.toLocaleString()} 萬</div>
-                                <div><strong>中位數總價:</strong> ${median.toLocaleString()} 萬</div>
-                                <div><strong>1/4位總價:</strong> ${q1.toLocaleString()} 萬</div>
-                                <div><strong>最低總價:</strong> ${min.toLocaleString()} 萬</div>
-                            </div>
-                        `;
-                    }
-                    return `${value.toLocaleString()} 萬`;
-                },
-                title: {
-                    formatter: () => ''
+            // 啟用自訂 Tooltip 的功能
+            custom: function({ seriesIndex, dataPointIndex, w }) {
+                // 從圖表的全域設定中，取得對應數據點的 y 軸陣列資料
+                const yData = w.globals.initialSeries[seriesIndex].data[dataPointIndex].y;
+                
+                // 確保資料是我們預期的格式 (一個包含5個數字的陣列)
+                if (Array.isArray(yData) && yData.length === 5) {
+                    const [min, q1, median, q3, max] = yData;
+                    // 回傳一個我們自己打造的、完整的 HTML 提示框
+                    return `
+                        <div class="apexcharts-tooltip-box" style="background: #252836; border: 1px solid #4b5563; padding: 8px 12px; border-radius: 8px; font-family: 'Noto Sans TC', sans-serif;">
+                            <div><strong>最高總價:</strong> ${max.toLocaleString()} 萬</div>
+                            <div><strong>3/4位總價:</strong> ${q3.toLocaleString()} 萬</div>
+                            <div><strong>中位數總價:</strong> ${median.toLocaleString()} 萬</div>
+                            <div><strong>1/4位總價:</strong> ${q1.toLocaleString()} 萬</div>
+                            <div><strong>最低總價:</strong> ${min.toLocaleString()} 萬</div>
+                        </div>
+                    `;
                 }
+                // 如果資料不對，回傳一個空的字串
+                return '';
             }
         },
+        // ▲▲▲ 【核心修正到此結束】 ▲▲▲
         grid: {
             borderColor: '#374151'
         }
@@ -362,15 +325,14 @@ export function renderPriceBandChart() {
         const overallMax = Math.max(...allPrices);
         const range = overallMax - overallMin;
         const padding = range === 0 ? Math.max(overallMin * 0.1, 100) : range * 0.1; 
-        let paddedMin = overallMin - padding;
-        let paddedMax = overallMax + padding;
-        options.yaxis.min = Math.max(0, paddedMin);
-        options.yaxis.max = paddedMax;
+        options.yaxis.min = Math.max(0, overallMin - padding);
+        options.yaxis.max = overallMax + padding;
     }
 
     priceBandChartInstance = new ApexCharts(dom.priceBandChart, options);
     priceBandChartInstance.render();
 }
+
 /**
  * 渲染銷售速度趨勢圖
  */
