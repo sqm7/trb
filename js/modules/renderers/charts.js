@@ -235,7 +235,6 @@ export function renderPriceBandChart() {
     }
 
     const { priceBandAnalysis } = state.analysisDataCache;
-
     const filteredAnalysis = priceBandAnalysis.filter(item => state.selectedPriceBandRoomTypes.includes(item.roomType));
     
     if (filteredAnalysis.length === 0) {
@@ -255,81 +254,27 @@ export function renderPriceBandChart() {
     }));
     
     const options = {
-        series: [{
-            name: '總價分佈',
-            type: 'boxPlot',
-            data: seriesData
-        }],
-        chart: {
-            type: 'boxPlot',
-            height: 450,
-            background: 'transparent',
-            toolbar: { show: true },
-            foreColor: '#e5e7eb'
-        },
-        title: {
-            text: '各房型總價帶分佈箱型圖',
-            align: 'center',
-            style: {
-                fontSize: '16px',
-                color: '#e5e7eb'
-            }
-        },
-        plotOptions: {
-            boxPlot: {
-                colors: {
-                    upper: '#06b6d4',
-                    lower: '#8b5cf6'
-                }
-            }
-        },
-        stroke: {
-            show: true,
-            width: 1,
-            colors: ['#9ca3af']
-        },
-        xaxis: {
-            type: 'category',
-            labels: {
-                style: {
-                    colors: '#9ca3af'
-                },
-                rotate: -45,
-                offsetY: 5,
-            },
-            categories: seriesData.map(d => d.x).sort()
-        },
+        series: [{ name: '總價分佈', type: 'boxPlot', data: seriesData }],
+        chart: { type: 'boxPlot', height: 450, background: 'transparent', toolbar: { show: true }, foreColor: '#e5e7eb' },
+        title: { text: '各房型總價帶分佈箱型圖', align: 'center', style: { fontSize: '16px', color: '#e5e7eb' } },
+        plotOptions: { boxPlot: { colors: { upper: '#06b6d4', lower: '#8b5cf6' } } },
+        stroke: { show: true, width: 1, colors: ['#9ca3af'] },
+        xaxis: { type: 'category', labels: { style: { colors: '#9ca3af' }, rotate: -45, offsetY: 5 }, categories: seriesData.map(d => d.x).sort() },
         yaxis: {
-            title: {
-                text: '房屋總價 (萬)',
-                style: {
-                    color: '#9ca3af'
-                }
-            },
-            labels: {
-                formatter: function (val) {
-                    return val.toLocaleString() + " 萬";
-                },
-                style: {
-                    colors: '#9ca3af'
-                }
-            }
+            title: { text: '房屋總價 (萬)', style: { color: '#9ca3af' } },
+            labels: { formatter: function (val) { return val.toLocaleString() + " 萬"; }, style: { colors: '#9ca3af' } }
         },
-        // ▼▼▼ 【從這裡開始是本次修正的核心】 ▼▼▼
         tooltip: {
             theme: 'dark',
-            // 我們自訂 y 軸的提示內容
             y: {
-                // 這個 formatter 函式會接收到該數據點的資訊
                 formatter: function(value, { seriesIndex, dataPointIndex, w }) {
-                    // ApexCharts 提供的方法，可以拿到這個箱型圖點位的完整數據陣列
+                    // ▼▼▼ 偵錯指令 ▼▼▼
+                    debugger; 
+                    // ▲▲▲ 偵錯指令 ▲▲▲
+
                     const stats = w.globals.series[seriesIndex][dataPointIndex];
-                    
-                    // 做一個嚴謹的檢查，確保拿到的資料是包含5個數字的陣列
                     if (Array.isArray(stats) && stats.length === 5) {
                         const [min, q1, median, q3, max] = stats;
-                        
-                        // 回傳一個我們自訂的、完全中文化的 HTML 字串
                         return `
                             <div style="padding: 6px 8px; font-family: 'Noto Sans TC', sans-serif;">
                                 <div><strong>最高價:</strong> ${max.toLocaleString()} 萬</div>
@@ -340,36 +285,22 @@ export function renderPriceBandChart() {
                             </div>
                         `;
                     }
-                    
-                    // 如果上面的檢查失敗，就回傳一個簡單的數值，避免整個圖表掛掉
                     return `${value.toLocaleString()} 萬`;
                 },
-                // 順便把預設的 "Value:" 標題拿掉，讓畫面更乾淨
-                title: {
-                    formatter: () => ''
-                }
+                title: { formatter: () => '' }
             }
         },
-        // ▲▲▲ 【核心修正到此結束】 ▲▲▲
-        grid: {
-            borderColor: '#374151'
-        }
+        grid: { borderColor: '#374151' }
     };
     
-    // (後面的動態 y 軸範圍設定... 保持不變)
     if (seriesData.length > 0) {
         const allPrices = seriesData.flatMap(d => d.y);
         const overallMin = Math.min(...allPrices);
         const overallMax = Math.max(...allPrices);
-
         const range = overallMax - overallMin;
         const padding = range === 0 ? Math.max(overallMin * 0.1, 100) : range * 0.1; 
-        
-        let paddedMin = overallMin - padding;
-        let paddedMax = overallMax + padding;
-
-        options.yaxis.min = Math.max(0, paddedMin);
-        options.yaxis.max = paddedMax;
+        options.yaxis.min = Math.max(0, (overallMin - padding));
+        options.yaxis.max = overallMax + padding;
     }
 
     priceBandChartInstance = new ApexCharts(dom.priceBandChart, options);
