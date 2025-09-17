@@ -30,6 +30,10 @@ export const API_ENDPOINTS = {
     PROJECT_NAMES: 'https://zxbmbbfrzbtuueysicoc.supabase.co/functions/v1/query-names',
     RANKING_ANALYSIS: 'https://zxbmbbfrzbtuueysicoc.supabase.co/functions/v1/analyze-project-ranking',
     GENERATE_SHARE_LINK: 'https://zxbmbbfrzbtuueysicoc.supabase.co/functions/v1/generate-share-link'
+      // --- ▼▼▼ 新增區塊 ▼▼▼ ---
+    QUERY_FOR_UPDATE: 'https://zxbmbbfrzbtuueysicoc.supabase.co/functions/v1/query-for-update',
+    BATCH_UPDATE: 'https://zxbmbbfrzbtuueysicoc.supabase.co/functions/v1/batch-update'
+    // --- ▲▲▲ 新增結束 ▲▲▲ ---
 };
 
 // 靜態資料 (未來也可以考慮從後端獲取)
