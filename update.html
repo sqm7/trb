@@ -38,10 +38,6 @@
         .status-indicator { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 8px; }
         .status-online { background: #10b981; }
         .status-offline { background: #ef4444; }
-        .results-table { width: 100%; border-collapse: collapse; }
-        .results-table th, .results-table td { padding: 0.75rem; border-bottom: 1px solid #334155; text-align: left; font-size: 0.875rem; white-space: nowrap; }
-        .results-table thead th { background-color: #1f2937; position: sticky; top: 0; z-index: 1; }
-        .results-table tbody tr:hover { background-color: rgba(6, 182, 212, 0.1); }
     </style>
 </head>
 <body class="bg-dark-bg text-white">
@@ -71,169 +67,95 @@
 
     <div class="flex">
         <div class="w-64 bg-dark-sidebar border-r border-gray-700 min-h-screen p-4">
-            <nav id="main-nav" class="space-y-2">
+            <nav class="space-y-2">
                 <div class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">主要功能</div>
-                <a href="#" data-section="connection" class="flex items-center space-x-3 px-3 py-2 rounded-lg bg-cyan-accent/10 text-cyan-accent border border-cyan-accent/20">
+                <a href="#" class="flex items-center space-x-3 px-3 py-2 rounded-lg bg-cyan-accent/10 text-cyan-accent border border-cyan-accent/20">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 1.79 4 4 4h8c0-2.21-1.79-4-4-4H8c-2.21 0-4-1.79-4-4zm0 0V4c0-2.21 1.79-4 4-4h4c2.21 0 4 1.79 4 4v3M4 7h16"></path></svg>
                     <span>資料庫連線</span>
                 </a>
-                 <a href="#" data-section="upload" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-700/50">
+                 <a href="#" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-700/50">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
                     <span>檔案上傳</span>
-                </a>
-                <a href="#" data-section="batch-edit" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-700/50">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-                    <span>批次修改資料</span>
                 </a>
             </nav>
         </div>
 
         <div class="flex-1 p-6">
-            <div id="section-connection" class="main-section">
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div class="lg:col-span-2">
-                        <div class="glass-card rounded-xl p-6 mb-6">
-                            <h2 class="text-lg font-semibold text-white flex items-center mb-6">
-                                <svg class="w-5 h-5 text-cyan-accent mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 1.79 4 4 4h8c0-2.21-1.79-4-4-4H8c-2.21 0-4-1.79-4-4zm0 0V4c0-2.21 1.79-4 4-4h4c2.21 0 4 1.79 4 4v3M4 7h16"></path></svg>
-                                Supabase 資料庫連線
-                            </h2>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-300 mb-2">Supabase URL</label>
-                                    <input type="text" id="supabaseUrl" class="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-cyan-accent focus:ring-1 focus:ring-cyan-accent transition-colors" placeholder="https://your-project-ref.supabase.co">
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-300 mb-2">Service Role Key</label>
-                                    <input type="password" id="supabaseKey" class="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-cyan-accent focus:ring-1 focus:ring-cyan-accent transition-colors" placeholder="your-service-role-key">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="lg:col-span-2">
+                    <div class="glass-card rounded-xl p-6 mb-6">
+                        <h2 class="text-lg font-semibold text-white flex items-center mb-6">
+                            <svg class="w-5 h-5 text-cyan-accent mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 1.79 4 4 4h8c0-2.21-1.79-4-4-4H8c-2.21 0-4-1.79-4-4zm0 0V4c0-2.21 1.79-4 4-4h4c2.21 0 4 1.79 4 4v3M4 7h16"></path></svg>
+                            Supabase 資料庫連線
+                        </h2>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-300 mb-2">Supabase URL</label>
+                                <input type="text" id="supabaseUrl" class="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-cyan-accent focus:ring-1 focus:ring-cyan-accent transition-colors" placeholder="https://your-project-ref.supabase.co">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-300 mb-2">Service Role Key</label>
+                                <input type="password" id="supabaseKey" class="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-cyan-accent focus:ring-1 focus:ring-cyan-accent transition-colors" placeholder="your-service-role-key">
+                            </div>
+                        </div>
+                        <button id="testConnectionButton" class="bg-gradient-to-r from-cyan-accent to-purple-accent text-white px-6 py-3 rounded-lg font-medium hover:shadow-lg hover:shadow-cyan-accent/25 transition-all duration-300">
+                            <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                            測試連線
+                        </button>
+                    </div>
+
+                    <div class="glass-card rounded-xl p-6">
+                        <h2 class="text-lg font-semibold text-white mb-6 flex items-center">
+                           <svg class="w-5 h-5 text-cyan-accent mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+                           檔案批次上傳
+                        </h2>
+                        <div class="border-2 border-dashed border-gray-600 rounded-lg p-8 text-center mb-6 hover:border-cyan-accent transition-colors">
+                            <svg class="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+                            <p class="text-gray-300 mb-2">選擇包含所有資料的總資料夾</p>
+                            <p class="text-sm text-gray-400 mb-4">系統將自動掃描並排序所有檔案</p>
+                            <button id="selectFoldersButton" class="bg-gradient-to-r from-cyan-accent to-blue-500 text-white px-8 py-3 rounded-lg font-medium hover:shadow-lg hover:shadow-cyan-accent/25 transition-all duration-300">
+                                選擇資料夾
+                            </button>
+                        </div>
+                        
+                        <div id="fileListContainer" class="hidden">
+                            <div class="bg-gray-800 rounded-lg p-4 mb-4">
+                                <h3 class="text-sm font-medium text-gray-300 mb-3">偵測到的檔案</h3>
+                                <div id="fileList" class="space-y-2 max-h-40 overflow-y-auto"></div>
+                            </div>
+                            
+                            <div id="uploadTypeSelector" class="bg-gray-800 rounded-lg p-4 mb-4">
+                               <h3 class="text-sm font-medium text-gray-300 mb-3">選擇上傳類型</h3>
+                                <div class="flex items-center space-x-6 text-sm">
+                                    <label class="flex items-center space-x-2 cursor-pointer">
+                                        <input type="radio" id="uploadTypeAll" name="uploadType" value="all" class="form-radio h-4 w-4 text-cyan-accent bg-gray-700 border-gray-600 focus:ring-cyan-accent" checked>
+                                        <span>全選</span>
+                                    </label>
+                                    <label class="flex items-center space-x-2 cursor-pointer">
+                                        <input type="radio" id="uploadTypeA" name="uploadType" value="a" class="form-radio h-4 w-4 text-cyan-accent bg-gray-700 border-gray-600 focus:ring-cyan-accent">
+                                        <span>中古 (a)</span>
+                                    </label>
+                                    <label class="flex items-center space-x-2 cursor-pointer">
+                                        <input type="radio" id="uploadTypeB" name="uploadType" value="b" class="form-radio h-4 w-4 text-cyan-accent bg-gray-700 border-gray-600 focus:ring-cyan-accent">
+                                        <span>預售 (b)</span>
+                                    </label>
+                                    <label class="flex items-center space-x-2 cursor-pointer">
+                                        <input type="radio" id="uploadTypeC" name="uploadType" value="c" class="form-radio h-4 w-4 text-cyan-accent bg-gray-700 border-gray-600 focus:ring-cyan-accent">
+                                        <span>租賃 (c)</span>
+                                    </label>
                                 </div>
                             </div>
-                            <button id="testConnectionButton" class="bg-gradient-to-r from-cyan-accent to-purple-accent text-white px-6 py-3 rounded-lg font-medium hover:shadow-lg hover:shadow-cyan-accent/25 transition-all duration-300">
-                                <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-                                測試連線
+
+                            <button id="startUploadButton" class="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white py-4 rounded-lg font-semibold hover:shadow-lg hover:shadow-green-500/25 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed">
+                                <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+                                開始上傳
                             </button>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <div id="section-upload" class="main-section hidden">
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div class="lg:col-span-2">
-                        <div class="glass-card rounded-xl p-6">
-                            <h2 class="text-lg font-semibold text-white mb-6 flex items-center">
-                               <svg class="w-5 h-5 text-cyan-accent mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
-                               檔案批次上傳
-                            </h2>
-                            <div class="border-2 border-dashed border-gray-600 rounded-lg p-8 text-center mb-6 hover:border-cyan-accent transition-colors">
-                                <svg class="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
-                                <p class="text-gray-300 mb-2">選擇包含所有資料的總資料夾</p>
-                                <p class="text-sm text-gray-400 mb-4">系統將自動掃描並排序所有檔案</p>
-                                <button id="selectFoldersButton" class="bg-gradient-to-r from-cyan-accent to-blue-500 text-white px-8 py-3 rounded-lg font-medium hover:shadow-lg hover:shadow-cyan-accent/25 transition-all duration-300">
-                                    選擇資料夾
-                                </button>
-                            </div>
-                            
-                            <div id="fileListContainer" class="hidden">
-                                <div class="bg-gray-800 rounded-lg p-4 mb-4">
-                                    <h3 class="text-sm font-medium text-gray-300 mb-3">偵測到的檔案</h3>
-                                    <div id="fileList" class="space-y-2 max-h-40 overflow-y-auto"></div>
-                                </div>
-                                
-                                <div id="uploadTypeSelector" class="bg-gray-800 rounded-lg p-4 mb-4">
-                                   <h3 class="text-sm font-medium text-gray-300 mb-3">選擇上傳類型</h3>
-                                    <div class="flex items-center space-x-6 text-sm">
-                                        <label class="flex items-center space-x-2 cursor-pointer">
-                                            <input type="radio" id="uploadTypeAll" name="uploadType" value="all" class="form-radio h-4 w-4 text-cyan-accent bg-gray-700 border-gray-600 focus:ring-cyan-accent" checked>
-                                            <span>全選</span>
-                                        </label>
-                                        <label class="flex items-center space-x-2 cursor-pointer">
-                                            <input type="radio" id="uploadTypeA" name="uploadType" value="a" class="form-radio h-4 w-4 text-cyan-accent bg-gray-700 border-gray-600 focus:ring-cyan-accent">
-                                            <span>中古 (a)</span>
-                                        </label>
-                                        <label class="flex items-center space-x-2 cursor-pointer">
-                                            <input type="radio" id="uploadTypeB" name="uploadType" value="b" class="form-radio h-4 w-4 text-cyan-accent bg-gray-700 border-gray-600 focus:ring-cyan-accent">
-                                            <span>預售 (b)</span>
-                                        </label>
-                                        <label class="flex items-center space-x-2 cursor-pointer">
-                                            <input type="radio" id="uploadTypeC" name="uploadType" value="c" class="form-radio h-4 w-4 text-cyan-accent bg-gray-700 border-gray-600 focus:ring-cyan-accent">
-                                            <span>租賃 (c)</span>
-                                        </label>
-                                    </div>
-                                </div>
-
-                                <button id="startUploadButton" class="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white py-4 rounded-lg font-semibold hover:shadow-lg hover:shadow-green-500/25 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed">
-                                    <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
-                                    開始上傳
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div id="section-batch-edit" class="main-section hidden">
-                <div class="glass-card rounded-xl p-6">
-                     <h2 class="text-lg font-semibold text-white mb-6 flex items-center">
-                        <svg class="w-5 h-5 text-cyan-accent mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-                        資料批次修改
-                    </h2>
-                    <div class="bg-gray-800/50 rounded-lg p-4 mb-6">
-                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
-                            <div>
-                                <label for="countySelect" class="block text-sm font-medium text-gray-300 mb-2">縣市</label>
-                                <select id="countySelect" class="w-full px-4 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white focus:border-cyan-accent focus:ring-1 focus:ring-cyan-accent transition-colors"></select>
-                            </div>
-                            <div>
-                                <label for="searchType" class="block text-sm font-medium text-gray-300 mb-2">查詢類型</label>
-                                <select id="searchType" class="w-full px-4 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white focus:border-cyan-accent focus:ring-1 focus:ring-cyan-accent transition-colors">
-                                    <option value="b">預售屋 (b)</option>
-                                    <option value="a">中古屋 (a)</option>
-                                    <option value="c">租賃 (c)</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-300 mb-2">查詢欄位</label>
-                                <div class="flex items-center space-x-4">
-                                    <label><input type="radio" name="searchField" value="建案名稱" checked class="form-radio text-cyan-accent"> 建案名稱</label>
-                                    <label><input type="radio" name="searchField" value="編號" class="form-radio text-cyan-accent"> 編號</label>
-                                </div>
-                            </div>
-                             <div class="md:col-span-1">
-                                <label for="searchValue" class="block text-sm font-medium text-gray-300 mb-2">查詢內容</label>
-                                <input type="text" id="searchValue" class="w-full px-4 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-cyan-accent focus:ring-1 focus:ring-cyan-accent transition-colors" placeholder="輸入關鍵字...">
-                            </div>
-                        </div>
-                        <button id="searchDataButton" class="mt-4 bg-gradient-to-r from-cyan-accent to-blue-500 text-white px-6 py-2 rounded-lg font-medium hover:shadow-lg transition-all">查詢資料</button>
-                    </div>
-                    <div id="edit-results-container" class="hidden">
-                        <div class="overflow-x-auto mb-4 border border-gray-700 rounded-lg">
-                           <div class="max-h-96 overflow-y-auto">
-                               <table id="resultsTable" class="results-table">
-                               </table>
-                           </div>
-                        </div>
-                        <div class="bg-gray-800/50 rounded-lg p-4">
-                             <h3 class="text-md font-semibold text-white mb-4">批次修改操作</h3>
-                             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
-                                <div>
-                                    <label for="updateField" class="block text-sm font-medium text-gray-300 mb-2">要修改的欄位</label>
-                                    <select id="updateField" class="w-full px-4 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white focus:border-cyan-accent focus:ring-1 focus:ring-cyan-accent transition-colors">
-                                    </select>
-                                </div>
-                                <div>
-                                    <label for="updateValue" class="block text-sm font-medium text-gray-300 mb-2">更新為</label>
-                                    <input type="text" id="updateValue" class="w-full px-4 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-cyan-accent focus:ring-1 focus:ring-cyan-accent transition-colors" placeholder="輸入新內容...">
-                                </div>
-                                <button id="batchUpdateButton" class="bg-gradient-to-r from-orange-accent to-red-500 text-white px-6 py-2 rounded-lg font-medium hover:shadow-lg transition-all">執行批次修改</button>
-                             </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
-                 <div class="lg:col-span-2">
-                    <div id="upload-progress-card" class="glass-card rounded-xl p-6">
+                <div class="space-y-6">
+                    <div class="glass-card rounded-xl p-6">
                         <h3 class="text-lg font-semibold text-white mb-4">上傳進度</h3>
                         <div class="flex items-center justify-center">
                             <div class="relative w-32 h-32">
@@ -254,7 +176,7 @@
                             <p class="text-xs text-gray-500 mt-1" id="currentFileName"></p>
                         </div>
                     </div>
-                 </div>
+                </div>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
@@ -307,6 +229,7 @@
         let supabase = null;
         let allFiles = [];
         let processedMainIds = new Set();
+        // **修改點 1: summary 物件增加 warnings 屬性**
         let summary = { new: 0, updated: 0, identical: 0, subAdded: 0, errors: 0, warnings: 0 };
         let isUploading = false;
 
@@ -324,22 +247,21 @@
             currentFileName: document.getElementById('currentFileName'),
             connectionStatus: document.getElementById('connectionStatus'),
             connectionText: document.getElementById('connectionText'),
-            currentTime: document.getElementById('currentTime'),
-            countySelect: document.getElementById('countySelect'),
-            searchDataButton: document.getElementById('searchDataButton'),
-            batchUpdateButton: document.getElementById('batchUpdateButton'),
-            resultsTable: document.getElementById('resultsTable'),
-            editResultsContainer: document.getElementById('edit-results-container'),
-            searchType: document.getElementById('searchType'),
-            updateField: document.getElementById('updateField'),
+            currentTime: document.getElementById('currentTime')
         };
         
         // --- 核心函式 ---
+
+        /**
+         * @MODIFIED
+         * 調整日誌函式以更好地支援多行和 HTML 內容
+         */
         function addLog(message, type = 'info', container = 'status') {
             const timestamp = new Date().toLocaleTimeString();
             const logContainer = container === 'status' ? DOM.statusContainer : DOM.errorLogContainer;
             const typeClass = `terminal-${type}`;
             const logEntry = document.createElement('div');
+            // 使用 flex佈局來確保時間戳和訊息內容對齊
             logEntry.className = 'flex items-start';
             logEntry.innerHTML = `
                 <span class="text-gray-500 mr-2">[${timestamp}]</span>
@@ -420,7 +342,8 @@
                 if (criticalErrors.length > 0) {
                     throw new Error(`CSV 嚴重解析錯誤: ${criticalErrors[0].message}`);
                 }
-                
+
+                // **修改點 2: 發現警告時，增加 summary.warnings 的計數**
                 parseResult.errors.forEach(warning => {
                     addLog(`檔案 ${fileInfo.fullPath} 有解析警告 (已忽略): ${warning.message} (行: ${warning.row + 2})`, 'warning', 'status');
                     summary.warnings++;
@@ -511,13 +434,14 @@
             }
         }
 
+
+        // --- 其他輔助函式 ---
         function cleanNumber(value) {
             if (typeof value !== 'string' && typeof value !== 'number') return null;
             const cleaned = String(value).replace(/,/g, '');
             const num = parseFloat(cleaned);
             return isNaN(num) ? null : num;
         }
-
         function rocToDate(rocDateStr) {
             if (!rocDateStr || typeof rocDateStr !== 'string') return null;
             const match = String(rocDateStr).match(/(\d{2,3})[^\d]*(\d{1,2})[^\d]*(\d{1,2})/);
@@ -535,7 +459,6 @@
                 return `${adYear}-${monthStr}-${dayStr}`;
             } catch (e) { return null; }
         }
-
         function chineseFloorToNumber(floorStr) {
             if (!floorStr || typeof floorStr !== 'string') return null;
             const s = String(floorStr).replace(/層|樓/g, '');
@@ -555,7 +478,6 @@
             }
             return total > 0 ? total : null;
         }
-
         function processRow(row, mapping) {
             const newRow = {};
             const targetDbColumns = [...new Set(Object.values(mapping))];
@@ -581,7 +503,6 @@
             }
             return newRow;
         }
-
         function isEqual(objA, objB, tableType) {
             const keysToCheck = Object.values(columnMappings[tableType]);
             for (const key of keysToCheck) {
@@ -596,14 +517,12 @@
             }
             return true;
         }
-
         function updateConnectionStatus(isConnected) {
             const statusClass = isConnected ? 'status-online' : 'status-offline';
             const statusText = isConnected ? '已連線' : '未連線';
             DOM.connectionStatus.className = `status-indicator ${statusClass}`;
             DOM.connectionText.textContent = statusText;
         }
-
         function clearLogs(type) {
             if (type === 'status') {
                 DOM.statusContainer.innerHTML = '<div class="text-gray-400">日誌已清除</div>';
@@ -611,7 +530,6 @@
                 DOM.errorLogContainer.innerHTML = '<div class="text-gray-400">無錯誤記錄</div>';
             }
         }
-
         function resetUI() {
             DOM.fileListContainer.classList.add('hidden');
             DOM.statusContainer.innerHTML = '<div class="text-gray-400">等待操作...</div>';
@@ -624,7 +542,6 @@
             summary = { new: 0, updated: 0, identical: 0, subAdded: 0, errors: 0, warnings: 0 };
             updateProgress(0, 0);
         }
-
         function updateProgress(current, total, phase = '') {
             const percentage = total > 0 ? (current / total) * 100 : 0;
             const circumference = 2 * Math.PI * 40;
@@ -633,7 +550,6 @@
             DOM.progressPercent.textContent = `${Math.round(percentage)}%`;
             DOM.progressStatus.textContent = phase || `${current} / ${total}`;
         }
-
         async function testConnection() {
             const supabaseUrl = document.getElementById('supabaseUrl').value;
             const supabaseKey = document.getElementById('supabaseKey').value;
@@ -655,6 +571,10 @@
             }
         }
 
+        /**
+         * @NEW
+         * 顯示最終的統計總結報告
+         */
         function displayFinalSummary() {
             const summaryContent = `
                 <div class="space-y-1 text-sm font-mono p-2 border border-gray-700 rounded-md">
@@ -691,9 +611,11 @@
                 addLog('請先選擇要上傳的檔案', 'error', 'error');
                 return;
             }
+
             isUploading = true;
             DOM.startUploadButton.disabled = true;
             DOM.selectFoldersButton.disabled = true;
+            // **修改點 1 (重複): 重置 summary 物件**
             summary = { new: 0, updated: 0, identical: 0, subAdded: 0, errors: 0, warnings: 0 };
             
             const selectedType = document.querySelector('input[name="uploadType"]:checked').value;
@@ -720,7 +642,9 @@
             
             addLog('所有檔案處理完成！', 'success');
             
+            // **修改點 3: 在所有任務結束後呼叫 displayFinalSummary**
             displayFinalSummary();
+
             DOM.selectFoldersButton.disabled = false;
             isUploading = false;
         }
@@ -749,195 +673,14 @@
             DOM.currentTime.textContent = new Date().toLocaleTimeString();
         }
 
-        async function handleSearchData() {
-            if (!supabase) {
-                addLog('請先成功連線到資料庫', 'error', 'error');
-                return;
-            }
-            const countyCode = DOM.countySelect.value;
-            const searchType = DOM.searchType.value;
-            const searchField = document.querySelector('input[name="searchField"]:checked').value;
-            const searchValue = document.getElementById('searchValue').value.trim();
-            const tableName = `${countyCode}_lvr_land_${searchType}`;
+        // --- 事件監聽器與初始化 ---
+        DOM.selectFoldersButton.addEventListener('click', selectFolders);
+        DOM.startUploadButton.addEventListener('click', startUpload);
+        DOM.testConnectionButton.addEventListener('click', testConnection);
 
-            if (!searchValue) {
-                addLog('請輸入查詢內容', 'warning', 'status');
-                return;
-            }
-
-            addLog(`正在從資料表 [${tableName}] 中查詢 [${searchField}] 為 "${searchValue}" 的資料...`, 'info');
-
-            try {
-                const columnsToSelect = [...new Set(Object.values(columnMappings[searchType]))].join(',');
-                const { data, error } = await supabase
-                    .from(tableName)
-                    .select(columnsToSelect)
-                    .ilike(searchField, `%${searchValue}%`)
-                    .limit(500);
-
-                if (error) throw error;
-                
-                if (data.length === 0) {
-                    addLog('找不到符合條件的資料。', 'warning');
-                    DOM.editResultsContainer.classList.add('hidden');
-                } else {
-                    addLog(`查詢成功，共找到 ${data.length} 筆資料。`, 'success');
-                    renderResultsTable(data, searchType);
-                    DOM.editResultsContainer.classList.remove('hidden');
-                }
-            } catch(error) {
-                addLog(`查詢資料時發生錯誤: ${error.message}`, 'error', 'error');
-                DOM.editResultsContainer.classList.add('hidden');
-            }
-        }
-
-        function renderResultsTable(data, searchType) {
-            const table = DOM.resultsTable;
-            table.innerHTML = '';
-            
-            const columns = [...new Set(Object.values(columnMappings[searchType]))];
-            
-            const thead = document.createElement('thead');
-            let headerHtml = '<tr><th><input type="checkbox" id="selectAllCheckbox"></th>';
-            columns.forEach(col => { headerHtml += `<th>${col}</th>`; });
-            headerHtml += '</tr>';
-            thead.innerHTML = headerHtml;
-            table.appendChild(thead);
-            
-            const tbody = document.createElement('tbody');
-            data.forEach(row => {
-                const tr = document.createElement('tr');
-                let rowHtml = `<td><input type="checkbox" class="row-checkbox" value="${row['編號']}"></td>`;
-                columns.forEach(col => {
-                    rowHtml += `<td>${row[col] === null || row[col] === undefined ? '' : row[col]}</td>`;
-                });
-                tr.innerHTML = rowHtml;
-                tbody.appendChild(tr);
-            });
-            table.appendChild(tbody);
-            
-            document.getElementById('selectAllCheckbox').addEventListener('change', (e) => {
-                document.querySelectorAll('.row-checkbox').forEach(checkbox => {
-                    checkbox.checked = e.target.checked;
-                });
-            });
-        }
-        
-        async function handleBatchUpdate() {
-            if (!supabase) {
-                addLog('請先成功連線到資料庫', 'error', 'error');
-                return;
-            }
-
-            const selectedIds = Array.from(document.querySelectorAll('.row-checkbox:checked')).map(cb => cb.value);
-            if (selectedIds.length === 0) {
-                addLog('請先勾選至少一筆要修改的資料。', 'warning', 'status');
-                return;
-            }
-
-            const countyCode = DOM.countySelect.value;
-            const searchType = DOM.searchType.value;
-            const updateField = DOM.updateField.value;
-            const updateValue = document.getElementById('updateValue').value;
-            const tableName = `${countyCode}_lvr_land_${searchType}`;
-
-            const confirmed = confirm(`確定要將 ${selectedIds.length} 筆資料的「${updateField}」欄位更新為「${updateValue}」嗎？此操作無法復原！`);
-            if (!confirmed) {
-                addLog('使用者取消了批次修改操作。', 'info');
-                return;
-            }
-
-            addLog(`正在批次更新 ${selectedIds.length} 筆資料...`, 'info');
-            try {
-                const { error } = await supabase
-                    .from(tableName)
-                    .update({ [updateField]: updateValue })
-                    .in('編號', selectedIds);
-
-                if (error) throw error;
-                
-                addLog(`成功更新 ${selectedIds.length} 筆資料！`, 'success');
-                handleSearchData();
-            } catch(error) {
-                addLog(`批次更新時發生錯誤: ${error.message}`, 'error', 'error');
-            }
-        }
-        
-        function switchSection(sectionId) {
-            document.querySelectorAll('.main-section').forEach(section => {
-                section.classList.add('hidden');
-            });
-            document.getElementById(`section-${sectionId}`).classList.remove('hidden');
-
-            document.querySelectorAll('#main-nav a').forEach(link => {
-                link.classList.remove('bg-cyan-accent/10', 'text-cyan-accent', 'border-cyan-accent/20');
-                link.classList.add('text-gray-400', 'hover:text-white', 'hover:bg-gray-700/50');
-            });
-            const activeLink = document.querySelector(`#main-nav a[data-section="${sectionId}"]`);
-            activeLink.classList.add('bg-cyan-accent/10', 'text-cyan-accent', 'border-cyan-accent/20');
-            activeLink.classList.remove('text-gray-400', 'hover:text-white', 'hover:bg-gray-700/50');
-
-            const progressCard = document.getElementById('upload-progress-card');
-            if(sectionId === 'upload') {
-                progressCard.classList.remove('hidden');
-            } else {
-                progressCard.classList.add('hidden');
-            }
-        }
-
-        function populateUpdateFields() {
-            const searchType = DOM.searchType.value;
-            const mapping = columnMappings[searchType];
-            const updateFieldSelect = DOM.updateField;
-            
-            updateFieldSelect.innerHTML = '';
-
-            if (mapping) {
-                const fields = [...new Set(Object.values(mapping))];
-                const updatableFields = fields.filter(field => field !== 'id' && field !== '編號');
-
-                updatableFields.forEach(field => {
-                    const option = document.createElement('option');
-                    option.value = field;
-                    option.textContent = field;
-                    updateFieldSelect.appendChild(option);
-                });
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            DOM.selectFoldersButton.addEventListener('click', selectFolders);
-            DOM.startUploadButton.addEventListener('click', startUpload);
-            DOM.testConnectionButton.addEventListener('click', testConnection);
-            DOM.searchDataButton.addEventListener('click', handleSearchData);
-            DOM.batchUpdateButton.addEventListener('click', handleBatchUpdate);
-
-            document.getElementById('main-nav').addEventListener('click', (e) => {
-                e.preventDefault();
-                const link = e.target.closest('a');
-                if (link && link.dataset.section) {
-                    switchSection(link.dataset.section);
-                }
-            });
-            
-            DOM.searchType.addEventListener('change', populateUpdateFields);
-
-            const countySelect = DOM.countySelect;
-            for (const code in counties) {
-                const option = document.createElement('option');
-                option.value = code.toLowerCase();
-                option.textContent = `${code} ${counties[code]}`;
-                countySelect.appendChild(option);
-            }
-            
-            populateUpdateFields();
-            
-            switchSection('connection');
-
-            updateTime();
-            setInterval(updateTime, 1000);
-            updateConnectionStatus(false);
-        });
+        updateTime();
+        setInterval(updateTime, 1000);
+        updateConnectionStatus(false);
     </script>
 </body>
 </html>
