@@ -131,3 +131,54 @@ export async function generateShareLink(payload) {
     }
     return response.json();
 }
+
+
+* 查詢用於批次更新的資料
+ * @param {string} transactionType - 交易類型 ('預售交易', '中古交易', '租賃交易')
+ * @param {string} searchField - 查詢欄位 ('建案名稱' or '編號')
+ * @param {string} searchValue - 查詢的關鍵字
+ * @param {string} countyCode - 縣市代碼
+ * @returns {Promise<Array>} - 查詢到的資料陣列
+ */
+export async function queryForUpdate(transactionType, searchField, searchValue, countyCode) {
+    const headers = await getAuthHeaders();
+    if (!headers) throw new Error("認證失敗");
+
+    const response = await fetch(API_ENDPOINTS.QUERY_FOR_UPDATE, {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify({ transactionType, searchField, searchValue, countyCode })
+    });
+
+    if (!response.ok) {
+        const err = await response.json().catch(() => ({ error: '查詢更新資料失敗' }));
+        throw new Error(err.error);
+    }
+    return response.json();
+}
+
+/**
+ * 執行批次更新操作
+ * @param {string} transactionType - 交易類型
+ * @param {string[]} ids - 要更新的資料編號陣列
+ * @param {string} field - 要更新的欄位名稱
+ * @param {any} value - 新的欄位值
+ * @param {string} countyCode - 縣市代碼
+ * @returns {Promise<object>} - 更新結果
+ */
+export async function batchUpdate(transactionType, ids, field, value, countyCode) {
+    const headers = await getAuthHeaders();
+    if (!headers) throw new Error("認證失敗");
+
+    const response = await fetch(API_ENDPOINTS.BATCH_UPDATE, {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify({ transactionType, ids, field, value, countyCode })
+    });
+
+    if (!response.ok) {
+        const err = await response.json().catch(() => ({ error: '批次更新操作失敗' }));
+        throw new Error(err.error);
+    }
+    return response.json();
+}
