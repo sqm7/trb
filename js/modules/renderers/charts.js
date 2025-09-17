@@ -319,19 +319,28 @@ export function renderPriceBandChart() {
             theme: 'dark',
             y: {
                 formatter: function(value, { series, seriesIndex, dataPointIndex, w }) {
+                    // 從圖表實例中獲取對應的數據點，這裡包含了箱型圖的五個數值
                     const stats = w.globals.series[seriesIndex][dataPointIndex];
+                    
+                    // 確保 stats 是一個包含五個數字的陣列
                     if (Array.isArray(stats) && stats.length === 5) {
+                        // 依照您的需求，建立一個包含中文標籤的 HTML 字串
+                        // stats[4] 是最大值, stats[3] 是 Q3, ... , stats[0] 是最小值
                         return `
-                            <div>最高: ${stats[4].toLocaleString()} 萬</div>
-                            <div>Q3: ${stats[3].toLocaleString()} 萬</div>
-                            <div>中位數: ${stats[2].toLocaleString()} 萬</div>
-                            <div>Q1: ${stats[1].toLocaleString()} 萬</div>
-                            <div>最低: ${stats[0].toLocaleString()} 萬</div>
+                            <div style="padding: 5px;">
+                                <div><strong>最高:</strong> ${stats[4].toLocaleString()} 萬</div>
+                                <div><strong>3/4位數:</strong> ${stats[3].toLocaleString()} 萬</div>
+                                <div><strong>中位數:</strong> ${stats[2].toLocaleString()} 萬</div>
+                                <div><strong>1/4位數:</strong> ${stats[1].toLocaleString()} 萬</div>
+                                <div><strong>最低:</strong> ${stats[0].toLocaleString()} 萬</div>
+                            </div>
                         `;
                     }
+                    // 如果資料格式不對，就回傳原始數值
                     return value;
                 }
             }
+            // ▲▲▲ 【修改結束】 ▲▲▲
         },
         grid: {
             borderColor: '#374151'
