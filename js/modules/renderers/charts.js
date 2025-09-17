@@ -315,19 +315,21 @@ export function renderPriceBandChart() {
                 }
             }
         },
+        // ▼▼▼ 【從這裡開始是本次修正的核心】 ▼▼▼
         tooltip: {
             theme: 'dark',
-            // ▼▼▼ 【從這裡開始替換】 ▼▼▼
+            // 我們自訂 y 軸的提示內容
             y: {
+                // 這個 formatter 函式會接收到該數據點的資訊
                 formatter: function(value, { seriesIndex, dataPointIndex, w }) {
-                    // 這是 ApexCharts 獲取箱型圖完整數據的標準方法
+                    // ApexCharts 提供的方法，可以拿到這個箱型圖點位的完整數據陣列
                     const stats = w.globals.series[seriesIndex][dataPointIndex];
-
-                    // 加上一個安全檢查，確保我們拿到的資料是正確的陣列格式
+                    
+                    // 做一個嚴謹的檢查，確保拿到的資料是包含5個數字的陣列
                     if (Array.isArray(stats) && stats.length === 5) {
                         const [min, q1, median, q3, max] = stats;
                         
-                        // 建立一個乾淨、完全中文化的 HTML 字串並回傳
+                        // 回傳一個我們自訂的、完全中文化的 HTML 字串
                         return `
                             <div style="padding: 6px 8px; font-family: 'Noto Sans TC', sans-serif;">
                                 <div><strong>最高價:</strong> ${max.toLocaleString()} 萬</div>
@@ -339,20 +341,22 @@ export function renderPriceBandChart() {
                         `;
                     }
                     
-                    // 如果資料有誤，就只顯示一個簡單的數值，避免報錯
+                    // 如果上面的檢查失敗，就回傳一個簡單的數值，避免整個圖表掛掉
                     return `${value.toLocaleString()} 萬`;
                 },
-                // 移除預設的標題，讓我們的自訂內容更乾淨
+                // 順便把預設的 "Value:" 標題拿掉，讓畫面更乾淨
                 title: {
                     formatter: () => ''
                 }
             }
         },
+        // ▲▲▲ 【核心修正到此結束】 ▲▲▲
         grid: {
             borderColor: '#374151'
         }
     };
     
+    // (後面的動態 y 軸範圍設定... 保持不變)
     if (seriesData.length > 0) {
         const allPrices = seriesData.flatMap(d => d.y);
         const overallMin = Math.min(...allPrices);
