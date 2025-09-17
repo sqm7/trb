@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>不動產批次上傳工具 v5.0 (含總結報告)</title>
+    <title>不動產批次上傳與修改工具 v6.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -38,18 +38,43 @@
         .status-indicator { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 8px; }
         .status-online { background: #10b981; }
         .status-offline { background: #ef4444; }
+        /* 讓 input[type=checkbox] 在暗色模式下更明顯 */
+        .form-checkbox {
+            appearance: none;
+            background-color: #374151;
+            border: 1px solid #4b5563;
+            width: 1.25rem;
+            height: 1.25rem;
+            border-radius: 0.25rem;
+            display: inline-block;
+            position: relative;
+            cursor: pointer;
+        }
+        .form-checkbox:checked {
+            background-color: #06b6d4;
+            border-color: #06b6d4;
+        }
+        .form-checkbox:checked::after {
+            content: '✓';
+            font-size: 1rem;
+            color: white;
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+        }
     </style>
 </head>
 <body class="bg-dark-bg text-white">
-    <div class="bg-dark-sidebar border-b border-gray-700 px-6 py-4">
+    <div class="bg-dark-sidebar border-b border-gray-700 px-6 py-4 sticky top-0 z-20">
         <div class="flex items-center justify-between">
             <div class="flex items-center space-x-4">
                 <div class="w-10 h-10 bg-gradient-to-r from-cyan-accent to-purple-accent rounded-lg flex items-center justify-center">
                     <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
                 </div>
                 <div>
-                    <h1 class="text-xl font-bold text-white">不動產批次上傳工具</h1>
-                    <p class="text-sm text-gray-400">Real Estate Batch Upload Dashboard v5.0 (Summary)</p>
+                    <h1 class="text-xl font-bold text-white">不動產資料管理工具</h1>
+                    <p class="text-sm text-gray-400">Data Management Dashboard v6.0</p>
                 </div>
             </div>
             <div class="flex items-center space-x-4">
@@ -66,120 +91,163 @@
     </div>
 
     <div class="flex">
-        <div class="w-64 bg-dark-sidebar border-r border-gray-700 min-h-screen p-4">
-            <nav class="space-y-2">
-                <div class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">主要功能</div>
-                <a href="#" class="flex items-center space-x-3 px-3 py-2 rounded-lg bg-cyan-accent/10 text-cyan-accent border border-cyan-accent/20">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 1.79 4 4 4h8c0-2.21-1.79-4-4-4H8c-2.21 0-4-1.79-4-4zm0 0V4c0-2.21 1.79-4 4-4h4c2.21 0 4 1.79 4 4v3M4 7h16"></path></svg>
-                    <span>資料庫連線</span>
-                </a>
-                 <a href="#" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-700/50">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
-                    <span>檔案上傳</span>
-                </a>
+        <aside class="w-64 bg-dark-sidebar border-r border-gray-700 min-h-screen p-4 sticky top-[72px]">
+            <nav class="space-y-4">
+                <div>
+                    <div class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">主要功能</div>
+                    <a href="#uploader" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-300 hover:text-white hover:bg-gray-700/50">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+                        <span>批次上傳工具</span>
+                    </a>
+                    <a href="#batch-modifier" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-300 hover:text-white hover:bg-gray-700/50">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                        <span>批次修改工具</span>
+                    </a>
+                </div>
+                <div>
+                    <div class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">資料庫</div>
+                    <a href="#connection" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-300 hover:text-white hover:bg-gray-700/50">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 1.79 4 4 4h8c0-2.21-1.79-4-4-4H8c-2.21 0-4-1.79-4-4zm0 0V4c0-2.21 1.79-4 4-4h4c2.21 0 4 1.79 4 4v3M4 7h16"></path></svg>
+                        <span>資料庫連線</span>
+                    </a>
+                </div>
             </nav>
-        </div>
+        </aside>
 
-        <div class="flex-1 p-6">
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div class="lg:col-span-2">
-                    <div class="glass-card rounded-xl p-6 mb-6">
-                        <h2 class="text-lg font-semibold text-white flex items-center mb-6">
-                            <svg class="w-5 h-5 text-cyan-accent mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 1.79 4 4 4h8c0-2.21-1.79-4-4-4H8c-2.21 0-4-1.79-4-4zm0 0V4c0-2.21 1.79-4 4-4h4c2.21 0 4 1.79 4 4v3M4 7h16"></path></svg>
-                            Supabase 資料庫連線
-                        </h2>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-300 mb-2">Supabase URL</label>
-                                <input type="text" id="supabaseUrl" class="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-cyan-accent focus:ring-1 focus:ring-cyan-accent transition-colors" placeholder="https://your-project-ref.supabase.co">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-300 mb-2">Service Role Key</label>
-                                <input type="password" id="supabaseKey" class="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-cyan-accent focus:ring-1 focus:ring-cyan-accent transition-colors" placeholder="your-service-role-key">
-                            </div>
-                        </div>
-                        <button id="testConnectionButton" class="bg-gradient-to-r from-cyan-accent to-purple-accent text-white px-6 py-3 rounded-lg font-medium hover:shadow-lg hover:shadow-cyan-accent/25 transition-all duration-300">
-                            <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-                            測試連線
-                        </button>
+        <div class="flex-1 p-6 space-y-8">
+            <div id="connection" class="glass-card rounded-xl p-6">
+                <h2 class="text-lg font-semibold text-white flex items-center mb-6">
+                    <svg class="w-5 h-5 text-cyan-accent mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 1.79 4 4 4h8c0-2.21-1.79-4-4-4H8c-2.21 0-4-1.79-4-4zm0 0V4c0-2.21 1.79-4 4-4h4c2.21 0 4 1.79 4 4v3M4 7h16"></path></svg>
+                    Supabase 資料庫連線
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Supabase URL</label>
+                        <input type="text" id="supabaseUrl" class="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-cyan-accent focus:ring-1 focus:ring-cyan-accent transition-colors" placeholder="https://your-project-ref.supabase.co">
                     </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Service Role Key</label>
+                        <input type="password" id="supabaseKey" class="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-cyan-accent focus:ring-1 focus:ring-cyan-accent transition-colors" placeholder="your-service-role-key">
+                    </div>
+                </div>
+                <button id="testConnectionButton" class="bg-gradient-to-r from-cyan-accent to-purple-accent text-white px-6 py-3 rounded-lg font-medium hover:shadow-lg hover:shadow-cyan-accent/25 transition-all duration-300">
+                    <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                    測試連線
+                </button>
+            </div>
 
-                    <div class="glass-card rounded-xl p-6">
-                        <h2 class="text-lg font-semibold text-white mb-6 flex items-center">
-                           <svg class="w-5 h-5 text-cyan-accent mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
-                           檔案批次上傳
-                        </h2>
+            <div id="uploader" class="glass-card rounded-xl p-6">
+                <h2 class="text-lg font-semibold text-white mb-6 flex items-center">
+                   <svg class="w-5 h-5 text-cyan-accent mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+                   檔案批次上傳
+                </h2>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div>
                         <div class="border-2 border-dashed border-gray-600 rounded-lg p-8 text-center mb-6 hover:border-cyan-accent transition-colors">
                             <svg class="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
                             <p class="text-gray-300 mb-2">選擇包含所有資料的總資料夾</p>
-                            <p class="text-sm text-gray-400 mb-4">系統將自動掃描並排序所有檔案</p>
-                            <button id="selectFoldersButton" class="bg-gradient-to-r from-cyan-accent to-blue-500 text-white px-8 py-3 rounded-lg font-medium hover:shadow-lg hover:shadow-cyan-accent/25 transition-all duration-300">
-                                選擇資料夾
-                            </button>
+                            <button id="selectFoldersButton" class="bg-gradient-to-r from-cyan-accent to-blue-500 text-white px-8 py-3 rounded-lg font-medium hover:shadow-lg hover:shadow-cyan-accent/25 transition-all duration-300">選擇資料夾</button>
                         </div>
-                        
                         <div id="fileListContainer" class="hidden">
                             <div class="bg-gray-800 rounded-lg p-4 mb-4">
                                 <h3 class="text-sm font-medium text-gray-300 mb-3">偵測到的檔案</h3>
                                 <div id="fileList" class="space-y-2 max-h-40 overflow-y-auto"></div>
                             </div>
-                            
-                            <div id="uploadTypeSelector" class="bg-gray-800 rounded-lg p-4 mb-4">
+                            <div class="bg-gray-800 rounded-lg p-4 mb-4">
                                <h3 class="text-sm font-medium text-gray-300 mb-3">選擇上傳類型</h3>
                                 <div class="flex items-center space-x-6 text-sm">
-                                    <label class="flex items-center space-x-2 cursor-pointer">
-                                        <input type="radio" id="uploadTypeAll" name="uploadType" value="all" class="form-radio h-4 w-4 text-cyan-accent bg-gray-700 border-gray-600 focus:ring-cyan-accent" checked>
-                                        <span>全選</span>
-                                    </label>
-                                    <label class="flex items-center space-x-2 cursor-pointer">
-                                        <input type="radio" id="uploadTypeA" name="uploadType" value="a" class="form-radio h-4 w-4 text-cyan-accent bg-gray-700 border-gray-600 focus:ring-cyan-accent">
-                                        <span>中古 (a)</span>
-                                    </label>
-                                    <label class="flex items-center space-x-2 cursor-pointer">
-                                        <input type="radio" id="uploadTypeB" name="uploadType" value="b" class="form-radio h-4 w-4 text-cyan-accent bg-gray-700 border-gray-600 focus:ring-cyan-accent">
-                                        <span>預售 (b)</span>
-                                    </label>
-                                    <label class="flex items-center space-x-2 cursor-pointer">
-                                        <input type="radio" id="uploadTypeC" name="uploadType" value="c" class="form-radio h-4 w-4 text-cyan-accent bg-gray-700 border-gray-600 focus:ring-cyan-accent">
-                                        <span>租賃 (c)</span>
-                                    </label>
+                                    <label class="flex items-center space-x-2 cursor-pointer"><input type="radio" name="uploadType" value="all" class="form-radio h-4 w-4 text-cyan-accent bg-gray-700 border-gray-600 focus:ring-cyan-accent" checked><span>全選</span></label>
+                                    <label class="flex items-center space-x-2 cursor-pointer"><input type="radio" name="uploadType" value="a" class="form-radio h-4 w-4 text-cyan-accent bg-gray-700 border-gray-600 focus:ring-cyan-accent"><span>中古 (a)</span></label>
+                                    <label class="flex items-center space-x-2 cursor-pointer"><input type="radio" name="uploadType" value="b" class="form-radio h-4 w-4 text-cyan-accent bg-gray-700 border-gray-600 focus:ring-cyan-accent"><span>預售 (b)</span></label>
+                                    <label class="flex items-center space-x-2 cursor-pointer"><input type="radio" name="uploadType" value="c" class="form-radio h-4 w-4 text-cyan-accent bg-gray-700 border-gray-600 focus:ring-cyan-accent"><span>租賃 (c)</span></label>
                                 </div>
                             </div>
-
-                            <button id="startUploadButton" class="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white py-4 rounded-lg font-semibold hover:shadow-lg hover:shadow-green-500/25 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed">
-                                <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
-                                開始上傳
-                            </button>
+                            <button id="startUploadButton" class="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white py-4 rounded-lg font-semibold hover:shadow-lg hover:shadow-green-500/25 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed">開始上傳</button>
                         </div>
                     </div>
-                </div>
-
-                <div class="space-y-6">
-                    <div class="glass-card rounded-xl p-6">
-                        <h3 class="text-lg font-semibold text-white mb-4">上傳進度</h3>
-                        <div class="flex items-center justify-center">
-                            <div class="relative w-32 h-32">
-                                <svg class="w-32 h-32 progress-ring" viewBox="0 0 84 84">
-                                     <circle cx="42" cy="42" r="40" stroke="#374151" stroke-width="4" fill="none"/>
-                                     <circle cx="42" cy="42" r="40" stroke="#06b6d4" stroke-width="4" fill="none" class="progress-ring-circle" id="progressCircle"/>
-                                </svg>
-                                <div class="absolute inset-0 flex items-center justify-center">
-                                    <div class="text-center">
-                                        <div class="text-2xl font-bold text-white" id="progressPercent">0%</div>
-                                        <div class="text-xs text-gray-400">完成度</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="mt-4 text-center">
-                            <p class="text-sm text-gray-400" id="progressStatus">等待開始...</p>
-                            <p class="text-xs text-gray-500 mt-1" id="currentFileName"></p>
+                    <div class="space-y-6">
+                        <div class="glass-card rounded-xl p-6 h-full flex flex-col items-center justify-center">
+                            <h3 class="text-lg font-semibold text-white mb-4">上傳進度</h3>
+                            <div class="relative w-32 h-32"><svg class="w-32 h-32 progress-ring" viewBox="0 0 84 84"><circle cx="42" cy="42" r="40" stroke="#374151" stroke-width="4" fill="none"/><circle cx="42" cy="42" r="40" stroke="#06b6d4" stroke-width="4" fill="none" class="progress-ring-circle" id="progressCircle"/></svg><div class="absolute inset-0 flex items-center justify-center"><div class="text-center"><div class="text-2xl font-bold text-white" id="progressPercent">0%</div><div class="text-xs text-gray-400">完成度</div></div></div></div>
+                            <div class="mt-4 text-center"><p class="text-sm text-gray-400" id="progressStatus">等待開始...</p><p class="text-xs text-gray-500 mt-1" id="currentFileName"></p></div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
+            <div id="batch-modifier" class="glass-card rounded-xl p-6">
+                <h2 class="text-lg font-semibold text-white mb-6 flex items-center">
+                    <svg class="w-5 h-5 text-cyan-accent mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                    批次修改工具
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end bg-gray-800/50 p-4 rounded-lg">
+                    <div>
+                        <label for="modifier-county" class="block text-sm font-medium text-gray-300 mb-2">縣市</label>
+                        <select id="modifier-county" class="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white focus:border-cyan-accent focus:ring-1 focus:ring-cyan-accent transition-colors"></select>
+                    </div>
+                    <div>
+                        <label for="modifier-type" class="block text-sm font-medium text-gray-300 mb-2">交易類型</label>
+                        <select id="modifier-type" class="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white focus:border-cyan-accent focus:ring-1 focus:ring-cyan-accent transition-colors">
+                            <option value="all">全部 (預售/中古/租賃)</option>
+                            <option value="b">預售 (b)</option>
+                            <option value="a">中古 (a)</option>
+                            <option value="c">租賃 (c)</option>
+                        </select>
+                    </div>
+                    <div class="md:col-span-2 grid grid-cols-3 gap-4">
+                        <div class="col-span-1">
+                            <label for="modifier-search-by" class="block text-sm font-medium text-gray-300 mb-2">搜尋方式</label>
+                            <select id="modifier-search-by" class="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white focus:border-cyan-accent focus:ring-1 focus:ring-cyan-accent transition-colors">
+                                <option value="建案名稱">建案名稱</option>
+                                <option value="編號">編號</option>
+                            </select>
+                        </div>
+                        <div class="col-span-2">
+                            <label for="modifier-keyword" class="block text-sm font-medium text-gray-300 mb-2">關鍵字</label>
+                            <div class="flex">
+                                <input type="text" id="modifier-keyword" class="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-l-lg text-white focus:border-cyan-accent focus:ring-1 focus:ring-cyan-accent transition-colors" placeholder="請輸入關鍵字">
+                                <button id="modifier-search-btn" class="bg-cyan-accent text-white px-5 py-3 rounded-r-lg font-medium hover:bg-cyan-500 transition-colors">查詢</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="modifier-results-container" class="mt-6 hidden">
+                    <div class="border-t border-gray-700 pt-6">
+                        <h3 class="text-base font-semibold text-white mb-4">查詢結果 (<span id="modifier-results-count">0</span> 筆)</h3>
+                        <div id="modifier-table-wrapper" class="max-h-[500px] overflow-y-auto border border-gray-700 rounded-lg">
+                            <table class="min-w-full text-sm">
+                                <thead class="bg-gray-800 sticky top-0">
+                                    <tr>
+                                        <th class="p-2 w-12"><input type="checkbox" id="modifier-select-all" class="form-checkbox"></th>
+                                        <th class="p-2 text-left">編號</th>
+                                        <th class="p-2 text-left">建案名稱</th>
+                                        <th class="p-2 text-left">地址</th>
+                                        <th class="p-2 text-left">交易日</th>
+                                        <th class="p-2 text-left">類型</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="modifier-results-table-body" class="divide-y divide-gray-700">
+                                    </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div id="modifier-action-panel" class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4 items-end bg-gray-800/50 p-4 rounded-lg">
+                        <div>
+                            <label for="modifier-field-select" class="block text-sm font-medium text-gray-300 mb-2">選擇要修改的欄位</label>
+                            <select id="modifier-field-select" class="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white focus:border-cyan-accent focus:ring-1 focus:ring-cyan-accent transition-colors"></select>
+                        </div>
+                        <div>
+                            <label for="modifier-new-value" class="block text-sm font-medium text-gray-300 mb-2">新的值</label>
+                            <input type="text" id="modifier-new-value" class="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-cyan-accent focus:ring-1 focus:ring-cyan-accent transition-colors" placeholder="輸入要更新的內容">
+                        </div>
+                        <button id="modifier-update-btn" class="w-full bg-gradient-to-r from-orange-500 to-red-600 text-white py-3 rounded-lg font-semibold hover:shadow-lg hover:shadow-orange-500/25 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed">
+                            執行批次更新
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div class="glass-card rounded-xl p-6">
                     <div class="flex items-center justify-between mb-4">
                         <h3 class="text-lg font-semibold text-white flex items-center">
