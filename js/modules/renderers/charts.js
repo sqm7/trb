@@ -268,11 +268,17 @@ export function renderPriceBandChart() {
             theme: 'dark',
             y: {
                 formatter: function(value, { seriesIndex, dataPointIndex, w }) {
-                    // ▼▼▼ 偵錯指令 ▼▼▼
-                    debugger; 
-                    // ▲▲▲ 偵錯指令 ▲▲▲
-
+                    // ▼▼▼ 【這是我們新增的偵錯訊息】 ▼▼▼
+                    console.log("--- 正在檢查圖表Tooltip資料 ---");
                     const stats = w.globals.series[seriesIndex][dataPointIndex];
+                    console.log("收到的 stats 變數是:", stats);
+                    console.log("它的類型是:", typeof stats);
+                    if (Array.isArray(stats)) {
+                        console.log("它是一個陣列，長度為:", stats.length);
+                    }
+                    console.log("--------------------------");
+                    // ▲▲▲ 【偵錯訊息結束】 ▲▲▲
+
                     if (Array.isArray(stats) && stats.length === 5) {
                         const [min, q1, median, q3, max] = stats;
                         return `
@@ -306,8 +312,6 @@ export function renderPriceBandChart() {
     priceBandChartInstance = new ApexCharts(dom.priceBandChart, options);
     priceBandChartInstance.render();
 }
-
-
 /**
  * 渲染銷售速度趨勢圖
  */
