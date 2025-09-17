@@ -109,11 +109,8 @@ async function processPhase(files, phaseName, isMainTablePhase) {
     DOM.currentFileName.textContent = '';
 }
 
-// --- ▼▼▼【新增】批次修改工具相關函式 ▼▼▼ ---
+// --- 批次修改工具相關函式 ---
 
-/**
- * 處理查詢按鈕點擊事件
- */
 async function handleModifierSearch() {
     const { countySelect, typeSelect, searchBySelect, keywordInput, searchBtn } = DOM.modifier;
     if (!state.supabase) {
@@ -135,6 +132,7 @@ async function handleModifierSearch() {
     addLog(`開始查詢: [縣市: ${countyCode}, 類型: ${type}, 方式: ${searchBy}, 關鍵字: ${keyword}]`, 'info');
     
     try {
+        resetModifierState(); // 每次查詢前重置狀態
         const results = await searchRecords(countyCode, type, searchBy, keyword);
         state.modifier.searchResults = results;
         addLog(`查詢完成，找到 ${results.length} 筆資料。`, 'success');
@@ -148,68 +146,44 @@ async function handleModifierSearch() {
     }
 }
 
-/**
- * 處理結果表格中的 checkbox 點擊事件
- * @param {Event} e - 事件物件
- */
 function handleModifierSelectionChange(e) {
     const { selectedIds } = state.modifier;
     const { selectAllCheckbox, updateBtn } = DOM.modifier;
+    const target = e.target;
 
-    if (e.target.id === 'modifier-select-all') {
-        const isChecked = e.target.checked;
-        const allCheckboxes = document.querySelectorAll('.modifier-row-checkbox');
-        allCheckboxes.forEach(cb => {
+    if (target.id === 'modifier-select-all') {
+        const isChecked = target.checked;
+        document.querySelectorAll('.modifier-row-checkbox').forEach(cb => {
             cb.checked = isChecked;
-            const id = parseInt(cb.dataset.id);
-            const type = cb.dataset.type;
-            if (isChecked) {
-                selectedIds.add(`${type}-${id}`);
-            } else {
-                selectedIds.delete(`${type}-${id}`);
-            }
+            const key = `${cb.dataset.type}-${cb.dataset.id}`;
+            if (isChecked) selectedIds.add(key);
+            else selectedIds.delete(key);
         });
-    } else if (e.target.classList.contains('modifier-row-checkbox')) {
-        const id = parseInt(e.target.dataset.id);
-        const type = e.target.dataset.type;
-        const key = `${type}-${id}`;
-        if (e.target.checked) {
-            selectedIds.add(key);
-        } else {
-            selectedIds.delete(key);
-        }
-        // 檢查是否所有項目都被選中，以同步 "全選" checkbox 的狀態
+    } else if (target.classList.contains('modifier-row-checkbox')) {
+        const key = `${target.dataset.type}-${target.dataset.id}`;
+        if (target.checked) selectedIds.add(key);
+        else selectedIds.delete(key);
+        
         const allRowCount = document.querySelectorAll('.modifier-row-checkbox').length;
-        selectAllCheckbox.checked = selectedIds.size === allRowCount;
+        selectAllCheckbox.checked = selectedIds.size > 0 && selectedIds.size === allRowCount;
     }
     
-    // 只有在有選取項目時才啟用更新按鈕
     updateBtn.disabled = selectedIds.size === 0;
 }
 
-/**
- * 處理執行批次更新按鈕點擊事件
- */
 async function handleModifierUpdate() {
     const { countySelect, fieldSelect, newValueInput, updateBtn } = DOM.modifier;
-    const { selectedIds, searchResults } = state.modifier;
-
+    const { selectedIds } = state.modifier;
     const countyCode = countySelect.value;
     const field = fieldSelect.value;
     const newValue = newValueInput.value;
 
-    if (selectedIds.size === 0) {
-        addLog('沒有選擇任何要更新的資料。', 'warning', 'status');
-        return;
-    }
-    if (!field) {
-        addLog('請選擇要修改的欄位。', 'warning', 'status');
+    if (selectedIds.size === 0 || !field) {
+        addLog('請至少選擇一筆資料並指定要修改的欄位。', 'warning', 'status');
         return;
     }
 
-    // 彈出確認視窗
-    const confirmation = confirm(`確定要將 ${selectedIds.size} 筆資料的「${field}」欄位更新為「${newValue}」嗎？\n\n此操作無法復原！`);
-    if (!confirmation) {
+    if (!confirm(`確定要將 ${selectedIds.size} 筆資料的「${field}」欄位更新為「${newValue}」嗎？\n\n此操作無法復原！`)) {
         addLog('使用者取消了操作。', 'info');
         return;
     }
@@ -219,23 +193,17 @@ async function handleModifierUpdate() {
     addLog(`開始批次更新...`, 'info');
 
     try {
-        // 將 selectedIds 轉換為 Map<string, Array<number>> 格式
         const updatesByType = new Map();
         selectedIds.forEach(key => {
             const [type, idStr] = key.split('-');
             const id = parseInt(idStr);
-            if (!updatesByType.has(type)) {
-                updatesByType.set(type, []);
-            }
+            if (!updatesByType.has(type)) updatesByType.set(type, []);
             updatesByType.get(type).push(id);
         });
 
         await batchUpdateRecords(countyCode, updatesByType, field, newValue);
         addLog(`成功更新了 ${selectedIds.size} 筆資料！`, 'success');
-        
-        // 更新成功後，重新執行一次查詢以顯示最新結果
         await handleModifierSearch();
-
     } catch (error) {
         addLog(`批次更新失敗: ${error.message}`, 'error', 'error');
     } finally {
@@ -244,35 +212,48 @@ async function handleModifierUpdate() {
     }
 }
 
-/**
- * 初始化批次修改工具
- */
-function initializeModifier() {
-    // 填充縣市下拉選單
+// --- 頁籤切換邏輯 ---
+
+function handleTabSwitch(e) {
+    const targetTab = e.target.dataset.tab;
+    if (!targetTab) return;
+
+    // 更新按鈕樣式
+    document.querySelectorAll('#main-tabs .tab-button').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.tab === targetTab);
+    });
+
+    // 更新內容顯示
+    document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.toggle('active', content.id === `${targetTab}-content`);
+    });
+}
+
+// --- 主初始化函式 ---
+
+function initialize() {
+    // 【修正】填充修改工具的縣市選單
     const countyOptions = Object.entries(counties)
         .map(([code, name]) => `<option value="${code.toLowerCase()}">${name}</option>`)
         .join('');
     DOM.modifier.countySelect.innerHTML = `<option value="">請選擇縣市</option>` + countyOptions;
 
-    // 綁定事件
+    // --- 綁定所有事件監聽器 ---
+    DOM.testConnectionButton.addEventListener('click', testConnection);
+    
+    // 上傳工具事件
+    DOM.selectFoldersButton.addEventListener('click', handleSelectFolders);
+    DOM.startUploadButton.addEventListener('click', startUpload);
+    
+    // 修改工具事件
     DOM.modifier.searchBtn.addEventListener('click', handleModifierSearch);
     DOM.modifier.tableWrapper.addEventListener('change', handleModifierSelectionChange);
     DOM.modifier.updateBtn.addEventListener('click', handleModifierUpdate);
-}
 
+    // 頁籤切換事件
+    document.getElementById('main-tabs').addEventListener('click', handleTabSwitch);
 
-// --- 主初始化函式 ---
-
-function initialize() {
-    // 綁定上傳工具的事件
-    DOM.selectFoldersButton.addEventListener('click', handleSelectFolders);
-    DOM.startUploadButton.addEventListener('click', startUpload);
-    DOM.testConnectionButton.addEventListener('click', testConnection);
-
-    // 初始化批次修改工具
-    initializeModifier();
-
-    // 將清除日誌的功能掛載到 window 物件上
+    // 將清除日誌的功能掛載到 window
     window.clearLogs = clearLogs;
 
     // 啟動時間更新
@@ -283,5 +264,4 @@ function initialize() {
     resetUI();
 }
 
-// DOM 載入完成後執行
 document.addEventListener('DOMContentLoaded', initialize);
