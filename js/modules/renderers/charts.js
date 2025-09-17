@@ -235,6 +235,7 @@ export function renderPriceBandChart() {
     }
 
     const { priceBandAnalysis } = state.analysisDataCache;
+
     const filteredAnalysis = priceBandAnalysis.filter(item => state.selectedPriceBandRoomTypes.includes(item.roomType));
     
     if (filteredAnalysis.length === 0) {
@@ -242,61 +243,117 @@ export function renderPriceBandChart() {
         return;
     }
 
-    const seriesData = filteredAnalysis.map(item => ({
-        x: item.bathrooms !== null ? `${item.roomType}-${item.bathrooms}衛` : item.roomType,
-        y: [
-            Math.round(item.minPrice),
-            Math.round(item.q1Price),
-            Math.round(item.medianPrice),
-            Math.round(item.q3Price),
-            Math.round(item.maxPrice)
-        ]
-    }));
+    // ▼▼▼ 【關鍵修正】 在這裡加入資料檢查與清理 ▼▼▼
+    const seriesData = filteredAnalysis
+        .map(item => {
+            // 確保箱型圖需要的五個值都是有效的數字
+            const values = [
+                item.minPrice,
+                item.q1Price,
+                item.medianPrice,
+                item.q3Price,
+                item.maxPrice
+            ];
+
+            // 只要其中任何一個值不是數字或無效，就過濾掉這筆資料
+            if (values.some(v => typeof v !== 'number' || isNaN(v))) {
+                console.warn("過濾掉一筆無效的總價帶資料:", item);
+                return null; 
+            }
+
+            return {
+                x: item.bathrooms !== null ? `${item.roomType}-${item.bathrooms}衛` : item.roomType,
+                y: values.map(v => Math.round(v)) // 將所有值取整數
+            };
+        })
+        .filter(Boolean); // 過濾掉上面檢查後為 null 的項目
+    // ▲▲▲ 【修正結束】 ▲▲▲
     
     const options = {
-        series: [{ name: '總價分佈', type: 'boxPlot', data: seriesData }],
-        chart: { type: 'boxPlot', height: 450, background: 'transparent', toolbar: { show: true }, foreColor: '#e5e7eb' },
-        title: { text: '各房型總價帶分佈箱型圖', align: 'center', style: { fontSize: '16px', color: '#e5e7eb' } },
-        plotOptions: { boxPlot: { colors: { upper: '#06b6d4', lower: '#8b5cf6' } } },
-        stroke: { show: true, width: 1, colors: ['#9ca3af'] },
-        xaxis: { type: 'category', labels: { style: { colors: '#9ca3af' }, rotate: -45, offsetY: 5 }, categories: seriesData.map(d => d.x).sort() },
-        yaxis: {
-            title: { text: '房屋總價 (萬)', style: { color: '#9ca3af' } },
-            labels: { formatter: function (val) { return val.toLocaleString() + " 萬"; }, style: { colors: '#9ca3af' } }
+        series: [{
+            name: '總價分佈',
+            type: 'boxPlot',
+            data: seriesData
+        }],
+        chart: {
+            type: 'boxPlot',
+            height: 450,
+            background: 'transparent',
+            toolbar: { show: true },
+            foreColor: '#e5e7eb'
         },
+        title: {
+            text: '各房型總價帶分佈箱型圖',
+            align: 'center',
+            style: {
+                fontSize: '16px',
+                color: '#e5e7eb'
+            }
+        },
+        plotOptions: {
+            boxPlot: {
+                colors: {
+                    upper: '#06b6d4',
+                    lower: '#8b5cf6'
+                }
+            }
+        },
+        xaxis: {
+            type: 'category',
+            labels: {
+                style: {
+                    colors: '#9ca3af'
+                },
+                rotate: -45,
+                offsetY: 5,
+            },
+            // 使用清理過的 seriesData 來產生分類
+            categories: seriesData.map(d => d.x).sort()
+        },
+        yaxis: {
+            title: {
+                text: '房屋總價 (萬)',
+                style: {
+                    color: '#9ca3af'
+                }
+            },
+            labels: {
+                formatter: function (val) {
+                    return val.toLocaleString() + " 萬";
+                },
+                style: {
+                    colors: '#9ca3af'
+                }
+            }
+        },
+        // 保持我們最終版的 tooltip 格式
         tooltip: {
             theme: 'dark',
             y: {
                 formatter: function(value, { seriesIndex, dataPointIndex, w }) {
-                    // ▼▼▼ 【這是我們新增的偵錯訊息】 ▼▼▼
-                    console.log("--- 正在檢查圖表Tooltip資料 ---");
                     const stats = w.globals.series[seriesIndex][dataPointIndex];
-                    console.log("收到的 stats 變數是:", stats);
-                    console.log("它的類型是:", typeof stats);
-                    if (Array.isArray(stats)) {
-                        console.log("它是一個陣列，長度為:", stats.length);
-                    }
-                    console.log("--------------------------");
-                    // ▲▲▲ 【偵錯訊息結束】 ▲▲▲
-
                     if (Array.isArray(stats) && stats.length === 5) {
                         const [min, q1, median, q3, max] = stats;
                         return `
                             <div style="padding: 6px 8px; font-family: 'Noto Sans TC', sans-serif;">
-                                <div><strong>最高價:</strong> ${max.toLocaleString()} 萬</div>
-                                <div><strong>3/4分位價:</strong> ${q3.toLocaleString()} 萬</div>
-                                <div><strong>中位數價:</strong> ${median.toLocaleString()} 萬</div>
-                                <div><strong>1/4分位價:</strong> ${q1.toLocaleString()} 萬</div>
-                                <div><strong>最低價:</strong> ${min.toLocaleString()} 萬</div>
+                                <div><strong>最高總價:</strong> ${max.toLocaleString()} 萬</div>
+                                <div><strong>3/4位總價:</strong> ${q3.toLocaleString()} 萬</div>
+                                <div><strong>中位數總價:</strong> ${median.toLocaleString()} 萬</div>
+                                <div><strong>1/4位總價:</strong> ${q1.toLocaleString()} 萬</div>
+                                <div><strong>最低總價:</strong> ${min.toLocaleString()} 萬</div>
                             </div>
                         `;
                     }
                     return `${value.toLocaleString()} 萬`;
                 },
-                title: { formatter: () => '' }
+                title: {
+                    formatter: () => ''
+                }
             }
         },
-        grid: { borderColor: '#374151' }
+        grid: {
+            borderColor: '#374151'
+        }
     };
     
     if (seriesData.length > 0) {
@@ -305,8 +362,10 @@ export function renderPriceBandChart() {
         const overallMax = Math.max(...allPrices);
         const range = overallMax - overallMin;
         const padding = range === 0 ? Math.max(overallMin * 0.1, 100) : range * 0.1; 
-        options.yaxis.min = Math.max(0, (overallMin - padding));
-        options.yaxis.max = overallMax + padding;
+        let paddedMin = overallMin - padding;
+        let paddedMax = overallMax + padding;
+        options.yaxis.min = Math.max(0, paddedMin);
+        options.yaxis.max = paddedMax;
     }
 
     priceBandChartInstance = new ApexCharts(dom.priceBandChart, options);
