@@ -10,7 +10,7 @@ import { columnMappings, counties } from './config.js';
 let currentUpdateContext = {
     tableName: null,
     results: [],
-    criteriaString: '' // 【新增】用來儲存原始搜尋條件
+    criteriaString: ''
 };
 
 async function handleSelectFolders() {
@@ -75,7 +75,6 @@ async function startUpload() {
     if (filesToUpload.length === 0) {
         addLog(`找不到符合「${typeNameMap[selectedType]}」類型的檔案...`, 'warning', 'status');
         state.isUploading = false;
-        // Re-enable buttons
         DOM.startUploadButton.disabled = false;
         DOM.selectFoldersButton.disabled = false;
         return;
@@ -142,7 +141,7 @@ async function handleSearchForUpdate() {
         currentUpdateContext.criteriaString = `搜尋條件：${countyText} > ${searchField} (包含 '${keyword}')`;
         
         populateUpdateModal(data);
-        updateCriteriaDisplay(); // 【修正】呼叫新的函式來顯示條件
+        updateCriteriaDisplay();
         populateUpdateFieldSelect(transactionType);
         
         DOM.batchUpdateModal.classList.remove('hidden');
@@ -175,7 +174,7 @@ function populateUpdateModal(data) {
             `;
         }).join('');
     }
-    filterModalResults(); // 【修正】載入後執行一次篩選來更新計數
+    filterModalResults();
 }
 
 function populateUpdateFieldSelect(transactionType) {
@@ -232,7 +231,7 @@ function handleSelectAll() {
 // 【已修正】二次篩選函式
 function filterModalResults() {
     const filterText = DOM.modalFilterInput.value.toLowerCase();
-    updateCriteriaDisplay(filterText); // 【修正】更新條件顯示
+    updateCriteriaDisplay(filterText);
 
     const items = DOM.searchResultsContainer.querySelectorAll('.result-item');
     let visibleCount = 0;
@@ -249,11 +248,12 @@ function filterModalResults() {
     DOM.searchResultCount.textContent = `找到 ${currentUpdateContext.results.length} 筆資料 (篩選後顯示 ${visibleCount} 筆)`;
 }
 
-// 【新增】更新搜尋條件顯示的函式
+// 【已修正】更新搜尋條件顯示的函式
 function updateCriteriaDisplay(filterKeyword = '') {
     let displayText = currentUpdateContext.criteriaString;
     if (filterKeyword) {
-        displayText += ` | 篩選: '${filterKeyword}'`;
+        // 更新顯示文字，將篩選關鍵字也包含進來
+        displayText += ` | 再篩選: '${filterKeyword}'`;
     }
     DOM.modalSearchCriteriaDisplay.textContent = displayText;
 }
@@ -277,7 +277,7 @@ function initialize() {
     DOM.batchUpdateModalCloseBtn.addEventListener('click', () => DOM.batchUpdateModal.classList.add('hidden'));
     DOM.executeBatchUpdateButton.addEventListener('click', handleBatchUpdate);
     DOM.selectAllCheckbox.addEventListener('click', handleSelectAll);
-    // 【修正】將篩選事件綁定到按鈕的 click
+    // 【修正】移除 input 事件，只保留按鈕的 click 事件
     DOM.modalFilterButton.addEventListener('click', filterModalResults);
 
     window.clearLogs = clearLogs;
