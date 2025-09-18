@@ -44,10 +44,9 @@ export const DOM = {
     selectAllCheckbox: document.getElementById('selectAllCheckbox'),
     searchResultsContainer: document.getElementById('searchResultsContainer'),
     
-    // ▼▼▼ 【新增】Modal 內的篩選元件 ▼▼▼
+    // Modal 內的篩選元件
     modalSearchCriteriaDisplay: document.getElementById('modalSearchCriteriaDisplay'),
     modalFilterInput: document.getElementById('modalFilterInput'),
-    // ▲▲▲ 新增結束 ▲▲▲
     
     // 更新執行區塊
     updateFieldSelect: document.getElementById('updateFieldSelect'),
