@@ -9,30 +9,26 @@ import { columnMappings, counties } from './config.js';
 
 let currentUpdateContext = {
     tableName: null,
-    results: []
+    results: [],
+    criteriaString: '' // 【新增】用來儲存原始搜尋條件
 };
 
 async function handleSelectFolders() {
     resetUI();
     if (!window.showDirectoryPicker) {
-        addLog('您的瀏覽器不支援資料夾選擇功能，請使用最新版本的 Chrome 或 Edge 瀏覽器。', 'error', 'error');
+        addLog('您的瀏覽器不支援資料夾選擇功能...', 'error', 'error');
         return;
     }
     try {
         addLog('正在掃描資料夾...', 'info');
         const dirHandle = await window.showDirectoryPicker();
         const fileInfoList = await scanDirectory(dirHandle);
-        
         const fileRegex = /^([a-z])_lvr_land_([a-c](?:_build|_land|_park)?)\.csv$/i;
         state.allFiles = fileInfoList.map(item => {
             const match = item.handle.name.match(fileRegex);
             return match ? { 
-                fileHandle: item.handle, 
-                name: item.handle.name,
-                fullPath: item.path,
-                countyCode: match[1].toLowerCase(), 
-                tableType: match[2].toLowerCase(), 
-                isMain: !match[2].includes('_') 
+                fileHandle: item.handle, name: item.handle.name, fullPath: item.path,
+                countyCode: match[1].toLowerCase(), tableType: match[2].toLowerCase(), isMain: !match[2].includes('_') 
             } : null;
         }).filter(Boolean);
 
@@ -40,17 +36,14 @@ async function handleSelectFolders() {
             addLog('在選擇的資料夾中沒有找到符合命名規則的檔案。', 'warning', 'status');
             return;
         }
-        
-        DOM.fileList.innerHTML = '';
-        state.allFiles.forEach(file => {
-            const fileItem = document.createElement('div');
-            fileItem.className = 'flex items-center justify-between p-2 bg-gray-700 rounded text-sm';
-            fileItem.innerHTML = `<span class="font-mono">${file.fullPath}</span><span class="px-2 py-1 bg-cyan-accent/20 text-cyan-accent rounded text-xs">${file.isMain ? '主表' : '附表'}</span>`;
-            DOM.fileList.appendChild(fileItem);
-        });
+        DOM.fileList.innerHTML = state.allFiles.map(file => `
+            <div class="flex items-center justify-between p-2 bg-gray-700 rounded text-sm">
+                <span class="font-mono">${file.fullPath}</span>
+                <span class="px-2 py-1 bg-cyan-accent/20 text-cyan-accent rounded text-xs">${file.isMain ? '主表' : '附表'}</span>
+            </div>
+        `).join('');
         DOM.fileListContainer.classList.remove('hidden');
         addLog(`掃描完成！找到 ${state.allFiles.length} 個有效檔案。`, 'success');
-        
     } catch (err) {
         if (err.name !== 'AbortError') {
             addLog(`選擇資料夾時發生錯誤: ${err.message}`, 'error', 'error');
@@ -67,7 +60,6 @@ async function startUpload() {
         addLog('請先選擇包含 CSV 檔案的資料夾', 'error', 'error');
         return;
     }
-
     state.isUploading = true;
     DOM.startUploadButton.disabled = true;
     DOM.selectFoldersButton.disabled = true;
@@ -81,15 +73,15 @@ async function startUpload() {
     }
 
     if (filesToUpload.length === 0) {
-        addLog(`找不到符合「${typeNameMap[selectedType]}」類型的檔案，已中止上傳。`, 'warning', 'status');
+        addLog(`找不到符合「${typeNameMap[selectedType]}」類型的檔案...`, 'warning', 'status');
+        state.isUploading = false;
+        // Re-enable buttons
         DOM.startUploadButton.disabled = false;
         DOM.selectFoldersButton.disabled = false;
-        state.isUploading = false;
         return;
     }
     
     addLog(`已選擇上傳類型: ${typeNameMap[selectedType]}。共 ${filesToUpload.length} 個檔案待處理。`, 'info');
-    
     const mainTables = filesToUpload.filter(f => f.isMain);
     const subTables = filesToUpload.filter(f => !f.isMain);
     
@@ -97,7 +89,6 @@ async function startUpload() {
     await processPhase(subTables, '階段 2: 附表 (智慧連動)', false);
     
     addLog('所有檔案處理完成！', 'success');
-    
     displayFinalSummary();
 
     DOM.startUploadButton.disabled = false;
@@ -115,13 +106,11 @@ async function processPhase(files, phaseName, isMainTablePhase) {
         const fileInfo = files[i];
         updateProgress(i, files.length, phaseName);
         DOM.currentFileName.textContent = fileInfo.fullPath;
-
         if (isMainTablePhase) {
             await uploadMainFileWithSmartUpdate(fileInfo);
         } else {
             await uploadSubFile(fileInfo);
         }
-
         updateProgress(i + 1, files.length, phaseName);
     }
     DOM.currentFileName.textContent = '';
@@ -132,7 +121,6 @@ async function handleSearchForUpdate() {
         addLog('請先成功測試 Supabase 連線', 'error', 'error');
         return;
     }
-    
     const countyCode = DOM.updateCountySelect.value;
     const countyText = DOM.updateCountySelect.options[DOM.updateCountySelect.selectedIndex].text;
     const transactionType = DOM.updateTransactionType.value;
@@ -147,14 +135,14 @@ async function handleSearchForUpdate() {
         addLog('請輸入搜尋關鍵字', 'warning', 'error');
         return;
     }
-
     try {
         const { data, tableName } = await searchData(countyCode, transactionType, searchField, keyword);
         currentUpdateContext.tableName = tableName;
         currentUpdateContext.results = data;
+        currentUpdateContext.criteriaString = `搜尋條件：${countyText} > ${searchField} (包含 '${keyword}')`;
         
-        const criteriaString = `搜尋條件：${countyText} > ${searchField} (包含 '${keyword}')`;
-        populateUpdateModal(data, criteriaString);
+        populateUpdateModal(data);
+        updateCriteriaDisplay(); // 【修正】呼叫新的函式來顯示條件
         populateUpdateFieldSelect(transactionType);
         
         DOM.batchUpdateModal.classList.remove('hidden');
@@ -163,43 +151,31 @@ async function handleSearchForUpdate() {
     }
 }
 
-function populateUpdateModal(data, criteriaString) {
-    DOM.modalSearchCriteriaDisplay.textContent = criteriaString || '無搜尋條件';
+function populateUpdateModal(data) {
     DOM.modalFilterInput.value = '';
-
-    DOM.searchResultCount.textContent = `找到 ${data.length} 筆資料`;
     const container = DOM.searchResultsContainer;
     container.innerHTML = '';
-
+    
     if (data.length === 0) {
         container.innerHTML = '<div class="p-4 text-center text-gray-500">無符合條件的資料</div>';
-        return;
+    } else {
+        container.innerHTML = data.map(item => {
+            const detailsHtml = Object.entries(item).map(([key, value]) => {
+                if (value !== null && value !== '' && key !== 'id') {
+                    return `<div class="truncate"><span class="font-semibold text-gray-400">${key}:</span> <span class="text-white">${value}</span></div>`;
+                }
+                return '';
+            }).join('');
+
+            return `
+                <label class="flex items-start p-3 border-b border-gray-700 last:border-b-0 hover:bg-gray-800/50 cursor-pointer result-item">
+                    <input type="checkbox" data-id="${item['編號']}" class="form-checkbox h-5 w-5 text-cyan-accent bg-gray-700 border-gray-600 focus:ring-cyan-accent rounded mr-4 mt-1 flex-shrink-0">
+                    <div class="flex-1 grid grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-1 text-sm">${detailsHtml}</div>
+                </label>
+            `;
+        }).join('');
     }
-
-    data.forEach(item => {
-        const el = document.createElement('label');
-        el.className = 'flex items-start p-3 border-b border-gray-700 last:border-b-0 hover:bg-gray-800/50 cursor-pointer result-item';
-
-        let detailsHtml = '';
-        for (const key in item) {
-            if (item.hasOwnProperty(key) && item[key] !== null && item[key] !== '' && key !== 'id') {
-                detailsHtml += `
-                    <div class="truncate">
-                        <span class="font-semibold text-gray-400">${key}:</span> 
-                        <span class="text-white">${item[key]}</span>
-                    </div>
-                `;
-            }
-        }
-        
-        el.innerHTML = `
-            <input type="checkbox" data-id="${item['編號']}" class="form-checkbox h-5 w-5 text-cyan-accent bg-gray-700 border-gray-600 focus:ring-cyan-accent rounded mr-4 mt-1 flex-shrink-0">
-            <div class="flex-1 grid grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-1 text-sm">
-                ${detailsHtml}
-            </div>
-        `;
-        container.appendChild(el);
-    });
+    filterModalResults(); // 【修正】載入後執行一次篩選來更新計數
 }
 
 function populateUpdateFieldSelect(transactionType) {
@@ -211,25 +187,21 @@ function populateUpdateFieldSelect(transactionType) {
     if (mapping) {
         const dbColumns = [...new Set(Object.values(mapping))];
         dbColumns.filter(col => !excludedFields.includes(col)).sort().forEach(field => {
-            const option = new Option(field, field);
-            select.appendChild(option);
+            select.add(new Option(field, field));
         });
-
         const defaultValue = '建案名稱';
-        const defaultOptionExists = Array.from(select.options).some(option => option.value === defaultValue);
-        
-        if (defaultOptionExists) {
+        if (Array.from(select.options).some(opt => opt.value === defaultValue)) {
             select.value = defaultValue;
         }
     }
 }
 
 async function handleBatchUpdate() {
-    const selectedCheckboxes = DOM.searchResultsContainer.querySelectorAll('input[type="checkbox"]:checked');
+    const selectedCheckboxes = DOM.searchResultsContainer.querySelectorAll('.result-item:not([style*="display: none"]) input[type="checkbox"]:checked');
     const idsToUpdate = Array.from(selectedCheckboxes).map(cb => cb.dataset.id);
     
     if (idsToUpdate.length === 0) {
-        addLog('您沒有選擇任何要更新的資料。', 'warning', 'error');
+        addLog('您沒有選擇任何可見且已勾選的資料進行更新。', 'warning', 'error');
         return;
     }
 
@@ -245,8 +217,6 @@ async function handleBatchUpdate() {
     try {
         await batchUpdateData(tableName, idsToUpdate, fieldToUpdate, newValue);
         DOM.batchUpdateModal.classList.add('hidden');
-        DOM.searchResultsContainer.innerHTML = '';
-        DOM.updateValueInput.value = '';
     } catch(error) {
         addLog(`批次更新過程中發生錯誤: ${error.message}`, 'error', 'error');
     }
@@ -259,8 +229,11 @@ function handleSelectAll() {
     checkboxes.forEach(cb => cb.checked = !allSelected);
 }
 
+// 【已修正】二次篩選函式
 function filterModalResults() {
     const filterText = DOM.modalFilterInput.value.toLowerCase();
+    updateCriteriaDisplay(filterText); // 【修正】更新條件顯示
+
     const items = DOM.searchResultsContainer.querySelectorAll('.result-item');
     let visibleCount = 0;
 
@@ -273,30 +246,39 @@ function filterModalResults() {
             item.style.display = 'none';
         }
     });
-    DOM.searchResultCount.textContent = `找到 ${currentUpdateContext.results.length} 筆資料 (顯示 ${visibleCount} 筆)`;
+    DOM.searchResultCount.textContent = `找到 ${currentUpdateContext.results.length} 筆資料 (篩選後顯示 ${visibleCount} 筆)`;
 }
 
+// 【新增】更新搜尋條件顯示的函式
+function updateCriteriaDisplay(filterKeyword = '') {
+    let displayText = currentUpdateContext.criteriaString;
+    if (filterKeyword) {
+        displayText += ` | 篩選: '${filterKeyword}'`;
+    }
+    DOM.modalSearchCriteriaDisplay.textContent = displayText;
+}
 
 function populateCountySelect() {
     const select = DOM.updateCountySelect;
     Object.entries(counties).forEach(([code, name]) => {
-        const option = new Option(name, code.toLowerCase());
-        select.appendChild(option);
+        select.add(new Option(name, code.toLowerCase()));
     });
 }
 
 function initialize() {
     populateCountySelect();
     
+    DOM.testConnectionButton.addEventListener('click', testConnection);
+    // 上傳功能
     DOM.selectFoldersButton.addEventListener('click', handleSelectFolders);
     DOM.startUploadButton.addEventListener('click', startUpload);
-    DOM.testConnectionButton.addEventListener('click', testConnection);
-    
+    // 修改功能
     DOM.searchForUpdateButton.addEventListener('click', handleSearchForUpdate);
     DOM.batchUpdateModalCloseBtn.addEventListener('click', () => DOM.batchUpdateModal.classList.add('hidden'));
     DOM.executeBatchUpdateButton.addEventListener('click', handleBatchUpdate);
     DOM.selectAllCheckbox.addEventListener('click', handleSelectAll);
-    DOM.modalFilterInput.addEventListener('input', filterModalResults);
+    // 【修正】將篩選事件綁定到按鈕的 click
+    DOM.modalFilterButton.addEventListener('click', filterModalResults);
 
     window.clearLogs = clearLogs;
     updateTime();
