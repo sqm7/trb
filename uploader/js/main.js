@@ -5,7 +5,7 @@ import { state, resetSummary } from './state.js';
 import { addLog, resetUI, updateProgress, updateTime, displayFinalSummary, clearLogs } from './ui.js';
 import { scanDirectory } from './file-handler.js';
 import { testConnection, uploadMainFileWithSmartUpdate, uploadSubFile, searchData, batchUpdateData } from './supabase-service.js';
-import { columnMappings } from './config.js';
+import { columnMappings, counties } from './config.js';
 
 // 用於存儲當前查詢結果的相關資訊
 let currentUpdateContext = {
@@ -137,7 +137,7 @@ async function processPhase(files, phaseName, isMainTablePhase) {
     DOM.currentFileName.textContent = '';
 }
 
-// ▼▼▼ 【新增】處理批次修改的相關函式 ▼▼▼
+// ▼▼▼ 【已修正】處理批次修改的相關函式 ▼▼▼
 
 /**
  * 處理查詢按鈕點擊事件
@@ -147,22 +147,24 @@ async function handleSearchForUpdate() {
         addLog('請先成功測試 Supabase 連線', 'error', 'error');
         return;
     }
-    if (state.allFiles.length === 0) {
-        addLog('請先選擇資料夾，以便程式判斷縣市代碼。', 'error', 'error');
-        return;
-    }
-
+    
+    // 【邏輯修正】直接從新的縣市選單讀取 countyCode
+    const countyCode = DOM.updateCountySelect.value;
     const transactionType = DOM.updateTransactionType.value;
     const searchField = DOM.updateSearchField.value;
     const keyword = DOM.updateSearchKeyword.value.trim();
 
+    if (!countyCode) {
+        addLog('請選擇要查詢的縣市', 'warning', 'error');
+        return;
+    }
     if (!keyword) {
         addLog('請輸入搜尋關鍵字', 'warning', 'error');
         return;
     }
 
     try {
-        const { data, tableName } = await searchData(transactionType, searchField, keyword);
+        const { data, tableName } = await searchData(countyCode, transactionType, searchField, keyword);
         currentUpdateContext.tableName = tableName;
         currentUpdateContext.results = data;
         
@@ -271,23 +273,37 @@ function handleSelectAll() {
     checkboxes.forEach(cb => cb.checked = !allSelected);
 }
 
+/**
+ * 【新增】填充縣市下拉選單
+ */
+function populateCountySelect() {
+    const select = DOM.updateCountySelect;
+    for (const code in counties) {
+        const option = new Option(counties[code], code);
+        select.appendChild(option);
+    }
+}
+
 
 /**
  * 初始化應用程式
  */
 function initialize() {
+    // 【新增】頁面載入時就填充縣市選單
+    populateCountySelect();
+
     // 綁定所有事件監聽器
     DOM.selectFoldersButton.addEventListener('click', handleSelectFolders);
     DOM.startUploadButton.addEventListener('click', startUpload);
     DOM.testConnectionButton.addEventListener('click', testConnection);
     
-    // 【新增】批次修改功能的事件監聽
+    // 批次修改功能的事件監聽
     DOM.searchForUpdateButton.addEventListener('click', handleSearchForUpdate);
     DOM.batchUpdateModalCloseBtn.addEventListener('click', () => DOM.batchUpdateModal.classList.add('hidden'));
     DOM.executeBatchUpdateButton.addEventListener('click', handleBatchUpdate);
     DOM.selectAllCheckbox.addEventListener('click', handleSelectAll);
 
-    // 將清除日誌的功能掛載到 window 物件上，以便 HTML 中的 onclick 可以呼叫到
+    // 將清除日誌的功能掛載到 window 物件上
     window.clearLogs = clearLogs;
 
     // 啟動每秒更新一次時間的計時器
