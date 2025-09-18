@@ -10,7 +10,7 @@ import { columnMappings, counties } from './config.js';
 let currentUpdateContext = {
     tableName: null,
     results: [],
-    criteriaString: ''
+    criteriaString: '' // 用來儲存原始搜尋條件
 };
 
 async function handleSelectFolders() {
@@ -228,7 +228,6 @@ function handleSelectAll() {
     checkboxes.forEach(cb => cb.checked = !allSelected);
 }
 
-// 【已修正】二次篩選函式
 function filterModalResults() {
     const filterText = DOM.modalFilterInput.value.toLowerCase();
     updateCriteriaDisplay(filterText);
@@ -248,11 +247,9 @@ function filterModalResults() {
     DOM.searchResultCount.textContent = `找到 ${currentUpdateContext.results.length} 筆資料 (篩選後顯示 ${visibleCount} 筆)`;
 }
 
-// 【已修正】更新搜尋條件顯示的函式
 function updateCriteriaDisplay(filterKeyword = '') {
     let displayText = currentUpdateContext.criteriaString;
     if (filterKeyword) {
-        // 更新顯示文字，將篩選關鍵字也包含進來
         displayText += ` | 再篩選: '${filterKeyword}'`;
     }
     DOM.modalSearchCriteriaDisplay.textContent = displayText;
@@ -279,6 +276,13 @@ function initialize() {
     DOM.selectAllCheckbox.addEventListener('click', handleSelectAll);
     // 【修正】移除 input 事件，只保留按鈕的 click 事件
     DOM.modalFilterButton.addEventListener('click', filterModalResults);
+    // 【新增】讓 Enter 鍵也能觸發篩選
+    DOM.modalFilterInput.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+            event.preventDefault(); // 防止表單提交
+            filterModalResults();
+        }
+    });
 
     window.clearLogs = clearLogs;
     updateTime();
