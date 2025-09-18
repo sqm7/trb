@@ -30,9 +30,8 @@ export const DOM = {
     connectionText: document.getElementById('connectionText'),
     currentTime: document.getElementById('currentTime'),
 
-    // ▼▼▼ 【已修正】批次修改功能相關元素 ▼▼▼
-    // 搜尋區塊
-    updateCountySelect: document.getElementById('updateCountySelect'), // 【新增】縣市選單
+    // 批次修改功能相關元素
+    updateCountySelect: document.getElementById('updateCountySelect'),
     updateTransactionType: document.getElementById('updateTransactionType'),
     updateSearchField: document.getElementById('updateSearchField'),
     updateSearchKeyword: document.getElementById('updateSearchKeyword'),
@@ -45,9 +44,13 @@ export const DOM = {
     selectAllCheckbox: document.getElementById('selectAllCheckbox'),
     searchResultsContainer: document.getElementById('searchResultsContainer'),
     
+    // ▼▼▼ 【新增】Modal 內的篩選元件 ▼▼▼
+    modalSearchCriteriaDisplay: document.getElementById('modalSearchCriteriaDisplay'),
+    modalFilterInput: document.getElementById('modalFilterInput'),
+    // ▲▲▲ 新增結束 ▲▲▲
+    
     // 更新執行區塊
     updateFieldSelect: document.getElementById('updateFieldSelect'),
     updateValueInput: document.getElementById('updateValueInput'),
     executeBatchUpdateButton: document.getElementById('executeBatchUpdateButton')
-    // ▲▲▲ 修正結束 ▲▲▲
 };
