@@ -65,6 +65,28 @@
             color: #06b6d4;
             border-bottom-color: #06b6d4;
         }
+        /* Set a fixed minimum height for the form container to prevent jiggling */
+        #form-container {
+            min-height: 500px; 
+        }
+
+        /* ▼▼▼ 【新增】滾動淡入動畫效果 ▼▼▼ */
+        .feature-section {
+            opacity: 0;
+            transform: translateY(40px);
+            transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+        }
+        .feature-section.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .feature-image {
+            border-radius: 0.75rem; /* 12px */
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        /* ▲▲▲ 【修改結束】 ▲▲▲ */
+
     </style>
     <script type="module">
         import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
@@ -187,17 +209,34 @@
                     text.classList.remove('hidden');
                 }
             });
+
+            // ▼▼▼ 【新增】Intersection Observer 邏輯 ▼▼▼
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                        observer.unobserve(entry.target); // 動畫只觸發一次
+                    }
+                });
+            }, {
+                threshold: 0.1 // 元素進入畫面 10% 時觸發
+            });
+
+            document.querySelectorAll('.feature-section').forEach(section => {
+                observer.observe(section);
+            });
+            // ▲▲▲ 【修改結束】 ▲▲▲
         });
     </script>
 </head>
-<body class="text-gray-200 flex flex-col p-6">
+<body class="text-gray-200 min-h-screen flex flex-col p-6">
     
     <div id="background-container"></div>
     <div id="background-overlay"></div>
 
-    <div class="flex-grow flex items-center justify-center py-20">
-        <div class="w-full max-w-6xl mx-auto flex flex-col lg:flex-row items-center justify-center gap-16">
-        
+    <div class="w-full max-w-6xl mx-auto flex flex-col items-center justify-center gap-16">
+    
+        <div class="w-full flex flex-col lg:flex-row items-center justify-center gap-16 pt-16">
             <div class="flex-1 text-center lg:text-left mb-12 lg:mb-0">
                 <header class="mb-8">
                     <h1 class="text-4xl lg:text-5xl font-extrabold text-white tracking-tight leading-tight">平米內參<br><span class="text-3xl lg:text-4xl font-bold">預售屋數據儀表板</span></h1>
@@ -206,91 +245,128 @@
                     <p class="text-lg">
                         解鎖專業級的預售屋市場洞察力。我們整合了最新的實價登錄數據，提供即時、深入的分析報告，幫助您做出更精準的投資決策。
                     </p>
-                    <ul class="space-y-3 text-left inline-block">
-                        <li class="flex items-start gap-3">
-                            <i class="fas fa-chart-pie mt-1 text-cyan-accent"></i>
-                            <span><strong>多維度分析：</strong> 從核心指標、總價帶、去化速度到單價分析，全方位剖析市場趨勢。</span>
-                        </li>
-                        <li class="flex items-start gap-3">
-                            <i class="fas fa-th mt-1 text-cyan-accent"></i>
-                            <span><strong>獨家銷控表：</strong> 視覺化的垂直水平價盤，模擬真實銷控表，讓您一眼看穿建案佈局與價格策略。</span>
-                        </li>
-                        <li class="flex items-start gap-3">
-                            <i class="fas fa-fire mt-1 text-cyan-accent"></i>
-                            <span><strong>調價熱力圖：</strong> 獨家演算法分析建案的調價軌跡，洞悉漲跌趨勢與溢價空間。</span>
-                        </li>
-                    </ul>
                 </div>
             </div>
 
-            <main class="bg-dark-card p-6 rounded-xl shadow-lg w-full max-w-sm flex-shrink-0">
+            <main id="form-container" class="bg-dark-card p-6 rounded-xl shadow-lg w-full max-w-sm flex-shrink-0">
                 
                 <div class="flex border-b border-gray-700 mb-6">
                     <button id="login-tab" class="tab-button active">登入</button>
                     <button id="register-tab" class="tab-button">註冊</button>
                 </div>
 
-                <div id="form-wrapper" style="min-height: 340px;">
-                    <form id="login-form">
-                        <div class="space-y-6">
-                            <div>
-                                <label for="email" class="block text-sm font-medium text-gray-300 mb-2">電子郵件</label>
-                                <input type="email" id="email" name="email" class="form-input block w-full pl-3 pr-10 py-3 text-base rounded-md" required autocomplete="email">
-                            </div>
-                            <div>
-                                <label for="password" class="block text-sm font-medium text-gray-300 mb-2">密碼</label>
-                                <input type="password" id="password" name="password" class="form-input block w-full pl-3 pr-10 py-3 text-base rounded-md" required autocomplete="current-password">
-                            </div>
-                            <div>
-                                <button type="submit" id="login-submit-button" class="w-full flex justify-center items-center bg-cyan-accent hover:bg-opacity-90 text-white font-bold py-3 px-4 rounded-lg shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed">
-                                    <div class="loader-sm hidden"></div>
-                                    <span>登入</span>
-                                </button>
-                            </div>
+                <form id="login-form">
+                    <div class="space-y-6">
+                        <div>
+                            <label for="email" class="block text-sm font-medium text-gray-300 mb-2">電子郵件</label>
+                            <input type="email" id="email" name="email" class="form-input block w-full pl-3 pr-10 py-3 text-base rounded-md" required autocomplete="email">
                         </div>
-                    </form>
+                        <div>
+                            <label for="password" class="block text-sm font-medium text-gray-300 mb-2">密碼</label>
+                            <input type="password" id="password" name="password" class="form-input block w-full pl-3 pr-10 py-3 text-base rounded-md" required autocomplete="current-password">
+                        </div>
+                        <div>
+                            <button type="submit" id="login-submit-button" class="w-full flex justify-center items-center bg-cyan-accent hover:bg-opacity-90 text-white font-bold py-3 px-4 rounded-lg shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                                <div class="loader-sm hidden"></div>
+                                <span>登入</span>
+                            </button>
+                        </div>
+                    </div>
+                </form>
 
-                    <form id="register-form" class="hidden">
-                        <div class="space-y-6">
-                            <div>
-                                <label for="register-email" class="block text-sm font-medium text-gray-300 mb-2">電子郵件</label>
-                                <input type="email" id="register-email" name="register-email" class="form-input block w-full pl-3 pr-10 py-3 text-base rounded-md" required autocomplete="email">
-                            </div>
-                            <div>
-                                <label for="register-password" class="block text-sm font-medium text-gray-300 mb-2">密碼 (至少6位數)</label>
-                                <input type="password" id="register-password" name="register-password" class="form-input block w-full pl-3 pr-10 py-3 text-base rounded-md" required minlength="6">
-                            </div>
-                            <div>
-                                <label for="confirm-password" class="block text-sm font-medium text-gray-300 mb-2">確認密碼</label>
-                                <input type="password" id="confirm-password" name="confirm-password" class="form-input block w-full pl-3 pr-10 py-3 text-base rounded-md" required minlength="6">
-                            </div>
-                            <div>
-                                <button type="submit" id="register-submit-button" class="w-full flex justify-center items-center bg-cyan-accent hover:bg-opacity-90 text-white font-bold py-3 px-4 rounded-lg shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed">
-                                    <div class="loader-sm hidden"></div>
-                                    <span>註冊</span>
-                                </button>
-                            </div>
+                <form id="register-form" class="hidden">
+                    <div class="space-y-6">
+                        <div>
+                            <label for="register-email" class="block text-sm font-medium text-gray-300 mb-2">電子郵件</label>
+                            <input type="email" id="register-email" name="register-email" class="form-input block w-full pl-3 pr-10 py-3 text-base rounded-md" required autocomplete="email">
                         </div>
-                    </form>
-                </div>
+                        <div>
+                            <label for="register-password" class="block text-sm font-medium text-gray-300 mb-2">密碼 (至少6位數)</label>
+                            <input type="password" id="register-password" name="register-password" class="form-input block w-full pl-3 pr-10 py-3 text-base rounded-md" required minlength="6">
+                        </div>
+                        <div>
+                            <label for="confirm-password" class="block text-sm font-medium text-gray-300 mb-2">確認密碼</label>
+                            <input type="password" id="confirm-password" name="confirm-password" class="form-input block w-full pl-3 pr-10 py-3 text-base rounded-md" required minlength="6">
+                        </div>
+                        <div>
+                            <button type="submit" id="register-submit-button" class="w-full flex justify-center items-center bg-cyan-accent hover:bg-opacity-90 text-white font-bold py-3 px-4 rounded-lg shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                                <div class="loader-sm hidden"></div>
+                                <span>註冊</span>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+
                 <div id="message" class="text-red-400 text-center min-h-[2.5rem] mt-4"></div>
-
             </main>
-
         </div>
-    </div>
 
-    <section class="py-16 lg:py-24">
-        <div class="w-full max-w-5xl mx-auto px-6">
-            <h2 class="text-3xl lg:text-4xl font-bold text-center text-white mb-12">
-                功能預覽
-            </h2>
-            <div class="space-y-12">
-                <img src="css/images/preview-1.jpg" alt="功能預覽圖1" class="rounded-xl shadow-2xl w-full">
-                <img src="css/images/preview-2.jpg" alt="功能預覽圖2" class="rounded-xl shadow-2xl w-full">
+        <section class="py-16 sm:py-24 w-full">
+            <div class="space-y-20">
+
+                <div class="feature-section grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                    <div class="order-2 lg:order-1">
+                        <h2 class="text-3xl font-bold tracking-tight text-white sm:text-4xl">核心指標，一手掌握</h2>
+                        <p class="mt-6 text-lg leading-8 text-gray-300">從市場總覽、建案排名到市佔率分析，將複雜數據轉化為清晰易懂的核心指標與視覺化圖表，助您快速洞悉市場全局。</p>
+                        <dl class="mt-10 max-w-xl space-y-8 text-base leading-7 text-gray-300 lg:max-w-none">
+                            <div class="relative pl-9">
+                                <dt class="inline font-semibold text-white"><i class="fas fa-chart-pie absolute left-1 top-1 h-5 w-5 text-cyan-accent"></i> 全方位儀表板</dt>
+                                <dd class="inline">彙總市場去化總額、總坪數、平均單價與交易量，關鍵數據一目了然。</dd>
+                            </div>
+                            <div class="relative pl-9">
+                                <dt class="inline font-semibold text-white"><i class="fas fa-trophy absolute left-1 top-1 h-5 w-5 text-cyan-accent"></i> 建案動態排名</dt>
+                                <dd class="inline">依銷售總額、交易量、平均單價等多項指標動態排序，輕鬆找出熱銷建案。</dd>
+                            </div>
+                        </dl>
+                    </div>
+                    <div class="order-1 lg:order-2">
+                        <img src="preview-1.jpg" alt="核心指標與排名報表截圖" class="feature-image w-full">
+                    </div>
+                </div>
+
+                <div class="feature-section grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                    <div>
+                        <img src="preview-4.jpg" alt="垂直水平價盤（銷控表）截圖" class="feature-image w-full">
+                    </div>
+                    <div>
+                        <h2 class="text-3xl font-bold tracking-tight text-white sm:text-4xl">獨家價盤，洞悉佈局</h2>
+                        <p class="mt-6 text-lg leading-8 text-gray-300">我們將所有交易數據重建成視覺化的垂直水平價盤，模擬真實銷控表。讓您一眼看穿建案的戶型規劃、樓層價差與價格策略。</p>
+                        <dl class="mt-10 max-w-xl space-y-8 text-base leading-7 text-gray-300 lg:max-w-none">
+                            <div class="relative pl-9">
+                                <dt class="inline font-semibold text-white"><i class="fas fa-th absolute left-1 top-1 h-5 w-5 text-cyan-accent"></i> 視覺化銷控表</dt>
+                                <dd class="inline">清楚呈現各戶別的成交單價與日期，快速識別高低價戶、店舖或特殊戶型。</dd>
+                            </div>
+                            <div class="relative pl-9">
+                                <dt class="inline font-semibold text-white"><i class="fas fa-fire absolute left-1 top-1 h-5 w-5 text-cyan-accent"></i> 調價熱力圖分析</dt>
+                                <dd class="inline">獨家演算法分析建案的調價軌跡，洞悉漲跌趨勢與溢價空間，找出最佳進場時機。</dd>
+                            </div>
+                        </dl>
+                    </div>
+                </div>
+
+                <div class="feature-section grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                    <div class="order-2 lg:order-1">
+                        <h2 class="text-3xl font-bold tracking-tight text-white sm:text-4xl">去化趨勢，精準預測</h2>
+                        <p class="mt-6 text-lg leading-8 text-gray-300">追蹤不同房型在各種時間維度下的銷售速度與價量變化。結合面積分佈熱力圖，精準掌握市場主流產品與潛力區間。</p>
+                        <dl class="mt-10 max-w-xl space-y-8 text-base leading-7 text-gray-300 lg:max-w-none">
+                             <div class="relative pl-9">
+                                <dt class="inline font-semibold text-white"><i class="fas fa-chart-line absolute left-1 top-1 h-5 w-5 text-cyan-accent"></i> 多維度銷售追蹤</dt>
+                                <dd class="inline">自由切換週、月、季、年視圖，深入分析各房型的去化速度與價量走勢。</dd>
+                            </div>
+                            <div class="relative pl-9">
+                                <dt class="inline font-semibold text-white"><i class="fas fa-ruler-combined absolute left-1 top-1 h-5 w-5 text-cyan-accent"></i> 面積分佈熱力圖</dt>
+                                <dd class="inline">視覺化呈現不同房型的主力坪數區間，點擊即可查看該區間的詳細價量統計。</dd>
+                            </div>
+                        </dl>
+                    </div>
+                    <div class="order-1 lg:order-2">
+                        <img src="preview-6.jpg" alt="房型去化分析報表截圖" class="feature-image w-full">
+                    </div>
+                </div>
+
             </div>
+        </section>
         </div>
-    </section>
 
     <footer class="text-center py-8 text-gray-500 text-sm">
         <div class="flex items-center justify-center space-x-4 md:space-x-6 flex-wrap gap-y-2">
