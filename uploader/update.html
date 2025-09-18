@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>不動產批次上傳工具 v6.1 (獨立修改)</title>
+    <title>不動產批次上傳工具 v6.2 (優化體驗)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -42,7 +42,7 @@
         .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.7); display: flex; align-items: center; justify-content: center; z-index: 1000; backdrop-filter: blur(5px); transition: opacity 0.3s ease; }
         .modal-container { background: #1f2937; padding: 2rem; border-radius: 12px; width: 90%; max-width: 1000px; max-height: 90vh; display: flex; flex-direction: column; border: 1px solid #4b5563; }
         .modal-header { flex-shrink: 0; }
-        .modal-body { flex-grow: 1; overflow-y: auto; }
+        .modal-body { flex-grow: 1; overflow-y: auto; min-height: 0; }
         .modal-footer { flex-shrink: 0; }
         /* 統一輸入框樣式 */
         .form-input-custom {
@@ -55,9 +55,9 @@
             transition: all 0.2s;
         }
         .form-input-custom:focus {
+            outline: none;
             border-color: var(--cyan-accent);
-            ring: 1;
-            ring-color: var(--cyan-accent);
+            box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.5);
         }
     </style>
 </head>
@@ -70,7 +70,7 @@
                 </div>
                 <div>
                     <h1 class="text-xl font-bold text-white">不動產批次上傳/修改工具</h1>
-                    <p class="text-sm text-gray-400">Real Estate Batch Upload & Update Dashboard v6.1</p>
+                    <p class="text-sm text-gray-400">Real Estate Batch Upload & Update Dashboard v6.2</p>
                 </div>
             </div>
             <div class="flex items-center space-x-4">
@@ -131,7 +131,7 @@
                                 <label for="updateCountySelect" class="block text-sm font-medium text-gray-300 mb-2">縣市</label>
                                 <select id="updateCountySelect" class="form-input-custom">
                                     <option value="">請選擇</option>
-                                    </select>
+                                </select>
                             </div>
                             <div>
                                 <label for="updateTransactionType" class="block text-sm font-medium text-gray-300 mb-2">交易類型</label>
@@ -157,6 +157,7 @@
                             </div>
                         </div>
                     </div>
+
                     <div class="glass-card rounded-xl p-6">
                         <h2 class="text-lg font-semibold text-white mb-6 flex items-center">
                            <svg class="w-5 h-5 text-cyan-accent mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
@@ -180,22 +181,10 @@
                             <div id="uploadTypeSelector" class="bg-gray-800 rounded-lg p-4 mb-4">
                                <h3 class="text-sm font-medium text-gray-300 mb-3">選擇上傳類型</h3>
                                 <div class="flex items-center space-x-6 text-sm">
-                                    <label class="flex items-center space-x-2 cursor-pointer">
-                                        <input type="radio" id="uploadTypeAll" name="uploadType" value="all" class="form-radio h-4 w-4 text-cyan-accent bg-gray-700 border-gray-600 focus:ring-cyan-accent" checked>
-                                        <span>全選</span>
-                                    </label>
-                                    <label class="flex items-center space-x-2 cursor-pointer">
-                                        <input type="radio" id="uploadTypeA" name="uploadType" value="a" class="form-radio h-4 w-4 text-cyan-accent bg-gray-700 border-gray-600 focus:ring-cyan-accent">
-                                        <span>中古 (a)</span>
-                                    </label>
-                                    <label class="flex items-center space-x-2 cursor-pointer">
-                                        <input type="radio" id="uploadTypeB" name="uploadType" value="b" class="form-radio h-4 w-4 text-cyan-accent bg-gray-700 border-gray-600 focus:ring-cyan-accent">
-                                        <span>預售 (b)</span>
-                                    </label>
-                                    <label class="flex items-center space-x-2 cursor-pointer">
-                                        <input type="radio" id="uploadTypeC" name="uploadType" value="c" class="form-radio h-4 w-4 text-cyan-accent bg-gray-700 border-gray-600 focus:ring-cyan-accent">
-                                        <span>租賃 (c)</span>
-                                    </label>
+                                    <label class="flex items-center space-x-2 cursor-pointer"><input type="radio" name="uploadType" value="all" class="form-radio h-4 w-4 text-cyan-accent bg-gray-700 border-gray-600 focus:ring-cyan-accent" checked><span>全選</span></label>
+                                    <label class="flex items-center space-x-2 cursor-pointer"><input type="radio" name="uploadType" value="a" class="form-radio h-4 w-4 text-cyan-accent bg-gray-700 border-gray-600 focus:ring-cyan-accent"><span>中古 (a)</span></label>
+                                    <label class="flex items-center space-x-2 cursor-pointer"><input type="radio" name="uploadType" value="b" class="form-radio h-4 w-4 text-cyan-accent bg-gray-700 border-gray-600 focus:ring-cyan-accent"><span>預售 (b)</span></label>
+                                    <label class="flex items-center space-x-2 cursor-pointer"><input type="radio" name="uploadType" value="c" class="form-radio h-4 w-4 text-cyan-accent bg-gray-700 border-gray-600 focus:ring-cyan-accent"><span>租賃 (c)</span></label>
                                 </div>
                             </div>
 
@@ -269,6 +258,10 @@
                 <button id="batchUpdateModalCloseBtn" class="text-gray-400 hover:text-white text-3xl font-bold">&times;</button>
             </div>
             <div class="modal-body py-4">
+                <div class="bg-dark-bg p-3 rounded-lg mb-4 sticky top-0 z-10">
+                    <div id="modalSearchCriteriaDisplay" class="text-sm text-gray-400 mb-2"></div>
+                    <input type="text" id="modalFilterInput" class="form-input-custom w-full" placeholder="在此處篩選已顯示的結果...">
+                </div>
                 <div class="flex items-center justify-between mb-4">
                     <div id="searchResultCount" class="text-sm text-gray-400">找到 0 筆資料</div>
                     <button id="selectAllCheckbox" class="text-sm text-cyan-400 hover:text-cyan-300">全選/全不選</button>
@@ -282,7 +275,7 @@
                     <div>
                         <label for="updateFieldSelect" class="block text-sm font-medium text-gray-300 mb-2">選擇要修改的欄位</label>
                         <select id="updateFieldSelect" class="form-input-custom">
-                            </select>
+                        </select>
                     </div>
                     <div class="md:col-span-2">
                         <label for="updateValueInput" class="block text-sm font-medium text-gray-300 mb-2">輸入新內容</label>
