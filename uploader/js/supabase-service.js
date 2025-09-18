@@ -140,7 +140,7 @@ export async function uploadSubFile(fileInfo) {
     }
 }
 
-// ▼▼▼ 【新增】搜尋資料函式 ▼▼▼
+// ▼▼▼ 【已修正】搜尋資料函式 ▼▼▼
 /**
  * 從 Supabase 查詢符合條件的資料
  * @param {string} transactionType - 交易類型 ('a', 'b', 'c')
@@ -151,11 +151,14 @@ export async function uploadSubFile(fileInfo) {
 export async function searchData(transactionType, searchField, keyword) {
     if (!state.supabase) throw new Error("Supabase 未連線");
 
-    // 從第一個主表檔案推斷縣市代碼 (這是一個簡化假設，假設所有操作都在同縣市)
-    const mainFile = state.allFiles.find(f => f.isMain && f.tableType === transactionType);
-    if (!mainFile) throw new Error(`找不到 ${transactionType} 類型的檔案來判斷縣市代碼。`);
+    // 【邏輯修正】從 state.allFiles 中找到任何一個主表檔案來推斷縣市代碼
+    const anyMainFile = state.allFiles.find(f => f.isMain);
+    if (!anyMainFile) {
+        throw new Error(`找不到任何主表檔案來判斷縣市代碼。請先選擇一個包含主表檔案的資料夾。`);
+    }
     
-    const tableName = `${mainFile.countyCode}_lvr_land_${transactionType}`;
+    const countyCode = anyMainFile.countyCode;
+    const tableName = `${countyCode}_lvr_land_${transactionType}`;
     
     addLog(`正在從資料表 [${tableName}] 中，以欄位 [${searchField}] 搜尋關鍵字 [${keyword}]...`, 'info');
 
