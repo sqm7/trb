@@ -124,7 +124,8 @@ export async function uploadSubFile(fileInfo) {
     }
 }
 
-// ▼▼▼ 【已修正】搜尋資料函式 ▼▼▼
+
+// ▼▼▼ 【最終修正】搜尋資料函式 ▼▼▼
 /**
  * 從 Supabase 查詢符合條件的資料
  * @param {string} countyCode - 縣市代碼 (e.g., 'a', 'f')
@@ -141,10 +142,10 @@ export async function searchData(countyCode, transactionType, searchField, keywo
     
     addLog(`正在從資料表 [${tableName}] 中，以欄位 [${searchField}] 模糊搜尋關鍵字 [${keyword}]...`, 'info');
 
-    // 【邏輯修正】不再查詢不存在的 'id' 欄位，只查詢需要的欄位。
+    // 【邏輯修正】使用 select('*') 抓取所有實際存在的欄位，徹底避免 'id does not exist' 錯誤
     let query = state.supabase
         .from(tableName)
-        .select('編號, 地址, 備註, 解約情形') 
+        .select('*') 
         .ilike(searchField, `%${keyword}%`)
         .limit(500);
 
@@ -176,7 +177,6 @@ export async function batchUpdateData(tableName, ids, fieldToUpdate, newValue) {
     
     addLog(`準備更新資料表 [${tableName}] 中 ${ids.length} 筆紀錄的 [${fieldToUpdate}] 欄位...`, 'info');
 
-    // 【邏輯修正】從 .in('id', ids) 改為 .in('編號', ids)
     const { error } = await state.supabase
         .from(tableName)
         .update(updateObject)
