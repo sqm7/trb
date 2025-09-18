@@ -23,7 +23,7 @@
     <style>
         body { 
             font-family: 'Inter', 'Noto Sans TC', sans-serif; 
-            background-color: #1a1d29; /* Fallback color */
+            background-color: #1a1d29;
             scroll-behavior: smooth;
         }
 
@@ -54,40 +54,49 @@
         .loader-sm { border: 2px solid #374151; border-top: 2px solid #06b6d4; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         
-        .tab-button {
-            padding: 0.75rem 1rem;
-            font-weight: 500;
-            border-bottom: 3px solid transparent;
-            transition: all 0.3s ease;
-            color: #9ca3af;
-            width: 50%;
-        }
-        .tab-button.active {
-            color: #06b6d4;
-            border-bottom-color: #06b6d4;
-        }
-        #form-container {
-            min-height: 500px; 
+        .tab-button { padding: 0.75rem 1rem; font-weight: 500; border-bottom: 3px solid transparent; transition: all 0.3s ease; color: #9ca3af; width: 50%; }
+        .tab-button.active { color: #06b6d4; border-bottom-color: #06b6d4; }
+        #form-container { min-height: 500px; }
+
+        .feature-section { opacity: 0; transform: translateY(40px); transition: opacity 0.8s ease-out, transform 0.8s ease-out; }
+        .feature-section.visible { opacity: 1; transform: translateY(0); }
+        
+        /* ▼▼▼ 【本次修改核心】 ▼▼▼ */
+        .image-viewport {
+            border-radius: 0.75rem; /* 12px */
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.2), 0 8px 10px -6px rgb(0 0 0 / 0.2);
+            overflow: hidden; /* 關鍵：這行實現了裁切效果 */
+            max-height: 480px; /* 設定一個最大高度來裁切長圖片 */
+            display: flex; /* 讓圖片在容器內對齊 */
+            align-items: center; /* 垂直居中短圖片 */
+            justify-content: center; /* 水平居中 */
         }
 
-        .feature-section {
-            opacity: 0;
-            transform: translateY(40px);
-            transition: opacity 0.8s ease-out, transform 0.8s ease-out;
-        }
-        .feature-section.visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
         .feature-image {
-            border-radius: 0.75rem;
-            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.2), 0 8px 10px -6px rgb(0 0 0 / 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            width: 100%;
+            height: auto;
+            border-radius: 0; /* 移除圖片自身的圓角 */
+            box-shadow: none; /* 移除圖片自身的陰影 */
             transition: transform 0.3s ease-in-out;
         }
-        .feature-image:hover {
-            transform: scale(1.03);
+
+        .image-viewport:hover .feature-image:not(.scrolling-image) {
+            transform: scale(1.03); /* 保留非滾動圖片的放大效果 */
         }
+        
+        /* 滾動動畫定義 */
+        @keyframes slow-scroll {
+            0% { transform: translateY(0%); }
+            50% { transform: translateY(-30%); } /* 滾動到圖片的 30% 處 */
+            100% { transform: translateY(0%); }
+        }
+
+        /* 應用滾動動畫的圖片 */
+        .scrolling-image {
+            animation: slow-scroll 12s ease-in-out infinite alternate;
+        }
+        /* ▲▲▲ 【修改結束】 ▲▲▲ */
     </style>
     <script type="module">
         import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
@@ -293,38 +302,32 @@
                         <h2 class="text-3xl font-bold tracking-tight text-white sm:text-4xl">宏觀視角，微觀洞察</h2>
                         <p class="mt-6 text-lg leading-8 text-gray-300">從市場總覽、建案排名到市佔率分析，將複雜數據轉化為清晰易懂的核心指標與視覺化圖表，助您快速洞悉市場全局。</p>
                         <dl class="mt-10 max-w-xl space-y-8 text-base leading-7 text-gray-300 lg:max-w-none">
-                            <div class="relative pl-9">
-                                <dt class="inline font-semibold text-white"><i class="fas fa-tachometer-alt absolute left-1 top-1 h-5 w-5 text-cyan-accent"></i> 全方位儀表板</dt>
-                                <dd class="inline">彙總市場去化總額、總坪數、平均單價與交易量，關鍵數據一目了然。</dd>
-                            </div>
-                             <div class="relative pl-9">
-                                <dt class="inline font-semibold text-white"><i class="fas fa-sitemap absolute left-1 top-1 h-5 w-5 text-cyan-accent"></i> 市場佔比 Treemap</dt>
-                                <dd class="inline">視覺化呈現各建案的銷售佔比，迅速識別市場領導者與利基參與者。</dd>
-                            </div>
+                            <div class="relative pl-9"><dt class="inline font-semibold text-white"><i class="fas fa-tachometer-alt absolute left-1 top-1 h-5 w-5 text-cyan-accent"></i> 全方位儀表板</dt><dd class="inline">彙總市場去化總額、總坪數、平均單價與交易量，關鍵數據一目了然。</dd></div>
+                             <div class="relative pl-9"><dt class="inline font-semibold text-white"><i class="fas fa-sitemap absolute left-1 top-1 h-5 w-5 text-cyan-accent"></i> 市場佔比 Treemap</dt><dd class="inline">視覺化呈現各建案的銷售佔比，迅速識別市場領導者與利基參與者。</dd></div>
                         </dl>
                     </div>
                     <div class="order-1 lg:order-2 space-y-6">
-                        <img src="css/images/preview-1.jpg" alt="核心指標與排名報表截圖" class="feature-image w-full">
-                        <img src="css/images/preview-5.jpg" alt="市場佔比 Treemap 截圖" class="feature-image w-full">
+                        <div class="image-viewport">
+                           <img src="css/images/preview-1.jpg" alt="核心指標與排名報表截圖" class="feature-image scrolling-image">
                         </div>
+                        <div class="image-viewport">
+                           <img src="css/images/preview-5.jpg" alt="市場佔比 Treemap 截圖" class="feature-image">
+                        </div>
+                    </div>
                 </div>
 
                 <div class="feature-section grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
                     <div>
-                        <img src="css/images/preview-2.jpg" alt="單價深度剖析截圖" class="feature-image w-full">
+                        <div class="image-viewport">
+                            <img src="css/images/preview-2.jpg" alt="單價深度剖析截圖" class="feature-image scrolling-image">
                         </div>
+                    </div>
                     <div>
                         <h2 class="text-3xl font-bold tracking-tight text-white sm:text-4xl">單價深度剖析</h2>
                         <p class="mt-6 text-lg leading-8 text-gray-300">系統化比較不同建物型態（住宅、店舖、辦公室）的單價分佈，並計算價差倍數，讓您精準評估各類型產品的投資價值。</p>
                         <dl class="mt-10 max-w-xl space-y-8 text-base leading-7 text-gray-300 lg:max-w-none">
-                            <div class="relative pl-9">
-                                <dt class="inline font-semibold text-white"><i class="fas fa-balance-scale absolute left-1 top-1 h-5 w-5 text-cyan-accent"></i> 跨類型價值比較</dt>
-                                <dd class="inline">並列住宅、事務所、店鋪的完整單價統計數據，從平均數到中位數，全面評估。</dd>
-                            </div>
-                            <div class="relative pl-9">
-                                <dt class="inline font-semibold text-white"><i class="fas fa-calculator absolute left-1 top-1 h-5 w-5 text-cyan-accent"></i> 價差倍數模型</dt>
-                                <dd class="inline">自動計算店舖、事務所對住宅的單價倍數，量化不同產品間的價格關係。</dd>
-                            </div>
+                            <div class="relative pl-9"><dt class="inline font-semibold text-white"><i class="fas fa-balance-scale absolute left-1 top-1 h-5 w-5 text-cyan-accent"></i> 跨類型價值比較</dt><dd class="inline">並列住宅、事務所、店鋪的完整單價統計數據，從平均數到中位數，全面評估。</dd></div>
+                            <div class="relative pl-9"><dt class="inline font-semibold text-white"><i class="fas fa-calculator absolute left-1 top-1 h-5 w-5 text-cyan-accent"></i> 價差倍數模型</dt><dd class="inline">自動計算店舖、事務所對住宅的單價倍數，量化不同產品間的價格關係。</dd></div>
                         </dl>
                     </div>
                 </div>
@@ -334,37 +337,29 @@
                         <h2 class="text-3xl font-bold tracking-tight text-white sm:text-4xl">全方位車位分析</h2>
                         <p class="mt-6 text-lg leading-8 text-gray-300">從房車配比、各類型均價到坡道平面分層價格，提供最完整的車位市場數據，挖掘隱藏的價值窪地。</p>
                          <dl class="mt-10 max-w-xl space-y-8 text-base leading-7 text-gray-300 lg:max-w-none">
-                             <div class="relative pl-9">
-                                <dt class="inline font-semibold text-white"><i class="fas fa-car absolute left-1 top-1 h-5 w-5 text-cyan-accent"></i> 房車配比圓餅圖</dt>
-                                <dd class="inline">直觀呈現市場中「含車位」與「不含車位」的交易佔比，了解主流規劃。</dd>
-                            </div>
-                            <div class="relative pl-9">
-                                <dt class="inline font-semibold text-white"><i class="fas fa-layer-group absolute left-1 top-1 h-5 w-5 text-cyan-accent"></i> 分層分價統計</dt>
-                                <dd class="inline">精細到 B1, B2, B3... 的坡道平面車位價格分析，找出不同樓層的價差規律。</dd>
-                            </div>
+                             <div class="relative pl-9"><dt class="inline font-semibold text-white"><i class="fas fa-car absolute left-1 top-1 h-5 w-5 text-cyan-accent"></i> 房車配比圓餅圖</dt><dd class="inline">直觀呈現市場中「含車位」與「不含車位」的交易佔比，了解主流規劃。</dd></div>
+                            <div class="relative pl-9"><dt class="inline font-semibold text-white"><i class="fas fa-layer-group absolute left-1 top-1 h-5 w-5 text-cyan-accent"></i> 分層分價統計</dt><dd class="inline">精細到 B1, B2, B3... 的坡道平面車位價格分析，找出不同樓層的價差規律。</dd></div>
                         </dl>
                     </div>
                     <div class="order-1 lg:order-2">
-                         <img src="css/images/preview-3.jpg" alt="車位分析報表截圖" class="feature-image w-full">
+                         <div class="image-viewport">
+                             <img src="css/images/preview-3.jpg" alt="車位分析報表截圖" class="feature-image">
                          </div>
+                    </div>
                 </div>
 
                 <div class="feature-section grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
                     <div>
-                        <img src="css/images/preview-4.jpg" alt="垂直水平價盤（銷控表）與調價熱力圖截圖" class="feature-image w-full">
+                        <div class="image-viewport">
+                            <img src="css/images/preview-4.jpg" alt="垂直水平價盤（銷控表）與調價熱力圖截圖" class="feature-image scrolling-image">
                         </div>
+                    </div>
                     <div>
                         <h2 class="text-3xl font-bold tracking-tight text-white sm:text-4xl">獨家價盤，洞悉佈局</h2>
                         <p class="mt-6 text-lg leading-8 text-gray-300">我們將所有交易數據重建成視覺化的垂直水平價盤，模擬真實銷控表。讓您一眼看穿建案的戶型規劃、樓層價差與價格策略。</p>
                         <dl class="mt-10 max-w-xl space-y-8 text-base leading-7 text-gray-300 lg:max-w-none">
-                            <div class="relative pl-9">
-                                <dt class="inline font-semibold text-white"><i class="fas fa-th absolute left-1 top-1 h-5 w-5 text-cyan-accent"></i> 視覺化銷控表</dt>
-                                <dd class="inline">清楚呈現各戶別的成交單價與日期，快速識別高低價戶、店舖或特殊戶型。</dd>
-                            </div>
-                            <div class="relative pl-9">
-                                <dt class="inline font-semibold text-white"><i class="fas fa-fire absolute left-1 top-1 h-5 w-5 text-cyan-accent"></i> 調價熱力圖分析</dt>
-                                <dd class="inline">獨家演算法分析建案的調價軌跡，洞悉漲跌趨勢與溢價空間，找出最佳進場時機。</dd>
-                            </div>
+                            <div class="relative pl-9"><dt class="inline font-semibold text-white"><i class="fas fa-th absolute left-1 top-1 h-5 w-5 text-cyan-accent"></i> 視覺化銷控表</dt><dd class="inline">清楚呈現各戶別的成交單價與日期，快速識別高低價戶、店舖或特殊戶型。</dd></div>
+                            <div class="relative pl-9"><dt class="inline font-semibold text-white"><i class="fas fa-fire absolute left-1 top-1 h-5 w-5 text-cyan-accent"></i> 調價熱力圖分析</dt><dd class="inline">獨家演算法分析建案的調價軌跡，洞悉漲跌趨勢與溢價空間，找出最佳進場時機。</dd></div>
                         </dl>
                     </div>
                 </div>
@@ -374,19 +369,15 @@
                         <h2 class="text-3xl font-bold tracking-tight text-white sm:text-4xl">去化趨勢，精準預測</h2>
                         <p class="mt-6 text-lg leading-8 text-gray-300">追蹤不同房型在各種時間維度下的銷售速度與價量變化。結合面積分佈熱力圖，精準掌握市場主流產品與潛力區間。</p>
                         <dl class="mt-10 max-w-xl space-y-8 text-base leading-7 text-gray-300 lg:max-w-none">
-                             <div class="relative pl-9">
-                                <dt class="inline font-semibold text-white"><i class="fas fa-chart-line absolute left-1 top-1 h-5 w-5 text-cyan-accent"></i> 多維度銷售追蹤</dt>
-                                <dd class="inline">自由切換週、月、季、年視圖，深入分析各房型的去化速度與價量走勢。</dd>
-                            </div>
-                            <div class="relative pl-9">
-                                <dt class="inline font-semibold text-white"><i class="fas fa-ruler-combined absolute left-1 top-1 h-5 w-5 text-cyan-accent"></i> 面積分佈熱力圖</dt>
-                                <dd class="inline">視覺化呈現不同房型的主力坪數區間，點擊即可查看該區間的詳細價量統計。</dd>
-                            </div>
+                             <div class="relative pl-9"><dt class="inline font-semibold text-white"><i class="fas fa-chart-line absolute left-1 top-1 h-5 w-5 text-cyan-accent"></i> 多維度銷售追蹤</dt><dd class="inline">自由切換週、月、季、年視圖，深入分析各房型的去化速度與價量走勢。</dd></div>
+                            <div class="relative pl-9"><dt class="inline font-semibold text-white"><i class="fas fa-ruler-combined absolute left-1 top-1 h-5 w-5 text-cyan-accent"></i> 面積分佈熱力圖</dt><dd class="inline">視覺化呈現不同房型的主力坪數區間，點擊即可查看該區間的詳細價量統計。</dd></div>
                         </dl>
                     </div>
                     <div class="order-1 lg:order-2">
-                        <img src="css/images/preview-6.jpg" alt="房型去化分析報表截圖" class="feature-image w-full">
+                        <div class="image-viewport">
+                            <img src="css/images/preview-6.jpg" alt="房型去化分析報表截圖" class="feature-image">
                         </div>
+                    </div>
                 </div>
 
             </div>
@@ -395,14 +386,8 @@
 
     <footer class="text-center py-8 text-gray-500 text-sm">
         <div class="flex items-center justify-center space-x-4 md:space-x-6 flex-wrap gap-y-2">
-            <a href="mailto:sqmtalk7@gmail.com" class="hover:text-cyan-400 transition-colors flex items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style="height: 1.2em; width: 1.2em;"><path d="M1.5 8.67v8.58a3 3 0 0 0 3 3h15a3 3 0 0 0 3-3V8.67l-8.928 5.493a3 3 0 0 1-3.144 0L1.5 8.67Z" /><path d="M22.5 6.908V6.75a3 3 0 0 0-3-3h-15a3 3 0 0 0-3 3v.158l9.714 5.978a1.5 1.5 0 0 0 1.572 0L22.5 6.908Z" /></svg>
-                <span>sqmtalk7@gmail.com</span>
-            </a>
-            <a href="https://www.threads.net/@sqm.talk" target="_blank" rel="noopener noreferrer" class="hover:text-cyan-400 transition-colors flex items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 448 512" fill="currentColor"><path d="M336.5 80.4c0-2.3-1.9-4.2-4.2-4.2h-39.3c-13.4 0-26.1 5.3-35.4 14.6L122.9 225.1 63.5 165.7c-9.3-9.3-22-14.6-35.4-14.6H13.5c-2.3 0-4.2 1.9-4.2 4.2v39.3c0 13.4 5.3 26.1 14.6 35.4l84.6 84.6c1.1 1.1 2.3 2.1 3.6 3.1l-84.6 84.6c-9.3 9.3-14.6 22-14.6 35.4v39.3c0 2.3 1.9 4.2 4.2 4.2h39.3c13.4 0 26.1-5.3 35.4-14.6l59.4-59.4 134.5 134.5c9.3 9.3 22 14.6 35.4 14.6h39.3c2.3 0 4.2-1.9 4.2-4.2V323.8c0-13.4-5.3-26.1-14.6-35.4l-84.6-84.6c-1.1-1.1-2.3-2.1-3.6-3.1l84.6-84.6c9.3-9.3 14.6-22 14.6-35.4V80.4zm-62.3-15L238.6 101c-3.1 3.1-3.1 8.2 0 11.3l84.6 84.6c3.1 3.1 8.2 3.1 11.3 0l35.4-35.4c3.1-3.1 3.1-8.2 0-11.3L334.2 84.2c-3.1-3.1-8.2-3.1-11.3 0L274.2 65.4zM122.9 286.9L38.3 431.5c-3.1 3.1-8.2 3.1-11.3 0L.3 404.9c-3.1-3.1-3.1-8.2 0-11.3L84.9 309c3.1-3.1 8.2-3.1 11.3 0l26.7 26.7c3.1 3.1 3.1 8.2 0 11.3zm212.3 15.7l-35.4 35.4c-3.1 3.1-8.2 3.1-11.3 0L153.9 203.3c-3.1-3.1-3.1-8.2 0-11.3l35.4-35.4c3.1-3.1 8.2-3.1 11.3 0l134.5 134.5c3.1 3.1 3.1 8.2 0 11.3z"/></svg>
-                <span>@sqm.talk</span>
-            </a>
+            <a href="mailto:sqmtalk7@gmail.com" class="hover:text-cyan-400 transition-colors flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style="height: 1.2em; width: 1.2em;"><path d="M1.5 8.67v8.58a3 3 0 0 0 3 3h15a3 3 0 0 0 3-3V8.67l-8.928 5.493a3 3 0 0 1-3.144 0L1.5 8.67Z" /><path d="M22.5 6.908V6.75a3 3 0 0 0-3-3h-15a3 3 0 0 0-3 3v.158l9.714 5.978a1.5 1.5 0 0 0 1.572 0L22.5 6.908Z" /></svg><span>sqmtalk7@gmail.com</span></a>
+            <a href="https://www.threads.net/@sqm.talk" target="_blank" rel="noopener noreferrer" class="hover:text-cyan-400 transition-colors flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 448 512" fill="currentColor"><path d="M336.5 80.4c0-2.3-1.9-4.2-4.2-4.2h-39.3c-13.4 0-26.1 5.3-35.4 14.6L122.9 225.1 63.5 165.7c-9.3-9.3-22-14.6-35.4-14.6H13.5c-2.3 0-4.2 1.9-4.2 4.2v39.3c0 13.4 5.3 26.1 14.6 35.4l84.6 84.6c1.1 1.1 2.3 2.1 3.6 3.1l-84.6 84.6c-9.3 9.3-14.6 22-14.6 35.4v39.3c0 2.3 1.9 4.2 4.2 4.2h39.3c13.4 0 26.1-5.3 35.4-14.6l59.4-59.4 134.5 134.5c9.3 9.3 22 14.6 35.4 14.6h39.3c2.3 0 4.2-1.9 4.2-4.2V323.8c0-13.4-5.3-26.1-14.6-35.4l-84.6-84.6c-1.1-1.1-2.3-2.1-3.6-3.1l84.6-84.6c9.3-9.3 14.6-22 14.6-35.4V80.4zm-62.3-15L238.6 101c-3.1 3.1-3.1 8.2 0 11.3l84.6 84.6c3.1 3.1 8.2 3.1 11.3 0l35.4-35.4c3.1-3.1-3.1-8.2 0-11.3L334.2 84.2c-3.1-3.1-8.2-3.1-11.3 0L274.2 65.4zM122.9 286.9L38.3 431.5c-3.1 3.1-8.2 3.1-11.3 0L.3 404.9c-3.1-3.1-3.1-8.2 0-11.3L84.9 309c3.1-3.1 8.2-3.1 11.3 0l26.7 26.7c3.1 3.1 3.1 8.2 0 11.3zm212.3 15.7l-35.4 35.4c-3.1 3.1-8.2 3.1-11.3 0L153.9 203.3c-3.1-3.1-3.1-8.2 0-11.3l35.4-35.4c3.1-3.1 8.2-3.1 11.3 0l134.5 134.5c3.1 3.1 3.1 8.2 0 11.3z"/></svg><span>@sqm.talk</span></a>
         </div>
         <p class="mt-4">資料來源：內政部實價登錄</p>
         <p class="mt-2">版權所有 © 2025 平米內參. 保留一切權利.</p>
