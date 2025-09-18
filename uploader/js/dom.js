@@ -28,5 +28,25 @@ export const DOM = {
     // 連線與時間狀態
     connectionStatus: document.getElementById('connectionStatus'),
     connectionText: document.getElementById('connectionText'),
-    currentTime: document.getElementById('currentTime')
+    currentTime: document.getElementById('currentTime'),
+
+    // ▼▼▼ 【新增】批次修改功能相關元素 ▼▼▼
+    // 搜尋區塊
+    updateTransactionType: document.getElementById('updateTransactionType'),
+    updateSearchField: document.getElementById('updateSearchField'),
+    updateSearchKeyword: document.getElementById('updateSearchKeyword'),
+    searchForUpdateButton: document.getElementById('searchForUpdateButton'),
+
+    // 互動視窗 (Modal)
+    batchUpdateModal: document.getElementById('batchUpdateModal'),
+    batchUpdateModalCloseBtn: document.getElementById('batchUpdateModalCloseBtn'),
+    searchResultCount: document.getElementById('searchResultCount'),
+    selectAllCheckbox: document.getElementById('selectAllCheckbox'),
+    searchResultsContainer: document.getElementById('searchResultsContainer'),
+    
+    // 更新執行區塊
+    updateFieldSelect: document.getElementById('updateFieldSelect'),
+    updateValueInput: document.getElementById('updateValueInput'),
+    executeBatchUpdateButton: document.getElementById('executeBatchUpdateButton')
+    // ▲▲▲ 新增結束 ▲▲▲
 };
