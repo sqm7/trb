@@ -148,7 +148,6 @@ async function handleSearchForUpdate() {
         return;
     }
     
-    // 【邏輯修正】直接從新的縣市選單讀取 countyCode
     const countyCode = DOM.updateCountySelect.value;
     const transactionType = DOM.updateTransactionType.value;
     const searchField = DOM.updateSearchField.value;
@@ -266,22 +265,20 @@ function handleSelectAll() {
     const checkboxes = DOM.searchResultsContainer.querySelectorAll('input[type="checkbox"]');
     if (checkboxes.length === 0) return;
     
-    // 檢查目前是否已全選
     const allSelected = Array.from(checkboxes).every(cb => cb.checked);
-
-    // 根據是否已全選來決定接下來的操作
     checkboxes.forEach(cb => cb.checked = !allSelected);
 }
 
 /**
- * 【新增】填充縣市下拉選單
+ * 填充縣市下拉選單
  */
 function populateCountySelect() {
     const select = DOM.updateCountySelect;
-    for (const code in counties) {
-        const option = new Option(counties[code], code);
+    // 使用 Object.entries 來同時獲取 code 和 name
+    Object.entries(counties).forEach(([code, name]) => {
+        const option = new Option(name, code.toLowerCase()); // 使用小寫的 code 作為 value
         select.appendChild(option);
-    }
+    });
 }
 
 
@@ -289,7 +286,7 @@ function populateCountySelect() {
  * 初始化應用程式
  */
 function initialize() {
-    // 【新增】頁面載入時就填充縣市選單
+    // 頁面載入時就填充縣市選單
     populateCountySelect();
 
     // 綁定所有事件監聽器
