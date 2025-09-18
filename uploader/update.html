@@ -42,7 +42,8 @@
         .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.7); display: flex; align-items: center; justify-content: center; z-index: 1000; backdrop-filter: blur(5px); transition: opacity 0.3s ease; }
         .modal-container { background: #1f2937; padding: 2rem; border-radius: 12px; width: 90%; max-width: 1000px; max-height: 90vh; display: flex; flex-direction: column; border: 1px solid #4b5563; }
         .modal-header { flex-shrink: 0; }
-        .modal-body { flex-grow: 1; overflow-y: auto; min-height: 0; background-color: #252836; padding: 1rem; border-radius: 8px; }
+        /* 【視覺修正】為 modal-body 加上背景色和上下內距，並移除 my-4 外距 */
+        .modal-body { flex-grow: 1; overflow-y: auto; min-height: 0; background-color: #1a1d29; padding: 1rem; border-radius: 8px; }
         .modal-footer { flex-shrink: 0; }
         .form-input-custom {
             width: 100%; padding: 0.75rem 1rem; background-color: #374151; border: 1px solid #4b5563; border-radius: 0.5rem; color: white; transition: all 0.2s;
@@ -248,7 +249,7 @@
                 <h2 class="text-2xl font-bold text-white">批次修改資料</h2>
                 <button id="batchUpdateModalCloseBtn" class="text-gray-400 hover:text-white text-3xl font-bold">&times;</button>
             </div>
-            <div class="modal-body my-4 bg-dark-card p-4 rounded-lg">
+            <div class="modal-body py-4">
                 <div class="bg-dark-bg p-3 rounded-lg mb-4 sticky top-0 z-10">
                     <div id="modalSearchCriteriaDisplay" class="text-sm text-gray-400 mb-2"></div>
                     <div class="flex gap-2">
