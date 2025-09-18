@@ -47,6 +47,7 @@ export const DOM = {
     // Modal 內的篩選元件
     modalSearchCriteriaDisplay: document.getElementById('modalSearchCriteriaDisplay'),
     modalFilterInput: document.getElementById('modalFilterInput'),
+    modalFilterButton: document.getElementById('modalFilterButton'), // 【新增】篩選按鈕
     
     // 更新執行區塊
     updateFieldSelect: document.getElementById('updateFieldSelect'),
