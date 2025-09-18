@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>不動產批次上傳工具 v6.2 (優化體驗)</title>
+    <title>不動產批次上傳工具 v6.3 (最終修正)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -42,6 +42,7 @@
         .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.7); display: flex; align-items: center; justify-content: center; z-index: 1000; backdrop-filter: blur(5px); transition: opacity 0.3s ease; }
         .modal-container { background: #1f2937; padding: 2rem; border-radius: 12px; width: 90%; max-width: 1000px; max-height: 90vh; display: flex; flex-direction: column; border: 1px solid #4b5563; }
         .modal-header { flex-shrink: 0; }
+        /* 【捲軸修正】讓 modal-body 成為唯一的滾動容器 */
         .modal-body { flex-grow: 1; overflow-y: auto; min-height: 0; }
         .modal-footer { flex-shrink: 0; }
         /* 統一輸入框樣式 */
@@ -70,7 +71,7 @@
                 </div>
                 <div>
                     <h1 class="text-xl font-bold text-white">不動產批次上傳/修改工具</h1>
-                    <p class="text-sm text-gray-400">Real Estate Batch Upload & Update Dashboard v6.2</p>
+                    <p class="text-sm text-gray-400">Real Estate Batch Upload & Update Dashboard v6.3</p>
                 </div>
             </div>
             <div class="flex items-center space-x-4">
@@ -266,8 +267,8 @@
                     <div id="searchResultCount" class="text-sm text-gray-400">找到 0 筆資料</div>
                     <button id="selectAllCheckbox" class="text-sm text-cyan-400 hover:text-cyan-300">全選/全不選</button>
                 </div>
-                <div id="searchResultsContainer" class="bg-dark-bg border border-gray-700 rounded-lg max-h-64 overflow-y-auto">
-                    </div>
+                <div id="searchResultsContainer" class="bg-dark-bg border border-gray-700 rounded-lg">
+                </div>
             </div>
             <div class="modal-footer pt-4 border-t border-gray-700">
                 <h3 class="text-lg font-semibold text-white mb-4">執行更新</h3>
