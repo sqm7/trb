@@ -127,8 +127,6 @@ async function processPhase(files, phaseName, isMainTablePhase) {
     DOM.currentFileName.textContent = '';
 }
 
-// ▼▼▼ 【已修正】處理批次修改的相關函式 ▼▼▼
-
 async function handleSearchForUpdate() {
     if (!state.supabase) {
         addLog('請先成功測試 Supabase 連線', 'error', 'error');
@@ -155,7 +153,6 @@ async function handleSearchForUpdate() {
         currentUpdateContext.tableName = tableName;
         currentUpdateContext.results = data;
         
-        // 【新增】組合搜尋條件字串
         const criteriaString = `搜尋條件：${countyText} > ${searchField} (包含 '${keyword}')`;
         populateUpdateModal(data, criteriaString);
         populateUpdateFieldSelect(transactionType);
@@ -167,8 +164,8 @@ async function handleSearchForUpdate() {
 }
 
 function populateUpdateModal(data, criteriaString) {
-    DOM.modalSearchCriteriaDisplay.textContent = criteriaString || '無搜尋條件'; // 顯示搜尋條件
-    DOM.modalFilterInput.value = ''; // 清空二次篩選框
+    DOM.modalSearchCriteriaDisplay.textContent = criteriaString || '無搜尋條件';
+    DOM.modalFilterInput.value = '';
 
     DOM.searchResultCount.textContent = `找到 ${data.length} 筆資料`;
     const container = DOM.searchResultsContainer;
@@ -262,7 +259,6 @@ function handleSelectAll() {
     checkboxes.forEach(cb => cb.checked = !allSelected);
 }
 
-// 【新增】二次篩選函式
 function filterModalResults() {
     const filterText = DOM.modalFilterInput.value.toLowerCase();
     const items = DOM.searchResultsContainer.querySelectorAll('.result-item');
@@ -277,7 +273,6 @@ function filterModalResults() {
             item.style.display = 'none';
         }
     });
-    // 更新可見的項目計數
     DOM.searchResultCount.textContent = `找到 ${currentUpdateContext.results.length} 筆資料 (顯示 ${visibleCount} 筆)`;
 }
 
@@ -293,17 +288,15 @@ function populateCountySelect() {
 function initialize() {
     populateCountySelect();
     
-    // 上傳功能事件
     DOM.selectFoldersButton.addEventListener('click', handleSelectFolders);
     DOM.startUploadButton.addEventListener('click', startUpload);
     DOM.testConnectionButton.addEventListener('click', testConnection);
     
-    // 修改功能事件
     DOM.searchForUpdateButton.addEventListener('click', handleSearchForUpdate);
     DOM.batchUpdateModalCloseBtn.addEventListener('click', () => DOM.batchUpdateModal.classList.add('hidden'));
     DOM.executeBatchUpdateButton.addEventListener('click', handleBatchUpdate);
     DOM.selectAllCheckbox.addEventListener('click', handleSelectAll);
-    DOM.modalFilterInput.addEventListener('input', filterModalResults); // 【新增】綁定二次篩選事件
+    DOM.modalFilterInput.addEventListener('input', filterModalResults);
 
     window.clearLogs = clearLogs;
     updateTime();
