@@ -77,17 +77,15 @@
             height: auto;
         }
         
-        /* 動畫 1: 慢速垂直滾動 (給長截圖) */
         @keyframes slow-scroll {
             0% { transform: translateY(0%); }
-            50% { transform: translateY(-25%); } /* 向上滾動圖片高度的 25% */
+            50% { transform: translateY(-25%); }
             100% { transform: translateY(0%); }
         }
         .scrolling-image {
             animation: slow-scroll 15s ease-in-out infinite alternate;
         }
         
-        /* 動畫 2: Ken Burns 效果 (給寬截圖) */
         @keyframes ken-burns {
             0% { transform: scale(1) translateX(0); transform-origin: center; }
             50% { transform: scale(1.05) translateX(-2%); transform-origin: left; }
