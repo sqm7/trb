@@ -143,29 +143,25 @@ export async function uploadSubFile(fileInfo) {
 // ▼▼▼ 【已修正】搜尋資料函式 ▼▼▼
 /**
  * 從 Supabase 查詢符合條件的資料
+ * @param {string} countyCode - 縣市代碼 (e.g., 'a', 'f')
  * @param {string} transactionType - 交易類型 ('a', 'b', 'c')
  * @param {string} searchField - 搜尋欄位 ('建案名稱' 或 '編號')
  * @param {string} keyword - 搜尋關鍵字
- * @returns {Promise<{data: any[], error: any}>} - 查詢結果
+ * @returns {Promise<{data: any[], error: any, tableName: string}>} - 查詢結果
  */
-export async function searchData(transactionType, searchField, keyword) {
+export async function searchData(countyCode, transactionType, searchField, keyword) {
     if (!state.supabase) throw new Error("Supabase 未連線");
+    if (!countyCode) throw new Error("未選擇縣市");
 
-    const anyMainFile = state.allFiles.find(f => f.isMain);
-    if (!anyMainFile) {
-        throw new Error(`找不到任何主表檔案來判斷縣市代碼。請先選擇一個包含主表檔案的資料夾。`);
-    }
-    
-    const countyCode = anyMainFile.countyCode;
-    const tableName = `${countyCode}_lvr_land_${transactionType}`;
+    const tableName = `${countyCode.toLowerCase()}_lvr_land_${transactionType}`;
     
     addLog(`正在從資料表 [${tableName}] 中，以欄位 [${searchField}] 模糊搜尋關鍵字 [${keyword}]...`, 'info');
 
-    // 【邏輯修正】將 .eq() 修改為 .ilike() 來進行模糊搜尋
+    // 使用 .ilike() 進行模糊搜尋
     let query = state.supabase
         .from(tableName)
         .select('id, 編號, 地址, 備註, 解約情形') 
-        .ilike(searchField, `%${keyword}%`) // 使用 %keyword% 進行部分符合搜尋
+        .ilike(searchField, `%${keyword}%`)
         .limit(500);
 
     const { data, error } = await query;
@@ -177,6 +173,7 @@ export async function searchData(transactionType, searchField, keyword) {
 
     return { data, error, tableName };
 }
+
 
 /**
  * 批次更新 Supabase 中的資料
