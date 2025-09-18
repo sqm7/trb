@@ -38,6 +38,12 @@
         .status-indicator { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 8px; }
         .status-online { background: #10b981; }
         .status-offline { background: #ef4444; }
+        /* --- Modal Styles --- */
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.7); display: flex; align-items: center; justify-content: center; z-index: 1000; backdrop-filter: blur(5px); transition: opacity 0.3s ease; }
+        .modal-container { background: #1f2937; padding: 2rem; border-radius: 12px; width: 90%; max-width: 1000px; max-height: 90vh; display: flex; flex-direction: column; border: 1px solid #4b5563; }
+        .modal-header { flex-shrink: 0; }
+        .modal-body { flex-grow: 1; overflow-y: auto; }
+        .modal-footer { flex-shrink: 0; }
     </style>
 </head>
 <body class="bg-dark-bg text-white">
@@ -48,8 +54,8 @@
                     <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
                 </div>
                 <div>
-                    <h1 class="text-xl font-bold text-white">不動產批次上傳工具</h1>
-                    <p class="text-sm text-gray-400">Real Estate Batch Upload Dashboard v5.0 (Summary)</p>
+                    <h1 class="text-xl font-bold text-white">不動產批次上傳/修改工具</h1>
+                    <p class="text-sm text-gray-400">Real Estate Batch Upload & Update Dashboard v6.0</p>
                 </div>
             </div>
             <div class="flex items-center space-x-4">
@@ -71,11 +77,7 @@
                 <div class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">主要功能</div>
                 <a href="#" class="flex items-center space-x-3 px-3 py-2 rounded-lg bg-cyan-accent/10 text-cyan-accent border border-cyan-accent/20">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 1.79 4 4 4h8c0-2.21-1.79-4-4-4H8c-2.21 0-4-1.79-4-4zm0 0V4c0-2.21 1.79-4 4-4h4c2.21 0 4 1.79 4 4v3M4 7h16"></path></svg>
-                    <span>資料庫連線</span>
-                </a>
-                 <a href="#" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-700/50">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
-                    <span>檔案上傳</span>
+                    <span>資料庫管理</span>
                 </a>
             </nav>
         </div>
@@ -104,6 +106,36 @@
                         </button>
                     </div>
 
+                    <div class="glass-card rounded-xl p-6 mb-6">
+                        <h2 class="text-lg font-semibold text-white flex items-center mb-6">
+                            <svg class="w-5 h-5 text-purple-accent mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                            資料批次修改
+                        </h2>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
+                            <div>
+                                <label for="updateTransactionType" class="block text-sm font-medium text-gray-300 mb-2">交易類型</label>
+                                <select id="updateTransactionType" class="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white focus:border-cyan-accent focus:ring-1 focus:ring-cyan-accent transition-colors">
+                                    <option value="b">預售交易</option>
+                                    <option value="a">中古交易</option>
+                                    <option value="c">租賃交易</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="updateSearchField" class="block text-sm font-medium text-gray-300 mb-2">搜尋欄位</label>
+                                <select id="updateSearchField" class="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white focus:border-cyan-accent focus:ring-1 focus:ring-cyan-accent transition-colors">
+                                    <option value="建案名稱">建案名稱</option>
+                                    <option value="編號">編號</option>
+                                </select>
+                            </div>
+                            <div class="lg:col-span-2">
+                                <label for="updateSearchKeyword" class="block text-sm font-medium text-gray-300 mb-2">搜尋關鍵字</label>
+                                <div class="flex gap-2">
+                                    <input type="text" id="updateSearchKeyword" class="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-cyan-accent focus:ring-1 focus:ring-cyan-accent transition-colors" placeholder="請輸入完整名稱或編號">
+                                    <button id="searchForUpdateButton" class="bg-gradient-to-r from-purple-accent to-orange-accent text-white px-6 py-3 rounded-lg font-medium hover:shadow-lg hover:shadow-purple-accent/25 transition-all duration-300 flex-shrink-0">查詢資料</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                     <div class="glass-card rounded-xl p-6">
                         <h2 class="text-lg font-semibold text-white mb-6 flex items-center">
                            <svg class="w-5 h-5 text-cyan-accent mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
@@ -209,6 +241,39 @@
         </div>
     </div>
 
+    <div id="batchUpdateModal" class="modal-overlay hidden">
+        <div class="modal-container">
+            <div class="modal-header flex justify-between items-center pb-4 border-b border-gray-700">
+                <h2 class="text-2xl font-bold text-white">批次修改資料</h2>
+                <button id="batchUpdateModalCloseBtn" class="text-gray-400 hover:text-white text-3xl font-bold">&times;</button>
+            </div>
+            <div class="modal-body py-4">
+                <div class="flex items-center justify-between mb-4">
+                    <div id="searchResultCount" class="text-sm text-gray-400">找到 0 筆資料</div>
+                    <button id="selectAllCheckbox" class="text-sm text-cyan-400 hover:text-cyan-300">全選/全不選</button>
+                </div>
+                <div id="searchResultsContainer" class="bg-dark-bg border border-gray-700 rounded-lg max-h-64 overflow-y-auto">
+                    </div>
+            </div>
+            <div class="modal-footer pt-4 border-t border-gray-700">
+                <h3 class="text-lg font-semibold text-white mb-4">執行更新</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                    <div>
+                        <label for="updateFieldSelect" class="block text-sm font-medium text-gray-300 mb-2">選擇要修改的欄位</label>
+                        <select id="updateFieldSelect" class="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white focus:border-cyan-accent focus:ring-1 focus:ring-cyan-accent transition-colors">
+                            </select>
+                    </div>
+                    <div class="md:col-span-2">
+                        <label for="updateValueInput" class="block text-sm font-medium text-gray-300 mb-2">輸入新內容</label>
+                        <div class="flex gap-2">
+                            <input type="text" id="updateValueInput" class="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-cyan-accent focus:ring-1 focus:ring-cyan-accent" placeholder="留空以清除該欄位內容">
+                            <button id="executeBatchUpdateButton" class="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-6 py-3 rounded-lg font-medium hover:shadow-lg hover:shadow-green-500/25 transition-all duration-300 flex-shrink-0">執行更新</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
     <script type="module" src="./js/main.js"></script>
 
 </body>
