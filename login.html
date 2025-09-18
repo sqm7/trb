@@ -24,6 +24,7 @@
         body { 
             font-family: 'Inter', 'Noto Sans TC', sans-serif; 
             background-color: #1a1d29; /* Fallback color */
+            scroll-behavior: smooth;
         }
 
         #background-container {
@@ -32,8 +33,8 @@
             left: 0;
             width: 100%;
             height: 100%;
-            z-index: -2; /* Ensure it's behind the overlay */
-            background-image: url('css/images/loginbackground.jpg'); /* Correct path */
+            z-index: -2;
+            background-image: url('css/images/loginbackground.jpg');
             background-size: cover;
             background-position: center;
         }
@@ -45,7 +46,7 @@
             width: 100%;
             height: 100%;
             z-index: -1;
-            background-color: rgba(26, 29, 41, 0.8); /* Semi-transparent dark overlay */
+            background-color: rgba(26, 29, 41, 0.8);
         }
 
         .form-input { background-color: #1f2937; border: 1px solid #4b5563; color: #d1d5db; }
@@ -65,12 +66,10 @@
             color: #06b6d4;
             border-bottom-color: #06b6d4;
         }
-        /* Set a fixed minimum height for the form container to prevent jiggling */
         #form-container {
             min-height: 500px; 
         }
 
-        /* ▼▼▼ 【新增】滾動淡入動畫效果 ▼▼▼ */
         .feature-section {
             opacity: 0;
             transform: translateY(40px);
@@ -81,12 +80,14 @@
             transform: translateY(0);
         }
         .feature-image {
-            border-radius: 0.75rem; /* 12px */
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            border-radius: 0.75rem;
+            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.2), 0 8px 10px -6px rgb(0 0 0 / 0.2);
             border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: transform 0.3s ease-in-out;
         }
-        /* ▲▲▲ 【修改結束】 ▲▲▲ */
-
+        .feature-image:hover {
+            transform: scale(1.03);
+        }
     </style>
     <script type="module">
         import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
@@ -96,7 +97,6 @@
         const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         document.addEventListener('DOMContentLoaded', () => {
-            // DOM 元素
             const loginForm = document.getElementById('login-form');
             const registerForm = document.getElementById('register-form');
             const loginTab = document.getElementById('login-tab');
@@ -105,16 +105,13 @@
             const loginSubmitBtn = document.getElementById('login-submit-button');
             const registerSubmitBtn = document.getElementById('register-submit-button');
 
-            // 頁籤切換邏輯
             loginTab.addEventListener('click', () => {
                 loginTab.classList.add('active');
                 registerTab.classList.remove('active');
                 loginForm.classList.remove('hidden');
                 registerForm.classList.add('hidden');
                 messageDiv.textContent = '';
-                if (window.registerCountdownInterval) {
-                    clearInterval(window.registerCountdownInterval);
-                }
+                if (window.registerCountdownInterval) clearInterval(window.registerCountdownInterval);
             });
 
             registerTab.addEventListener('click', () => {
@@ -125,7 +122,6 @@
                 messageDiv.textContent = '';
             });
 
-            // 登入表單提交
             loginForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const btn = loginSubmitBtn;
@@ -152,7 +148,6 @@
                 }
             });
 
-            // 註冊表單提交
             registerForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const btn = registerSubmitBtn;
@@ -180,18 +175,13 @@
                     const { error } = await supabase.auth.signUp({
                         email: email,
                         password: password,
-                        options: {
-                            emailRedirectTo: 'https://sqm7.github.io/kthd/'
-                        }
+                        options: { emailRedirectTo: 'https://sqm7.github.io/kthd/' }
                     });
-
                     if (error) throw error;
                     
                     let countdown = 10;
                     const successMessage = '註冊成功！請至您的電子信箱收取驗證信。';
-                    
                     messageDiv.innerHTML = `<span class="text-green-400">${successMessage}<br>${countdown} 秒後將返回登入頁面...</span>`;
-
                     window.registerCountdownInterval = setInterval(() => {
                         countdown--;
                         if (countdown > 0) {
@@ -210,34 +200,32 @@
                 }
             });
 
-            // ▼▼▼ 【新增】Intersection Observer 邏輯 ▼▼▼
             const observer = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
                     if (entry.isIntersecting) {
                         entry.target.classList.add('visible');
-                        observer.unobserve(entry.target); // 動畫只觸發一次
+                        observer.unobserve(entry.target);
                     }
                 });
             }, {
-                threshold: 0.1 // 元素進入畫面 10% 時觸發
+                threshold: 0.1
             });
 
             document.querySelectorAll('.feature-section').forEach(section => {
                 observer.observe(section);
             });
-            // ▲▲▲ 【修改結束】 ▲▲▲
         });
     </script>
 </head>
-<body class="text-gray-200 min-h-screen flex flex-col p-6">
+<body class="text-gray-200 p-6">
     
     <div id="background-container"></div>
     <div id="background-overlay"></div>
 
-    <div class="w-full max-w-6xl mx-auto flex flex-col items-center justify-center gap-16">
+    <div class="w-full max-w-7xl mx-auto flex flex-col items-center justify-center gap-16">
     
-        <div class="w-full flex flex-col lg:flex-row items-center justify-center gap-16 pt-16">
-            <div class="flex-1 text-center lg:text-left mb-12 lg:mb-0">
+        <div class="w-full min-h-screen flex flex-col lg:flex-row items-center justify-center gap-16">
+            <div class="flex-1 text-center lg:text-left">
                 <header class="mb-8">
                     <h1 class="text-4xl lg:text-5xl font-extrabold text-white tracking-tight leading-tight">平米內參<br><span class="text-3xl lg:text-4xl font-bold">預售屋數據儀表板</span></h1>
                 </header>
@@ -249,12 +237,10 @@
             </div>
 
             <main id="form-container" class="bg-dark-card p-6 rounded-xl shadow-lg w-full max-w-sm flex-shrink-0">
-                
                 <div class="flex border-b border-gray-700 mb-6">
                     <button id="login-tab" class="tab-button active">登入</button>
                     <button id="register-tab" class="tab-button">註冊</button>
                 </div>
-
                 <form id="login-form">
                     <div class="space-y-6">
                         <div>
@@ -273,9 +259,8 @@
                         </div>
                     </div>
                 </form>
-
                 <form id="register-form" class="hidden">
-                    <div class="space-y-6">
+                     <div class="space-y-6">
                         <div>
                             <label for="register-email" class="block text-sm font-medium text-gray-300 mb-2">電子郵件</label>
                             <input type="email" id="register-email" name="register-email" class="form-input block w-full pl-3 pr-10 py-3 text-base rounded-md" required autocomplete="email">
@@ -296,37 +281,77 @@
                         </div>
                     </div>
                 </form>
-
                 <div id="message" class="text-red-400 text-center min-h-[2.5rem] mt-4"></div>
             </main>
         </div>
 
         <section class="py-16 sm:py-24 w-full">
-            <div class="space-y-20">
+            <div class="space-y-24">
 
                 <div class="feature-section grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
                     <div class="order-2 lg:order-1">
-                        <h2 class="text-3xl font-bold tracking-tight text-white sm:text-4xl">核心指標，一手掌握</h2>
+                        <h2 class="text-3xl font-bold tracking-tight text-white sm:text-4xl">宏觀視角，微觀洞察</h2>
                         <p class="mt-6 text-lg leading-8 text-gray-300">從市場總覽、建案排名到市佔率分析，將複雜數據轉化為清晰易懂的核心指標與視覺化圖表，助您快速洞悉市場全局。</p>
                         <dl class="mt-10 max-w-xl space-y-8 text-base leading-7 text-gray-300 lg:max-w-none">
                             <div class="relative pl-9">
-                                <dt class="inline font-semibold text-white"><i class="fas fa-chart-pie absolute left-1 top-1 h-5 w-5 text-cyan-accent"></i> 全方位儀表板</dt>
+                                <dt class="inline font-semibold text-white"><i class="fas fa-tachometer-alt absolute left-1 top-1 h-5 w-5 text-cyan-accent"></i> 全方位儀表板</dt>
                                 <dd class="inline">彙總市場去化總額、總坪數、平均單價與交易量，關鍵數據一目了然。</dd>
                             </div>
-                            <div class="relative pl-9">
-                                <dt class="inline font-semibold text-white"><i class="fas fa-trophy absolute left-1 top-1 h-5 w-5 text-cyan-accent"></i> 建案動態排名</dt>
-                                <dd class="inline">依銷售總額、交易量、平均單價等多項指標動態排序，輕鬆找出熱銷建案。</dd>
+                             <div class="relative pl-9">
+                                <dt class="inline font-semibold text-white"><i class="fas fa-sitemap absolute left-1 top-1 h-5 w-5 text-cyan-accent"></i> 市場佔比 Treemap</dt>
+                                <dd class="inline">視覺化呈現各建案的銷售佔比，迅速識別市場領導者與利基參與者。</dd>
                             </div>
                         </dl>
                     </div>
-                    <div class="order-1 lg:order-2">
+                    <div class="order-1 lg:order-2 space-y-6">
                         <img src="preview-1.jpg" alt="核心指標與排名報表截圖" class="feature-image w-full">
+                        <img src="preview-5.jpg" alt="市場佔比 Treemap 截圖" class="feature-image w-full">
                     </div>
                 </div>
 
                 <div class="feature-section grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
                     <div>
-                        <img src="preview-4.jpg" alt="垂直水平價盤（銷控表）截圖" class="feature-image w-full">
+                        <img src="preview-2.jpg" alt="單價深度剖析截圖" class="feature-image w-full">
+                    </div>
+                    <div>
+                        <h2 class="text-3xl font-bold tracking-tight text-white sm:text-4xl">單價深度剖析</h2>
+                        <p class="mt-6 text-lg leading-8 text-gray-300">系統化比較不同建物型態（住宅、店舖、辦公室）的單價分佈，並計算價差倍數，讓您精準評估各類型產品的投資價值。</p>
+                        <dl class="mt-10 max-w-xl space-y-8 text-base leading-7 text-gray-300 lg:max-w-none">
+                            <div class="relative pl-9">
+                                <dt class="inline font-semibold text-white"><i class="fas fa-balance-scale absolute left-1 top-1 h-5 w-5 text-cyan-accent"></i> 跨類型價值比較</dt>
+                                <dd class="inline">並列住宅、事務所、店鋪的完整單價統計數據，從平均數到中位數，全面評估。</dd>
+                            </div>
+                            <div class="relative pl-9">
+                                <dt class="inline font-semibold text-white"><i class="fas fa-calculator absolute left-1 top-1 h-5 w-5 text-cyan-accent"></i> 價差倍數模型</dt>
+                                <dd class="inline">自動計算店舖、事務所對住宅的單價倍數，量化不同產品間的價格關係。</dd>
+                            </div>
+                        </dl>
+                    </div>
+                </div>
+                
+                <div class="feature-section grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                    <div class="order-2 lg:order-1">
+                        <h2 class="text-3xl font-bold tracking-tight text-white sm:text-4xl">全方位車位分析</h2>
+                        <p class="mt-6 text-lg leading-8 text-gray-300">從房車配比、各類型均價到坡道平面分層價格，提供最完整的車位市場數據，挖掘隱藏的價值窪地。</p>
+                         <dl class="mt-10 max-w-xl space-y-8 text-base leading-7 text-gray-300 lg:max-w-none">
+                             <div class="relative pl-9">
+                                <dt class="inline font-semibold text-white"><i class="fas fa-car absolute left-1 top-1 h-5 w-5 text-cyan-accent"></i> 房車配比圓餅圖</dt>
+                                <dd class="inline">直觀呈現市場中「含車位」與「不含車位」的交易佔比，了解主流規劃。</dd>
+                            </div>
+                            <div class="relative pl-9">
+                                <dt class="inline font-semibold text-white"><i class="fas fa-layer-group absolute left-1 top-1 h-5 w-5 text-cyan-accent"></i> 分層分價統計</dt>
+                                <dd class="inline">精細到 B1, B2, B3... 的坡道平面車位價格分析，找出不同樓層的價差規律。</dd>
+                            </div>
+                        </dl>
+                    </div>
+                    <div class="order-1 lg:order-2">
+                         <img src="preview-3.jpg" alt="車位分析報表截圖" class="feature-image w-full">
+                    </div>
+                </div>
+
+                <div class="feature-section grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                    <div>
+                        <img src="preview-4.jpg" alt="垂直水平價盤（銷控表）與調價熱力圖截圖" class="feature-image w-full">
                     </div>
                     <div>
                         <h2 class="text-3xl font-bold tracking-tight text-white sm:text-4xl">獨家價盤，洞悉佈局</h2>
@@ -366,21 +391,16 @@
 
             </div>
         </section>
-        </div>
+    </div>
 
     <footer class="text-center py-8 text-gray-500 text-sm">
         <div class="flex items-center justify-center space-x-4 md:space-x-6 flex-wrap gap-y-2">
             <a href="mailto:sqmtalk7@gmail.com" class="hover:text-cyan-400 transition-colors flex items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style="height: 1.2em; width: 1.2em;">
-                  <path d="M1.5 8.67v8.58a3 3 0 0 0 3 3h15a3 3 0 0 0 3-3V8.67l-8.928 5.493a3 3 0 0 1-3.144 0L1.5 8.67Z" />
-                  <path d="M22.5 6.908V6.75a3 3 0 0 0-3-3h-15a3 3 0 0 0-3 3v.158l9.714 5.978a1.5 1.5 0 0 0 1.572 0L22.5 6.908Z" />
-                </svg>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style="height: 1.2em; width: 1.2em;"><path d="M1.5 8.67v8.58a3 3 0 0 0 3 3h15a3 3 0 0 0 3-3V8.67l-8.928 5.493a3 3 0 0 1-3.144 0L1.5 8.67Z" /><path d="M22.5 6.908V6.75a3 3 0 0 0-3-3h-15a3 3 0 0 0-3 3v.158l9.714 5.978a1.5 1.5 0 0 0 1.572 0L22.5 6.908Z" /></svg>
                 <span>sqmtalk7@gmail.com</span>
             </a>
             <a href="https://www.threads.net/@sqm.talk" target="_blank" rel="noopener noreferrer" class="hover:text-cyan-400 transition-colors flex items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 448 512" fill="currentColor">
-                    <path d="M336.5 80.4c0-2.3-1.9-4.2-4.2-4.2h-39.3c-13.4 0-26.1 5.3-35.4 14.6L122.9 225.1 63.5 165.7c-9.3-9.3-22-14.6-35.4-14.6H13.5c-2.3 0-4.2 1.9-4.2 4.2v39.3c0 13.4 5.3 26.1 14.6 35.4l84.6 84.6c1.1 1.1 2.3 2.1 3.6 3.1l-84.6 84.6c-9.3 9.3-14.6 22-14.6 35.4v39.3c0 2.3 1.9 4.2 4.2 4.2h39.3c13.4 0 26.1-5.3 35.4-14.6l59.4-59.4 134.5 134.5c9.3 9.3 22 14.6 35.4 14.6h39.3c2.3 0 4.2-1.9 4.2-4.2V323.8c0-13.4-5.3-26.1-14.6-35.4l-84.6-84.6c-1.1-1.1-2.3-2.1-3.6-3.1l84.6-84.6c9.3-9.3 14.6-22 14.6-35.4V80.4zm-62.3-15L238.6 101c-3.1 3.1-3.1 8.2 0 11.3l84.6 84.6c3.1 3.1 8.2 3.1 11.3 0l35.4-35.4c3.1-3.1 3.1-8.2 0-11.3L334.2 84.2c-3.1-3.1-8.2-3.1-11.3 0L274.2 65.4zM122.9 286.9L38.3 431.5c-3.1 3.1-8.2 3.1-11.3 0L.3 404.9c-3.1-3.1-3.1-8.2 0-11.3L84.9 309c3.1-3.1 8.2-3.1 11.3 0l26.7 26.7c3.1 3.1 3.1 8.2 0 11.3zm212.3 15.7l-35.4 35.4c-3.1 3.1-8.2 3.1-11.3 0L153.9 203.3c-3.1-3.1-3.1-8.2 0-11.3l35.4-35.4c3.1-3.1 8.2-3.1 11.3 0l134.5 134.5c3.1 3.1 3.1 8.2 0 11.3z"/>
-                </svg>
+                <svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 448 512" fill="currentColor"><path d="M336.5 80.4c0-2.3-1.9-4.2-4.2-4.2h-39.3c-13.4 0-26.1 5.3-35.4 14.6L122.9 225.1 63.5 165.7c-9.3-9.3-22-14.6-35.4-14.6H13.5c-2.3 0-4.2 1.9-4.2 4.2v39.3c0 13.4 5.3 26.1 14.6 35.4l84.6 84.6c1.1 1.1 2.3 2.1 3.6 3.1l-84.6 84.6c-9.3 9.3-14.6 22-14.6 35.4v39.3c0 2.3 1.9 4.2 4.2 4.2h39.3c13.4 0 26.1-5.3 35.4-14.6l59.4-59.4 134.5 134.5c9.3 9.3 22 14.6 35.4 14.6h39.3c2.3 0 4.2-1.9 4.2-4.2V323.8c0-13.4-5.3-26.1-14.6-35.4l-84.6-84.6c-1.1-1.1-2.3-2.1-3.6-3.1l84.6-84.6c9.3-9.3 14.6-22 14.6-35.4V80.4zm-62.3-15L238.6 101c-3.1 3.1-3.1 8.2 0 11.3l84.6 84.6c3.1 3.1 8.2 3.1 11.3 0l35.4-35.4c3.1-3.1 3.1-8.2 0-11.3L334.2 84.2c-3.1-3.1-8.2-3.1-11.3 0L274.2 65.4zM122.9 286.9L38.3 431.5c-3.1 3.1-8.2 3.1-11.3 0L.3 404.9c-3.1-3.1-3.1-8.2 0-11.3L84.9 309c3.1-3.1 8.2-3.1 11.3 0l26.7 26.7c3.1 3.1 3.1 8.2 0 11.3zm212.3 15.7l-35.4 35.4c-3.1 3.1-8.2 3.1-11.3 0L153.9 203.3c-3.1-3.1-3.1-8.2 0-11.3l35.4-35.4c3.1-3.1 8.2-3.1 11.3 0l134.5 134.5c3.1 3.1 3.1 8.2 0 11.3z"/></svg>
                 <span>@sqm.talk</span>
             </a>
         </div>
