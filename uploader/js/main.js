@@ -174,10 +174,8 @@ async function handleSearchForUpdate() {
     }
 }
 
-// ▼▼▼ 【已修正】將查詢結果填入互動視窗的函式 ▼▼▼
 /**
  * 將查詢結果填入互動視窗，並顯示所有欄位
- * @param {Array<object>} data - 查詢到的資料陣列
  */
 function populateUpdateModal(data) {
     DOM.searchResultCount.textContent = `找到 ${data.length} 筆資料`;
@@ -191,13 +189,10 @@ function populateUpdateModal(data) {
 
     data.forEach(item => {
         const el = document.createElement('label');
-        // 使用 items-start 讓 checkbox 和內容頂部對齊
         el.className = 'flex items-start p-3 border-b border-gray-700 last:border-b-0 hover:bg-gray-800/50 cursor-pointer';
 
         let detailsHtml = '';
-        // 遍歷物件的所有屬性 (即所有欄位)
         for (const key in item) {
-            // 只顯示有值的欄位，且排除 supabase 自動加入的 'id' 欄位
             if (item.hasOwnProperty(key) && item[key] !== null && item[key] !== '' && key !== 'id') {
                 detailsHtml += `
                     <div class="truncate">
@@ -208,7 +203,6 @@ function populateUpdateModal(data) {
             }
         }
         
-        // 【新版 HTML 結構】使用 grid 排版來顯示所有欄位
         el.innerHTML = `
             <input type="checkbox" data-id="${item['編號']}" class="form-checkbox h-5 w-5 text-cyan-accent bg-gray-700 border-gray-600 focus:ring-cyan-accent rounded mr-4 mt-1 flex-shrink-0">
             <div class="flex-1 grid grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-1 text-sm">
@@ -220,14 +214,15 @@ function populateUpdateModal(data) {
 }
 
 
+// ▼▼▼ 【已修正】動態產生可修改的欄位下拉選單 ▼▼▼
 /**
- * 動態產生可修改的欄位下拉選單
+ * 根據交易類型，動態產生可修改的欄位下拉選單，並設定預設值
+ * @param {string} transactionType - 交易類型 ('a', 'b', 'c')
  */
 function populateUpdateFieldSelect(transactionType) {
     const select = DOM.updateFieldSelect;
     select.innerHTML = '';
     const mapping = columnMappings[transactionType];
-    // 排除的欄位也可以包含您認為不應手動修改的欄位
     const excludedFields = ['id', '編號', '房屋單價(萬)', '房屋面積(坪)', '產權面積_房車', '車位總面積', '土地持分面積'];
     
     if (mapping) {
@@ -236,8 +231,18 @@ function populateUpdateFieldSelect(transactionType) {
             const option = new Option(field, field);
             select.appendChild(option);
         });
+
+        // 【新增邏輯】設定預設值
+        const defaultValue = '建案名稱';
+        // 檢查 '建案名稱' 這個選項是否存在於選單中
+        const defaultOptionExists = Array.from(select.options).some(option => option.value === defaultValue);
+        
+        if (defaultOptionExists) {
+            select.value = defaultValue;
+        }
     }
 }
+
 
 /**
  * 執行批次更新
@@ -290,6 +295,7 @@ function populateCountySelect() {
         select.appendChild(option);
     });
 }
+
 
 /**
  * 初始化應用程式
