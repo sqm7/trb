@@ -151,7 +151,6 @@ export async function uploadSubFile(fileInfo) {
 export async function searchData(transactionType, searchField, keyword) {
     if (!state.supabase) throw new Error("Supabase 未連線");
 
-    // 【邏輯修正】從 state.allFiles 中找到任何一個主表檔案來推斷縣市代碼
     const anyMainFile = state.allFiles.find(f => f.isMain);
     if (!anyMainFile) {
         throw new Error(`找不到任何主表檔案來判斷縣市代碼。請先選擇一個包含主表檔案的資料夾。`);
@@ -160,14 +159,14 @@ export async function searchData(transactionType, searchField, keyword) {
     const countyCode = anyMainFile.countyCode;
     const tableName = `${countyCode}_lvr_land_${transactionType}`;
     
-    addLog(`正在從資料表 [${tableName}] 中，以欄位 [${searchField}] 搜尋關鍵字 [${keyword}]...`, 'info');
+    addLog(`正在從資料表 [${tableName}] 中，以欄位 [${searchField}] 模糊搜尋關鍵字 [${keyword}]...`, 'info');
 
-    // 根據搜尋欄位建立查詢
+    // 【邏輯修正】將 .eq() 修改為 .ilike() 來進行模糊搜尋
     let query = state.supabase
         .from(tableName)
-        .select('id, 編號, 地址, 備註, 解約情形') // 只選取必要欄位以提高效能
-        .eq(searchField, keyword)
-        .limit(500); // 最多顯示 500 筆結果
+        .select('id, 編號, 地址, 備註, 解約情形') 
+        .ilike(searchField, `%${keyword}%`) // 使用 %keyword% 進行部分符合搜尋
+        .limit(500);
 
     const { data, error } = await query;
 
@@ -179,7 +178,6 @@ export async function searchData(transactionType, searchField, keyword) {
     return { data, error, tableName };
 }
 
-// ▼▼▼ 【新增】批次更新函式 ▼▼▼
 /**
  * 批次更新 Supabase 中的資料
  * @param {string} tableName - 要更新的資料表名稱
@@ -193,7 +191,7 @@ export async function batchUpdateData(tableName, ids, fieldToUpdate, newValue) {
     if (!ids || ids.length === 0) throw new Error("沒有選擇任何要更新的資料");
 
     const updateObject = {
-        [fieldToUpdate]: newValue === '' ? null : newValue // 如果新內容為空字串，則設為 null 來清空欄位
+        [fieldToUpdate]: newValue === '' ? null : newValue
     };
     
     addLog(`準備更新資料表 [${tableName}] 中 ${ids.length} 筆紀錄的 [${fieldToUpdate}] 欄位...`, 'info');
