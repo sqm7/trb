@@ -7,15 +7,11 @@ import { scanDirectory } from './file-handler.js';
 import { testConnection, uploadMainFileWithSmartUpdate, uploadSubFile, searchData, batchUpdateData } from './supabase-service.js';
 import { columnMappings, counties } from './config.js';
 
-// 用於存儲當前查詢結果的相關資訊
 let currentUpdateContext = {
     tableName: null,
     results: []
 };
 
-/**
- * 處理使用者選擇資料夾的操作
- */
 async function handleSelectFolders() {
     resetUI();
     if (!window.showDirectoryPicker) {
@@ -62,9 +58,6 @@ async function handleSelectFolders() {
     }
 }
 
-/**
- * 開始執行上傳流程
- */
 async function startUpload() {
     if (!state.supabase) {
         addLog('請先成功測試 Supabase 連線', 'error', 'error');
@@ -112,9 +105,6 @@ async function startUpload() {
     state.isUploading = false;
 }
 
-/**
- * 處理單一上傳階段
- */
 async function processPhase(files, phaseName, isMainTablePhase) {
     if (files.length === 0) {
         addLog(`在 ${phaseName} 中沒有需要上傳的檔案，跳過此階段。`, 'info');
@@ -137,9 +127,8 @@ async function processPhase(files, phaseName, isMainTablePhase) {
     DOM.currentFileName.textContent = '';
 }
 
-/**
- * 處理查詢按鈕點擊事件
- */
+// ▼▼▼ 【已修正】處理批次修改的相關函式 ▼▼▼
+
 async function handleSearchForUpdate() {
     if (!state.supabase) {
         addLog('請先成功測試 Supabase 連線', 'error', 'error');
@@ -147,6 +136,7 @@ async function handleSearchForUpdate() {
     }
     
     const countyCode = DOM.updateCountySelect.value;
+    const countyText = DOM.updateCountySelect.options[DOM.updateCountySelect.selectedIndex].text;
     const transactionType = DOM.updateTransactionType.value;
     const searchField = DOM.updateSearchField.value;
     const keyword = DOM.updateSearchKeyword.value.trim();
@@ -165,7 +155,9 @@ async function handleSearchForUpdate() {
         currentUpdateContext.tableName = tableName;
         currentUpdateContext.results = data;
         
-        populateUpdateModal(data);
+        // 【新增】組合搜尋條件字串
+        const criteriaString = `搜尋條件：${countyText} > ${searchField} (包含 '${keyword}')`;
+        populateUpdateModal(data, criteriaString);
         populateUpdateFieldSelect(transactionType);
         
         DOM.batchUpdateModal.classList.remove('hidden');
@@ -174,10 +166,10 @@ async function handleSearchForUpdate() {
     }
 }
 
-/**
- * 將查詢結果填入互動視窗，並顯示所有欄位
- */
-function populateUpdateModal(data) {
+function populateUpdateModal(data, criteriaString) {
+    DOM.modalSearchCriteriaDisplay.textContent = criteriaString || '無搜尋條件'; // 顯示搜尋條件
+    DOM.modalFilterInput.value = ''; // 清空二次篩選框
+
     DOM.searchResultCount.textContent = `找到 ${data.length} 筆資料`;
     const container = DOM.searchResultsContainer;
     container.innerHTML = '';
@@ -189,7 +181,7 @@ function populateUpdateModal(data) {
 
     data.forEach(item => {
         const el = document.createElement('label');
-        el.className = 'flex items-start p-3 border-b border-gray-700 last:border-b-0 hover:bg-gray-800/50 cursor-pointer';
+        el.className = 'flex items-start p-3 border-b border-gray-700 last:border-b-0 hover:bg-gray-800/50 cursor-pointer result-item';
 
         let detailsHtml = '';
         for (const key in item) {
@@ -213,12 +205,6 @@ function populateUpdateModal(data) {
     });
 }
 
-
-// ▼▼▼ 【已修正】動態產生可修改的欄位下拉選單 ▼▼▼
-/**
- * 根據交易類型，動態產生可修改的欄位下拉選單，並設定預設值
- * @param {string} transactionType - 交易類型 ('a', 'b', 'c')
- */
 function populateUpdateFieldSelect(transactionType) {
     const select = DOM.updateFieldSelect;
     select.innerHTML = '';
@@ -232,9 +218,7 @@ function populateUpdateFieldSelect(transactionType) {
             select.appendChild(option);
         });
 
-        // 【新增邏輯】設定預設值
         const defaultValue = '建案名稱';
-        // 檢查 '建案名稱' 這個選項是否存在於選單中
         const defaultOptionExists = Array.from(select.options).some(option => option.value === defaultValue);
         
         if (defaultOptionExists) {
@@ -243,10 +227,6 @@ function populateUpdateFieldSelect(transactionType) {
     }
 }
 
-
-/**
- * 執行批次更新
- */
 async function handleBatchUpdate() {
     const selectedCheckboxes = DOM.searchResultsContainer.querySelectorAll('input[type="checkbox"]:checked');
     const idsToUpdate = Array.from(selectedCheckboxes).map(cb => cb.dataset.id);
@@ -275,19 +255,33 @@ async function handleBatchUpdate() {
     }
 }
 
-/**
- * 處理全選/全不選
- */
 function handleSelectAll() {
-    const checkboxes = DOM.searchResultsContainer.querySelectorAll('input[type="checkbox"]');
+    const checkboxes = DOM.searchResultsContainer.querySelectorAll('.result-item:not([style*="display: none"]) input[type="checkbox"]');
     if (checkboxes.length === 0) return;
     const allSelected = Array.from(checkboxes).every(cb => cb.checked);
     checkboxes.forEach(cb => cb.checked = !allSelected);
 }
 
-/**
- * 填充縣市下拉選單
- */
+// 【新增】二次篩選函式
+function filterModalResults() {
+    const filterText = DOM.modalFilterInput.value.toLowerCase();
+    const items = DOM.searchResultsContainer.querySelectorAll('.result-item');
+    let visibleCount = 0;
+
+    items.forEach(item => {
+        const itemText = item.textContent.toLowerCase();
+        if (itemText.includes(filterText)) {
+            item.style.display = 'flex';
+            visibleCount++;
+        } else {
+            item.style.display = 'none';
+        }
+    });
+    // 更新可見的項目計數
+    DOM.searchResultCount.textContent = `找到 ${currentUpdateContext.results.length} 筆資料 (顯示 ${visibleCount} 筆)`;
+}
+
+
 function populateCountySelect() {
     const select = DOM.updateCountySelect;
     Object.entries(counties).forEach(([code, name]) => {
@@ -296,20 +290,20 @@ function populateCountySelect() {
     });
 }
 
-
-/**
- * 初始化應用程式
- */
 function initialize() {
     populateCountySelect();
-
+    
+    // 上傳功能事件
     DOM.selectFoldersButton.addEventListener('click', handleSelectFolders);
     DOM.startUploadButton.addEventListener('click', startUpload);
     DOM.testConnectionButton.addEventListener('click', testConnection);
+    
+    // 修改功能事件
     DOM.searchForUpdateButton.addEventListener('click', handleSearchForUpdate);
     DOM.batchUpdateModalCloseBtn.addEventListener('click', () => DOM.batchUpdateModal.classList.add('hidden'));
     DOM.executeBatchUpdateButton.addEventListener('click', handleBatchUpdate);
     DOM.selectAllCheckbox.addEventListener('click', handleSelectAll);
+    DOM.modalFilterInput.addEventListener('input', filterModalResults); // 【新增】綁定二次篩選事件
 
     window.clearLogs = clearLogs;
     updateTime();
