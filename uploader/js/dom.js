@@ -30,8 +30,9 @@ export const DOM = {
     connectionText: document.getElementById('connectionText'),
     currentTime: document.getElementById('currentTime'),
 
-    // ▼▼▼ 【新增】批次修改功能相關元素 ▼▼▼
+    // ▼▼▼ 【已修正】批次修改功能相關元素 ▼▼▼
     // 搜尋區塊
+    updateCountySelect: document.getElementById('updateCountySelect'), // 【新增】縣市選單
     updateTransactionType: document.getElementById('updateTransactionType'),
     updateSearchField: document.getElementById('updateSearchField'),
     updateSearchKeyword: document.getElementById('updateSearchKeyword'),
@@ -48,5 +49,5 @@ export const DOM = {
     updateFieldSelect: document.getElementById('updateFieldSelect'),
     updateValueInput: document.getElementById('updateValueInput'),
     executeBatchUpdateButton: document.getElementById('executeBatchUpdateButton')
-    // ▲▲▲ 新增結束 ▲▲▲
+    // ▲▲▲ 修正結束 ▲▲▲
 };
