@@ -113,7 +113,7 @@ async function startUpload() {
 }
 
 /**
- * 處理單一上傳階段（主表或附表）
+ * 處理單一上傳階段
  */
 async function processPhase(files, phaseName, isMainTablePhase) {
     if (files.length === 0) {
@@ -178,7 +178,6 @@ async function handleSearchForUpdate() {
 
 /**
  * 將查詢結果填入互動視窗
- * @param {Array<object>} data - 查詢到的資料陣列
  */
 function populateUpdateModal(data) {
     DOM.searchResultCount.textContent = `找到 ${data.length} 筆資料`;
@@ -193,8 +192,9 @@ function populateUpdateModal(data) {
     data.forEach(item => {
         const el = document.createElement('label');
         el.className = 'flex items-center p-3 border-b border-gray-700 last:border-b-0 hover:bg-gray-800/50 cursor-pointer';
+        // 【邏輯修正】data-id 儲存的是 '編號' 而不是不存在的 'id'
         el.innerHTML = `
-            <input type="checkbox" data-id="${item.id}" class="form-checkbox h-5 w-5 text-cyan-accent bg-gray-700 border-gray-600 focus:ring-cyan-accent rounded mr-4">
+            <input type="checkbox" data-id="${item['編號']}" class="form-checkbox h-5 w-5 text-cyan-accent bg-gray-700 border-gray-600 focus:ring-cyan-accent rounded mr-4">
             <div class="flex-1 text-sm">
                 <p class="font-mono text-white">編號: ${item['編號']}</p>
                 <p class="text-gray-400">地址: ${item['地址'] || 'N/A'}</p>
@@ -205,18 +205,15 @@ function populateUpdateModal(data) {
 }
 
 /**
- * 根據交易類型，動態產生可修改的欄位下拉選單
- * @param {string} transactionType - 交易類型 ('a', 'b', 'c')
+ * 動態產生可修改的欄位下拉選單
  */
 function populateUpdateFieldSelect(transactionType) {
     const select = DOM.updateFieldSelect;
     select.innerHTML = '';
-
     const mapping = columnMappings[transactionType];
-    const excludedFields = ['id', '編號', '房屋單價(萬)', '房屋面積(坪)']; // 排除不可直接修改的欄位
+    const excludedFields = ['id', '編號', '房屋單價(萬)', '房屋面積(坪)'];
     
     if (mapping) {
-        // 使用 Set 去除重複的資料庫欄位
         const dbColumns = [...new Set(Object.values(mapping))];
         dbColumns.filter(col => !excludedFields.includes(col)).sort().forEach(field => {
             const option = new Option(field, field);
@@ -230,7 +227,8 @@ function populateUpdateFieldSelect(transactionType) {
  */
 async function handleBatchUpdate() {
     const selectedCheckboxes = DOM.searchResultsContainer.querySelectorAll('input[type="checkbox"]:checked');
-    const idsToUpdate = Array.from(selectedCheckboxes).map(cb => parseInt(cb.dataset.id));
+    // 【邏輯修正】直接獲取存儲在 data-id 中的 '編號' 字串
+    const idsToUpdate = Array.from(selectedCheckboxes).map(cb => cb.dataset.id);
     
     if (idsToUpdate.length === 0) {
         addLog('您沒有選擇任何要更新的資料。', 'warning', 'error');
@@ -248,11 +246,9 @@ async function handleBatchUpdate() {
     
     try {
         await batchUpdateData(tableName, idsToUpdate, fieldToUpdate, newValue);
-        // 成功後關閉視窗並清空
         DOM.batchUpdateModal.classList.add('hidden');
         DOM.searchResultsContainer.innerHTML = '';
         DOM.updateValueInput.value = '';
-
     } catch(error) {
         addLog(`批次更新過程中發生錯誤: ${error.message}`, 'error', 'error');
     }
@@ -264,7 +260,6 @@ async function handleBatchUpdate() {
 function handleSelectAll() {
     const checkboxes = DOM.searchResultsContainer.querySelectorAll('input[type="checkbox"]');
     if (checkboxes.length === 0) return;
-    
     const allSelected = Array.from(checkboxes).every(cb => cb.checked);
     checkboxes.forEach(cb => cb.checked = !allSelected);
 }
@@ -274,42 +269,30 @@ function handleSelectAll() {
  */
 function populateCountySelect() {
     const select = DOM.updateCountySelect;
-    // 使用 Object.entries 來同時獲取 code 和 name
     Object.entries(counties).forEach(([code, name]) => {
-        const option = new Option(name, code.toLowerCase()); // 使用小寫的 code 作為 value
+        const option = new Option(name, code.toLowerCase());
         select.appendChild(option);
     });
 }
-
 
 /**
  * 初始化應用程式
  */
 function initialize() {
-    // 頁面載入時就填充縣市選單
     populateCountySelect();
 
-    // 綁定所有事件監聽器
     DOM.selectFoldersButton.addEventListener('click', handleSelectFolders);
     DOM.startUploadButton.addEventListener('click', startUpload);
     DOM.testConnectionButton.addEventListener('click', testConnection);
-    
-    // 批次修改功能的事件監聽
     DOM.searchForUpdateButton.addEventListener('click', handleSearchForUpdate);
     DOM.batchUpdateModalCloseBtn.addEventListener('click', () => DOM.batchUpdateModal.classList.add('hidden'));
     DOM.executeBatchUpdateButton.addEventListener('click', handleBatchUpdate);
     DOM.selectAllCheckbox.addEventListener('click', handleSelectAll);
 
-    // 將清除日誌的功能掛載到 window 物件上
     window.clearLogs = clearLogs;
-
-    // 啟動每秒更新一次時間的計時器
     updateTime();
     setInterval(updateTime, 1000);
-
-    // 初始化 UI 狀態
     resetUI();
 }
 
-// 當 DOM 載入完成後，執行初始化函式
 document.addEventListener('DOMContentLoaded', initialize);
