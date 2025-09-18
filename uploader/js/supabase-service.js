@@ -141,7 +141,7 @@ export async function searchData(countyCode, transactionType, searchField, keywo
     
     addLog(`正在從資料表 [${tableName}] 中，以欄位 [${searchField}] 模糊搜尋關鍵字 [${keyword}]...`, 'info');
 
-    // 【邏輯修正】不再查詢不存在的 'id' 欄位
+    // 【邏輯修正】不再查詢不存在的 'id' 欄位，只查詢需要的欄位。
     let query = state.supabase
         .from(tableName)
         .select('編號, 地址, 備註, 解約情形') 
