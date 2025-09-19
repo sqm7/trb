@@ -190,35 +190,37 @@
                             </button>
                         </div>
                         
-                        <div id="fileListContainer" class="hidden">
-                            <div class="bg-gray-800 rounded-lg p-4 mb-4">
-                                <h3 class="text-sm font-medium text-gray-300 mb-3">偵測到的檔案</h3>
-                                <div id="fileList" class="space-y-2 max-h-40 overflow-y-auto"></div>
-                            </div>
-                            
-                            <div id="uploadTypeSelector" class="bg-gray-800 rounded-lg p-4 mb-4">
-                               <h3 class="text-sm font-medium text-gray-300 mb-3">選擇上傳類型</h3>
-                                <div class="flex items-center space-x-6 text-sm">
-                                    <label class="flex items-center space-x-2 cursor-pointer">
-                                        <input type="radio" id="uploadTypeAll" name="uploadType" value="all" class="form-radio h-4 w-4 text-cyan-accent bg-gray-700 border-gray-600 focus:ring-cyan-accent" checked>
-                                        <span>全選</span>
-                                    </label>
-                                    <label class="flex items-center space-x-2 cursor-pointer">
-                                        <input type="radio" id="uploadTypeA" name="uploadType" value="a" class="form-radio h-4 w-4 text-cyan-accent bg-gray-700 border-gray-600 focus:ring-cyan-accent">
-                                        <span>中古 (a)</span>
-                                    </label>
-                                    <label class="flex items-center space-x-2 cursor-pointer">
-                                        <input type="radio" id="uploadTypeB" name="uploadType" value="b" class="form-radio h-4 w-4 text-cyan-accent bg-gray-700 border-gray-600 focus:ring-cyan-accent">
-                                        <span>預售 (b)</span>
-                                    </label>
-                                    <label class="flex items-center space-x-2 cursor-pointer">
-                                        <input type="radio" id="uploadTypeC" name="uploadType" value="c" class="form-radio h-4 w-4 text-cyan-accent bg-gray-700 border-gray-600 focus:ring-cyan-accent">
-                                        <span>租賃 (c)</span>
-                                    </label>
+                        <div id="fileActionContainer">
+                            <div id="fileListContainer" class="hidden">
+                                <div class="bg-gray-800 rounded-lg p-4 mb-4">
+                                    <h3 class="text-sm font-medium text-gray-300 mb-3">偵測到的檔案</h3>
+                                    <div id="fileList" class="space-y-2 max-h-40 overflow-y-auto"></div>
+                                </div>
+                                
+                                <div id="uploadTypeSelector" class="bg-gray-800 rounded-lg p-4 mb-4">
+                                   <h3 class="text-sm font-medium text-gray-300 mb-3">選擇上傳類型</h3>
+                                    <div class="flex items-center space-x-6 text-sm">
+                                        <label class="flex items-center space-x-2 cursor-pointer">
+                                            <input type="radio" id="uploadTypeAll" name="uploadType" value="all" class="form-radio h-4 w-4 text-cyan-accent bg-gray-700 border-gray-600 focus:ring-cyan-accent" checked>
+                                            <span>全選</span>
+                                        </label>
+                                        <label class="flex items-center space-x-2 cursor-pointer">
+                                            <input type="radio" id="uploadTypeA" name="uploadType" value="a" class="form-radio h-4 w-4 text-cyan-accent bg-gray-700 border-gray-600 focus:ring-cyan-accent">
+                                            <span>中古 (a)</span>
+                                        </label>
+                                        <label class="flex items-center space-x-2 cursor-pointer">
+                                            <input type="radio" id="uploadTypeB" name="uploadType" value="b" class="form-radio h-4 w-4 text-cyan-accent bg-gray-700 border-gray-600 focus:ring-cyan-accent">
+                                            <span>預售 (b)</span>
+                                        </label>
+                                        <label class="flex items-center space-x-2 cursor-pointer">
+                                            <input type="radio" id="uploadTypeC" name="uploadType" value="c" class="form-radio h-4 w-4 text-cyan-accent bg-gray-700 border-gray-600 focus:ring-cyan-accent">
+                                            <span>租賃 (c)</span>
+                                        </label>
+                                    </div>
                                 </div>
                             </div>
 
-                            <div class="flex items-center gap-4">
+                            <div class="flex items-center gap-4 mt-4">
                                 <button id="startUploadButton" class="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white py-4 rounded-lg font-semibold hover:shadow-lg hover:shadow-green-500/25 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed">
                                     <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
                                     開始上傳
@@ -316,38 +318,6 @@
             </div>
     
             <div id="batch-results-list" class="flex-grow space-y-3 overflow-y-auto pr-2 border-t border-b border-gray-700 py-4">
-                <div class="batch-item bg-dark-sidebar/50 p-4 rounded-lg border border-gray-700/80">
-                    <div class="summary-view flex items-start gap-4">
-                        <input type="checkbox" class="form-checkbox h-4 w-4 text-cyan-accent bg-gray-700 border-gray-600 focus:ring-cyan-accent mt-1 flex-shrink-0">
-                        <div class="flex-grow grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-2 text-sm">
-                            <div><strong class="text-gray-400 block">編號:</strong> <span class="font-mono text-xs">RPUNMLTKJJGFCB28CB</span></div>
-                            <div><strong class="text-gray-400 block">行政區:</strong> <span>西屯區</span></div>
-                            <div><strong class="text-gray-400 block">建案名稱:</strong> <span class="text-orange-accent">國雄無?</span></div>
-                            <div><strong class="text-gray-400 block">總樓層:</strong> <span>9</span></div>
-                            <div class="lg:col-span-4"><strong class="text-gray-400 block">地址:</strong> <span>臺中市西屯區臺灣大道二段與東興路...</span></div>
-                            <div class="lg:col-span-2"><strong class="text-gray-400 block">建物型態:</strong> <span>住宅大樓(11層含以上有電梯)</span></div>
-                            <div class="lg:col-span-2"><strong class="text-gray-400 block">主要用途:</strong> <span>住家用</span></div>
-                            <div class="lg:col-span-4"><strong class="text-gray-400 block">備註:</strong> <span class="italic text-gray-500">(無)</span></div>
-                        </div>
-                        <button class="details-toggle-btn flex-shrink-0 text-cyan-400 hover:text-cyan-300 text-sm font-medium p-1">明細</button>
-                    </div>
-                    <div class="details-view">
-                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-3 text-sm">
-                            <div><strong class="text-gray-400 block">交易標的:</strong> <span>房地(土地+建物)+車位</span></div>
-                            <div><strong class="text-gray-400 block">交易年月日:</strong> <span>2024-11-12</span></div>
-                            <div><strong class="text-gray-400 block">交易筆棟數:</strong> <span>土地1建物1車位1</span></div>
-                            <div><strong class="text-gray-400 block">移轉層次:</strong> <span>9</span></div>
-                            <div><strong class="text-gray-400 block">屋齡:</strong> <span>2</span></div>
-                            <div><strong class="text-gray-400 block">房/廳/衛:</strong> <span>2 / 2 / 2</span></div>
-                            <div><strong class="text-gray-400 block">產權面積(坪):</strong> <span>128.22</span></div>
-                            <div><strong class="text-gray-400 block">主建物面積(坪):</strong> <span>28.96</span></div>
-                            <div><strong class="text-gray-400 block">戶別:</strong> <span>B棟B06-09F號</span></div>
-                            <div><strong class="text-gray-400 block">車位類別:</strong> <span>坡道平面</span></div>
-                            <div><strong class="text-gray-400 block">車位總價(萬):</strong> <span>2,250,000</span></div>
-                            <div><strong class="text-gray-400 block">交易總價(萬):</strong> <span>1,968</span></div>
-                        </div>
-                    </div>
-                </div>
                 </div>
     
             <div class="flex-shrink-0 mt-4 pt-4 border-t border-gray-700">
