@@ -72,10 +72,10 @@
             min-height: 500px; 
         }
 
-        /* --- ▼▼▼ 新增的功能卡片樣式 ▼▼▼ --- */
+        /* --- ▼▼▼ [修改] 功能卡片樣式 ▼▼▼ --- */
         .feature-card {
-            background-image: url('css/images/loginbackground.jpg');
-            background-size: 300%; /* 放大背景圖，以便取用不同角落 */
+            background-size: cover; /* 改為 cover 以完整顯示圖片 */
+            background-position: center; /* 圖片置中 */
             border-radius: 0.75rem;
             border: 1px solid rgba(255, 255, 255, 0.1);
             overflow: hidden;
@@ -91,18 +91,18 @@
             position: relative;
             z-index: 2;
             padding: 1.5rem;
-            background: linear-gradient(to top, rgba(26, 29, 41, 0.95) 40%, rgba(26, 29, 41, 0.6) 100%);
+            background: linear-gradient(to top, rgba(26, 29, 41, 0.95) 40%, rgba(26, 29, 41, 0.7) 100%);
             height: 100%;
             display: flex;
             flex-direction: column;
         }
         
-        /* 這裡就是利用 background-position 巧妙擷取圖片不同部分的關鍵 */
-        #feature-1 { background-position: top left; }
-        #feature-2 { background-position: top right; }
-        #feature-3 { background-position: bottom left; }
-        #feature-4 { background-position: bottom right; }
-        /* --- ▲▲▲ 新增結束 ▲▲▲ --- */
+        /* 這裡改為指向您新上傳的獨立預覽圖 */
+        #feature-1 { background-image: url('css/images/preview-1.jpg'); }
+        #feature-2 { background-image: url('css/images/preview-3.jpg'); } /* 注意：根據圖片內容，這裡用 preview-3 更合適 */
+        #feature-3 { background-image: url('css/images/preview-5.jpg'); } /* 注意：根據圖片內容，這裡用 preview-5 更合適 */
+        #feature-4 { background-image: url('css/images/preview-6.jpg'); } /* 注意：根據圖片內容，這裡用 preview-6 更合適 */
+        /* --- ▲▲▲ 修改結束 ▲▲▲ --- */
 
     </style>
     <script type="module">
@@ -239,7 +239,9 @@
         
             <div class="lg:col-span-3">
                 <header class="mb-10 text-center lg:text-left">
-                    <h1 class="text-4xl lg:text-5xl font-extrabold text-white tracking-tight leading-tight">平米內參<br><span class="text-3xl lg:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-purple-400">預售屋數據儀表板</span></h1>
+                    <h1 class="text-4xl lg:text-5xl font-extrabold text-white tracking-tight leading-tight">平米內參<br>
+                        <span class="text-3xl lg:text-4xl font-bold text-cyan-accent">預售屋數據儀表板</span>
+                        </h1>
                 </header>
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -277,6 +279,7 @@
                     </div>
                 </div>
             </div>
+
             <main id="form-container" class="lg:col-span-2 bg-dark-card/80 backdrop-blur-sm p-6 rounded-xl shadow-lg w-full max-w-sm flex-shrink-0 mx-auto">
                 
                 <div class="flex border-b border-gray-700 mb-6">
@@ -328,7 +331,7 @@
 
                 <div id="message" class="text-red-400 text-center min-h-[2.5rem] mt-4"></div>
             </main>
-             </div>
+        </div>
     </div>
 
     <footer class="text-center py-8 text-gray-500 text-sm">
