@@ -35,7 +35,8 @@ async function handleSelectFolders() {
 
         if (state.allFiles.length === 0) {
             addLog('在選擇的資料夾中沒有找到符合命名規則的檔案。', 'warning', 'status');
-            DOM.openBatchEditButton.disabled = true; // No files, disable edit button
+            DOM.startUploadButton.disabled = true;
+            DOM.openBatchEditButton.disabled = true;
             return;
         }
         
@@ -48,7 +49,10 @@ async function handleSelectFolders() {
         });
         DOM.fileListContainer.classList.remove('hidden');
         addLog(`掃描完成！找到 ${state.allFiles.length} 個有效檔案。`, 'success');
-        DOM.openBatchEditButton.disabled = false; // Enable edit button
+        
+        // Enable buttons after files are selected
+        DOM.startUploadButton.disabled = false;
+        DOM.openBatchEditButton.disabled = false;
         
     } catch (err) {
         if (err.name !== 'AbortError') {
@@ -168,12 +172,14 @@ function renderBatchResults(data) {
         const allFields = Object.keys(item);
         const detailFields = allFields.filter(f => !summaryFields.includes(f));
 
-        const summaryHTML = summaryFields.map(field => `
-            <div>
+        const summaryHTML = summaryFields.map(field => {
+            const value = item[field] || '<span class="italic text-gray-500">(無)</span>';
+            const extraClass = field === '建案名稱' ? 'text-orange-accent' : '';
+            return `<div>
                 <strong class="text-gray-400 block">${field}:</strong>
-                <span>${item[field] || '<span class="italic text-gray-500">(無)</span>'}</span>
-            </div>
-        `).join('');
+                <span class="${extraClass}">${value}</span>
+            </div>`
+        }).join('');
 
         const detailsHTML = detailFields.map(field => `
             <div>
@@ -190,7 +196,7 @@ function renderBatchResults(data) {
                 </div>
                 <button class="details-toggle-btn flex-shrink-0 text-cyan-400 hover:text-cyan-300 text-sm font-medium p-1">明細</button>
             </div>
-            <div class="details-view pt-4 mt-4 border-t border-gray-700">
+            <div class="details-view mt-4 border-t border-gray-700/80">
                  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-3 text-sm">
                     ${detailsHTML}
                 </div>
@@ -268,8 +274,8 @@ function generateMockData(count) {
             '產權面積(坪)': 128.22,
             '戶別': `B棟B06-${((i%9)+1).toString().padStart(2,'0')}F號`,
             '車位類別': '坡道平面',
-            '車位總價(萬)': 2250000,
-            '交易總價(萬)': 19680000 + (i*1000)
+            '車位總價(萬)': '2,250,000',
+            '交易總價(萬)': (19680000 + (i*1000)).toLocaleString()
         });
     }
     return data;
@@ -297,7 +303,6 @@ function initialize() {
         alert('執行更新功能尚未實作。');
     });
 
-
     // 將清除日誌的功能掛載到 window 物件上，以便 HTML 中的 onclick 可以呼叫到
     window.clearLogs = clearLogs;
 
@@ -307,7 +312,6 @@ function initialize() {
 
     // 初始化 UI 狀態
     resetUI();
-    DOM.openBatchEditButton.disabled = true; // Initially disable batch edit
 }
 
 // 當 DOM 載入完成後，執行初始化函式
