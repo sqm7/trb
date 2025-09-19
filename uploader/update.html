@@ -38,7 +38,6 @@
         .status-indicator { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 8px; }
         .status-online { background: #10b981; }
         .status-offline { background: #ef4444; }
-        /* --- Modal Styles --- */
         .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.7); display: flex; align-items: center; justify-content: center; z-index: 1000; backdrop-filter: blur(5px); transition: opacity 0.3s ease; }
         .modal-container { background: #1f2937; padding: 2rem; border-radius: 12px; width: 90%; max-width: 1000px; max-height: 90vh; display: flex; flex-direction: column; border: 1px solid #4b5563; }
         .modal-header { flex-shrink: 0; }
@@ -48,8 +47,20 @@
             width: 100%; padding: 0.75rem 1rem; background-color: #374151; border: 1px solid #4b5563; border-radius: 0.5rem; color: white; transition: all 0.2s;
         }
         .form-input-custom:focus {
-            outline: none; border-color: var(--cyan-accent); box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.5);
+            outline: none; border-color: #06b6d4; box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.5);
         }
+        /* --- ▼▼▼ 新增/修改的樣式 ▼▼▼ --- */
+        .results-table { width: 100%; border-collapse: collapse; }
+        .results-table td { padding: 0.75rem; vertical-align: middle; }
+        .summary-row { cursor: pointer; transition: background-color 0.2s; }
+        .summary-row:hover { background-color: rgba(255,255,255,0.05); }
+        .details-row { display: none; }
+        .details-cell { background-color: #111827; padding: 1rem; }
+        .details-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 0.5rem 1rem; }
+        .details-grid > div { display: flex; flex-direction: column; }
+        .details-grid .key { font-weight: 600; color: #9ca3af; font-size: 0.8rem; margin-bottom: 0.1rem;}
+        .details-grid .value { color: #e5e7eb; word-break: break-all; }
+        /* --- ▲▲▲ 樣式結束 ▲▲▲ --- */
     </style>
 </head>
 <body class="bg-dark-bg text-white">
@@ -57,7 +68,7 @@
         <div class="flex items-center justify-between">
             <div class="flex items-center space-x-4">
                 <div class="w-10 h-10 bg-gradient-to-r from-cyan-accent to-purple-accent rounded-lg flex items-center justify-center">
-                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 M0011 1v5m-4 0h4"></path></svg>
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
                 </div>
                 <div>
                     <h1 class="text-xl font-bold text-white">不動產批次上傳/修改工具</h1>
@@ -264,8 +275,8 @@
                     <div id="searchResultCount" class="text-sm text-gray-400">找到 0 筆資料</div>
                     <button id="selectAllCheckbox" class="text-sm text-cyan-400 hover:text-cyan-300">全選/全不選</button>
                 </div>
-                <div id="searchResultsContainer" class="border border-gray-700 rounded-lg">
-                </div>
+                <div id="searchResultsContainer" class="border border-gray-700 rounded-lg overflow-hidden">
+                    </div>
             </div>
             <div class="modal-footer pt-4 border-t border-gray-700 mt-4">
                 <h3 class="text-lg font-semibold text-white mb-4">執行更新</h3>
