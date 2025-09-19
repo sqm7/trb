@@ -98,16 +98,33 @@
         }
         .tab-button.active { color: #06b6d4; border-bottom-color: #06b6d4; }
         
+        /* --- ▼▼▼ 【核心修正】▼▼▼ */
         .feature-section {
-            display: grid; grid-template-columns: repeat(1, minmax(0, 1fr));
-            align-items: center; gap: 2rem; padding: 5rem 2rem;
-            max-width: 1200px; margin: auto;
+            display: grid; 
+            grid-template-columns: 1fr; /* 手機版預設單欄 */
+            align-items: center; 
+            gap: 2rem; 
+            padding: 5rem 2rem;
+            max-width: 1200px; 
+            margin: auto;
         }
+        
+        /* 電腦版 (1024px 以上)啟用兩欄式佈局 */
         @media (min-width: 1024px) {
-            .feature-section { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 5rem; }
-            .feature-section.reverse .feature-text { grid-column-start: 1; }
-            .feature-section.reverse .image-container { grid-column-start: 2; }
+            .feature-section { 
+                grid-template-columns: repeat(2, minmax(0, 1fr)); 
+                gap: 5rem; 
+            }
+            /* 預設圖片在左，文字在右 */
+            .feature-section .image-container { grid-column: 1; }
+            .feature-section .feature-text { grid-column: 2; }
+            
+            /* 有 reverse class 的區塊，版面反轉 */
+            .feature-section.reverse .image-container { grid-column: 2; }
+            .feature-section.reverse .feature-text { grid-column: 1; }
         }
+        /* --- ▲▲▲ 【修改結束】▲▲▲ */
+
         .feature-annotation { border-left: 2px solid #4b5563; padding-left: 1.5rem; }
 
         .image-container {
@@ -215,6 +232,7 @@
                 </div>
             </div>
         </section>
+        
         <section class="feature-section scroll-animate">
             <div class="image-container">
                 <img src="css/images/preview-6.jpg" alt="垂直水平分析">
