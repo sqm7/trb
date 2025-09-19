@@ -13,6 +13,26 @@ import * as chartRenderer from './renderers/charts.js';
 import * as heatmapRenderer from './renderers/heatmap.js';
 import * as componentRenderer from './renderers/uiComponents.js';
 
+// --- ▼▼▼ 【新增函式】▼▼▼ ---
+/**
+ * 處理資料列表中「明細」按鈕的點擊事件
+ * @param {HTMLElement} btn - 被點擊的按鈕元素
+ */
+function handleDataDetailsToggle(btn) {
+    const summaryRow = btn.closest('.summary-row');
+    if (!summaryRow) return;
+
+    const detailsRowSelector = summaryRow.dataset.detailsTarget;
+    const detailsRow = document.querySelector(detailsRowSelector);
+    if (!detailsRow) return;
+
+    const isVisible = detailsRow.style.display === 'table-row';
+    detailsRow.style.display = isVisible ? 'none' : 'table-row';
+    btn.textContent = isVisible ? '明細' : '收合';
+}
+// --- ▲▲▲ 新增結束 ▲▲▲ ---
+
+
 // Main data fetching and analysis functions
 export async function mainFetchData() {
     ui.showLoading('查詢中，請稍候...');
@@ -102,6 +122,26 @@ export async function mainShowSubTableDetails(btn) {
         dom.modalContent.innerHTML = `<p class="text-red-400 font-semibold">查詢失敗:</p><p class="mt-2 text-sm text-gray-400">${error.message}</p>`;
     }
 }
+
+// --- ▼▼▼ 【修改此函式】▼▼▼ ---
+// 將此函式設為 async 以便在內部使用 await
+export async function onResultsTableClick(e) {
+    const detailsBtn = e.target.closest('.details-btn');
+    if (detailsBtn) {
+        // 如果點擊的是「附表」按鈕，執行舊邏輯
+        mainShowSubTableDetails(detailsBtn);
+        return;
+    }
+
+    const toggleBtn = e.target.closest('.details-toggle-btn');
+    if (toggleBtn) {
+        // 如果點擊的是「明細」按鈕，執行新的切換邏輯
+        handleDataDetailsToggle(toggleBtn);
+        return;
+    }
+}
+// --- ▲▲▲ 修改結束 ▲▲▲ ---
+
 
 export async function mainFetchProjectNameSuggestions(query) {
     const county = dom.countySelect.value;
