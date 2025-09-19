@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>平米內參 預售屋數據儀表板 - 登入 / 註冊</title>
+    <title>平米內參 預售屋數據儀表板</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
     <script>
         tailwind.config = {
             theme: {
@@ -15,47 +15,114 @@
                         'dark-bg': '#1a1d29',
                         'dark-card': '#252836',
                         'cyan-accent': '#06b6d4',
+                        'purple-accent': '#8b5cf6',
                     }
                 }
             }
         }
     </script>
     <style>
+        /* --- 基礎設定 --- */
+        html { scroll-behavior: smooth; }
         body { 
             font-family: 'Inter', 'Noto Sans TC', sans-serif; 
             background-color: #1a1d29;
+            color: #e5e7eb;
+            overflow-x: hidden;
         }
 
-        #background-container {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -2;
+        /* --- 特效：滾動觸發動畫 --- */
+        .scroll-animate {
+            opacity: 0;
+            transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+        }
+        .scroll-animate.fade-in {
+            transform: translateY(30px);
+        }
+        .scroll-animate.slide-in-left {
+            transform: translateX(-50px);
+        }
+        .scroll-animate.slide-in-right {
+            transform: translateX(50px);
+        }
+        .scroll-animate.is-visible {
+            opacity: 1;
+            transform: none;
+        }
+
+        /* --- Hero 英雄區塊樣式 --- */
+        #hero {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            text-align: center;
+            padding: 1rem;
+        }
+        #hero::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
             background-image: url('css/images/loginbackground.jpg');
             background-size: cover;
             background-position: center;
-            transform: scale(1.05);
             filter: blur(4px);
+            z-index: -2;
+            transform: scale(1.1);
         }
-
-        #background-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+        #hero::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: radial-gradient(ellipse at center, rgba(26, 29, 41, 0.7) 0%, rgba(26, 29, 41, 0.95) 100%);
             z-index: -1;
-            background-color: rgba(26, 29, 41, 0.85);
-            backdrop-filter: blur(2px);
+        }
+        .scroll-down-indicator {
+            position: absolute;
+            bottom: 2rem;
+            animation: bounce 2s infinite;
+        }
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-15px); }
+            60% { transform: translateY(-5px); }
         }
 
+        /* --- 功能展示區塊樣式 --- */
+        .feature-section {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4rem;
+            padding: 6rem 2rem;
+            min-height: 80vh;
+        }
+        .feature-section:nth-child(even) {
+            flex-direction: row-reverse;
+            background-color: #252836;
+        }
+        .feature-image {
+            flex-basis: 50%;
+            max-width: 50%;
+        }
+        .feature-image img {
+            width: 100%;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+        }
+        .feature-text {
+            flex-basis: 40%;
+            max-width: 40%;
+        }
+        .feature-text ul { list-style-position: inside; }
+
+        /* --- 登入表單區域 --- */
         .form-input { background-color: #1f2937; border: 1px solid #4b5563; color: #d1d5db; }
         .form-input:focus { border-color: #06b6d4; box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.5); outline: none; }
         .loader-sm { border: 2px solid #374151; border-top: 2px solid #06b6d4; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        
         .tab-button {
             padding: 0.75rem 1rem;
             font-weight: 500;
@@ -64,289 +131,154 @@
             color: #9ca3af;
             width: 50%;
         }
-        .tab-button.active {
-            color: #06b6d4;
-            border-bottom-color: #06b6d4;
-        }
-        #form-container {
-            min-height: 500px; 
-        }
-
-        /* --- ▼▼▼ [修改] 功能卡片樣式 ▼▼▼ --- */
-        .feature-card {
-            background-size: cover; /* 改為 cover 以完整顯示圖片 */
-            background-position: center; /* 圖片置中 */
-            border-radius: 0.75rem;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            overflow: hidden;
-            position: relative;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
-        }
-        .feature-card:hover {
-            transform: translateY(-5px) scale(1.02);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.4);
-        }
-        .feature-card-content {
-            position: relative;
-            z-index: 2;
-            padding: 1.5rem;
-            background: linear-gradient(to top, rgba(26, 29, 41, 0.95) 40%, rgba(26, 29, 41, 0.7) 100%);
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-        }
+        .tab-button.active { color: #06b6d4; border-bottom-color: #06b6d4; }
         
-        /* 這裡改為指向您新上傳的獨立預覽圖 */
-        #feature-1 { background-image: url('css/images/preview-1.jpg'); }
-        #feature-2 { background-image: url('css/images/preview-3.jpg'); } /* 注意：根據圖片內容，這裡用 preview-3 更合適 */
-        #feature-3 { background-image: url('css/images/preview-5.jpg'); } /* 注意：根據圖片內容，這裡用 preview-5 更合適 */
-        #feature-4 { background-image: url('css/images/preview-6.jpg'); } /* 注意：根據圖片內容，這裡用 preview-6 更合適 */
-        /* --- ▲▲▲ 修改結束 ▲▲▲ --- */
-
+        /* --- 響應式設計 --- */
+        @media (max-width: 1024px) {
+            .feature-section {
+                flex-direction: column !important;
+                gap: 2rem;
+                padding: 4rem 1.5rem;
+            }
+            .feature-image, .feature-text {
+                max-width: 90%;
+                flex-basis: auto;
+                text-align: center;
+            }
+            .feature-text ul { text-align: left; }
+        }
     </style>
-    <script type="module">
-        import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-
-        const SUPABASE_URL = 'https://zxbmbbfrzbtuueysicoc.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp4Ym1iYmZyemJ0dXVleXNpY29jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA2ODg5ODksImV4cCI6MjA2NjI2NDk4OX0.1IUynv5eK1xF_3pb-oasqaTrPvbeAOC4Sc1oykPBy4M';
-        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-        document.addEventListener('DOMContentLoaded', () => {
-            // DOM 元素
-            const loginForm = document.getElementById('login-form');
-            const registerForm = document.getElementById('register-form');
-            const loginTab = document.getElementById('login-tab');
-            const registerTab = document.getElementById('register-tab');
-            const messageDiv = document.getElementById('message');
-            const loginSubmitBtn = document.getElementById('login-submit-button');
-            const registerSubmitBtn = document.getElementById('register-submit-button');
-
-            // 頁籤切換邏輯
-            loginTab.addEventListener('click', () => {
-                loginTab.classList.add('active');
-                registerTab.classList.remove('active');
-                loginForm.classList.remove('hidden');
-                registerForm.classList.add('hidden');
-                messageDiv.textContent = '';
-                if (window.registerCountdownInterval) {
-                    clearInterval(window.registerCountdownInterval);
-                }
-            });
-
-            registerTab.addEventListener('click', () => {
-                registerTab.classList.add('active');
-                loginTab.classList.remove('active');
-                registerForm.classList.remove('hidden');
-                loginForm.classList.add('hidden');
-                messageDiv.textContent = '';
-            });
-
-            // 登入表單提交
-            loginForm.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const btn = loginSubmitBtn;
-                const loader = btn.querySelector('.loader-sm');
-                const text = btn.querySelector('span');
-                
-                btn.disabled = true;
-                loader.classList.remove('hidden');
-                text.classList.add('hidden');
-                messageDiv.textContent = '';
-                
-                const email = e.target.email.value;
-                const password = e.target.password.value;
-
-                try {
-                    const { error } = await supabase.auth.signInWithPassword({ email, password });
-                    if (error) throw error;
-                    window.location.href = 'index.html';
-                } catch (error) {
-                    messageDiv.textContent = `登入失敗: ${error.message}`;
-                    btn.disabled = false;
-                    loader.classList.add('hidden');
-                    text.classList.remove('hidden');
-                }
-            });
-
-            // 註冊表單提交
-            registerForm.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const btn = registerSubmitBtn;
-                const loader = btn.querySelector('.loader-sm');
-                const text = btn.querySelector('span');
-
-                btn.disabled = true;
-                loader.classList.remove('hidden');
-                text.classList.add('hidden');
-                messageDiv.textContent = '';
-
-                const email = e.target['register-email'].value;
-                const password = e.target['register-password'].value;
-                const confirmPassword = e.target['confirm-password'].value;
-
-                if (password !== confirmPassword) {
-                    messageDiv.textContent = '兩次輸入的密碼不相符。';
-                    btn.disabled = false;
-                    loader.classList.add('hidden');
-                    text.classList.remove('hidden');
-                    return;
-                }
-
-                try {
-                    const { error } = await supabase.auth.signUp({
-                        email: email,
-                        password: password,
-                        options: {
-                            emailRedirectTo: 'https://sqm7.github.io/kthd/'
-                        }
-                    });
-
-                    if (error) throw error;
-                    
-                    let countdown = 10;
-                    const successMessage = '註冊成功！請至您的電子信箱收取驗證信。';
-                    
-                    messageDiv.innerHTML = `<span class="text-green-400">${successMessage}<br>${countdown} 秒後將返回登入頁面...</span>`;
-
-                    window.registerCountdownInterval = setInterval(() => {
-                        countdown--;
-                        if (countdown > 0) {
-                            messageDiv.innerHTML = `<span class="text-green-400">${successMessage}<br>${countdown} 秒後將返回登入頁面...</span>`;
-                        } else {
-                            clearInterval(window.registerCountdownInterval);
-                            loginTab.click();
-                        }
-                    }, 1000);
-
-                } catch (error) {
-                    messageDiv.textContent = `註冊失敗: ${error.message}`;
-                    btn.disabled = false;
-                    loader.classList.add('hidden');
-                    text.classList.remove('hidden');
-                }
-            });
-        });
-    </script>
 </head>
-<body class="text-gray-200 min-h-screen flex flex-col p-6 lg:p-12">
+<body>
     
-    <div id="background-container"></div>
-    <div id="background-overlay"></div>
-
-    <div class="flex-grow flex items-center justify-center">
-        <div class="w-full max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-5 gap-12 items-center">
-        
-            <div class="lg:col-span-3">
-                <header class="mb-10 text-center lg:text-left">
-                    <h1 class="text-4xl lg:text-5xl font-extrabold text-white tracking-tight leading-tight">平米內參<br>
-                        <span class="text-3xl lg:text-4xl font-bold text-cyan-accent">預售屋數據儀表板</span>
-                        </h1>
-                </header>
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div class="feature-card" id="feature-1">
-                        <div class="feature-card-content">
-                            <h2 class="text-xl font-bold text-white mb-3">洞悉市場全局，掌握核心指標</h2>
-                            <p class="text-gray-300 text-sm flex-grow">
-                                快速掌握市場脈動。本儀表板提供「<b>核心指標與建案排名</b>」分析，一眼看穿市場總銷金額、去化坪數、平均單價與交易量。更能透過「<b>總價帶分析</b>」了解各房型的價格分佈與主力成交區間，助您從宏觀角度做出最佳判斷。
-                            </p>
-                        </div>
-                    </div>
-                    <div class="feature-card" id="feature-2">
-                        <div class="feature-card-content">
-                            <h2 class="text-xl font-bold text-white mb-3">精準剖析單價，挖掘真實價值</h2>
-                            <p class="text-gray-300 text-sm flex-grow">
-                                深入價格的每一個細節。提供「<b>房屋單價分析</b>」，可切換算術平均與加權平均，比較住宅、店舖、辦公室之間的價差倍數。同時包含完整的「<b>車位單價分析</b>」，從房車配比、各類型車位均價，到坡道平面的分層價差，無一遺漏。
-                            </p>
-                        </div>
-                    </div>
-                    <div class="feature-card" id="feature-3">
-                        <div class="feature-card-content">
-                            <h2 class="text-xl font-bold text-white mb-3">追蹤銷售速度，預測市場趨勢</h2>
-                            <p class="text-gray-300 text-sm flex-grow">
-                                「<b>房型去化分析</b>」是您的市場風向標。以週、月、季、年等多時間維度，追蹤不同房型的銷售速度與趨勢變化。搭配「<b>房型面積分佈熱力圖</b>」，視覺化呈現市場上最熱銷的產品規格，助您提前佈局，搶佔先機。
-                            </p>
-                        </div>
-                    </div>
-                    <div class="feature-card" id="feature-4">
-                        <div class="feature-card-content">
-                            <h2 class="text-xl font-bold text-white mb-3">還原真實價盤，洞察調價軌跡</h2>
-                            <p class="text-gray-300 text-sm flex-grow">
-                                業界獨家！我們的「<b>垂直水平分析</b>」功能，能將雜亂的數據還原成視覺化的銷控表，清晰呈現水平與垂直價差。更可啟用「<b>調價熱力圖</b>」模式，透過演算法錨定開盤基準價，精準計算每戶的真實溢價幅度，讓建案的調價策略與利潤空間一目了然。
-                            </p>
-                        </div>
-                    </div>
+    <section id="hero">
+        <div class="max-w-4xl mx-auto">
+            <h1 class="text-5xl md:text-7xl font-extrabold text-white tracking-tight leading-tight">
+                平米內參
+            </h1>
+            <p class="mt-4 text-xl md:text-2xl text-gray-300">
+                您的 AI 驅動預售屋市場決策引擎
+            </p>
+            <div class="mt-8 border-t border-b border-cyan-accent/20 py-4">
+                <p class="text-sm uppercase tracking-widest text-cyan-accent font-semibold">專為以下專業人士打造</p>
+                <div class="mt-3 flex justify-center items-center gap-6 md:gap-10 text-lg text-gray-200">
+                    <div class="flex items-center gap-2"><i class="fa-solid fa-building text-purple-accent"></i><span>建商</span></div>
+                    <div class="flex items-center gap-2"><i class="fa-solid fa-handshake text-purple-accent"></i><span>代銷</span></div>
+                    <div class="flex items-center gap-2"><i class="fa-solid fa-chart-line text-purple-accent"></i><span>投資人</span></div>
                 </div>
             </div>
-
-            <main id="form-container" class="lg:col-span-2 bg-dark-card/80 backdrop-blur-sm p-6 rounded-xl shadow-lg w-full max-w-sm flex-shrink-0 mx-auto">
-                
-                <div class="flex border-b border-gray-700 mb-6">
-                    <button id="login-tab" class="tab-button active">登入</button>
-                    <button id="register-tab" class="tab-button">註冊</button>
-                </div>
-
-                <form id="login-form">
-                    <div class="space-y-6">
-                        <div>
-                            <label for="email" class="block text-sm font-medium text-gray-300 mb-2">電子郵件</label>
-                            <input type="email" id="email" name="email" class="form-input block w-full pl-3 pr-10 py-3 text-base rounded-md" required autocomplete="email">
-                        </div>
-                        <div>
-                            <label for="password" class="block text-sm font-medium text-gray-300 mb-2">密碼</label>
-                            <input type="password" id="password" name="password" class="form-input block w-full pl-3 pr-10 py-3 text-base rounded-md" required autocomplete="current-password">
-                        </div>
-                        <div>
-                            <button type="submit" id="login-submit-button" class="w-full flex justify-center items-center bg-cyan-accent hover:bg-opacity-90 text-white font-bold py-3 px-4 rounded-lg shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed">
-                                <div class="loader-sm hidden"></div>
-                                <span>登入</span>
-                            </button>
-                        </div>
-                    </div>
-                </form>
-
-                <form id="register-form" class="hidden">
-                    <div class="space-y-6">
-                        <div>
-                            <label for="register-email" class="block text-sm font-medium text-gray-300 mb-2">電子郵件</label>
-                            <input type="email" id="register-email" name="register-email" class="form-input block w-full pl-3 pr-10 py-3 text-base rounded-md" required autocomplete="email">
-                        </div>
-                        <div>
-                            <label for="register-password" class="block text-sm font-medium text-gray-300 mb-2">密碼 (至少6位數)</label>
-                            <input type="password" id="register-password" name="register-password" class="form-input block w-full pl-3 pr-10 py-3 text-base rounded-md" required minlength="6">
-                        </div>
-                        <div>
-                            <label for="confirm-password" class="block text-sm font-medium text-gray-300 mb-2">確認密碼</label>
-                            <input type="password" id="confirm-password" name="confirm-password" class="form-input block w-full pl-3 pr-10 py-3 text-base rounded-md" required minlength="6">
-                        </div>
-                        <div>
-                            <button type="submit" id="register-submit-button" class="w-full flex justify-center items-center bg-cyan-accent hover:bg-opacity-90 text-white font-bold py-3 px-4 rounded-lg shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed">
-                                <div class="loader-sm hidden"></div>
-                                <span>註冊</span>
-                            </button>
-                        </div>
-                    </div>
-                </form>
-
-                <div id="message" class="text-red-400 text-center min-h-[2.5rem] mt-4"></div>
-            </main>
+             <a href="#login-section" class="mt-10 inline-block bg-cyan-accent text-white font-bold py-3 px-8 rounded-lg shadow-lg hover:bg-opacity-90 transition-all text-lg">
+                立即登入
+            </a>
         </div>
-    </div>
+        <a href="#features" class="scroll-down-indicator text-white/50">
+            <i class="fa-solid fa-chevron-down fa-2x"></i>
+        </a>
+    </section>
 
-    <footer class="text-center py-8 text-gray-500 text-sm">
+    <main id="features">
+        <section class="feature-section">
+            <div class="feature-image scroll-animate slide-in-left">
+                <img src="css/images/preview-1.jpg" alt="核心指標與排名">
+            </div>
+            <div class="feature-text scroll-animate slide-in-right">
+                <h2 class="text-3xl font-bold mb-4 text-white">宏觀市場儀表板</h2>
+                <p class="text-lg text-gray-300 mb-6">快速掌握市場脈動。本儀表板提供「核心指標與建案排名」分析，一眼看穿市場總銷金額、去化坪數、平均單價與交易量。更能透過「總價帶分析」了解各房型的價格分佈與主力成交區間，助您從宏觀角度做出最佳判斷。</p>
+            </div>
+        </section>
+
+        <section class="feature-section">
+            <div class="feature-image scroll-animate slide-in-right">
+                 <img src="css/images/preview-3.jpg" alt="多維度單價分析">
+            </div>
+            <div class="feature-text scroll-animate slide-in-left">
+                <h2 class="text-3xl font-bold mb-4 text-white">多維度單價分析</h2>
+                <p class="text-lg text-gray-300 mb-6">深入價格的每一個細節。提供「房屋單價分析」，可切換算術平均與加權平均，比較住宅、店舖、辦公室之間的價差倍數。同時包含完整的「車位單價分析」，從房車配比、各類型車位均價，到坡道平面的分層價差，無一遺漏。</p>
+            </div>
+        </section>
+        
+        <section class="feature-section">
+            <div class="feature-image scroll-animate slide-in-left">
+                <img src="css/images/preview-5.jpg" alt="動態去化追蹤">
+            </div>
+            <div class="feature-text scroll-animate slide-in-right">
+                <h2 class="text-3xl font-bold mb-4 text-white">動態去化追蹤</h2>
+                 <p class="text-lg text-gray-300 mb-6">「房型去化分析」是您的市場風向標。以週、月、季、年等多時間維度，追蹤不同房型的銷售速度與趨勢變化。搭配「房型面積分佈熱力圖」，視覺化呈現市場上最熱銷的產品規格，助您提前佈局，搶佔先機。</p>
+            </div>
+        </section>
+
+        <section class="feature-section">
+            <div class="feature-image scroll-animate slide-in-right">
+                <img src="css/images/preview-6.jpg" alt="獨家價盤還原系統">
+            </div>
+            <div class="feature-text scroll-animate slide-in-left">
+                <h2 class="text-3xl font-bold mb-4 text-white">獨家價盤還原系統</h2>
+                <p class="text-lg text-gray-300 mb-6">業界獨家！我們的「垂直水平分析」功能，能將雜亂的數據還原成視覺化的銷控表，清晰呈現水平與垂直價差。更可啟用「調價熱力圖」模式，透過演算法錨定開盤基準價，精準計算每戶的真實溢價幅度，讓建案的調價策略與利潤空間一目了然。</p>
+            </div>
+        </section>
+    </main>
+
+    <section id="login-section" class="py-20 bg-dark-bg">
+        <div id="form-container" class="bg-dark-card p-8 rounded-xl shadow-2xl w-full max-w-sm mx-auto">
+            <div class="flex border-b border-gray-700 mb-6">
+                <button id="login-tab" class="tab-button active">登入</button>
+                <button id="register-tab" class="tab-button">註冊</button>
+            </div>
+
+            <form id="login-form">
+                <div class="space-y-6">
+                    <div>
+                        <label for="email" class="block text-sm font-medium text-gray-300 mb-2">電子郵件</label>
+                        <input type="email" id="email" name="email" class="form-input block w-full pl-3 pr-10 py-3 text-base rounded-md" required autocomplete="email">
+                    </div>
+                    <div>
+                        <label for="password" class="block text-sm font-medium text-gray-300 mb-2">密碼</label>
+                        <input type="password" id="password" name="password" class="form-input block w-full pl-3 pr-10 py-3 text-base rounded-md" required autocomplete="current-password">
+                    </div>
+                    <div>
+                        <button type="submit" id="login-submit-button" class="w-full flex justify-center items-center bg-cyan-accent hover:bg-opacity-90 text-white font-bold py-3 px-4 rounded-lg shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                            <div class="loader-sm hidden"></div>
+                            <span>登入</span>
+                        </button>
+                    </div>
+                </div>
+            </form>
+
+            <form id="register-form" class="hidden">
+                <div class="space-y-6">
+                    <div>
+                        <label for="register-email" class="block text-sm font-medium text-gray-300 mb-2">電子郵件</label>
+                        <input type="email" id="register-email" name="register-email" class="form-input block w-full pl-3 pr-10 py-3 text-base rounded-md" required autocomplete="email">
+                    </div>
+                    <div>
+                        <label for="register-password" class="block text-sm font-medium text-gray-300 mb-2">密碼 (至少6位數)</label>
+                        <input type="password" id="register-password" name="register-password" class="form-input block w-full pl-3 pr-10 py-3 text-base rounded-md" required minlength="6">
+                    </div>
+                    <div>
+                        <label for="confirm-password" class="block text-sm font-medium text-gray-300 mb-2">確認密碼</label>
+                        <input type="password" id="confirm-password" name="confirm-password" class="form-input block w-full pl-3 pr-10 py-3 text-base rounded-md" required minlength="6">
+                    </div>
+                    <div>
+                        <button type="submit" id="register-submit-button" class="w-full flex justify-center items-center bg-cyan-accent hover:bg-opacity-90 text-white font-bold py-3 px-4 rounded-lg shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                            <div class="loader-sm hidden"></div>
+                            <span>註冊</span>
+                        </button>
+                    </div>
+                </div>
+            </form>
+
+            <div id="message" class="text-red-400 text-center min-h-[2.5rem] mt-4"></div>
+        </div>
+    </section>
+
+    <footer class="text-center py-8 text-gray-500 text-sm bg-dark-card">
         <div class="flex items-center justify-center space-x-4 md:space-x-6 flex-wrap gap-y-2">
             <a href="mailto:sqmtalk7@gmail.com" class="hover:text-cyan-400 transition-colors flex items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style="height: 1.2em; width: 1.2em;">
-                  <path d="M1.5 8.67v8.58a3 3 0 0 0 3 3h15a3 3 0 0 0 3-3V8.67l-8.928 5.493a3 3 0 0 1-3.144 0L1.5 8.67Z" />
-                  <path d="M22.5 6.908V6.75a3 3 0 0 0-3-3h-15a3 3 0 0 0-3 3v.158l9.714 5.978a1.5 1.5 0 0 0 1.572 0L22.5 6.908Z" />
-                </svg>
+                <i class="fa-solid fa-envelope"></i>
                 <span>sqmtalk7@gmail.com</span>
             </a>
             <a href="https://www.threads.net/@sqm.talk" target="_blank" rel="noopener noreferrer" class="hover:text-cyan-400 transition-colors flex items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 448 512" fill="currentColor">
-                    <path d="M336.5 80.4c0-2.3-1.9-4.2-4.2-4.2h-39.3c-13.4 0-26.1 5.3-35.4 14.6L122.9 225.1 63.5 165.7c-9.3-9.3-22-14.6-35.4-14.6H13.5c-2.3 0-4.2 1.9-4.2 4.2v39.3c0 13.4 5.3 26.1 14.6 35.4l84.6 84.6c1.1 1.1 2.3 2.1 3.6 3.1l-84.6 84.6c-9.3 9.3-14.6 22-14.6 35.4v39.3c0 2.3 1.9 4.2 4.2 4.2h39.3c13.4 0 26.1-5.3 35.4-14.6l59.4-59.4 134.5 134.5c9.3 9.3 22 14.6 35.4 14.6h39.3c2.3 0 4.2-1.9 4.2-4.2V323.8c0-13.4-5.3-26.1-14.6-35.4l-84.6-84.6c-1.1-1.1-2.3-2.1-3.6-3.1l84.6-84.6c9.3-9.3 14.6-22 14.6-35.4V80.4zm-62.3-15L238.6 101c-3.1 3.1-3.1 8.2 0 11.3l84.6 84.6c3.1 3.1 8.2 3.1 11.3 0l35.4-35.4c3.1-3.1 3.1-8.2 0-11.3L334.2 84.2c-3.1-3.1-8.2-3.1-11.3 0L274.2 65.4zM122.9 286.9L38.3 431.5c-3.1 3.1-8.2 3.1-11.3 0L.3 404.9c-3.1-3.1-3.1-8.2 0-11.3L84.9 309c3.1-3.1 8.2-3.1 11.3 0l26.7 26.7c3.1 3.1 3.1 8.2 0 11.3zm212.3 15.7l-35.4 35.4c-3.1 3.1-8.2 3.1-11.3 0L153.9 203.3c-3.1-3.1-3.1-8.2 0-11.3l35.4-35.4c3.1-3.1 8.2-3.1 11.3 0l134.5 134.5c3.1 3.1 3.1 8.2 0 11.3z"/>
-                </svg>
+                <i class="fa-brands fa-threads"></i>
                 <span>@sqm.talk</span>
             </a>
         </div>
@@ -354,5 +286,37 @@
         <p class="mt-2">版權所有 © 2025 平米內參. 保留一切權利.</p>
     </footer>
 
+    <script type="module">
+        // Supabase and form logic
+        import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+        const SUPABASE_URL = 'https://zxbmbbfrzbtuueysicoc.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp4Ym1iYmZyemJ0dXVleXNpY29jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA2ODg5ODksImV4cCI6MjA2NjI2NDk4OX0.1IUynv5eK1xF_3pb-oasqaTrPvbeAOC4Sc1oykPBy4M';
+        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        // ... (The rest of the form handling JS is identical to previous versions)
+        document.addEventListener('DOMContentLoaded', () => {
+            const loginForm=document.getElementById('login-form'),registerForm=document.getElementById('register-form'),loginTab=document.getElementById('login-tab'),registerTab=document.getElementById('register-tab'),messageDiv=document.getElementById('message'),loginSubmitBtn=document.getElementById('login-submit-button'),registerSubmitBtn=document.getElementById('register-submit-button');loginTab.addEventListener('click',()=>{loginTab.classList.add('active'),registerTab.classList.remove('active'),loginForm.classList.remove('hidden'),registerForm.classList.add('hidden'),messageDiv.textContent='',window.registerCountdownInterval&&clearInterval(window.registerCountdownInterval)}),registerTab.addEventListener('click',()=>{registerTab.classList.add('active'),loginTab.classList.remove('active'),registerForm.classList.remove('hidden'),loginForm.classList.add('hidden'),messageDiv.textContent=''});loginForm.addEventListener('submit',async e=>{e.preventDefault();const t=loginSubmitBtn,n=t.querySelector('.loader-sm'),s=t.querySelector('span');t.disabled=!0,n.classList.remove('hidden'),s.classList.add('hidden'),messageDiv.textContent='';const i=e.target.email.value,o=e.target.password.value;try{const{error:l}=await supabase.auth.signInWithPassword({email:i,password:o});if(l)throw l;window.location.href='index.html'}catch(l){messageDiv.textContent=`登入失敗: ${l.message}`,t.disabled=!1,n.classList.add('hidden'),s.classList.remove('hidden')}});registerForm.addEventListener('submit',async e=>{e.preventDefault();const t=registerSubmitBtn,n=t.querySelector('.loader-sm'),s=t.querySelector('span');t.disabled=!0,n.classList.remove('hidden'),s.classList.add('hidden'),messageDiv.textContent='';const i=e.target['register-email'].value,o=e.target['register-password'].value,l=e.target['confirm-password'].value;if(o!==l)return messageDiv.textContent='兩次輸入的密碼不相符。',t.disabled=!1,n.classList.add('hidden'),s.classList.remove('hidden'),void 0;try{const{error:d}=await supabase.auth.signUp({email:i,password:o,options:{emailRedirectTo:'https://sqm7.github.io/kthd/'}});if(d)throw d;let a=10;const c='註冊成功！請至您的電子信箱收取驗證信。';messageDiv.innerHTML=`<span class="text-green-400">${c}<br>${a} 秒後將返回登入頁面...</span>`,window.registerCountdownInterval=setInterval(()=>{--a>0?messageDiv.innerHTML=`<span class="text-green-400">${c}<br>${a} 秒後將返回登入頁面...</span>`:(clearInterval(window.registerCountdownInterval),loginTab.click())},1e3)}catch(d){messageDiv.textContent=`註冊失敗: ${d.message}`,t.disabled=!1,n.classList.add('hidden'),s.classList.remove('hidden')}});
+        });
+    </script>
+    <script>
+        // Scroll animation logic
+        document.addEventListener('DOMContentLoaded', () => {
+            const animatedElements = document.querySelectorAll('.scroll-animate');
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('is-visible');
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, {
+                threshold: 0.1 // 元素進入視窗 10% 時觸發
+            });
+
+            animatedElements.forEach(el => {
+                observer.observe(el);
+            });
+        });
+    </script>
 </body>
 </html>
