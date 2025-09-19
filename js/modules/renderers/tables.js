@@ -79,11 +79,30 @@ export function renderTable(data) {
 
     const isPresale = data[0]['交易類型'] === '預售交易';
     
-    // 根據您的需求，定義摘要欄位
+    // =================================================================
+    // 【【【 您可以在此處手動控制第一層與第二層的欄位 】】】
+    // =================================================================
+
+    // 1. **第一層：摘要欄位** - 決定哪些欄位永遠顯示在第一層
     const summaryFields = [
         '行政區', '建案名稱', '交易日', '交易筆棟數', 
         '戶型', '樓層', '房屋面積(坪)', '房屋單價(萬)'
     ];
+
+    // 2. **第二層：明細欄位** - 決定點擊「明細」後要顯示哪些欄位
+    //    您可以從 'allAvailableFields' 複製需要的欄位到這裡
+    const detailsFields = [
+        '地址', '總樓層', '建物型態', '主要用途', '交易總價(萬)',
+        '房屋總價(萬)', '車位總價(萬)', '車位面積(坪)', '車位類別', '車位數',
+        '房數', '廳數', '衛浴數', '主建物面積(坪)', '附屬建物面積(坪)',
+        '陽台面積(坪)', '雨遮、花台、其他(坪)', '備註', '解約情形'
+    ];
+
+    // (這一段是為了方便您參考，列出所有可能的欄位)
+    const allAvailableFields = Object.keys(data[0]);
+    // console.log("所有可用欄位:", allAvailableFields);
+    
+    // =================================================================
 
     // 如果不是預售屋，從摘要欄位中移除 '戶型' 和 '建案名稱'
     if (!isPresale) {
@@ -96,7 +115,7 @@ export function renderTable(data) {
     // --- 建立表頭 (<thead>) ---
     const thead = document.createElement('thead');
     const headerRow = document.createElement('tr');
-    let headerHtml = '<th>操作</th>'; // 操作欄位固定在最前
+    let headerHtml = '<th>操作</th>';
     summaryFields.forEach(header => {
         headerHtml += `<th>${header}</th>`;
     });
@@ -105,7 +124,6 @@ export function renderTable(data) {
 
     // --- 建立表格內容 (<tbody>) ---
     const allRowsHtml = data.map((row, index) => {
-        // 摘要列的儲存格 HTML
         const summaryCellsHtml = summaryFields.map(header => {
             const value = row[header];
             let cellContent = (typeof value === 'number' && !Number.isInteger(value)) 
@@ -118,19 +136,21 @@ export function renderTable(data) {
             return `<td>${cellContent}</td>`;
         }).join('');
 
-        // 詳細資料網格的 HTML
-        const allFields = Object.keys(row).filter(key => !['縣市代碼', '交易類型'].includes(key));
-        const detailsGridHtml = allFields.map(key => {
-            const value = row[key] !== null && row[key] !== '' ? row[key] : '-';
-            return `
-                <div>
-                    <div class="key">${key}</div>
-                    <div class="value">${value}</div>
-                </div>
-            `;
+        // 【更新】現在只從您定義的 detailsFields 陣列來產生明細
+        const detailsGridHtml = detailsFields.map(key => {
+            // 檢查該欄位是否存在於資料中
+            if (key in row) {
+                const value = row[key] !== null && row[key] !== '' ? row[key] : '-';
+                return `
+                    <div>
+                        <div class="key">${key}</div>
+                        <div class="value">${value}</div>
+                    </div>
+                `;
+            }
+            return ''; // 如果資料中沒有這個欄位，則不顯示
         }).join('');
 
-        // 組合每一筆資料的完整 HTML (包含摘要列和明細列)
         return `
             <tbody class="data-item-group">
                 <tr class="summary-row" data-details-target="#details-${index}">
@@ -151,7 +171,6 @@ export function renderTable(data) {
         `;
     }).join('');
 
-    // 最後，將新產生的表頭和所有資料列一次性更新到 DOM
     dom.resultsTable.innerHTML = '';
     dom.resultsTable.append(thead);
     dom.resultsTable.insertAdjacentHTML('beforeend', allRowsHtml);
