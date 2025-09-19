@@ -22,100 +22,118 @@
         }
     </script>
     <style>
-        html { scroll-behavior: smooth; }
-        body { 
-            font-family: 'Inter', 'Noto Sans TC', sans-serif; 
-            background-color: #1a1d29;
-            color: #e5e7eb;
-            overflow-x: hidden;
-        }
+    html { scroll-behavior: smooth; }
+    body { 
+        font-family: 'Inter', 'Noto Sans TC', sans-serif; 
+        background-color: #1a1d29;
+        color: #e5e7eb;
+        overflow-x: hidden;
+    }
 
-        /* --- 特效：滾動觸發動畫 --- */
-        .scroll-animate {
-            opacity: 0;
-            transition: opacity 0.8s ease-out, transform 0.8s ease-out;
-        }
-        .scroll-animate.fade-in-up { transform: translateY(40px); }
-        .scroll-animate.is-visible { opacity: 1; transform: translateY(0); }
+    /* --- 特效：滾動觸發動畫 --- */
+    .scroll-animate {
+        opacity: 0;
+        transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+    }
+    .scroll-animate.fade-in-up { transform: translateY(40px); }
+    .scroll-animate.is-visible { opacity: 1; transform: translateY(0); }
 
-        /* --- Hero 英雄區塊 & 登入表單 --- */
-        #hero-login {
-            height: 100vh;
-            min-height: 700px;
-            display: grid;
-            grid-template-columns: repeat(1, minmax(0, 1fr));
-            align-items: center;
-            position: relative;
-            padding: 2rem;
-            overflow: hidden;
+    /* --- ▼▼▼ [核心修正] Hero 英雄區塊 & 登入表單 ▼▼▼ --- */
+    #hero-login {
+        height: 100vh;
+        min-height: 750px; /* 增加最小高度確保內容不擠壓 */
+        display: flex; /* 改為 flex 佈局以獲得更好的控制 */
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        padding: 2rem;
+        overflow: hidden;
+    }
+    .hero-container {
+        width: 100%;
+        max-width: 1280px; /* 限制最大寬度 */
+        display: grid;
+        grid-template-columns: repeat(1, minmax(0, 1fr));
+        align-items: center;
+        gap: 2rem;
+    }
+    @media (min-width: 1024px) {
+        .hero-container {
+            grid-template-columns: 3fr 2fr; /* 左邊佔 3/5，右邊佔 2/5 */
+            gap: 4rem;
         }
-        @media (min-width: 1024px) {
-            #hero-login { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-        }
-        #hero-login::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background-image: url('css/images/loginbackground.jpg');
-            background-size: cover;
-            background-position: center;
-            filter: blur(5px);
-            z-index: -2;
-            transform: scale(1.1);
-        }
-        #hero-login::after {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: radial-gradient(ellipse at center, rgba(26, 29, 41, 0.7) 0%, rgba(26, 29, 41, 0.95) 100%);
-            z-index: -1;
-        }
-        .form-input { background-color: #1f2937; border: 1px solid #4b5563; color: #d1d5db; }
-        .form-input:focus { border-color: #06b6d4; box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.5); outline: none; }
-        .loader-sm { border: 2px solid #374151; border-top: 2px solid #06b6d4; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .tab-button {
-            padding: 0.75rem 1rem;
-            font-weight: 500;
-            border-bottom: 3px solid transparent;
-            transition: all 0.3s ease;
-            color: #9ca3af;
-            width: 50%;
-        }
-        .tab-button.active { color: #06b6d4; border-bottom-color: #06b6d4; }
+    }
+    /* --- ▲▲▲ [修正結束] ▲▲▲ --- */
 
-        /* --- 功能展示區塊 --- */
-        .feature-section {
-            display: grid;
-            grid-template-columns: repeat(1, minmax(0, 1fr));
-            align-items: center;
-            gap: 2rem;
-            padding: 5rem 2rem;
-            max-width: 1200px;
-            margin: auto;
-        }
-        @media (min-width: 1024px) {
-            .feature-section { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 5rem; }
-            .feature-section.reverse { grid-template-areas: "text image"; }
-            .feature-section.reverse .feature-image { grid-area: image; }
-            .feature-section.reverse .feature-text { grid-area: text; }
-        }
-        
-        .feature-image-wrapper {
-            height: 450px;
-            border-radius: 0.75rem;
-            overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-        }
-        .feature-image-wrapper img {
-            width: 100%;
-            height: 140%; /* 讓圖片本身變高，以便裁切 */
-            object-fit: cover;
-            object-position: center 50%; /* 垂直置中 */
-        }
-        .feature-annotation { border-left: 2px solid #4b5563; padding-left: 1.5rem; }
+    #hero-login::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background-image: url('css/images/loginbackground.jpg');
+        background-size: cover;
+        background-position: center;
+        filter: blur(5px);
+        z-index: -2;
+        transform: scale(1.1);
+    }
+    #hero-login::after {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: radial-gradient(ellipse at center, rgba(26, 29, 41, 0.7) 0%, rgba(26, 29, 41, 0.95) 100%);
+        z-index: -1;
+    }
+    .form-input { background-color: #1f2937; border: 1px solid #4b5563; color: #d1d5db; }
+    .form-input:focus { border-color: #06b6d4; box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.5); outline: none; }
+    .loader-sm { border: 2px solid #374151; border-top: 2px solid #06b6d4; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    .tab-button {
+        padding: 0.75rem 1rem;
+        font-weight: 500;
+        border-bottom: 3px solid transparent;
+        transition: all 0.3s ease;
+        color: #9ca3af;
+        width: 50%;
+    }
+    .tab-button.active { color: #06b6d4; border-bottom-color: #06b6d4; }
 
-    </style>
+    /* --- 功能展示區塊 --- */
+    .feature-section {
+        display: grid;
+        grid-template-columns: repeat(1, minmax(0, 1fr));
+        align-items: center;
+        gap: 2rem;
+        padding: 5rem 2rem;
+        max-width: 1200px;
+        margin: auto;
+    }
+    @media (min-width: 1024px) {
+        .feature-section { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 5rem; }
+        .feature-section.reverse .feature-text { grid-column-start: 1; }
+        .feature-section.reverse .feature-image-wrapper { grid-column-start: 2; }
+    }
+    
+    .feature-image-wrapper {
+        height: 450px;
+        border-radius: 0.75rem;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    }
+    .feature-image-wrapper img {
+        width: 100%;
+        height: 100%; /* 讓圖片填滿容器 */
+        object-fit: cover; /* 關鍵！保持比例，裁切多餘部分 */
+        /* object-position 由下面的獨立 class 控制 */
+    }
+    .feature-annotation { border-left: 2px solid #4b5563; padding-left: 1.5rem; }
+
+    /* --- ▼▼▼ [新增] 獨立的圖片裁切位置控制 ▼▼▼ --- */
+    .img-pos-1 { object-position: center 50%; } /* 預設，垂直置中 */
+    .img-pos-2 { object-position: center 40%; } /* 稍微往上裁切，顯示中間偏上的部分 */
+    .img-pos-3 { object-position: center 30%; } /* 更往上裁切 */
+    .img-pos-4 { object-position: center 20%; } /* 顯示最頂部的部分 */
+    /* --- ▲▲▲ [新增結束] ▲▲▲ --- */
+</style>
 </head>
 <body>
     
