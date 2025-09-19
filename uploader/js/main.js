@@ -160,22 +160,15 @@ function populateUpdateModal(data) {
         return;
     }
 
-    // 定義摘要欄位
     const summaryFields = ['編號', '行政區', '建案名稱', '總樓層', '地址', '建物型態', '主要用途', '備註'];
     
     const tableRowsHtml = data.map((item, index) => {
-        // 1. 產生摘要列 (Summary Row) 的 HTML
         const summaryCells = summaryFields.map(field => {
             const value = item[field] || '-';
-            // 給地址和備註欄位特別的樣式，使其可以滾動
-            if (field === '地址' || field === '備註') {
-                return `<td class="text-xs max-w-[200px]"><div class="truncate" title="${value}">${value}</div></td>`;
-            }
-            return `<td class="text-sm">${value}</td>`;
+            return `<td class="truncate-cell" title="${value}">${value}</td>`;
         }).join('');
 
-        // 2. 產生明細列 (Details Row) 的 HTML
-        const allFields = Object.keys(item).filter(key => key !== 'id'); // 過濾掉 supabase 的 id
+        const allFields = Object.keys(item).filter(key => key !== 'id');
         const detailsGrid = allFields.map(key => {
             const value = item[key] !== null && item[key] !== '' ? item[key] : '-';
             return `
@@ -186,17 +179,12 @@ function populateUpdateModal(data) {
             `;
         }).join('');
 
-        // 3. 組合摘要列和明細列
         return `
-            <tbody class="result-item border-b border-gray-700 last:border-b-0">
+            <tbody class="result-item border-b border-gray-600 last:border-b-0">
                 <tr class="summary-row" data-details-target="#details-${index}">
-                    <td class="w-12 text-center">
-                        <input type="checkbox" data-id="${item['編號']}" class="form-checkbox h-5 w-5 text-cyan-accent bg-gray-700 border-gray-600 focus:ring-cyan-accent rounded">
-                    </td>
+                    <td><input type="checkbox" data-id="${item['編號']}" class="form-checkbox h-5 w-5 text-cyan-accent bg-gray-700 border-gray-600 focus:ring-cyan-accent rounded"></td>
                     ${summaryCells}
-                    <td class="w-24 text-center">
-                        <button class="details-toggle-btn text-sm text-cyan-400 hover:text-cyan-300">明細</button>
-                    </td>
+                    <td><button class="details-toggle-btn">明細</button></td>
                 </tr>
                 <tr class="details-row" id="details-${index}">
                     <td colspan="${summaryFields.length + 2}" class="details-cell">
@@ -207,19 +195,24 @@ function populateUpdateModal(data) {
         `;
     }).join('');
 
-    // 4. 產生表頭 (Header)
     const summaryHeaders = summaryFields.map(field => `<th>${field}</th>`).join('');
     const tableHeaderHtml = `
         <thead>
-            <tr class="text-xs text-left text-gray-400">
-                <th class="w-12 text-center">選取</th>
-                ${summaryHeaders}
-                <th class="w-24 text-center">操作</th>
+            <tr class="text-xs text-gray-400">
+                <th style="width: 4%;">選取</th>
+                <th style="width: 15%;">編號</th>
+                <th style="width: 7%;">行政區</th>
+                <th style="width: 12%;">建案名稱</th>
+                <th style="width: 5%;">總樓層</th>
+                <th style="width: 20%;">地址</th>
+                <th style="width: 10%;">建物型態</th>
+                <th style="width: 10%;">主要用途</th>
+                <th style="width: 10%;">備註</th>
+                <th style="width: 7%;">操作</th>
             </tr>
         </thead>
     `;
     
-    // 5. 將完整的表格放入容器中
     container.innerHTML = `<table class="results-table">${tableHeaderHtml}${tableRowsHtml}</table>`;
 
     filterModalResults();
@@ -346,9 +339,7 @@ function initialize() {
         }
     });
 
-    // --- ▼▼▼ 【新增】為結果容器添加事件監聽器 ▼▼▼ ---
     DOM.searchResultsContainer.addEventListener('click', handleDetailsToggle);
-    // --- ▲▲▲ 【新增結束】 ▲▲▲
 
     window.clearLogs = clearLogs;
     updateTime();
