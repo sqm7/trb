@@ -150,32 +150,96 @@ async function handleSearchForUpdate() {
     }
 }
 
+// --- ▼▼▼ 【核心修改函式】 ▼▼▼ ---
 function populateUpdateModal(data) {
     DOM.modalFilterInput.value = '';
     const container = DOM.searchResultsContainer;
-    container.innerHTML = '';
     
-    if (data.length === 0) {
+    if (!data || data.length === 0) {
         container.innerHTML = '<div class="p-4 text-center text-gray-500">無符合條件的資料</div>';
-    } else {
-        container.innerHTML = data.map(item => {
-            const detailsHtml = Object.entries(item).map(([key, value]) => {
-                if (value !== null && value !== '' && key !== 'id') {
-                    return `<div class="truncate"><span class="font-semibold text-gray-400">${key}:</span> <span class="text-white">${value}</span></div>`;
-                }
-                return '';
-            }).join('');
+        return;
+    }
 
+    // 定義摘要欄位
+    const summaryFields = ['編號', '行政區', '建案名稱', '總樓層', '地址', '建物型態', '主要用途', '備註'];
+    
+    const tableRowsHtml = data.map((item, index) => {
+        // 1. 產生摘要列 (Summary Row) 的 HTML
+        const summaryCells = summaryFields.map(field => {
+            const value = item[field] || '-';
+            // 給地址和備註欄位特別的樣式，使其可以滾動
+            if (field === '地址' || field === '備註') {
+                return `<td class="text-xs max-w-[200px]"><div class="truncate" title="${value}">${value}</div></td>`;
+            }
+            return `<td class="text-sm">${value}</td>`;
+        }).join('');
+
+        // 2. 產生明細列 (Details Row) 的 HTML
+        const allFields = Object.keys(item).filter(key => key !== 'id'); // 過濾掉 supabase 的 id
+        const detailsGrid = allFields.map(key => {
+            const value = item[key] !== null && item[key] !== '' ? item[key] : '-';
             return `
-                <label class="flex items-start p-3 border-b border-gray-700 last:border-b-0 hover:bg-gray-800/50 cursor-pointer result-item">
-                    <input type="checkbox" data-id="${item['編號']}" class="form-checkbox h-5 w-5 text-cyan-accent bg-gray-700 border-gray-600 focus:ring-cyan-accent rounded mr-4 mt-1 flex-shrink-0">
-                    <div class="flex-1 grid grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-1 text-sm">${detailsHtml}</div>
-                </label>
+                <div>
+                    <div class="key">${key}</div>
+                    <div class="value">${value}</div>
+                </div>
             `;
         }).join('');
-    }
+
+        // 3. 組合摘要列和明細列
+        return `
+            <tbody class="result-item border-b border-gray-700 last:border-b-0">
+                <tr class="summary-row" data-details-target="#details-${index}">
+                    <td class="w-12 text-center">
+                        <input type="checkbox" data-id="${item['編號']}" class="form-checkbox h-5 w-5 text-cyan-accent bg-gray-700 border-gray-600 focus:ring-cyan-accent rounded">
+                    </td>
+                    ${summaryCells}
+                    <td class="w-24 text-center">
+                        <button class="details-toggle-btn text-sm text-cyan-400 hover:text-cyan-300">明細</button>
+                    </td>
+                </tr>
+                <tr class="details-row" id="details-${index}">
+                    <td colspan="${summaryFields.length + 2}" class="details-cell">
+                        <div class="details-grid">${detailsGrid}</div>
+                    </td>
+                </tr>
+            </tbody>
+        `;
+    }).join('');
+
+    // 4. 產生表頭 (Header)
+    const summaryHeaders = summaryFields.map(field => `<th>${field}</th>`).join('');
+    const tableHeaderHtml = `
+        <thead>
+            <tr class="text-xs text-left text-gray-400">
+                <th class="w-12 text-center">選取</th>
+                ${summaryHeaders}
+                <th class="w-24 text-center">操作</th>
+            </tr>
+        </thead>
+    `;
+    
+    // 5. 將完整的表格放入容器中
+    container.innerHTML = `<table class="results-table">${tableHeaderHtml}${tableRowsHtml}</table>`;
+
     filterModalResults();
 }
+
+function handleDetailsToggle(event) {
+    const target = event.target;
+    if (target.classList.contains('details-toggle-btn')) {
+        const summaryRow = target.closest('.summary-row');
+        const detailsRowSelector = summaryRow.dataset.detailsTarget;
+        const detailsRow = document.querySelector(detailsRowSelector);
+        
+        if (detailsRow) {
+            const isVisible = detailsRow.style.display === 'table-row';
+            detailsRow.style.display = isVisible ? 'none' : 'table-row';
+            target.textContent = isVisible ? '明細' : '收合';
+        }
+    }
+}
+// --- ▲▲▲ 【核心修改結束】 ▲▲▲ ---
 
 function populateUpdateFieldSelect(transactionType) {
     const select = DOM.updateFieldSelect;
@@ -238,7 +302,7 @@ function filterModalResults() {
     items.forEach(item => {
         const itemText = item.textContent.toLowerCase();
         if (itemText.includes(filterText)) {
-            item.style.display = 'flex';
+            item.style.display = 'table-row-group'; // Use 'table-row-group' for tbody
             visibleCount++;
         } else {
             item.style.display = 'none';
@@ -274,15 +338,17 @@ function initialize() {
     DOM.batchUpdateModalCloseBtn.addEventListener('click', () => DOM.batchUpdateModal.classList.add('hidden'));
     DOM.executeBatchUpdateButton.addEventListener('click', handleBatchUpdate);
     DOM.selectAllCheckbox.addEventListener('click', handleSelectAll);
-    // 【修正】移除 input 事件，只保留按鈕的 click 事件
     DOM.modalFilterButton.addEventListener('click', filterModalResults);
-    // 【新增】讓 Enter 鍵也能觸發篩選
     DOM.modalFilterInput.addEventListener('keydown', (event) => {
         if (event.key === 'Enter') {
-            event.preventDefault(); // 防止表單提交
+            event.preventDefault();
             filterModalResults();
         }
     });
+
+    // --- ▼▼▼ 【新增】為結果容器添加事件監聽器 ▼▼▼ ---
+    DOM.searchResultsContainer.addEventListener('click', handleDetailsToggle);
+    // --- ▲▲▲ 【新增結束】 ▲▲▲
 
     window.clearLogs = clearLogs;
     updateTime();
