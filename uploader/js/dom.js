@@ -17,6 +17,7 @@ export const DOM = {
     // 顯示區域
     statusContainer: document.getElementById('statusContainer'),
     errorLogContainer: document.getElementById('errorLogContainer'),
+    fileActionContainer: document.getElementById('fileActionContainer'), // New
     fileListContainer: document.getElementById('fileListContainer'),
     fileList: document.getElementById('fileList'),
     
