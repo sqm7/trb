@@ -7,7 +7,9 @@ import * as ui from './modules/ui.js';
 import { 
     mainFetchData, 
     mainAnalyzeData, 
-    mainShowSubTableDetails, 
+    // ▼▼▼ 【修改處】匯入新的整合事件處理函式 ▼▼▼
+    onResultsTableClick,
+    // ▲▲▲ 修改結束 ▲▲▲
     updateDistrictOptions, 
     toggleAnalyzeButtonState, 
     handleDateRangeChange,
@@ -127,10 +129,11 @@ function initialize() {
     
     // --- 彈出視窗與全域點擊事件 ---
     dom.modalCloseBtn.addEventListener('click', () => dom.modal.classList.add('hidden'));
-    dom.resultsTable.addEventListener('click', e => { 
-        const detailsBtn = e.target.closest('.details-btn');
-        if (detailsBtn) mainShowSubTableDetails(detailsBtn); 
-    });
+    
+    // ▼▼▼ 【修改處】將事件監聽指向新的整合函式 ▼▼▼
+    dom.resultsTable.addEventListener('click', onResultsTableClick);
+    // ▲▲▲ 修改結束 ▲▲▲
+
     document.addEventListener('click', handleGlobalClick);
 
     // --- 報告頁籤與互動元件事件 ---
