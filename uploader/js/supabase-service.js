@@ -147,7 +147,7 @@ export async function searchData(countyCode, transactionType, searchField, keywo
         .from(tableName)
         .select('*') 
         .ilike(searchField, `%${keyword}%`)
-        .limit(500);
+        .limit(2500);
 
     const { data, error } = await query;
 
