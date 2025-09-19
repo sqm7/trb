@@ -115,12 +115,14 @@
                 grid-template-columns: repeat(2, minmax(0, 1fr)); 
                 gap: 5rem; 
             }
-            /* 預設情況下，第一個子元素(圖片)在第一欄，第二個(文字)在第二欄 */
+            /* 預設情況下，HTML中第一個元素在左欄，第二個在右欄 */
             .feature-section > *:nth-child(1) { grid-column-start: 1; }
             .feature-section > *:nth-child(2) { grid-column-start: 2; }
 
             /* 對於有 reverse class 的區塊，交換欄位順序 */
+            /* HTML中第一個元素(圖片)放到右欄 */
             .feature-section.reverse > *:nth-child(1) { grid-column-start: 2; }
+            /* HTML中第二個元素(文字)放到左欄 */
             .feature-section.reverse > *:nth-child(2) { grid-column-start: 1; }
         }
         /* --- ▲▲▲ 【修改結束】▲▲▲ */
