@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>不動產批次上傳工具 v6.5 (版面優化)</title>
+    <title>不動產批次上傳工具 v5.0 (含總結報告)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -38,17 +38,77 @@
         .status-indicator { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 8px; }
         .status-online { background: #10b981; }
         .status-offline { background: #ef4444; }
-        /* --- Modal Styles --- */
-        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.7); display: flex; align-items: center; justify-content: center; z-index: 1000; backdrop-filter: blur(5px); transition: opacity 0.3s ease; }
-        .modal-container { background: #1f2937; padding: 2rem; border-radius: 12px; width: 90%; max-width: 1000px; max-height: 90vh; display: flex; flex-direction: column; border: 1px solid #4b5563; }
-        .modal-header { flex-shrink: 0; }
-        .modal-body { flex-grow: 1; overflow-y: auto; min-height: 0; background-color: #1a1d29; padding: 1rem; border-radius: 8px; }
-        .modal-footer { flex-shrink: 0; }
-        .form-input-custom {
-            width: 100%; padding: 0.75rem 1rem; background-color: #374151; border: 1px solid #4b5563; border-radius: 0.5rem; color: white; transition: all 0.2s;
+
+        /* --- Batch Edit Modal Styles --- */
+        .form-input, .form-select, .form-checkbox {
+            background-color: #1f2937;
+            border: 1px solid #4b5563;
+            color: #d1d5db;
+            border-radius: 0.375rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
         }
-        .form-input-custom:focus {
-            outline: none; border-color: var(--cyan-accent); box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.5);
+        .form-input, .form-select {
+            padding: 0.5rem 0.75rem;
+        }
+        .form-input:focus, .form-select:focus {
+            border-color: var(--cyan-accent);
+            box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.5);
+            outline: none;
+        }
+        .form-checkbox {
+            appearance: none;
+            width: 1.25rem;
+            height: 1.25rem;
+            border-radius: 0.25rem;
+            cursor: pointer;
+            position: relative;
+        }
+        .form-checkbox:checked {
+            background-color: var(--cyan-accent);
+            border-color: var(--cyan-accent);
+        }
+        .form-checkbox:checked::after {
+            content: '✔';
+            position: absolute;
+            color: white;
+            font-size: 0.8rem;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        /* Styles for the details view expand/collapse */
+        .details-view {
+            overflow: hidden;
+            transition: max-height 0.4s ease-in-out, padding 0.4s ease-in-out, opacity 0.4s ease-in-out;
+            max-height: 0;
+            padding-top: 0;
+            padding-bottom: 0;
+            opacity: 0;
+            border-top-width: 0;
+        }
+
+        .details-view.expanded {
+            max-height: 500px; /* A large enough value to not clip content */
+            opacity: 1;
+            padding-top: 1rem;
+            padding-bottom: 1rem;
+            border-top-width: 1px;
+        }
+
+        #batch-results-list::-webkit-scrollbar {
+          width: 8px;
+        }
+        #batch-results-list::-webkit-scrollbar-track {
+          background: #1f2937;
+          border-radius: 4px;
+        }
+        #batch-results-list::-webkit-scrollbar-thumb {
+          background: #4b5563;
+          border-radius: 4px;
+        }
+        #batch-results-list::-webkit-scrollbar-thumb:hover {
+          background: #6b7280;
         }
     </style>
 </head>
@@ -57,11 +117,11 @@
         <div class="flex items-center justify-between">
             <div class="flex items-center space-x-4">
                 <div class="w-10 h-10 bg-gradient-to-r from-cyan-accent to-purple-accent rounded-lg flex items-center justify-center">
-                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 M0011 1v5m-4 0h4"></path></svg>
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
                 </div>
                 <div>
-                    <h1 class="text-xl font-bold text-white">不動產批次上傳/修改工具</h1>
-                    <p class="text-sm text-gray-400">Real Estate Batch Upload & Update Dashboard v6.5</p>
+                    <h1 class="text-xl font-bold text-white">不動產批次上傳工具</h1>
+                    <p class="text-sm text-gray-400">Real Estate Batch Upload Dashboard v5.0 (Summary)</p>
                 </div>
             </div>
             <div class="flex items-center space-x-4">
@@ -83,7 +143,11 @@
                 <div class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">主要功能</div>
                 <a href="#" class="flex items-center space-x-3 px-3 py-2 rounded-lg bg-cyan-accent/10 text-cyan-accent border border-cyan-accent/20">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 1.79 4 4 4h8c0-2.21-1.79-4-4-4H8c-2.21 0-4-1.79-4-4zm0 0V4c0-2.21 1.79-4 4-4h4c2.21 0 4 1.79 4 4v3M4 7h16"></path></svg>
-                    <span>資料庫管理</span>
+                    <span>資料庫連線</span>
+                </a>
+                 <a href="#" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-700/50">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+                    <span>檔案上傳</span>
                 </a>
             </nav>
         </div>
@@ -99,54 +163,17 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                             <div>
                                 <label class="block text-sm font-medium text-gray-300 mb-2">Supabase URL</label>
-                                <input type="text" id="supabaseUrl" class="form-input-custom" placeholder="https://your-project-ref.supabase.co">
+                                <input type="text" id="supabaseUrl" class="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-cyan-accent focus:ring-1 focus:ring-cyan-accent transition-colors" placeholder="https://your-project-ref.supabase.co">
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-300 mb-2">Service Role Key</label>
-                                <input type="password" id="supabaseKey" class="form-input-custom" placeholder="your-service-role-key">
+                                <input type="password" id="supabaseKey" class="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-cyan-accent focus:ring-1 focus:ring-cyan-accent transition-colors" placeholder="your-service-role-key">
                             </div>
                         </div>
                         <button id="testConnectionButton" class="bg-gradient-to-r from-cyan-accent to-purple-accent text-white px-6 py-3 rounded-lg font-medium hover:shadow-lg hover:shadow-cyan-accent/25 transition-all duration-300">
                             <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
                             測試連線
                         </button>
-                    </div>
-
-                    <div class="glass-card rounded-xl p-6 mb-6">
-                        <h2 class="text-lg font-semibold text-white flex items-center mb-6">
-                            <svg class="w-5 h-5 text-purple-accent mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-                            資料批次修改 (獨立功能)
-                        </h2>
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
-                            <div>
-                                <label for="updateCountySelect" class="block text-sm font-medium text-gray-300 mb-2">縣市</label>
-                                <select id="updateCountySelect" class="form-input-custom">
-                                    <option value="">請選擇</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label for="updateTransactionType" class="block text-sm font-medium text-gray-300 mb-2">交易類型</label>
-                                <select id="updateTransactionType" class="form-input-custom">
-                                    <option value="b">預售交易</option>
-                                    <option value="a">中古交易</option>
-                                    <option value="c">租賃交易</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label for="updateSearchField" class="block text-sm font-medium text-gray-300 mb-2">搜尋欄位</label>
-                                <select id="updateSearchField" class="form-input-custom">
-                                    <option value="建案名稱">建案名稱</option>
-                                    <option value="編號">編號</option>
-                                </select>
-                            </div>
-                            <div class="lg:col-span-2">
-                                <label for="updateSearchKeyword" class="block text-sm font-medium text-gray-300 mb-2">搜尋關鍵字</label>
-                                <div class="flex gap-2">
-                                    <input type="text" id="updateSearchKeyword" class="form-input-custom" placeholder="輸入部分或完整名稱">
-                                    <button id="searchForUpdateButton" class="bg-gradient-to-r from-purple-accent to-orange-accent text-white px-6 py-3 rounded-lg font-medium hover:shadow-lg hover:shadow-purple-accent/25 transition-all duration-300 flex-shrink-0">查詢資料</button>
-                                </div>
-                            </div>
-                        </div>
                     </div>
 
                     <div class="glass-card rounded-xl p-6">
@@ -172,17 +199,35 @@
                             <div id="uploadTypeSelector" class="bg-gray-800 rounded-lg p-4 mb-4">
                                <h3 class="text-sm font-medium text-gray-300 mb-3">選擇上傳類型</h3>
                                 <div class="flex items-center space-x-6 text-sm">
-                                    <label class="flex items-center space-x-2 cursor-pointer"><input type="radio" name="uploadType" value="all" class="form-radio h-4 w-4 text-cyan-accent bg-gray-700 border-gray-600 focus:ring-cyan-accent" checked><span>全選</span></label>
-                                    <label class="flex items-center space-x-2 cursor-pointer"><input type="radio" name="uploadType" value="a" class="form-radio h-4 w-4 text-cyan-accent bg-gray-700 border-gray-600 focus:ring-cyan-accent"><span>中古 (a)</span></label>
-                                    <label class="flex items-center space-x-2 cursor-pointer"><input type="radio" name="uploadType" value="b" class="form-radio h-4 w-4 text-cyan-accent bg-gray-700 border-gray-600 focus:ring-cyan-accent"><span>預售 (b)</span></label>
-                                    <label class="flex items-center space-x-2 cursor-pointer"><input type="radio" name="uploadType" value="c" class="form-radio h-4 w-4 text-cyan-accent bg-gray-700 border-gray-600 focus:ring-cyan-accent"><span>租賃 (c)</span></label>
+                                    <label class="flex items-center space-x-2 cursor-pointer">
+                                        <input type="radio" id="uploadTypeAll" name="uploadType" value="all" class="form-radio h-4 w-4 text-cyan-accent bg-gray-700 border-gray-600 focus:ring-cyan-accent" checked>
+                                        <span>全選</span>
+                                    </label>
+                                    <label class="flex items-center space-x-2 cursor-pointer">
+                                        <input type="radio" id="uploadTypeA" name="uploadType" value="a" class="form-radio h-4 w-4 text-cyan-accent bg-gray-700 border-gray-600 focus:ring-cyan-accent">
+                                        <span>中古 (a)</span>
+                                    </label>
+                                    <label class="flex items-center space-x-2 cursor-pointer">
+                                        <input type="radio" id="uploadTypeB" name="uploadType" value="b" class="form-radio h-4 w-4 text-cyan-accent bg-gray-700 border-gray-600 focus:ring-cyan-accent">
+                                        <span>預售 (b)</span>
+                                    </label>
+                                    <label class="flex items-center space-x-2 cursor-pointer">
+                                        <input type="radio" id="uploadTypeC" name="uploadType" value="c" class="form-radio h-4 w-4 text-cyan-accent bg-gray-700 border-gray-600 focus:ring-cyan-accent">
+                                        <span>租賃 (c)</span>
+                                    </label>
                                 </div>
                             </div>
 
-                            <button id="startUploadButton" class="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white py-4 rounded-lg font-semibold hover:shadow-lg hover:shadow-green-500/25 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed">
-                                <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
-                                開始上傳
-                            </button>
+                            <div class="flex items-center gap-4">
+                                <button id="startUploadButton" class="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white py-4 rounded-lg font-semibold hover:shadow-lg hover:shadow-green-500/25 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed">
+                                    <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+                                    開始上傳
+                                </button>
+                                <button id="openBatchEditButton" class="w-full bg-gradient-to-r from-orange-500 to-amber-600 text-white py-4 rounded-lg font-semibold hover:shadow-lg hover:shadow-orange-500/25 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed">
+                                    <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                    批次修改
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -242,51 +287,83 @@
         </div>
     </div>
 
-    <div id="batchUpdateModal" class="modal-overlay hidden">
-        <div class="modal-container">
-            <div class="modal-header flex justify-between items-center pb-4 border-b border-gray-700">
-                <h2 class="text-2xl font-bold text-white">批次修改資料</h2>
-                <button id="batchUpdateModalCloseBtn" class="text-gray-400 hover:text-white text-3xl font-bold">&times;</button>
-            </div>
-            
-            <div class="my-4">
-                <div class="bg-dark-bg p-3 rounded-lg">
-                    <div id="modalSearchCriteriaDisplay" class="text-sm text-gray-400 mb-2"></div>
-                    <div class="flex gap-2">
-                        <input type="text" id="modalFilterInput" class="form-input-custom w-full" placeholder="在此處篩選已顯示的結果...">
-                        <button id="modalFilterButton" class="bg-cyan-accent text-white px-4 rounded-lg font-medium hover:bg-cyan-600 transition-colors flex-shrink-0">篩選</button>
-                    </div>
-                </div>
-            </div>
+    <script type="module" src="./js/main.js"></script>
 
-            <div class="modal-body">
-                <div class="flex items-center justify-between mb-4">
-                    <div id="searchResultCount" class="text-sm text-gray-400">找到 0 筆資料</div>
-                    <button id="selectAllCheckbox" class="text-sm text-cyan-400 hover:text-cyan-300">全選/全不選</button>
+    <div id="batch-edit-modal" class="fixed inset-0 bg-dark-bg bg-opacity-80 backdrop-blur-sm flex items-center justify-center hidden z-50">
+        <div class="glass-card rounded-xl p-6 w-full max-w-5xl max-h-[90vh] flex flex-col">
+            <div class="flex-shrink-0">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-2xl font-bold text-white">批次修改資料</h2>
+                    <button id="batch-edit-modal-close-btn" class="text-gray-400 hover:text-white text-3xl font-bold">&times;</button>
                 </div>
-                <div id="searchResultsContainer" class="border border-gray-700 rounded-lg">
+                
+                <div class="bg-dark-sidebar p-4 rounded-lg mb-4">
+                    <input type="text" id="batch-search-input" value="搜尋條件：臺中市 > 建案名稱 (包含 '?')" class="w-full form-input bg-gray-800 border-gray-600" disabled>
+                </div>
+    
+                <div class="flex justify-between items-center mb-4 text-sm">
+                    <div class="text-gray-400">
+                        找到 <span id="batch-results-count" class="font-bold text-white">0</span> 筆資料
+                    </div>
+                    <div>
+                        <button id="batch-toggle-all-btn" class="text-cyan-400 hover:text-cyan-300 font-medium">全部展開</button>
+                        <label for="batch-select-all" class="ml-4 inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="batch-select-all" class="form-checkbox h-4 w-4 text-cyan-accent bg-gray-700 border-gray-600 focus:ring-cyan-accent">
+                            <span class="ml-2">全選/全不選</span>
+                        </label>
+                    </div>
                 </div>
             </div>
-            <div class="modal-footer pt-4 border-t border-gray-700 mt-4">
-                <h3 class="text-lg font-semibold text-white mb-4">執行更新</h3>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
-                    <div>
-                        <label for="updateFieldSelect" class="block text-sm font-medium text-gray-300 mb-2">選擇要修改的欄位</label>
-                        <select id="updateFieldSelect" class="form-input-custom"></select>
+    
+            <div id="batch-results-list" class="flex-grow space-y-3 overflow-y-auto pr-2 border-t border-b border-gray-700 py-4">
+                <div class="batch-item bg-dark-sidebar/50 p-4 rounded-lg border border-gray-700/80">
+                    <div class="summary-view flex items-start gap-4">
+                        <input type="checkbox" class="form-checkbox h-4 w-4 text-cyan-accent bg-gray-700 border-gray-600 focus:ring-cyan-accent mt-1 flex-shrink-0">
+                        <div class="flex-grow grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-2 text-sm">
+                            <div><strong class="text-gray-400 block">編號:</strong> <span class="font-mono text-xs">RPUNMLTKJJGFCB28CB</span></div>
+                            <div><strong class="text-gray-400 block">行政區:</strong> <span>西屯區</span></div>
+                            <div><strong class="text-gray-400 block">建案名稱:</strong> <span class="text-orange-accent">國雄無?</span></div>
+                            <div><strong class="text-gray-400 block">總樓層:</strong> <span>9</span></div>
+                            <div class="lg:col-span-4"><strong class="text-gray-400 block">地址:</strong> <span>臺中市西屯區臺灣大道二段與東興路...</span></div>
+                            <div class="lg:col-span-2"><strong class="text-gray-400 block">建物型態:</strong> <span>住宅大樓(11層含以上有電梯)</span></div>
+                            <div class="lg:col-span-2"><strong class="text-gray-400 block">主要用途:</strong> <span>住家用</span></div>
+                            <div class="lg:col-span-4"><strong class="text-gray-400 block">備註:</strong> <span class="italic text-gray-500">(無)</span></div>
+                        </div>
+                        <button class="details-toggle-btn flex-shrink-0 text-cyan-400 hover:text-cyan-300 text-sm font-medium p-1">明細</button>
                     </div>
-                    <div class="md:col-span-2">
-                        <label for="updateValueInput" class="block text-sm font-medium text-gray-300 mb-2">輸入新內容</label>
-                        <div class="flex gap-2">
-                            <input type="text" id="updateValueInput" class="form-input-custom" placeholder="留空以清除該欄位內容">
-                            <button id="executeBatchUpdateButton" class="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-6 py-3 rounded-lg font-medium hover:shadow-lg hover:shadow-green-500/25 transition-all duration-300 flex-shrink-0">執行更新</button>
+                    <div class="details-view">
+                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-3 text-sm">
+                            <div><strong class="text-gray-400 block">交易標的:</strong> <span>房地(土地+建物)+車位</span></div>
+                            <div><strong class="text-gray-400 block">交易年月日:</strong> <span>2024-11-12</span></div>
+                            <div><strong class="text-gray-400 block">交易筆棟數:</strong> <span>土地1建物1車位1</span></div>
+                            <div><strong class="text-gray-400 block">移轉層次:</strong> <span>9</span></div>
+                            <div><strong class="text-gray-400 block">屋齡:</strong> <span>2</span></div>
+                            <div><strong class="text-gray-400 block">房/廳/衛:</strong> <span>2 / 2 / 2</span></div>
+                            <div><strong class="text-gray-400 block">產權面積(坪):</strong> <span>128.22</span></div>
+                            <div><strong class="text-gray-400 block">主建物面積(坪):</strong> <span>28.96</span></div>
+                            <div><strong class="text-gray-400 block">戶別:</strong> <span>B棟B06-09F號</span></div>
+                            <div><strong class="text-gray-400 block">車位類別:</strong> <span>坡道平面</span></div>
+                            <div><strong class="text-gray-400 block">車位總價(萬):</strong> <span>2,250,000</span></div>
+                            <div><strong class="text-gray-400 block">交易總價(萬):</strong> <span>1,968</span></div>
                         </div>
                     </div>
                 </div>
+                </div>
+    
+            <div class="flex-shrink-0 mt-4 pt-4 border-t border-gray-700">
+                 <h3 class="text-md font-semibold text-white mb-3">執行更新</h3>
+                 <div class="flex items-center gap-4">
+                    <select id="batch-update-field" class="form-select bg-gray-800 border-gray-600 flex-shrink-0 w-48">
+                        <option>建案名稱</option>
+                        <option>主要用途</option>
+                        <option>備註</option>
+                    </select>
+                    <input type="text" id="batch-update-value" placeholder="輸入新內容，或留空以清除該欄位" class="form-input bg-gray-800 border-gray-600 flex-grow">
+                    <button id="batch-execute-update-btn" class="bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-6 rounded-lg transition-all">執行更新</button>
+                 </div>
             </div>
         </div>
     </div>
-
-    <script type="module" src="./js/main.js"></script>
 
 </body>
 </html>
