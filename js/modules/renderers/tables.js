@@ -70,9 +70,7 @@ export function renderHeatmapDetailsTable() {
     contentContainer.innerHTML = tableHtml;
 }
 
-// =================================================================
-// 【【【 本次最終修正的函式 】】】
-// =================================================================
+// --- ▼▼▼ 【核心修改函式】 ▼▼▼ ---
 export function renderTable(data) {
     if (!data || data.length === 0) {
         dom.resultsTable.innerHTML = '<tbody><tr><td colspan="99" class="text-center p-4">無資料</td></tr></tbody>';
@@ -80,81 +78,85 @@ export function renderTable(data) {
     }
 
     const isPresale = data[0]['交易類型'] === '預售交易';
-    const originalHeaders = Object.keys(data[0]);
+    
+    // 根據您的需求，定義摘要欄位
+    const summaryFields = [
+        '行政區', '建案名稱', '交易日', '交易筆棟數', 
+        '戶型', '樓層', '房屋面積(坪)', '房屋單價(萬)'
+    ];
 
-    // 【第1步】建立一個基礎的、要顯示的欄位列表。這個變數在整個函式中都可存取。
-    let headersToShow = originalHeaders.filter(header => 
-        !['編號', '縣市代碼', '交易類型', '戶別', '戶型'].includes(header)
-    );
-
-    // 【第2步】如果是預售屋，才修改這個列表，將 '戶型' 插入到正確的位置
-    if (isPresale) {
-        const insertAfter = '交易筆棟數';
-        const insertIndex = headersToShow.indexOf(insertAfter);
-        if (insertIndex > -1) {
-            headersToShow.splice(insertIndex + 1, 0, '戶型');
-        } else {
-            headersToShow.push('戶型'); // 備用方案
-        }
+    // 如果不是預售屋，從摘要欄位中移除 '戶型' 和 '建案名稱'
+    if (!isPresale) {
+        const indexToRemove = summaryFields.indexOf('戶型');
+        if (indexToRemove > -1) summaryFields.splice(indexToRemove, 1);
+        const indexToRemove2 = summaryFields.indexOf('建案名稱');
+        if (indexToRemove2 > -1) summaryFields.splice(indexToRemove2, 1);
     }
-
+    
     // --- 建立表頭 (<thead>) ---
     const thead = document.createElement('thead');
     const headerRow = document.createElement('tr');
-    let headerHtml = '<th>操作</th>';
-    
-    headersToShow.forEach(header => {
+    let headerHtml = '<th>操作</th>'; // 操作欄位固定在最前
+    summaryFields.forEach(header => {
         headerHtml += `<th>${header}</th>`;
     });
-    
     headerRow.innerHTML = headerHtml;
     thead.appendChild(headerRow);
 
     // --- 建立表格內容 (<tbody>) ---
-    const tbody = document.createElement('tbody');
-    data.forEach(row => {
-        const tr = document.createElement('tr');
-        tr.className = 'hover:bg-dark-card transition-colors';
-        const remark = row['備註'] || '';
-        if (remark.includes('露台') || remark.includes('親友') || remark.includes('員工')) {
-            tr.classList.add('special-remark-row');
-        }
-
-        const actionTd = document.createElement('td');
-        const detailsBtn = document.createElement('button');
-        detailsBtn.className = 'details-btn bg-purple-600 hover:bg-purple-500 text-white text-xs px-3 py-1 rounded-md';
-        detailsBtn.textContent = '附表';
-        detailsBtn.dataset.id = row['編號'];
-        detailsBtn.dataset.type = row['交易類型'];
-        detailsBtn.dataset.county = row['縣市代碼'];
-        actionTd.appendChild(detailsBtn);
-        tr.appendChild(actionTd);
-
-        // 【第3步】根據最終排好序的 'headersToShow' 列表來產生每一格的內容
-        headersToShow.forEach(header => {
-            const td = document.createElement('td');
-            if (header === '戶型') { // 如果輪到 '戶型'，就產生帶 tooltip 的儲存格
-                td.className = 'has-tooltip';
-                td.dataset.tooltip = `原始戶別: ${row['戶別'] || '無資料'}`;
-                td.textContent = row['戶型'] || '-';
-            } else { // 否則，就產生一般的儲存格
-                const value = row[header];
-                if (header === '地址' || header === '備註') {
-                    td.innerHTML = `<div class="scrollable-cell">${value ?? "-"}</div>`;
-                } else {
-                    td.textContent = (typeof value === 'number' && !Number.isInteger(value)) ? ui.formatNumber(value) : (value ?? "-");
-                }
+    const allRowsHtml = data.map((row, index) => {
+        // 摘要列的儲存格 HTML
+        const summaryCellsHtml = summaryFields.map(header => {
+            const value = row[header];
+            let cellContent = (typeof value === 'number' && !Number.isInteger(value)) 
+                ? ui.formatNumber(value) 
+                : (value ?? "-");
+            
+            if (header === '戶型') {
+                return `<td class="has-tooltip" data-tooltip="原始戶別: ${row['戶別'] || '無資料'}">${cellContent}</td>`;
             }
-            tr.appendChild(td);
-        });
-        
-        tbody.appendChild(tr);
-    });
+            return `<td>${cellContent}</td>`;
+        }).join('');
 
-    // 最後，將新產生的表頭和內容一次性更新到 DOM
+        // 詳細資料網格的 HTML
+        const allFields = Object.keys(row).filter(key => !['縣市代碼', '交易類型'].includes(key));
+        const detailsGridHtml = allFields.map(key => {
+            const value = row[key] !== null && row[key] !== '' ? row[key] : '-';
+            return `
+                <div>
+                    <div class="key">${key}</div>
+                    <div class="value">${value}</div>
+                </div>
+            `;
+        }).join('');
+
+        // 組合每一筆資料的完整 HTML (包含摘要列和明細列)
+        return `
+            <tbody class="data-item-group">
+                <tr class="summary-row" data-details-target="#details-${index}">
+                    <td>
+                        <div class="flex items-center gap-2">
+                            <button class="details-btn" data-id="${row['編號']}" data-type="${row['交易類型']}" data-county="${row['縣市代碼']}">附表</button>
+                            <button class="details-toggle-btn">明細</button>
+                        </div>
+                    </td>
+                    ${summaryCellsHtml}
+                </tr>
+                <tr class="details-row" id="details-${index}">
+                    <td colspan="${summaryFields.length + 1}" class="details-cell">
+                        <div class="details-grid">${detailsGridHtml}</div>
+                    </td>
+                </tr>
+            </tbody>
+        `;
+    }).join('');
+
+    // 最後，將新產生的表頭和所有資料列一次性更新到 DOM
     dom.resultsTable.innerHTML = '';
-    dom.resultsTable.append(thead, tbody);
+    dom.resultsTable.append(thead);
+    dom.resultsTable.insertAdjacentHTML('beforeend', allRowsHtml);
 }
+// --- ▲▲▲ 修改結束 ▲▲▲ ---
 
 
 export function renderSubTable(title, records) {
