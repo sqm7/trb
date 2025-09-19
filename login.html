@@ -98,10 +98,10 @@
         }
         .tab-button.active { color: #06b6d4; border-bottom-color: #06b6d4; }
         
-        /* --- ▼▼▼ 【核心修正】▼▼▼ */
+        /* --- ▼▼▼ 【最終修正版】▼▼▼ */
         .feature-section {
             display: grid; 
-            grid-template-columns: 1fr; /* 手機版預設單欄 */
+            grid-template-columns: 1fr; /* 手機版：單欄佈局 */
             align-items: center; 
             gap: 2rem; 
             padding: 5rem 2rem;
@@ -109,19 +109,19 @@
             margin: auto;
         }
         
-        /* 電腦版 (1024px 以上)啟用兩欄式佈局 */
+        /* 電腦版：啟用兩欄式佈局 */
         @media (min-width: 1024px) {
             .feature-section { 
                 grid-template-columns: repeat(2, minmax(0, 1fr)); 
                 gap: 5rem; 
             }
-            /* 預設圖片在左，文字在右 */
-            .feature-section .image-container { grid-column: 1; }
-            .feature-section .feature-text { grid-column: 2; }
-            
-            /* 有 reverse class 的區塊，版面反轉 */
-            .feature-section.reverse .image-container { grid-column: 2; }
-            .feature-section.reverse .feature-text { grid-column: 1; }
+            /* 預設情況下，第一個子元素(圖片)在第一欄，第二個(文字)在第二欄 */
+            .feature-section > *:nth-child(1) { grid-column-start: 1; }
+            .feature-section > *:nth-child(2) { grid-column-start: 2; }
+
+            /* 對於有 reverse class 的區塊，交換欄位順序 */
+            .feature-section.reverse > *:nth-child(1) { grid-column-start: 2; }
+            .feature-section.reverse > *:nth-child(2) { grid-column-start: 1; }
         }
         /* --- ▲▲▲ 【修改結束】▲▲▲ */
 
