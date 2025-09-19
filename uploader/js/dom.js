@@ -8,6 +8,7 @@ export const DOM = {
     selectFoldersButton: document.getElementById('selectFoldersButton'),
     startUploadButton: document.getElementById('startUploadButton'),
     testConnectionButton: document.getElementById('testConnectionButton'),
+    openBatchEditButton: document.getElementById('openBatchEditButton'), // New
     
     // 輸入框
     supabaseUrlInput: document.getElementById('supabaseUrl'),
@@ -29,28 +30,16 @@ export const DOM = {
     connectionStatus: document.getElementById('connectionStatus'),
     connectionText: document.getElementById('connectionText'),
     currentTime: document.getElementById('currentTime'),
-
-    // 批次修改功能相關元素
-    updateCountySelect: document.getElementById('updateCountySelect'),
-    updateTransactionType: document.getElementById('updateTransactionType'),
-    updateSearchField: document.getElementById('updateSearchField'),
-    updateSearchKeyword: document.getElementById('updateSearchKeyword'),
-    searchForUpdateButton: document.getElementById('searchForUpdateButton'),
-
-    // 互動視窗 (Modal)
-    batchUpdateModal: document.getElementById('batchUpdateModal'),
-    batchUpdateModalCloseBtn: document.getElementById('batchUpdateModalCloseBtn'),
-    searchResultCount: document.getElementById('searchResultCount'),
-    selectAllCheckbox: document.getElementById('selectAllCheckbox'),
-    searchResultsContainer: document.getElementById('searchResultsContainer'),
     
-    // Modal 內的篩選元件
-    modalSearchCriteriaDisplay: document.getElementById('modalSearchCriteriaDisplay'),
-    modalFilterInput: document.getElementById('modalFilterInput'),
-    modalFilterButton: document.getElementById('modalFilterButton'),
-    
-    // 更新執行區塊
-    updateFieldSelect: document.getElementById('updateFieldSelect'),
-    updateValueInput: document.getElementById('updateValueInput'),
-    executeBatchUpdateButton: document.getElementById('executeBatchUpdateButton')
+    // Batch Edit Modal Elements (New)
+    batchEditModal: document.getElementById('batch-edit-modal'),
+    batchEditModalCloseBtn: document.getElementById('batch-edit-modal-close-btn'),
+    batchSearchInput: document.getElementById('batch-search-input'),
+    batchResultsCount: document.getElementById('batch-results-count'),
+    batchToggleAllBtn: document.getElementById('batch-toggle-all-btn'),
+    batchSelectAll: document.getElementById('batch-select-all'),
+    batchResultsList: document.getElementById('batch-results-list'),
+    batchUpdateField: document.getElementById('batch-update-field'),
+    batchUpdateValue: document.getElementById('batch-update-value'),
+    batchExecuteUpdateBtn: document.getElementById('batch-execute-update-btn'),
 };
