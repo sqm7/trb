@@ -22,188 +22,150 @@
         }
     </script>
     <style>
-    html { scroll-behavior: smooth; }
-    body { 
-        font-family: 'Inter', 'Noto Sans TC', sans-serif; 
-        background-color: #1a1d29;
-        color: #e5e7eb;
-        overflow-x: hidden;
-    }
-
-    /* --- 特效：滾動觸發動畫 --- */
-    .scroll-animate {
-        opacity: 0;
-        transition: opacity 0.8s ease-out, transform 0.8s ease-out;
-    }
-    .scroll-animate.fade-in-up { transform: translateY(40px); }
-    .scroll-animate.is-visible { opacity: 1; transform: translateY(0); }
-
-    /* --- ▼▼▼ [核心修正] Hero 英雄區塊 & 登入表單 ▼▼▼ --- */
-    #hero-login {
-        height: 100vh;
-        min-height: 750px; /* 增加最小高度確保內容不擠壓 */
-        display: flex; /* 改為 flex 佈局以獲得更好的控制 */
-        align-items: center;
-        justify-content: center;
-        position: relative;
-        padding: 2rem;
-        overflow: hidden;
-    }
-    .hero-container {
-        width: 100%;
-        max-width: 1280px; /* 限制最大寬度 */
-        display: grid;
-        grid-template-columns: repeat(1, minmax(0, 1fr));
-        align-items: center;
-        gap: 2rem;
-    }
-    @media (min-width: 1024px) {
-        .hero-container {
-            grid-template-columns: 3fr 2fr; /* 左邊佔 3/5，右邊佔 2/5 */
-            gap: 4rem;
+        html { scroll-behavior: smooth; }
+        body { 
+            font-family: 'Inter', 'Noto Sans TC', sans-serif; 
+            background-color: #1a1d29;
+            color: #e5e7eb;
+            overflow-x: hidden;
         }
-    }
-    /* --- ▲▲▲ [修正結束] ▲▲▲ --- */
 
-    #hero-login::before {
-        content: '';
-        position: absolute;
-        top: 0; left: 0; right: 0; bottom: 0;
-        background-image: url('css/images/loginbackground.jpg');
-        background-size: cover;
-        background-position: center;
-        filter: blur(5px);
-        z-index: -2;
-        transform: scale(1.1);
-    }
-    #hero-login::after {
-        content: '';
-        position: absolute;
-        top: 0; left: 0; right: 0; bottom: 0;
-        background: radial-gradient(ellipse at center, rgba(26, 29, 41, 0.7) 0%, rgba(26, 29, 41, 0.95) 100%);
-        z-index: -1;
-    }
-    .form-input { background-color: #1f2937; border: 1px solid #4b5563; color: #d1d5db; }
-    .form-input:focus { border-color: #06b6d4; box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.5); outline: none; }
-    .loader-sm { border: 2px solid #374151; border-top: 2px solid #06b6d4; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; }
-    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-    .tab-button {
-        padding: 0.75rem 1rem;
-        font-weight: 500;
-        border-bottom: 3px solid transparent;
-        transition: all 0.3s ease;
-        color: #9ca3af;
-        width: 50%;
-    }
-    .tab-button.active { color: #06b6d4; border-bottom-color: #06b6d4; }
+        /* --- 滾動觸發動畫 --- */
+        .scroll-animate { opacity: 0; transition: opacity 0.8s ease-out, transform 0.8s ease-out; }
+        .scroll-animate.fade-in-up { transform: translateY(40px); }
+        .scroll-animate.is-visible { opacity: 1; transform: translateY(0); }
 
-    /* --- 功能展示區塊 --- */
-    .feature-section {
-        display: grid;
-        grid-template-columns: repeat(1, minmax(0, 1fr));
-        align-items: center;
-        gap: 2rem;
-        padding: 5rem 2rem;
-        max-width: 1200px;
-        margin: auto;
-    }
-    @media (min-width: 1024px) {
-        .feature-section { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 5rem; }
-        .feature-section.reverse .feature-text { grid-column-start: 1; }
-        .feature-section.reverse .feature-image-wrapper { grid-column-start: 2; }
-    }
-    
-    .feature-image-wrapper {
-        height: 450px;
-        border-radius: 0.75rem;
-        overflow: hidden;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-    }
-    .feature-image-wrapper img {
-        width: 100%;
-        height: 100%; /* 讓圖片填滿容器 */
-        object-fit: cover; /* 關鍵！保持比例，裁切多餘部分 */
-        /* object-position 由下面的獨立 class 控制 */
-    }
-    .feature-annotation { border-left: 2px solid #4b5563; padding-left: 1.5rem; }
+        /* --- Hero 英雄區塊 & 登入表單 (參照新截圖) --- */
+        #hero-login {
+            height: 100vh;
+            min-height: 700px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            padding: 2rem;
+            overflow: hidden;
+        }
+        #hero-login::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            background-image: url('css/images/loginbackground.jpg');
+            background-size: cover; background-position: center;
+            filter: blur(5px) brightness(0.7); z-index: -2; transform: scale(1.1);
+        }
+        #hero-login::after {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            background: radial-gradient(ellipse at center, rgba(26, 29, 41, 0.6) 0%, rgba(26, 29, 41, 0.95) 100%);
+            z-index: -1;
+        }
+        .hero-container {
+            width: 100%; max-width: 1100px; /* 調整最大寬度 */
+            display: grid; grid-template-columns: repeat(1, minmax(0, 1fr));
+            align-items: center; gap: 3rem;
+        }
+        @media (min-width: 1024px) {
+            .hero-container { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); }
+        }
+        .form-input { background-color: #1f2937; border: 1px solid #4b5563; color: #d1d5db; }
+        .form-input:focus { border-color: #06b6d4; box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.5); outline: none; }
+        .loader-sm { border: 2px solid #374151; border-top: 2px solid #06b6d4; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .tab-button {
+            padding: 0.75rem 1rem; font-weight: 500; border-bottom: 3px solid transparent;
+            transition: all 0.3s ease; color: #9ca3af; width: 50%;
+        }
+        .tab-button.active { color: #06b6d4; border-bottom-color: #06b6d4; }
+        
+        /* --- 功能展示區塊 --- */
+        .feature-section {
+            display: grid; grid-template-columns: repeat(1, minmax(0, 1fr));
+            align-items: center; gap: 2rem; padding: 5rem 2rem;
+            max-width: 1200px; margin: auto;
+        }
+        @media (min-width: 1024px) {
+            .feature-section { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 5rem; }
+            .feature-section.reverse .feature-text { grid-column-start: 1; }
+            .feature-section.reverse .image-container { grid-column-start: 2; }
+        }
+        .feature-annotation { border-left: 2px solid #4b5563; padding-left: 1.5rem; }
 
-    /* --- ▼▼▼ [新增] 獨立的圖片裁切位置控制 ▼▼▼ --- */
-    .img-pos-1 { object-position: center 50%; } /* 預設，垂直置中 */
-    .img-pos-2 { object-position: center 40%; } /* 稍微往上裁切，顯示中間偏上的部分 */
-    .img-pos-3 { object-position: center 30%; } /* 更往上裁切 */
-    .img-pos-4 { object-position: center 20%; } /* 顯示最頂部的部分 */
-    /* --- ▲▲▲ [新增結束] ▲▲▲ --- */
-</style>
+        /* --- ▼▼▼ [核心功能] 可拖曳圖片預覽 ▼▼▼ --- */
+        .image-container {
+            position: relative;
+            border-radius: 0.75rem;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            height: 500px; /* 固定視窗高度 */
+            cursor: grab;
+        }
+        .image-container.is-dragging { cursor: grabbing; }
+        .image-container img {
+            width: 100%;
+            display: block;
+            pointer-events: none; /* 讓事件在容器上觸發 */
+            user-select: none; /* 防止拖曳時選取圖片 */
+        }
+        .drag-hint {
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(0,0,0,0.6);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            color: white; z-index: 10;
+            opacity: 0; transition: opacity 0.3s ease;
+            pointer-events: none; /* 讓 hover 事件穿透 */
+        }
+        .image-container:hover .drag-hint { opacity: 1; }
+        .drag-hint-icon { animation: up-down 1.5s ease-in-out infinite; }
+        @keyframes up-down {
+            0%, 100% { transform: translateY(-8px); }
+            50% { transform: translateY(8px); }
+        }
+        /* --- ▲▲▲ [功能結束] ▲▲▲ --- */
+    </style>
 </head>
 <body>
     
     <section id="hero-login">
-        <div class="text-center lg:text-left lg:pr-10">
-            <h1 class="text-5xl md:text-6xl font-extrabold text-white tracking-tight leading-tight">
-                平米內參
-            </h1>
-            <p class="mt-4 text-xl md:text-2xl text-cyan-accent font-semibold">
-                數據驅動的預售屋市場決策平台
-            </p>
-            <div class="mt-8 text-lg text-gray-300 max-w-lg mx-auto lg:mx-0">
-                <p class="mb-4">在瞬息萬變的市場中，精準的數據是您超越競爭對手的唯一利器。我們專為房地產專業人士，提供最深度、最即時的數據洞察。</p>
-                <div class="space-y-3 text-left">
-                    <div class="flex items-start gap-3 p-3 bg-white/5 rounded-lg">
-                        <i class="fa-solid fa-building text-purple-accent mt-1"></i>
-                        <div><strong class="text-white">致 建商：</strong>面對市場不確定性，如何精準定價、規劃最適產品？</div>
-                    </div>
-                     <div class="flex items-start gap-3 p-3 bg-white/5 rounded-lg">
-                        <i class="fa-solid fa-handshake text-purple-accent mt-1"></i>
-                        <div><strong class="text-white">致 代銷：</strong>如何掌握即時競品動態，制定高效銷售策略？</div>
-                    </div>
-                     <div class="flex items-start gap-3 p-3 bg-white/5 rounded-lg">
-                        <i class="fa-solid fa-chart-line text-purple-accent mt-1"></i>
-                        <div><strong class="text-white">致 投資人：</strong>如何在海量資訊中，快速找到價值窪地與潛力標的？</div>
+        <div class="hero-container">
+            <div class="text-center lg:text-left">
+                <h1 class="text-5xl md:text-6xl font-extrabold text-white tracking-tight leading-tight">平米內參</h1>
+                <p class="mt-4 text-xl md:text-2xl text-cyan-accent font-semibold">數據驅動的預售屋市場決策平台</p>
+                <div class="mt-6 text-lg text-gray-300 max-w-xl mx-auto lg:mx-0">
+                    <p>在瞬息萬變的市場中，精準的數據是您超越競爭對手的唯一利器。我們專為房地產專業人士，提供最深度、最即時的數據洞察。</p>
+                    <div class="mt-6 space-y-3 text-left">
+                        <div class="flex items-start gap-3"><i class="fa-solid fa-building text-purple-accent mt-1.5"></i><div><strong class="text-white">致 建商：</strong>面對市場不確定性，如何精準定價、規劃最適產品？</div></div>
+                        <div class="flex items-start gap-3"><i class="fa-solid fa-handshake text-purple-accent mt-1.5"></i><div><strong class="text-white">致 代銷：</strong>如何掌握即時競品動態，制定高效銷售策略？</div></div>
+                        <div class="flex items-start gap-3"><i class="fa-solid fa-chart-line text-purple-accent mt-1.5"></i><div><strong class="text-white">致 投資人：</strong>如何在海量資訊中，快速找到價值窪地與潛力標的？</div></div>
                     </div>
                 </div>
             </div>
-        </div>
-        <div class="mt-10 lg:mt-0">
-             <div id="form-container" class="bg-dark-card/80 backdrop-blur-sm p-8 rounded-xl shadow-2xl w-full max-w-sm mx-auto">
-                <div class="flex border-b border-gray-700 mb-6">
-                    <button id="login-tab" class="tab-button active">登入</button>
-                    <button id="register-tab" class="tab-button">註冊</button>
+            <div class="w-full max-w-sm mx-auto">
+                 <div id="form-container" class="bg-dark-card/80 backdrop-blur-sm p-8 rounded-xl shadow-2xl">
+                    <div class="flex border-b border-gray-700 mb-6"><button id="login-tab" class="tab-button active">登入</button><button id="register-tab" class="tab-button">註冊</button></div>
+                    <form id="login-form">
+                        <div class="space-y-6">
+                            <div><label for="email" class="block text-sm font-medium text-gray-300 mb-2">電子郵件</label><input type="email" id="email" name="email" class="form-input block w-full pl-3 pr-10 py-3 text-base rounded-md" required autocomplete="email"></div>
+                            <div><label for="password" class="block text-sm font-medium text-gray-300 mb-2">密碼</label><input type="password" id="password" name="password" class="form-input block w-full pl-3 pr-10 py-3 text-base rounded-md" required autocomplete="current-password"></div>
+                            <div><button type="submit" id="login-submit-button" class="w-full flex justify-center items-center bg-cyan-accent hover:bg-opacity-90 text-white font-bold py-3 px-4 rounded-lg shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"><div class="loader-sm hidden"></div><span>登入</span></button></div>
+                        </div>
+                    </form>
+                    <form id="register-form" class="hidden">
+                        <div class="space-y-6">
+                            <div><label for="register-email" class="block text-sm font-medium text-gray-300 mb-2">電子郵件</label><input type="email" id="register-email" name="register-email" class="form-input block w-full pl-3 pr-10 py-3 text-base rounded-md" required autocomplete="email"></div>
+                            <div><label for="register-password" class="block text-sm font-medium text-gray-300 mb-2">密碼 (至少6位數)</label><input type="password" id="register-password" name="register-password" class="form-input block w-full pl-3 pr-10 py-3 text-base rounded-md" required minlength="6"></div>
+                            <div><label for="confirm-password" class="block text-sm font-medium text-gray-300 mb-2">確認密碼</label><input type="password" id="confirm-password" name="confirm-password" class="form-input block w-full pl-3 pr-10 py-3 text-base rounded-md" required minlength="6"></div>
+                            <div><button type="submit" id="register-submit-button" class="w-full flex justify-center items-center bg-cyan-accent hover:bg-opacity-90 text-white font-bold py-3 px-4 rounded-lg shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"><div class="loader-sm hidden"></div><span>註冊</span></button></div>
+                        </div>
+                    </form>
+                    <div id="message" class="text-red-400 text-center min-h-[2.5rem] mt-4"></div>
                 </div>
-                <form id="login-form">
-                    <div class="space-y-6">
-                        <div>
-                            <label for="email" class="block text-sm font-medium text-gray-300 mb-2">電子郵件</label>
-                            <input type="email" id="email" name="email" class="form-input block w-full pl-3 pr-10 py-3 text-base rounded-md" required autocomplete="email">
-                        </div>
-                        <div>
-                            <label for="password" class="block text-sm font-medium text-gray-300 mb-2">密碼</label>
-                            <input type="password" id="password" name="password" class="form-input block w-full pl-3 pr-10 py-3 text-base rounded-md" required autocomplete="current-password">
-                        </div>
-                        <div>
-                            <button type="submit" id="login-submit-button" class="w-full flex justify-center items-center bg-cyan-accent hover:bg-opacity-90 text-white font-bold py-3 px-4 rounded-lg shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed">
-                                <div class="loader-sm hidden"></div>
-                                <span>登入</span>
-                            </button>
-                        </div>
-                    </div>
-                </form>
-                <form id="register-form" class="hidden">
-                    <div class="space-y-6">
-                        <div><label for="register-email" class="block text-sm font-medium text-gray-300 mb-2">電子郵件</label><input type="email" id="register-email" name="register-email" class="form-input block w-full pl-3 pr-10 py-3 text-base rounded-md" required autocomplete="email"></div>
-                        <div><label for="register-password" class="block text-sm font-medium text-gray-300 mb-2">密碼 (至少6位數)</label><input type="password" id="register-password" name="register-password" class="form-input block w-full pl-3 pr-10 py-3 text-base rounded-md" required minlength="6"></div>
-                        <div><label for="confirm-password" class="block text-sm font-medium text-gray-300 mb-2">確認密碼</label><input type="password" id="confirm-password" name="confirm-password" class="form-input block w-full pl-3 pr-10 py-3 text-base rounded-md" required minlength="6"></div>
-                        <div><button type="submit" id="register-submit-button" class="w-full flex justify-center items-center bg-cyan-accent hover:bg-opacity-90 text-white font-bold py-3 px-4 rounded-lg shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"><div class="loader-sm hidden"></div><span>註冊</span></button></div>
-                    </div>
-                </form>
-                <div id="message" class="text-red-400 text-center min-h-[2.5rem] mt-4"></div>
             </div>
         </div>
     </section>
 
     <main id="features">
         <section class="feature-section">
-            <div class="feature-image-wrapper scroll-animate fade-in-up">
+            <div class="image-container scroll-animate fade-in-up">
                 <img src="css/images/preview-1.jpg" alt="核心指標與排名">
+                <div class="drag-hint"><div class="drag-hint-icon"><i class="fa-solid fa-up-down"></i></div><p class="mt-2 text-sm font-semibold">按住拖曳，查看完整畫面</p></div>
             </div>
             <div class="feature-text scroll-animate fade-in-up">
                 <h2 class="text-3xl font-bold mb-4 text-white">宏觀市場儀表板</h2>
@@ -218,40 +180,9 @@
         </section>
 
         <section class="feature-section reverse">
-            <div class="feature-image-wrapper scroll-animate fade-in-up">
-                 <img src="css/images/preview-2.jpg" alt="總價帶分析">
-            </div>
-            <div class="feature-text scroll-animate fade-in-up">
-                <h2 class="text-3xl font-bold mb-4 text-white">總價帶分析</h2>
-                <p class="text-lg text-gray-300 mb-6">精準定位市場的主力總價區間。透過箱型圖與詳細數據表，清晰了解不同房型、衛浴配置的價格分佈，從最低價到最高價，從平均值到中位數，一目了然。</p>
-                <div class="feature-annotation space-y-4">
-                    <div><h4 class="font-semibold text-cyan-accent flex items-center gap-2"><i class="fa-solid fa-chart-pie fa-sm"></i>圖解說明</h4></div>
-                    <div class="flex items-start gap-3"><i class="fa-solid fa-circle-check text-purple-accent mt-1"></i><div><strong class="text-white">房型篩選器：</strong>自由勾選您關心的房型，圖表與數據即時連動。</div></div>
-                    <div class="flex items-start gap-3"><i class="fa-solid fa-circle-check text-purple-accent mt-1"></i><div><strong class="text-white">總價分佈箱型圖：</strong>視覺化展示各房型的價格分佈，快速比較高低價、中位數與四分位距。</div></div>
-                    <div class="flex items-start gap-3"><i class="fa-solid fa-circle-check text-purple-accent mt-1"></i><div><strong class="text-white">詳細數據表：</strong>提供各房型的詳細統計數據，包含建案組成、交易筆數與各項價格指標。</div></div>
-                </div>
-            </div>
-        </section>
-        
-        <section class="feature-section">
-            <div class="feature-image-wrapper scroll-animate fade-in-up">
-                <img src="css/images/preview-4.jpg" alt="車位單價分析">
-            </div>
-            <div class="feature-text scroll-animate fade-in-up">
-                <h2 class="text-3xl font-bold mb-4 text-white">車位單價分析</h2>
-                <p class="text-lg text-gray-300 mb-6">車位作為總價的重要組成部分，其價值不容忽視。我們提供全面的車位分析，從房車配比到不同類型、不同樓層的車位均價，助您精準評估個案的隱藏價值。</p>
-                 <div class="feature-annotation space-y-4">
-                    <div><h4 class="font-semibold text-cyan-accent flex items-center gap-2"><i class="fa-solid fa-chart-pie fa-sm"></i>圖解說明</h4></div>
-                    <div class="flex items-start gap-3"><i class="fa-solid fa-circle-check text-purple-accent mt-1"></i><div><strong class="text-white">房車配比圖：</strong>清晰呈現市場上「含車位」與「不含車位」的交易比例。</div></div>
-                    <div class="flex items-start gap-3"><i class="fa-solid fa-circle-check text-purple-accent mt-1"></i><div><strong class="text-white">各類型均價表：</strong>比較坡道平面、坡道機械、升降機械等不同車位類型的平均價格。</div></div>
-                    <div class="flex items-start gap-3"><i class="fa-solid fa-circle-check text-purple-accent mt-1"></i><div><strong class="text-white">坡平車位分層價：</strong>獨家分析 B1 至 B5 不同樓層的坡平車位價格差異，評估定價合理性。</div></div>
-                </div>
-            </div>
-        </section>
-
-        <section class="feature-section reverse">
-            <div class="feature-image-wrapper scroll-animate fade-in-up">
-                <img src="css/images/preview-5.jpg" alt="房型去化分析">
+            <div class="image-container scroll-animate fade-in-up">
+                 <img src="css/images/preview-5.jpg" alt="房型去化分析">
+                 <div class="drag-hint"><div class="drag-hint-icon"><i class="fa-solid fa-up-down"></i></div><p class="mt-2 text-sm font-semibold">按住拖曳，查看完整畫面</p></div>
             </div>
             <div class="feature-text scroll-animate fade-in-up">
                 <h2 class="text-3xl font-bold mb-4 text-white">房型去化分析</h2>
@@ -266,33 +197,18 @@
         </section>
         
         <section class="feature-section">
-            <div class="feature-image-wrapper scroll-animate fade-in-up">
+            <div class="image-container scroll-animate fade-in-up">
                 <img src="css/images/preview-6.jpg" alt="垂直水平分析">
+                <div class="drag-hint"><div class="drag-hint-icon"><i class="fa-solid fa-up-down"></i></div><p class="mt-2 text-sm font-semibold">按住拖曳，查看完整畫面</p></div>
             </div>
             <div class="feature-text scroll-animate fade-in-up">
-                <h2 class="text-3xl font-bold mb-4 text-white">垂直水平分析 (銷控表)</h2>
-                <p class="text-lg text-gray-300 mb-6">業界獨家！我們將雜亂的交易數據，智慧還原成視覺化的銷控表。您能直觀地比較同樓層的「水平價差」，以及同戶型的「垂直價差」，一眼看穿建案的定價策略與產品佈局。</p>
+                <h2 class="text-3xl font-bold mb-4 text-white">獨家價盤還原系統</h2>
+                <p class="text-lg text-gray-300 mb-6">業界獨家！我們將雜亂的交易數據，智慧還原成視覺化的銷控表與調價熱力圖。您能直觀地比較「水平價差」與「垂直價差」，更能洞察每戶的「真實溢價幅度」，讓建案的定價策略與獲利空間一目了然。</p>
                  <div class="feature-annotation space-y-4">
                     <div><h4 class="font-semibold text-cyan-accent flex items-center gap-2"><i class="fa-solid fa-chart-pie fa-sm"></i>圖解說明</h4></div>
-                    <div class="flex items-start gap-3"><i class="fa-solid fa-circle-check text-purple-accent mt-1"></i><div><strong class="text-white">建案篩選器：</strong>快速切換不同建案，進行深度比較。</div></div>
-                    <div class="flex items-start gap-3"><i class="fa-solid fa-circle-check text-purple-accent mt-1"></i><div><strong class="text-white">視覺化銷控表：</strong>以棋盤格方式呈現，顏色區分戶別，清晰展示每一戶的成交單價與日期。</div></div>
-                    <div class="flex items-start gap-3"><i class="fa-solid fa-circle-check text-purple-accent mt-1"></i><div><strong class="text-white">圖例與註記：</strong>包含戶別顏色圖例、特殊交易戶（如店舖、露台戶）標示，資訊完整。</div></div>
-                </div>
-            </div>
-        </section>
-        
-        <section class="feature-section reverse">
-            <div class="feature-image-wrapper scroll-animate fade-in-up">
-                <img src="css/images/preview-6.jpg" alt="調價熱力圖">
-            </div>
-            <div class="feature-text scroll-animate fade-in-up">
-                <h2 class="text-3xl font-bold mb-4 text-white">獨家調價熱力圖</h2>
-                <p class="text-lg text-gray-300 mb-6">市場上唯一！啟用熱力圖模式，系統透過獨家演算法，自動回溯並錨定各戶型的開盤基準價，精準計算每一筆成交的「真實溢價幅度」。顏色越深，代表漲幅越大，助您洞悉建案的調價節奏與獲利空間。</p>
-                 <div class="feature-annotation space-y-4">
-                    <div><h4 class="font-semibold text-cyan-accent flex items-center gap-2"><i class="fa-solid fa-chart-pie fa-sm"></i>圖解說明</h4></div>
+                    <div class="flex items-start gap-3"><i class="fa-solid fa-circle-check text-purple-accent mt-1"></i><div><strong class="text-white">視覺化銷控表：</strong>以棋盤格方式呈現，清晰展示每一戶的成交單價與日期。</div></div>
                     <div class="flex items-start gap-3"><i class="fa-solid fa-circle-check text-purple-accent mt-1"></i><div><strong class="text-white">溢價熱力圖：</strong>銷控表切換為顏色模式，直觀顯示每戶相較於開盤基準的漲跌幅度。</div></div>
                     <div class="flex items-start gap-3"><i class="fa-solid fa-circle-check text-purple-accent mt-1"></i><div><strong class="text-white">統計摘要：</strong>量化呈現整個建案的總溢價金額、溢價率、以及平均單價調升幅度。</div></div>
-                    <div class="flex items-start gap-3"><i class="fa-solid fa-circle-check text-purple-accent mt-1"></i><div><strong class="text-white">水平價差與貢獻表：</strong>分析各戶型的基準價差異，並計算其對總溢價的貢獻度，找出強勢產品。</div></div>
                 </div>
             </div>
         </section>
@@ -300,14 +216,8 @@
 
     <footer class="text-center py-8 text-gray-500 text-sm bg-dark-card">
         <div class="flex items-center justify-center space-x-4 md:space-x-6 flex-wrap gap-y-2">
-            <a href="mailto:sqmtalk7@gmail.com" class="hover:text-cyan-400 transition-colors flex items-center gap-2">
-                <i class="fa-solid fa-envelope"></i>
-                <span>sqmtalk7@gmail.com</span>
-            </a>
-            <a href="https://www.threads.net/@sqm.talk" target="_blank" rel="noopener noreferrer" class="hover:text-cyan-400 transition-colors flex items-center gap-2">
-                <i class="fa-brands fa-threads"></i>
-                <span>@sqm.talk</span>
-            </a>
+            <a href="mailto:sqmtalk7@gmail.com" class="hover:text-cyan-400 transition-colors flex items-center gap-2"><i class="fa-solid fa-envelope"></i><span>sqmtalk7@gmail.com</span></a>
+            <a href="https://www.threads.net/@sqm.talk" target="_blank" rel="noopener noreferrer" class="hover:text-cyan-400 transition-colors flex items-center gap-2"><i class="fa-brands fa-threads"></i><span>@sqm.talk</span></a>
         </div>
         <p class="mt-4">資料來源：內政部實價登錄</p>
         <p class="mt-2">版權所有 © 2025 平米內參. 保留一切權利.</p>
@@ -324,6 +234,7 @@
     </script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            // --- 滾動動畫 ---
             const animatedElements = document.querySelectorAll('.scroll-animate');
             const observer = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
@@ -332,8 +243,64 @@
                         observer.unobserve(entry.target);
                     }
                 });
-            }, { threshold: 0.2 });
+            }, { threshold: 0.15 });
             animatedElements.forEach(el => { observer.observe(el); });
+
+            // --- 圖片拖曳功能 ---
+            const containers = document.querySelectorAll('.image-container');
+            containers.forEach(container => {
+                const img = container.querySelector('img');
+                if (!img) return;
+
+                let isDragging = false;
+                let startY, startTop;
+
+                const startDrag = (e) => {
+                    isDragging = true;
+                    container.classList.add('is-dragging');
+                    startY = e.pageY || e.touches[0].pageY;
+                    startTop = img.offsetTop;
+                    container.querySelector('.drag-hint').style.opacity = '0';
+                };
+
+                const onDrag = (e) => {
+                    if (!isDragging) return;
+                    e.preventDefault();
+                    const currentY = e.pageY || e.touches[0].pageY;
+                    const deltaY = currentY - startY;
+                    let newTop = startTop + deltaY;
+
+                    // 限制拖曳範圍
+                    const maxTop = 0;
+                    const minTop = container.clientHeight - img.clientHeight;
+                    if (newTop > maxTop) newTop = maxTop;
+                    if (newTop < minTop) newTop = minTop;
+
+                    img.style.position = 'absolute';
+                    img.style.top = `${newTop}px`;
+                };
+
+                const endDrag = () => {
+                    if (!isDragging) return;
+                    isDragging = false;
+                    container.classList.remove('is-dragging');
+                };
+
+                container.addEventListener('mousedown', startDrag);
+                container.addEventListener('touchstart', startDrag);
+
+                window.addEventListener('mousemove', onDrag);
+                window.addEventListener('touchmove', onDrag);
+
+                window.addEventListener('mouseup', endDrag);
+                window.addEventListener('touchend', endDrag);
+                
+                container.addEventListener('mouseleave', () => {
+                   if (!isDragging) {
+                       container.querySelector('.drag-hint').style.opacity = '';
+                   }
+                });
+            });
         });
     </script>
 </body>
