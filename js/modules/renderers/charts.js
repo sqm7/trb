@@ -573,11 +573,8 @@ export function renderAreaHeatmap() {
                     const roomType = state.selectedVelocityRooms[dataPointIndex];
                     const [lower, upper] = areaRange.split('-').map(parseFloat);
 
-                    // ▼▼▼【已根據您的要求修正】▼▼▼
-                    // 移除第四站邏輯，不符合前三站的都歸類為"其他"
                     const getRoomCategory = (record) => {
-                        const unitName = record['戶別'] || ''; // <--- 在此行下方加入
-                        // 第零優先級：從「戶別」文字直接判斷
+                        const unitName = record['戶別'] || '';
                         if (unitName.includes('店舖') || unitName.includes('店面')) return '店舖';
                         if (unitName.includes('事務所') || unitName.includes('辦公')) return '辦公/事務所';
                         const buildingType = record['建物型態'] || '';
@@ -586,19 +583,16 @@ export function renderAreaHeatmap() {
                         const rooms = record['房數'];
                         const houseArea = record['房屋面積(坪)'];
 
-                        // 優先級 1: 特殊商業用途
                         if (buildingType.includes('店舖') || buildingType.includes('店面')) return '店舖';
                         if (buildingType.includes('工廠') || buildingType.includes('倉庫') || buildingType.includes('廠辦')) return '廠辦/工廠';
                         if (mainPurpose.includes('商業') || buildingType.includes('辦公') || buildingType.includes('事務所')) return '辦公/事務所';
 
-                        // 優先級 2: 特殊住宅格局 (0房)
                         const isResidentialBuilding = buildingType.includes('住宅大樓') || buildingType.includes('華廈');
                         if (isResidentialBuilding && rooms === 0) {
                             if (houseArea > 35) return '毛胚';
                             if (houseArea <= 35) return '套房';
                         }
 
-                        // 優先級 3: 標準住宅房型
                         if (typeof rooms === 'number' && !isNaN(rooms)) {
                             if (rooms === 1) return '1房';
                             if (rooms === 2) return '2房';
@@ -607,12 +601,8 @@ export function renderAreaHeatmap() {
                             if (rooms >= 5) return '5房以上';
                         }
                         
-                        // ▼▼▼【第四站備用邏輯已移除】▼▼▼
-
-                        // 最終備用選項：以上皆不符合者，歸於此類
                         return '其他'; 
                     };
-                    // ▲▲▲【修改結束】▲▲▲
 
                     const matchingTransactions = state.analysisDataCache.transactionDetails.filter(tx => {
                         const txRoomType = getRoomCategory(tx);
@@ -636,15 +626,12 @@ export function renderAreaHeatmap() {
                         
                         const safeDivide = (a, b) => b > 0 ? a / b : 0;
 
-                        // 中位數
                         const medianPrice = prices.length > 0 ? (prices.length % 2 === 0 ? (prices[prices.length / 2 - 1] + prices[prices.length / 2]) / 2 : prices[Math.floor(prices.length / 2)]) : 0;
                         const medianUnitPrice = unitPrices.length > 0 ? (unitPrices.length % 2 === 0 ? (unitPrices[unitPrices.length / 2 - 1] + unitPrices[unitPrices.length / 2]) / 2 : unitPrices[Math.floor(unitPrices.length / 2)]) : 0;
                         
-                        // 算術平均
                         const arithmeticAvgPrice = safeDivide(prices.reduce((s, p) => s + p, 0), prices.length);
                         const arithmeticAvgUnitPrice = safeDivide(unitPrices.reduce((s, p) => s + p, 0), unitPrices.length);
 
-                        // 加權平均
                         const totalHousePrice = txs.reduce((s, t) => s + (t['房屋總價(萬)'] || 0), 0);
                         const totalArea = txs.reduce((s, t) => s + (t['房屋面積(坪)'] || 0), 0);
                         const weightedAvgUnitPrice = safeDivide(totalHousePrice, totalArea);
@@ -662,7 +649,14 @@ export function renderAreaHeatmap() {
                         };
                     }).sort((a, b) => b.count - a.count);
                     
-                    state.lastHeatmapDetails = { details, roomType, areaRange };
+                    // ▼▼▼ 【核心修改】儲存原始交易紀錄 ▼▼▼
+                    state.lastHeatmapDetails = { 
+                        details, 
+                        rawTransactions: matchingTransactions, // <--- 新增這一行
+                        roomType, 
+                        areaRange 
+                    };
+                    // ▲▲▲ 修改結束 ▲▲▲
                     renderHeatmapDetailsTable();
                 }
             }
