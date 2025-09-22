@@ -4,6 +4,49 @@ import { dom } from '../dom.js';
 import * as ui from '../ui.js';
 import { state } from '../state.js';
 
+// ▼▼▼ 【新增輔助函式】用來計算中位數 ▼▼▼
+function calculateMedian(numbers) {
+    if (!numbers || numbers.length === 0) return 0;
+    const sorted = [...numbers].sort((a, b) => a - b);
+    const mid = Math.floor(sorted.length / 2);
+    return sorted.length % 2 !== 0 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+}
+// ▲▲▲ 新增結束 ▲▲▲
+
+
+// ▼▼▼ 【新增函式】根據勾選的建案更新統計列 ▼▼▼
+export function updateHeatmapDetailsSummary() {
+    const selectedCheckboxes = dom.heatmapDetailsContent.querySelectorAll('.project-checkbox:checked');
+    const selectedProjectNames = Array.from(selectedCheckboxes).map(cb => cb.dataset.projectName);
+
+    const summaryRow = dom.heatmapDetailsContent.querySelector('#heatmap-summary-row');
+    if (!summaryRow) return;
+
+    // 如果沒有選擇任何建案，則清空統計數據
+    if (selectedProjectNames.length === 0) {
+        summaryRow.querySelector('.summary-total-price').textContent = '-';
+        summaryRow.querySelector('.summary-unit-price').textContent = '-';
+        return;
+    }
+
+    // 從 state 中篩選出對應的原始交易紀錄
+    const relevantTransactions = state.lastHeatmapDetails.rawTransactions.filter(tx => 
+        selectedProjectNames.includes(tx['建案名稱'])
+    );
+
+    const totalPrices = relevantTransactions.map(tx => tx['房屋總價(萬)']).filter(p => typeof p === 'number');
+    const unitPrices = relevantTransactions.map(tx => tx['房屋單價(萬)']).filter(p => typeof p === 'number');
+
+    const medianTotalPrice = calculateMedian(totalPrices);
+    const medianUnitPrice = calculateMedian(unitPrices);
+
+    summaryRow.querySelector('.summary-total-price').textContent = ui.formatNumber(medianTotalPrice, 0);
+    summaryRow.querySelector('.summary-unit-price').textContent = ui.formatNumber(medianUnitPrice, 2);
+}
+// ▲▲▲ 新增結束 ▲▲▲
+
+
+// ▼▼▼ 【核心修改函式】 ▼▼▼
 export function renderHeatmapDetailsTable() {
     const { details, roomType, areaRange } = state.lastHeatmapDetails || {};
     const metricType = state.currentHeatmapDetailMetric;
@@ -32,6 +75,9 @@ export function renderHeatmapDetailsTable() {
             <table class="min-w-full text-sm">
                 <thead class="bg-gray-800">
                     <tr>
+                        <th class="p-2 align-bottom" rowspan="2">
+                            <input type="checkbox" id="select-all-projects" class="form-checkbox h-4 w-4 text-cyan-accent bg-gray-700 border-gray-600 focus:ring-cyan-accent rounded" checked>
+                        </th>
                         <th class="p-2 align-bottom" rowspan="2">建案名稱 (戶數)</th>
                         <th class="p-2 text-center" colspan="2">總價(萬)</th>
                         <th class="p-2 text-center" colspan="2">房屋單價(萬)</th>
@@ -52,6 +98,9 @@ export function renderHeatmapDetailsTable() {
 
         tableHtml += `
             <tr class="border-b border-gray-700 hover:bg-dark-card">
+                <td class="p-2 text-center">
+                    <input type="checkbox" class="project-checkbox form-checkbox h-4 w-4 text-cyan-accent bg-gray-700 border-gray-600 focus:ring-cyan-accent rounded" data-project-name="${item.projectName}" checked>
+                </td>
                 <td class="p-2">${item.projectName} (${item.count}戶)</td>
                 <td class="p-2 text-center">${ui.formatNumber(item.priceRange.min, 0)} - ${ui.formatNumber(item.priceRange.max, 0)}</td>
                 <td class="p-2 text-center font-bold">${ui.formatNumber(totalPriceToShow, 0)}</td>
@@ -63,14 +112,26 @@ export function renderHeatmapDetailsTable() {
 
     tableHtml += `
                 </tbody>
+                <tfoot class="bg-gray-900 sticky bottom-0">
+                    <tr id="heatmap-summary-row" class="border-t-2 border-cyan-400">
+                        <td class="p-2 font-bold text-right" colspan="3">選取項目統計 (中位數)</td>
+                        <td class="p-2 text-center font-bold summary-total-price"></td>
+                        <td class="p-2 text-center font-bold"></td>
+                        <td class="p-2 text-center font-bold summary-unit-price"></td>
+                    </tr>
+                </tfoot>
             </table>
         </div>
     `;
     
     contentContainer.innerHTML = tableHtml;
-}
 
-// --- ▼▼▼ 【核心修改函式】 ▼▼▼ ---
+    // 渲染完畢後，立即計算一次初始的總結數據
+    updateHeatmapDetailsSummary();
+}
+// ▲▲▲ 修改結束 ▲▲▲
+
+
 export function renderTable(data) {
     if (!data || data.length === 0) {
         dom.resultsTable.innerHTML = '<tbody><tr><td colspan="99" class="text-center p-4">無資料</td></tr></tbody>';
