@@ -17,14 +17,19 @@ export const state = {
     rankingPageSize: 15,
     currentAverageType: 'arithmetic',
     currentVelocityView: 'monthly',
-    currentVelocityMetric: 'count', // <-- 新增這一行
+    currentVelocityMetric: 'count',
     selectedVelocityRooms: [],
     selectedPriceBandRoomTypes: [],
     selectedPriceGridProject: null,
     isHeatmapActive: false,
     currentLegendFilter: { type: null, value: null },
     areaHeatmapChart: null,
-    lastHeatmapDetails: null, 
+    lastHeatmapDetails: { // <-- 修改此物件結構
+        details: [],
+        rawTransactions: [],
+        roomType: '',
+        areaRange: ''
+    }, 
     currentHeatmapDetailMetric: 'median',
     excludeCommercialInRanking: false, // 核心指標與排名報告中，是否排除商辦店面的開關狀態
 };
