@@ -347,9 +347,16 @@ export function renderSalesVelocityChart() {
         return;
     }
     
-    // ▼▼▼ 【修改處】 ▼▼▼
+    // ▼▼▼ 【整體修正】 ▼▼▼
     const view = state.currentVelocityView;
-    const metric = state.currentVelocityMetric; // 讀取當前指標
+    const metric = state.currentVelocityMetric;
+    
+    const metricDetails = {
+        count: { label: '交易筆數', unit: '筆', decimals: 0 },
+        priceSum: { label: '產權總價', unit: '萬', decimals: 0 },
+        areaSum: { label: '房屋坪數', unit: '坪', decimals: 2 }
+    }[metric];
+
     const dataForView = state.analysisDataCache.salesVelocityAnalysis[view] || {};
     const timeKeys = Object.keys(dataForView).sort();
 
@@ -357,22 +364,13 @@ export function renderSalesVelocityChart() {
         dom.salesVelocityChart.innerHTML = '<p class="text-gray-500 p-4 text-center">在此條件下無銷售趨勢資料。</p>';
         return;
     }
-
-    // 根據不同指標設定圖表 Y 軸的標題
-    const yAxisTitle = {
-        count: '交易筆數',
-        priceSum: '產權總價 (萬)',
-        areaSum: '房屋坪數 (坪)'
-    }[metric];
     
     const series = state.selectedVelocityRooms.map(roomType => {
         return {
             name: roomType,
-            // 根據 metric 動態抓取 count, priceSum 或 areaSum
             data: timeKeys.map(timeKey => dataForView[timeKey][roomType]?.[metric] || 0)
         };
     });
-    // ▲▲▲ 【修改結束】 ▲▲▲
 
     const options = {
         series: series,
@@ -407,7 +405,7 @@ export function renderSalesVelocityChart() {
         },
         yaxis: {
             title: {
-                text: yAxisTitle, // <-- 【修改處】動態設定 Y 軸標題
+                text: metricDetails.label,
                 style: {
                     color: '#9ca3af'
                 }
@@ -415,6 +413,12 @@ export function renderSalesVelocityChart() {
             labels: {
                 style: {
                     colors: '#9ca3af'
+                },
+                formatter: function (val) {
+                    return val.toLocaleString('zh-TW', { 
+                        minimumFractionDigits: 0,
+                        maximumFractionDigits: 0 
+                    });
                 }
             }
         },
@@ -424,7 +428,16 @@ export function renderSalesVelocityChart() {
             offsetY: -5
         },
         tooltip: {
-            theme: 'dark'
+            theme: 'dark',
+            y: {
+                formatter: function(value) {
+                    const formattedValue = value.toLocaleString('zh-TW', { 
+                        minimumFractionDigits: metricDetails.decimals, 
+                        maximumFractionDigits: metricDetails.decimals 
+                    });
+                    return `${formattedValue} ${metricDetails.unit}`;
+                }
+            }
         },
         grid: {
             borderColor: '#374151'
