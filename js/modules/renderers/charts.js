@@ -347,7 +347,9 @@ export function renderSalesVelocityChart() {
         return;
     }
     
+    // ▼▼▼ 【修改處】 ▼▼▼
     const view = state.currentVelocityView;
+    const metric = state.currentVelocityMetric; // 讀取當前指標
     const dataForView = state.analysisDataCache.salesVelocityAnalysis[view] || {};
     const timeKeys = Object.keys(dataForView).sort();
 
@@ -355,13 +357,22 @@ export function renderSalesVelocityChart() {
         dom.salesVelocityChart.innerHTML = '<p class="text-gray-500 p-4 text-center">在此條件下無銷售趨勢資料。</p>';
         return;
     }
+
+    // 根據不同指標設定圖表 Y 軸的標題
+    const yAxisTitle = {
+        count: '交易筆數',
+        priceSum: '產權總價 (萬)',
+        areaSum: '房屋坪數 (坪)'
+    }[metric];
     
     const series = state.selectedVelocityRooms.map(roomType => {
         return {
             name: roomType,
-            data: timeKeys.map(timeKey => dataForView[timeKey][roomType]?.count || 0)
+            // 根據 metric 動態抓取 count, priceSum 或 areaSum
+            data: timeKeys.map(timeKey => dataForView[timeKey][roomType]?.[metric] || 0)
         };
     });
+    // ▲▲▲ 【修改結束】 ▲▲▲
 
     const options = {
         series: series,
@@ -396,7 +407,7 @@ export function renderSalesVelocityChart() {
         },
         yaxis: {
             title: {
-                text: '交易筆數',
+                text: yAxisTitle, // <-- 【修改處】動態設定 Y 軸標題
                 style: {
                     color: '#9ca3af'
                 }
