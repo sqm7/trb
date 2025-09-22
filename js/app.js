@@ -26,7 +26,7 @@ import {
     handlePriceBandRoomFilterClick,
     handleVelocityRoomFilterClick,
     handleVelocitySubTabClick,
-    handleVelocityMetricClick, // <-- 新增匯入
+    handleVelocityMetricClick,
     handleHeatmapMetricToggle,
     handlePriceGridProjectFilterClick,
     analyzeHeatmap,
@@ -171,7 +171,7 @@ function initialize() {
     dom.priceBandRoomFilterContainer.addEventListener('click', handlePriceBandRoomFilterClick);
     dom.velocityRoomFilterContainer.addEventListener('click', handleVelocityRoomFilterClick);
     dom.velocitySubTabsContainer.addEventListener('click', handleVelocitySubTabClick);
-    dom.velocityMetricToggle.addEventListener('click', handleVelocityMetricClick); // <-- 新增這一行
+    dom.velocityMetricToggle.addEventListener('click', handleVelocityMetricClick);
     dom.priceGridProjectFilterContainer.addEventListener('click', handlePriceGridProjectFilterClick);
     dom.analyzeHeatmapBtn.addEventListener('click', analyzeHeatmap);
     dom.backToGridBtn.addEventListener('click', handleBackToGrid);
