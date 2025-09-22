@@ -17,6 +17,7 @@ export const state = {
     rankingPageSize: 15,
     currentAverageType: 'arithmetic',
     currentVelocityView: 'monthly',
+    currentVelocityMetric: 'count', // <-- 新增這一行
     selectedVelocityRooms: [],
     selectedPriceBandRoomTypes: [],
     selectedPriceGridProject: null,
