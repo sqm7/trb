@@ -67,6 +67,7 @@ export const dom = {
     velocitySubTabsContainer: document.getElementById('velocity-sub-tabs-container'),
     salesVelocityChart: document.getElementById('sales-velocity-chart'),
     velocityTableContainer: document.getElementById('velocity-table-container'),
+    velocityMetricToggle: document.getElementById('velocity-metric-toggle'), // 【關鍵修正】
     areaHeatmapChart: document.getElementById('area-heatmap-chart'),
     heatmapDetailsContainer: document.getElementById('heatmap-details-container'),
     heatmapDetailsContent: document.getElementById('heatmap-details-content'),
