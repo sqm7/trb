@@ -390,6 +390,28 @@ export function handleHeatmapMetricToggle(e) {
     }
 }
 
+// ▼▼▼ 【新增函式】處理詳細數據表格的互動 ▼▼▼
+export function handleHeatmapDetailsInteraction(e) {
+    const target = e.target;
+    // 處理「全選」核取方塊
+    if (target.id === 'select-all-projects') {
+        const isChecked = target.checked;
+        dom.heatmapDetailsContent.querySelectorAll('.project-checkbox').forEach(cb => {
+            cb.checked = isChecked;
+        });
+        tableRenderer.updateHeatmapDetailsSummary();
+    }
+
+    // 處理單個建案的核取方塊
+    if (target.classList.contains('project-checkbox')) {
+        const allCheckboxes = dom.heatmapDetailsContent.querySelectorAll('.project-checkbox');
+        const allChecked = Array.from(allCheckboxes).every(cb => cb.checked);
+        document.getElementById('select-all-projects').checked = allChecked;
+        tableRenderer.updateHeatmapDetailsSummary();
+    }
+}
+// ▲▲▲ 新增結束 ▲▲▲
+
 export function handlePriceGridProjectFilterClick(e) {
     const button = e.target.closest('.capsule-btn');
     if (!button) return;
