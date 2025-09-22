@@ -242,7 +242,15 @@
                </div>
                
                <div id="sales-velocity-chart" class="report-header mb-6"></div>
-
+               
+               <div class="report-header flex justify-end items-center mb-4">
+                     <label class="text-sm font-medium text-gray-400 mr-3">圖表指標:</label>
+                     <div id="velocity-metric-toggle" class="inline-flex bg-dark-card p-1 rounded-lg">
+                         <button data-metric="count" class="avg-type-btn active px-4 py-1 text-sm font-semibold rounded-md transition-colors">資料筆數</button>
+                         <button data-metric="priceSum" class="avg-type-btn px-4 py-1 text-sm font-semibold rounded-md transition-colors">產權總價</button>
+                         <button data-metric="areaSum" class="avg-type-btn px-4 py-1 text-sm font-semibold rounded-md transition-colors">房屋坪數</button>
+                     </div>
+                </div>
                <div id="velocity-table-container" class="overflow-x-auto"></div>
 
             <div class="report-header mt-8">
