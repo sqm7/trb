@@ -28,6 +28,7 @@ import {
     handleVelocitySubTabClick,
     handleVelocityMetricClick,
     handleHeatmapMetricToggle,
+    handleHeatmapDetailsInteraction, // <-- 新增匯入
     handlePriceGridProjectFilterClick,
     analyzeHeatmap,
     handleBackToGrid,
@@ -178,6 +179,7 @@ function initialize() {
     dom.heatmapLegendContainer.addEventListener('click', handleLegendClick);
     
     dom.heatmapMetricToggle.addEventListener('click', handleHeatmapMetricToggle);
+    dom.heatmapDetailsContainer.addEventListener('click', handleHeatmapDetailsInteraction); // <-- 新增這一行
 
     // 熱力圖面積級距控制
     dom.heatmapIntervalInput.addEventListener('change', chartRenderer.renderAreaHeatmap);
