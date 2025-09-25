@@ -30,7 +30,7 @@ function handleDataDetailsToggle(btn) {
     detailsRow.style.display = isVisible ? 'none' : 'table-row';
     btn.textContent = isVisible ? '明細' : '收合';
 }
-// --- ▲▲▲ 新增結束 ▲▲▲ ---
+// --- ▲▲▲ 新增結束 ▲▲▲
 
 
 // Main data fetching and analysis functions
@@ -140,7 +140,7 @@ export async function onResultsTableClick(e) {
         return;
     }
 }
-// --- ▲▲▲ 修改結束 ▲▲▲ ---
+// --- ▲▲▲ 修改結束 ▲▲▲
 
 
 export async function mainFetchProjectNameSuggestions(query) {
@@ -333,6 +333,35 @@ export function handlePriceBandRoomFilterClick(e) {
     
     reportRenderer.renderPriceBandReport();
 }
+
+// ▼▼▼ 【新增函式】 ▼▼▼
+/**
+ * 處理坡道平面車位分層價格表格中的 checkbox 點擊事件
+ * @param {Event} e - 點擊事件物件
+ */
+export function handleParkingFloorFilterChange(e) {
+    const target = e.target;
+    if (target.type !== 'checkbox') return;
+
+    const floorCheckboxes = dom.rampPlanePriceByFloorTableContainer.querySelectorAll('.floor-checkbox');
+    const selectAllCheckbox = document.getElementById('select-all-floors');
+
+    if (target === selectAllCheckbox) {
+        // 如果點擊的是「全選」，則同步所有樓層 checkbox 的狀態
+        floorCheckboxes.forEach(cb => {
+            cb.checked = selectAllCheckbox.checked;
+        });
+    } else {
+        // 如果點擊的是單一樓層，檢查是否所有樓層都被選中，以更新「全選」的狀態
+        const allChecked = Array.from(floorCheckboxes).every(cb => cb.checked);
+        selectAllCheckbox.checked = allChecked;
+    }
+
+    // 無論點擊哪個 checkbox，都重新計算並更新統計數據
+    reportRenderer.updateRampParkingStats();
+}
+// ▲▲▲ 【新增結束】 ▲▲▲
+
 
 export function handleVelocityRoomFilterClick(e) {
     const button = e.target.closest('.capsule-btn'); if (!button) return;
