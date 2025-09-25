@@ -158,3 +158,23 @@ export function getDateRangeOfWeek(weekString) {
         return "日期解析錯誤";
     }
 }
+
+// ▼▼▼ 【新增函式】 ▼▼▼
+/**
+ * 計算給定陣列的特定分位數值 (前端版本)
+ * @param {number[]} sortedArr - 一個已經排序好的數字陣列
+ * @param {number} q - 要計算的分位數 (例如 0.5 代表中位數)
+ * @returns {number} 計算後的分位數值
+ */
+export function calculateQuantile(sortedArr, q) {
+    if (!sortedArr || sortedArr.length === 0) return 0;
+    const pos = (sortedArr.length - 1) * q;
+    const base = Math.floor(pos);
+    const rest = pos - base;
+    if (sortedArr[base + 1] !== undefined) {
+      return sortedArr[base] + rest * (sortedArr[base + 1] - sortedArr[base]);
+    } else {
+      return sortedArr[base];
+    }
+}
+// ▲▲▲ 【新增結束】 ▲▲▲
