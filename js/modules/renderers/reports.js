@@ -137,7 +137,6 @@ export function renderRankingReport() {
     renderRankingPagination(projectRanking.length);
 }
 
-// ▼▼▼ 【修改處】 ▼▼▼
 export function renderPriceBandReport() {
     if (!state.analysisDataCache || !state.analysisDataCache.priceBandAnalysis) return;
     
@@ -192,7 +191,6 @@ export function renderPriceBandReport() {
 
     if (filteredDataForTable.length > 0) {
         filteredDataForTable.forEach(item => { 
-            // 【最終修正】在每個 span 後面加上一個空格，讓瀏覽器知道可以在此換行
             const projectListHtml = (item.projectNames && item.projectNames.length > 0) 
                 ? item.projectNames.map(name => `<span>${name}</span> `).join('') 
                 : '-';
@@ -221,8 +219,6 @@ export function renderPriceBandReport() {
 
     renderPriceBandChart();
 }
-// ▲▲▲ 【修改結束】 ▲▲▲
-
 
 export function renderUnitPriceReport() {
     if (!state.analysisDataCache || !state.analysisDataCache.unitPriceAnalysis) {
@@ -259,39 +255,123 @@ export function renderUnitPriceReport() {
     }
 }
 
+// ▼▼▼ 【新增函式】 ▼▼▼
+/**
+ * 根據勾選的樓層，動態更新坡道平面車位的統計數據
+ */
+export function updateRampParkingStats() {
+    if (!state.analysisDataCache || !state.analysisDataCache.parkingAnalysis) return;
+    
+    const { rampPlanePriceByFloor } = state.analysisDataCache.parkingAnalysis;
+    const checkedFloors = Array.from(document.querySelectorAll('.floor-checkbox:checked')).map(cb => cb.dataset.floor);
+    
+    // 1. 收集所有被選中樓層的原始車位紀錄
+    let selectedRecords = [];
+    let allPrices = [];
+    
+    rampPlanePriceByFloor.forEach(floorData => {
+        if (checkedFloors.includes(floorData.floor) && floorData.rawRecords) {
+            selectedRecords.push(...floorData.rawRecords);
+        }
+    });
+
+    // 2. 重新計算統計數據
+    const transactionIds = new Set(selectedRecords.map(r => r.transactionId));
+    const transactionCount = transactionIds.size;
+    const totalCount = selectedRecords.length;
+    
+    let avgPrice = 0, medianPrice = 0, q3Price = 0;
+    
+    if (totalCount > 0) {
+        allPrices = selectedRecords.map(r => r.parkingPrice).sort((a, b) => a - b);
+        const sum = allPrices.reduce((acc, price) => acc + price, 0);
+        avgPrice = sum / totalCount;
+        medianPrice = ui.calculateQuantile(allPrices, 0.5);
+        q3Price = ui.calculateQuantile(allPrices, 0.75);
+    }
+    
+    // 3. 更新 "各類型車位平均單價" 表格中對應的儲存格
+    document.getElementById('ramp-plane-transaction-count').textContent = transactionCount.toLocaleString();
+    document.getElementById('ramp-plane-total-count').textContent = totalCount.toLocaleString();
+    document.getElementById('ramp-plane-avg-price').textContent = ui.formatNumber(avgPrice, 0);
+    document.getElementById('ramp-plane-median-price').textContent = ui.formatNumber(medianPrice, 0);
+    document.getElementById('ramp-plane-q3-price').textContent = ui.formatNumber(q3Price, 0);
+}
+// ▲▲▲ 【新增結束】 ▲▲▲
+
+// ▼▼▼ 【核心修改函式】 ▼▼▼
 export function renderParkingAnalysisReport() {
     if (!state.analysisDataCache || !state.analysisDataCache.parkingAnalysis) return;
     const { parkingRatio, avgPriceByType, rampPlanePriceByFloor } = state.analysisDataCache.parkingAnalysis;
+    
     if (parkingRatio) {
         dom.parkingRatioTableContainer.innerHTML = `<table class="min-w-full divide-y divide-gray-800"><thead><tr><th>配置類型</th><th>交易筆數</th><th>佔比(%)</th></tr></thead><tbody><tr class="hover:bg-dark-card"><td>有搭車位</td><td>${parkingRatio.withParking.count.toLocaleString()}</td><td>${ui.formatNumber(parkingRatio.withParking.percentage, 2)}%</td></tr><tr class="hover:bg-dark-card"><td>沒搭車位</td><td>${parkingRatio.withoutParking.count.toLocaleString()}</td><td>${ui.formatNumber(parkingRatio.withoutParking.percentage, 2)}%</td></tr></tbody></table>`;
-        renderParkingRatioChart(); // <-- 新增這一行
+        renderParkingRatioChart();
     } else {
         dom.parkingRatioTableContainer.innerHTML = '<p class="text-gray-500">無車位配比資料可供分析。</p>';
     }
+
     if (avgPriceByType && avgPriceByType.length > 0) {
         let avgPriceHtml = `<table class="min-w-full divide-y divide-gray-800"><thead><tr><th>車位類型</th><th>交易筆數</th><th>車位總數</th><th>平均單價(萬)</th><th>單價中位數(萬)</th><th>單價3/4位數(萬)</th></tr></thead><tbody>`;
-        avgPriceByType.sort((a, b) => b.transactionCount - a.transactionCount).forEach(item => { avgPriceHtml += `<tr class="hover:bg-dark-card"><td>${item.type}</td><td>${item.transactionCount.toLocaleString()}</td><td>${item.count.toLocaleString()}</td><td>${ui.formatNumber(item.avgPrice, 0)}</td><td>${ui.formatNumber(item.medianPrice, 0)}</td><td>${ui.formatNumber(item.q3Price, 0)}</td></tr>`; });
+        avgPriceByType.sort((a, b) => b.transactionCount - a.transactionCount).forEach(item => {
+            // 【修改點 1】為「坡道平面」那一列的儲存格加上 ID
+            if (item.type === '坡道平面') {
+                avgPriceHtml += `<tr class="hover:bg-dark-card">
+                    <td>${item.type}</td>
+                    <td id="ramp-plane-transaction-count">${item.transactionCount.toLocaleString()}</td>
+                    <td id="ramp-plane-total-count">${item.count.toLocaleString()}</td>
+                    <td id="ramp-plane-avg-price">${ui.formatNumber(item.avgPrice, 0)}</td>
+                    <td id="ramp-plane-median-price">${ui.formatNumber(item.medianPrice, 0)}</td>
+                    <td id="ramp-plane-q3-price">${ui.formatNumber(item.q3Price, 0)}</td>
+                </tr>`;
+            } else {
+                avgPriceHtml += `<tr class="hover:bg-dark-card"><td>${item.type}</td><td>${item.transactionCount.toLocaleString()}</td><td>${item.count.toLocaleString()}</td><td>${ui.formatNumber(item.avgPrice, 0)}</td><td>${ui.formatNumber(item.medianPrice, 0)}</td><td>${ui.formatNumber(item.q3Price, 0)}</td></tr>`;
+            }
+        });
         avgPriceHtml += `</tbody></table>`;
         dom.avgPriceByTypeTableContainer.innerHTML = avgPriceHtml;
     } else {
         dom.avgPriceByTypeTableContainer.innerHTML = '<p class="text-gray-500">無含車位的交易資料可供分析。</p>';
     }
+
     if (rampPlanePriceByFloor && rampPlanePriceByFloor.some(item => item.count > 0)) {
         const floorMapping = {'B1': '地下一樓', 'B2': '地下二樓', 'B3': '地下三樓', 'B4': '地下四樓', 'B5_below': '地下五樓含以下'};
-        let floorPriceHtml = `<table class="min-w-full divide-y divide-gray-800"><thead><tr><th>樓層</th><th>筆數</th><th>均價(萬)</th><th>中位數(萬)</th><th>3/4位數(萬)</th><th>最高價(萬)</th><th>最低價(萬)</th></tr></thead><tbody>`;
+        // 【修改點 2】在表頭新增一個「全選」checkbox
+        let floorPriceHtml = `<table class="min-w-full divide-y divide-gray-800">
+            <thead>
+                <tr>
+                    <th style="width: 10%;"><label class="flex items-center space-x-2"><input type="checkbox" id="select-all-floors" class="form-checkbox" checked><span>全選</span></label></th>
+                    <th>樓層</th><th>筆數</th><th>均價(萬)</th><th>中位數(萬)</th><th>3/4位數(萬)</th><th>最高價(萬)</th><th>最低價(萬)</th>
+                </tr>
+            </thead>
+            <tbody>`;
         rampPlanePriceByFloor.forEach(item => {
             if (item && item.count > 0) {
                 const maxPriceTooltip = item.maxPriceProject ? `建案: ${item.maxPriceProject}\n戶型: ${item.maxPriceUnit || '-'}\n樓層: ${item.maxPriceFloor || '-'}` : '';
                 const minPriceTooltip = item.minPriceProject ? `建案: ${item.minPriceProject}\n戶型: ${item.minPriceUnit || '-'}\n樓層: ${item.minPriceFloor || '-'}` : '';
-                floorPriceHtml += `<tr class="hover:bg-dark-card"><td>${floorMapping[item.floor] || item.floor}</td><td>${item.count.toLocaleString()}</td><td>${ui.formatNumber(item.avgPrice, 0)}</td><td>${ui.formatNumber(item.medianPrice, 0)}</td><td>${ui.formatNumber(item.q3Price, 0)}</td><td><span class="has-tooltip" data-tooltip="${maxPriceTooltip}">${ui.formatNumber(item.maxPrice, 0)}</span></td><td><span class="has-tooltip" data-tooltip="${minPriceTooltip}">${ui.formatNumber(item.minPrice, 0)}</span></td></tr>`;
+                // 【修改點 3】在每一樓層前面新增 checkbox
+                floorPriceHtml += `<tr class="hover:bg-dark-card">
+                    <td><input type="checkbox" class="floor-checkbox form-checkbox" data-floor="${item.floor}" checked></td>
+                    <td>${floorMapping[item.floor] || item.floor}</td>
+                    <td>${item.count.toLocaleString()}</td>
+                    <td>${ui.formatNumber(item.avgPrice, 0)}</td>
+                    <td>${ui.formatNumber(item.medianPrice, 0)}</td>
+                    <td>${ui.formatNumber(item.q3Price, 0)}</td>
+                    <td><span class="has-tooltip" data-tooltip="${maxPriceTooltip}">${ui.formatNumber(item.maxPrice, 0)}</span></td>
+                    <td><span class="has-tooltip" data-tooltip="${minPriceTooltip}">${ui.formatNumber(item.minPrice, 0)}</span></td>
+                </tr>`;
             }
         });
         floorPriceHtml += `</tbody></table>`;
         dom.rampPlanePriceByFloorTableContainer.innerHTML = floorPriceHtml;
+        // 【修改點 4】初次渲染完畢後，立即呼叫一次更新函式，確保數據同步
+        updateRampParkingStats();
     } else {
         dom.rampPlanePriceByFloorTableContainer.innerHTML = '<p class="text-gray-500">無符合條件的坡道平面車位交易資料可供分析。</p>';
     }
 }
+// ▲▲▲ 【修改結束】 ▲▲▲
+
 
 export function renderSalesVelocityReport() {
     if (!state.analysisDataCache || !state.analysisDataCache.salesVelocityAnalysis) return;
