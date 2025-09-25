@@ -159,7 +159,7 @@ export function getDateRangeOfWeek(weekString) {
     }
 }
 
-// ▼▼▼ 【新增函式】 ▼▼▼
+// ▼▼▼ 【這就是修正的部分】 ▼▼▼
 /**
  * 計算給定陣列的特定分位數值 (前端版本)
  * @param {number[]} sortedArr - 一個已經排序好的數字陣列
@@ -177,4 +177,4 @@ export function calculateQuantile(sortedArr, q) {
       return sortedArr[base];
     }
 }
-// ▲▲▲ 【新增結束】 ▲▲▲
+// ▲▲▲ 【修正結束】 ▲▲▲
