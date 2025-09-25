@@ -24,11 +24,12 @@ import {
     handleGlobalClick,
     switchAverageType,
     handlePriceBandRoomFilterClick,
+    handleParkingFloorFilterChange, // <-- 新增匯入
     handleVelocityRoomFilterClick,
     handleVelocitySubTabClick,
     handleVelocityMetricClick,
     handleHeatmapMetricToggle,
-    handleHeatmapDetailsInteraction, // <-- 新增匯入
+    handleHeatmapDetailsInteraction,
     handlePriceGridProjectFilterClick,
     analyzeHeatmap,
     handleBackToGrid,
@@ -168,8 +169,9 @@ function initialize() {
     
     dom.excludeCommercialToggle.addEventListener('change', handleExcludeCommercialToggle);
     
-    // --- 去化分析與垂直水平分析相關事件 ---
+    // --- 停車位、去化分析與垂直水平分析相關事件 ---
     dom.priceBandRoomFilterContainer.addEventListener('click', handlePriceBandRoomFilterClick);
+    dom.rampPlanePriceByFloorTableContainer.addEventListener('click', handleParkingFloorFilterChange); // <-- 新增這一行
     dom.velocityRoomFilterContainer.addEventListener('click', handleVelocityRoomFilterClick);
     dom.velocitySubTabsContainer.addEventListener('click', handleVelocitySubTabClick);
     dom.velocityMetricToggle.addEventListener('click', handleVelocityMetricClick);
@@ -179,7 +181,7 @@ function initialize() {
     dom.heatmapLegendContainer.addEventListener('click', handleLegendClick);
     
     dom.heatmapMetricToggle.addEventListener('click', handleHeatmapMetricToggle);
-    dom.heatmapDetailsContainer.addEventListener('click', handleHeatmapDetailsInteraction); // <-- 新增這一行
+    dom.heatmapDetailsContainer.addEventListener('click', handleHeatmapDetailsInteraction);
 
     // 熱力圖面積級距控制
     dom.heatmapIntervalInput.addEventListener('change', chartRenderer.renderAreaHeatmap);
