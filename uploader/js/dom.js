@@ -52,5 +52,13 @@ export const DOM = {
     // 更新執行區塊
     updateFieldSelect: document.getElementById('updateFieldSelect'),
     updateValueInput: document.getElementById('updateValueInput'),
-    executeBatchUpdateButton: document.getElementById('executeBatchUpdateButton')
+    executeBatchUpdateButton: document.getElementById('executeBatchUpdateButton'),
+    
+    // ▼▼▼ 【新增部分】 ▼▼▼
+    // 日誌詳細資料 Modal
+    logDetailsModal: document.getElementById('logDetailsModal'),
+    logDetailsModalCloseBtn: document.getElementById('logDetailsModalCloseBtn'),
+    logDetailsModalTitle: document.getElementById('logDetailsModalTitle'),
+    logDetailsModalContent: document.getElementById('logDetailsModalContent')
+    // ▲▲▲ 【新增結束】 ▲▲▲
 };
