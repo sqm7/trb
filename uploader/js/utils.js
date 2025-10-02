@@ -109,7 +109,7 @@ export function processRow(row, mapping) {
 export function isEqual(objA, objB, tableType) {
     const keysToCheck = Object.values(columnMappings[tableType]);
     for (const key of keysToCheck) {
-        if (key === 'id') continue; // `id` 是資料庫自動產生的，不需要比較
+        if (key === 'id' || key === '建案名稱') continue;
         const valA = objA[key] ?? '';
         const valB = objB[key] ?? '';
 
