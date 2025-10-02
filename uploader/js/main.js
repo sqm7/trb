@@ -26,9 +26,9 @@ async function handleSelectFolders() {
         const fileRegex = /^([a-z])_lvr_land_([a-c](?:_build|_land|_park)?)\.csv$/i;
         state.allFiles = fileInfoList.map(item => {
             const match = item.handle.name.match(fileRegex);
-            return match ? { 
+            return match ? {
                 fileHandle: item.handle, name: item.handle.name, fullPath: item.path,
-                countyCode: match[1].toLowerCase(), tableType: match[2].toLowerCase(), isMain: !match[2].includes('_') 
+                countyCode: match[1].toLowerCase(), tableType: match[2].toLowerCase(), isMain: !match[2].includes('_')
             } : null;
         }).filter(Boolean);
 
@@ -64,7 +64,7 @@ async function startUpload() {
     DOM.startUploadButton.disabled = true;
     DOM.selectFoldersButton.disabled = true;
     resetSummary();
-    
+
     const selectedType = document.querySelector('input[name="uploadType"]:checked').value;
     const typeNameMap = { 'all': '全選', 'a': '中古', 'b': '預售', 'c': '租賃' };
     let filesToUpload = state.allFiles;
@@ -79,14 +79,14 @@ async function startUpload() {
         DOM.selectFoldersButton.disabled = false;
         return;
     }
-    
+
     addLog(`已選擇上傳類型: ${typeNameMap[selectedType]}。共 ${filesToUpload.length} 個檔案待處理。`, 'info');
     const mainTables = filesToUpload.filter(f => f.isMain);
     const subTables = filesToUpload.filter(f => !f.isMain);
-    
+
     await processPhase(mainTables, '階段 1: 主表 (智慧更新)', true);
     await processPhase(subTables, '階段 2: 附表 (智慧連動)', false);
-    
+
     addLog('所有檔案處理完成！', 'success');
     displayFinalSummary();
 
@@ -139,102 +139,28 @@ async function handleSearchForUpdate() {
         currentUpdateContext.tableName = tableName;
         currentUpdateContext.results = data;
         currentUpdateContext.criteriaString = `搜尋條件：${countyText} > ${searchField} (包含 '${keyword}')`;
-        
+
         populateUpdateModal(data);
         updateCriteriaDisplay();
         populateUpdateFieldSelect(transactionType);
-        
+
         DOM.batchUpdateModal.classList.remove('hidden');
     } catch (error) {
         addLog(`執行搜尋時發生錯誤: ${error.message}`, 'error', 'error');
     }
 }
 
-function createDetailsTableHtml(data) {
-    if (!data || data.length === 0) {
-        return '<p class="text-gray-400">無詳細資料可顯示。</p>';
-    }
-
-    // 從第一筆資料中提取所有欄位作為表頭
-    const headers = Object.keys(data[0]);
-    const headerHtml = `<thead><tr class="bg-gray-800">${headers.map(h => `<th class="p-2 text-left text-sm font-medium text-gray-300">${h}</th>`).join('')}</tr></thead>`;
-
-    const bodyHtml = `<tbody>${data.map(row => {
-        const rowHtml = headers.map(header => `<td class="p-2 border-t border-gray-700 text-xs">${row[header] ?? '-'}</td>`).join('');
-        return `<tr class="hover:bg-dark-card">${rowHtml}</tr>`;
-    }).join('')}</tbody>`;
-
-    return `<div class="overflow-x-auto"><table class="w-full results-table">${headerHtml}${bodyHtml}</table></div>`;
-}
-
-// ▼▼▼ 【新增函式 2/2】處理點擊「查看詳情」按鈕的邏輯 ▼▼▼
-function showLogDetails(logId) {
-    const details = state.logDetailsCache.get(parseInt(logId, 10));
-    if (!details) {
-        console.error(`找不到 Log ID: ${logId} 的詳細資料`);
-        return;
-    }
-
-    DOM.logDetailsModalTitle.innerHTML = details.title; // 設置標題
-    DOM.logDetailsModalContent.innerHTML = createDetailsTableHtml(details.data); // 產生並填入表格
-    DOM.logDetailsModal.classList.remove('hidden'); // 顯示 Modal
-}
-
-function initialize() {
-    populateCountySelect();
-    
-    DOM.testConnectionButton.addEventListener('click', testConnection);
-    // 上傳功能
-    DOM.selectFoldersButton.addEventListener('click', handleSelectFolders);
-    DOM.startUploadButton.addEventListener('click', startUpload);
-    // 修改功能
-    DOM.searchForUpdateButton.addEventListener('click', handleSearchForUpdate);
-    DOM.batchUpdateModalCloseBtn.addEventListener('click', () => DOM.batchUpdateModal.classList.add('hidden'));
-    DOM.executeBatchUpdateButton.addEventListener('click', handleBatchUpdate);
-    DOM.selectAllCheckbox.addEventListener('click', handleSelectAll);
-    DOM.modalFilterButton.addEventListener('click', filterModalResults);
-    DOM.modalFilterInput.addEventListener('keydown', (event) => {
-        if (event.key === 'Enter') {
-            event.preventDefault();
-            filterModalResults();
-        }
-    });
-
-    DOM.searchResultsContainer.addEventListener('click', handleDetailsToggle);
-
-    // ▼▼▼ 【新增部分】為日誌 Modal 和按鈕加上事件監聽 ▼▼▼
-    DOM.logDetailsModalCloseBtn.addEventListener('click', () => DOM.logDetailsModal.classList.add('hidden'));
-
-    // 使用事件委派來處理動態新增的「查看詳情」按鈕
-    DOM.statusContainer.addEventListener('click', (event) => {
-        const target = event.target.closest('button[data-log-id]');
-        if (target) {
-            showLogDetails(target.dataset.logId);
-        }
-    });
-    // ▲▲▲ 【新增結束】 ▲▲▲
-
-    window.clearLogs = clearLogs;
-    updateTime();
-    setInterval(updateTime, 1000);
-    resetUI();
-}
-
-document.addEventListener('DOMContentLoaded', initialize);
-
-
-// --- ▼▼▼ 【核心修改函式】 ▼▼▼ ---
 function populateUpdateModal(data) {
     DOM.modalFilterInput.value = '';
     const container = DOM.searchResultsContainer;
-    
+
     if (!data || data.length === 0) {
         container.innerHTML = '<div class="p-4 text-center text-gray-500">無符合條件的資料</div>';
         return;
     }
 
     const summaryFields = ['編號', '行政區', '建案名稱', '總樓層', '地址', '建物型態', '主要用途', '備註'];
-    
+
     const tableRowsHtml = data.map((item, index) => {
         const summaryCells = summaryFields.map(field => {
             const value = item[field] || '-';
@@ -285,7 +211,7 @@ function populateUpdateModal(data) {
             </tr>
         </thead>
     `;
-    
+
     container.innerHTML = `<table class="results-table">${tableHeaderHtml}${tableRowsHtml}</table>`;
 
     filterModalResults();
@@ -297,7 +223,7 @@ function handleDetailsToggle(event) {
         const summaryRow = target.closest('.summary-row');
         const detailsRowSelector = summaryRow.dataset.detailsTarget;
         const detailsRow = document.querySelector(detailsRowSelector);
-        
+
         if (detailsRow) {
             const isVisible = detailsRow.style.display === 'table-row';
             detailsRow.style.display = isVisible ? 'none' : 'table-row';
@@ -305,14 +231,13 @@ function handleDetailsToggle(event) {
         }
     }
 }
-// --- ▲▲▲ 【核心修改結束】 ▲▲▲ ---
 
 function populateUpdateFieldSelect(transactionType) {
     const select = DOM.updateFieldSelect;
     select.innerHTML = '';
     const mapping = columnMappings[transactionType];
     const excludedFields = ['id', '編號', '房屋單價(萬)', '房屋面積(坪)', '產權面積_房車', '車位總面積', '土地持分面積'];
-    
+
     if (mapping) {
         const dbColumns = [...new Set(Object.values(mapping))];
         dbColumns.filter(col => !excludedFields.includes(col)).sort().forEach(field => {
@@ -328,7 +253,7 @@ function populateUpdateFieldSelect(transactionType) {
 async function handleBatchUpdate() {
     const selectedCheckboxes = DOM.searchResultsContainer.querySelectorAll('.result-item:not([style*="display: none"]) input[type="checkbox"]:checked');
     const idsToUpdate = Array.from(selectedCheckboxes).map(cb => cb.dataset.id);
-    
+
     if (idsToUpdate.length === 0) {
         addLog('您沒有選擇任何可見且已勾選的資料進行更新。', 'warning', 'error');
         return;
@@ -342,7 +267,7 @@ async function handleBatchUpdate() {
         addLog('無法執行更新：缺少資料表名稱或欄位資訊。', 'error', 'error');
         return;
     }
-    
+
     try {
         await batchUpdateData(tableName, idsToUpdate, fieldToUpdate, newValue);
         DOM.batchUpdateModal.classList.add('hidden');
@@ -392,9 +317,33 @@ function populateCountySelect() {
     });
 }
 
+function createDetailsTableHtml(data) {
+    if (!data || data.length === 0) {
+        return '<p class="text-gray-400">無詳細資料可顯示。</p>';
+    }
+    const headers = Object.keys(data[0]);
+    const headerHtml = `<thead><tr class="bg-gray-800">${headers.map(h => `<th class="p-2 text-left text-sm font-medium text-gray-300">${h}</th>`).join('')}</tr></thead>`;
+    const bodyHtml = `<tbody>${data.map(row => {
+        const rowHtml = headers.map(header => `<td class="p-2 border-t border-gray-700 text-xs">${row[header] ?? '-'}</td>`).join('');
+        return `<tr class="hover:bg-dark-card">${rowHtml}</tr>`;
+    }).join('')}</tbody>`;
+    return `<div class="overflow-x-auto"><table class="w-full results-table">${headerHtml}${bodyHtml}</table></div>`;
+}
+
+function showLogDetails(logId) {
+    const details = state.logDetailsCache.get(parseInt(logId, 10));
+    if (!details) {
+        console.error(`找不到 Log ID: ${logId} 的詳細資料`);
+        return;
+    }
+    DOM.logDetailsModalTitle.innerHTML = details.title;
+    DOM.logDetailsModalContent.innerHTML = createDetailsTableHtml(details.data);
+    DOM.logDetailsModal.classList.remove('hidden');
+}
+
 function initialize() {
     populateCountySelect();
-    
+
     DOM.testConnectionButton.addEventListener('click', testConnection);
     // 上傳功能
     DOM.selectFoldersButton.addEventListener('click', handleSelectFolders);
@@ -413,6 +362,15 @@ function initialize() {
     });
 
     DOM.searchResultsContainer.addEventListener('click', handleDetailsToggle);
+
+    DOM.logDetailsModalCloseBtn.addEventListener('click', () => DOM.logDetailsModal.classList.add('hidden'));
+
+    DOM.statusContainer.addEventListener('click', (event) => {
+        const target = event.target.closest('button[data-log-id]');
+        if (target) {
+            showLogDetails(target.dataset.logId);
+        }
+    });
 
     window.clearLogs = clearLogs;
     updateTime();
