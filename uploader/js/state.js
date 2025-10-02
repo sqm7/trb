@@ -24,6 +24,13 @@ export const state = {
         warnings: 0 
     },
     
+    // ▼▼▼ 【新增部分】 ▼▼▼
+    // 用來暫存日誌詳細資料的快取
+    logDetailsCache: new Map(),
+    // 用於為每一筆日誌產生唯一ID的計數器
+    logDetailCounter: 0,
+    // ▲▲▲ 【新增結束】 ▲▲▲
+    
     // 標記當前是否正在上傳中，防止重複觸發
     isUploading: false
 };
@@ -38,4 +45,8 @@ export function resetSummary() {
         errors: 0, 
         warnings: 0 
     };
+    // ▼▼▼ 【新增部分】每次重置時也清空快取和計數器 ▼▼▼
+    state.logDetailsCache.clear();
+    state.logDetailCounter = 0;
+    // ▲▲▲ 【新增結束】 ▲▲▲
 }
