@@ -53,10 +53,10 @@ export async function uploadMainFileWithSmartUpdate(fileInfo) {
             if (fetchError) throw fetchError;
 
             const existingDataMap = new Map(existingData.map(item => [item['編號'], item]));
-            const newData = [];
+             const newData = [];
             const updatedData = [];
+            const identicalData = []; // 新增此陣列
             const idsToDeleteForUpdate = [];
-            let identicalCount = 0;
 
             for (const newRecord of chunk) {
                 const existingRecord = existingDataMap.get(newRecord['編號']);
@@ -69,8 +69,18 @@ export async function uploadMainFileWithSmartUpdate(fileInfo) {
                     identicalCount++;
                 }
             }
+
+            const chunkNumber = Math.floor(i / chunkSize) + 1;
+            if (newData.length > 0) {
+                addLog(`${fileInfo.fullPath} (區塊 ${chunkNumber}): 新增 ${newData.length} 筆`, 'info', 'status', newData);
+            }
+            if (updatedData.length > 0) {
+                addLog(`${fileInfo.fullPath} (區塊 ${chunkNumber}): 更新 ${updatedData.length} 筆`, 'info', 'status', updatedData);
+            }
+            if (identicalData.length > 0) {
+                addLog(`${fileInfo.fullPath} (區塊 ${chunkNumber}): 相同 ${identicalData.length} 筆，已跳過`, 'info', 'status', identicalData);
+            }
             
-            addLog(`${fileInfo.fullPath} (區塊 ${Math.floor(i/chunkSize) + 1}): 新增 ${newData.length}, 更新 ${updatedData.length}, 跳過 ${identicalCount}`, 'info');
             state.summary.new += newData.length;
             state.summary.updated += updatedData.length;
             state.summary.identical += identicalCount;
