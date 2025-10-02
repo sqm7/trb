@@ -7,22 +7,43 @@ import { state, resetSummary } from './state.js';
  * @param {string} message - 要顯示的訊息，可以是 HTML 字串
  * @param {string} type - 訊息類型 ('info', 'success', 'warning', 'error')
  * @param {string} container - 目標容器 ('status' 或 'error')
+ * @param {Array<object>} [details] - (可選) 與此日誌相關的詳細資料陣列
  */
-export function addLog(message, type = 'info', container = 'status') {
+export function addLog(message, type = 'info', container = 'status', details = null) {
     const timestamp = new Date().toLocaleTimeString();
     const logContainer = container === 'status' ? DOM.statusContainer : DOM.errorLogContainer;
     const typeClass = `terminal-${type}`;
     const logEntry = document.createElement('div');
     
+    // ▼▼▼ 【修改處】新增按鈕與資料儲存邏輯 ▼▼▼
+    let detailsButtonHtml = '';
+    if (details && details.length > 0) {
+        const logId = state.logDetailCounter++; // 取得唯一 ID 並遞增
+        state.logDetailsCache.set(logId, { title: message, data: details }); // 存入快取
+        detailsButtonHtml = `
+            <button 
+                class="ml-4 px-2 py-1 text-xs bg-gray-600 hover:bg-gray-500 text-white rounded transition-colors"
+                data-log-id="${logId}"
+            >
+                查看詳情
+            </button>
+        `;
+    }
+    // ▲▲▲ 【修改結束】 ▲▲▲
+
     // 使用 flex 佈局確保時間戳和訊息內容對齊
-    logEntry.className = 'flex items-start';
+    logEntry.className = 'flex items-start justify-between'; // 修改 class 以支援按鈕
     logEntry.innerHTML = `
-        <span class="text-gray-500 mr-2">[${timestamp}]</span>
-        <div class="flex-1 ${typeClass}">${message}</div>
+        <div class="flex items-start">
+            <span class="text-gray-500 mr-2">[${timestamp}]</span>
+            <div class="flex-1 ${typeClass}">${message}</div>
+        </div>
+        ${detailsButtonHtml}
     `;
     logContainer.appendChild(logEntry);
     logContainer.scrollTop = logContainer.scrollHeight;
 }
+
 
 /**
  * 更新連線狀態指示燈和文字
