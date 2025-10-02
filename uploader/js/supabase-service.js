@@ -1,5 +1,9 @@
 // uploader/js/supabase-service.js
 
+// ▼▼▼ 【修改處】在檔案頂部，直接從 CDN 匯入 createClient ▼▼▼
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
+// ▲▲▲ 【修改結束】 ▲▲▲
+
 import { DOM } from './dom.js';
 import { state } from './state.js';
 import { addLog, updateConnectionStatus } from './ui.js';
@@ -18,7 +22,10 @@ export async function testConnection() {
     }
     addLog('正在測試連線...', 'info');
     try {
-        const testSupabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+        // ▼▼▼ 【修改處】移除 window.supabase，直接使用匯入的 createClient ▼▼▼
+        const testSupabase = createClient(supabaseUrl, supabaseKey);
+        // ▲▲▲ 【修改結束】 ▲▲▲
+        
         const { error } = await testSupabase.from('county_codes').select('code', { count: 'exact', head: true });
         if (error && error.code !== '42P01') throw error;
 
@@ -53,9 +60,10 @@ export async function uploadMainFileWithSmartUpdate(fileInfo) {
             if (fetchError) throw fetchError;
 
             const existingDataMap = new Map(existingData.map(item => [item['編號'], item]));
-             const newData = [];
+            
+            const newData = [];
             const updatedData = [];
-            const identicalData = []; // 新增此陣列
+            const identicalData = []; 
             const idsToDeleteForUpdate = [];
 
             for (const newRecord of chunk) {
@@ -66,10 +74,10 @@ export async function uploadMainFileWithSmartUpdate(fileInfo) {
                     idsToDeleteForUpdate.push(newRecord['編號']);
                     updatedData.push(newRecord);
                 } else {
-                    identicalCount++;
+                    identicalData.push(existingRecord); 
                 }
             }
-
+            
             const chunkNumber = Math.floor(i / chunkSize) + 1;
             if (newData.length > 0) {
                 addLog(`${fileInfo.fullPath} (區塊 ${chunkNumber}): 新增 ${newData.length} 筆`, 'info', 'status', newData);
@@ -80,10 +88,10 @@ export async function uploadMainFileWithSmartUpdate(fileInfo) {
             if (identicalData.length > 0) {
                 addLog(`${fileInfo.fullPath} (區塊 ${chunkNumber}): 相同 ${identicalData.length} 筆，已跳過`, 'info', 'status', identicalData);
             }
-            
+
             state.summary.new += newData.length;
             state.summary.updated += updatedData.length;
-            state.summary.identical += identicalCount;
+            state.summary.identical += identicalData.length;
             
             const idsToProcess = [...newData.map(r => r['編號']), ...updatedData.map(r => r['編號'])];
             idsToProcess.forEach(id => state.processedMainIds.add(id));
