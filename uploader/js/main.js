@@ -150,6 +150,79 @@ async function handleSearchForUpdate() {
     }
 }
 
+function createDetailsTableHtml(data) {
+    if (!data || data.length === 0) {
+        return '<p class="text-gray-400">無詳細資料可顯示。</p>';
+    }
+
+    // 從第一筆資料中提取所有欄位作為表頭
+    const headers = Object.keys(data[0]);
+    const headerHtml = `<thead><tr class="bg-gray-800">${headers.map(h => `<th class="p-2 text-left text-sm font-medium text-gray-300">${h}</th>`).join('')}</tr></thead>`;
+
+    const bodyHtml = `<tbody>${data.map(row => {
+        const rowHtml = headers.map(header => `<td class="p-2 border-t border-gray-700 text-xs">${row[header] ?? '-'}</td>`).join('');
+        return `<tr class="hover:bg-dark-card">${rowHtml}</tr>`;
+    }).join('')}</tbody>`;
+
+    return `<div class="overflow-x-auto"><table class="w-full results-table">${headerHtml}${bodyHtml}</table></div>`;
+}
+
+// ▼▼▼ 【新增函式 2/2】處理點擊「查看詳情」按鈕的邏輯 ▼▼▼
+function showLogDetails(logId) {
+    const details = state.logDetailsCache.get(parseInt(logId, 10));
+    if (!details) {
+        console.error(`找不到 Log ID: ${logId} 的詳細資料`);
+        return;
+    }
+
+    DOM.logDetailsModalTitle.innerHTML = details.title; // 設置標題
+    DOM.logDetailsModalContent.innerHTML = createDetailsTableHtml(details.data); // 產生並填入表格
+    DOM.logDetailsModal.classList.remove('hidden'); // 顯示 Modal
+}
+
+function initialize() {
+    populateCountySelect();
+    
+    DOM.testConnectionButton.addEventListener('click', testConnection);
+    // 上傳功能
+    DOM.selectFoldersButton.addEventListener('click', handleSelectFolders);
+    DOM.startUploadButton.addEventListener('click', startUpload);
+    // 修改功能
+    DOM.searchForUpdateButton.addEventListener('click', handleSearchForUpdate);
+    DOM.batchUpdateModalCloseBtn.addEventListener('click', () => DOM.batchUpdateModal.classList.add('hidden'));
+    DOM.executeBatchUpdateButton.addEventListener('click', handleBatchUpdate);
+    DOM.selectAllCheckbox.addEventListener('click', handleSelectAll);
+    DOM.modalFilterButton.addEventListener('click', filterModalResults);
+    DOM.modalFilterInput.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            filterModalResults();
+        }
+    });
+
+    DOM.searchResultsContainer.addEventListener('click', handleDetailsToggle);
+
+    // ▼▼▼ 【新增部分】為日誌 Modal 和按鈕加上事件監聽 ▼▼▼
+    DOM.logDetailsModalCloseBtn.addEventListener('click', () => DOM.logDetailsModal.classList.add('hidden'));
+
+    // 使用事件委派來處理動態新增的「查看詳情」按鈕
+    DOM.statusContainer.addEventListener('click', (event) => {
+        const target = event.target.closest('button[data-log-id]');
+        if (target) {
+            showLogDetails(target.dataset.logId);
+        }
+    });
+    // ▲▲▲ 【新增結束】 ▲▲▲
+
+    window.clearLogs = clearLogs;
+    updateTime();
+    setInterval(updateTime, 1000);
+    resetUI();
+}
+
+document.addEventListener('DOMContentLoaded', initialize);
+
+
 // --- ▼▼▼ 【核心修改函式】 ▼▼▼ ---
 function populateUpdateModal(data) {
     DOM.modalFilterInput.value = '';
