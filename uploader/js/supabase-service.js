@@ -1,9 +1,5 @@
 // uploader/js/supabase-service.js
 
-// ▼▼▼ 【修改處】在檔案頂部，直接從 CDN 匯入 createClient ▼▼▼
-import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
-// ▲▲▲ 【修改結束】 ▲▲▲
-
 import { DOM } from './dom.js';
 import { state } from './state.js';
 import { addLog, updateConnectionStatus } from './ui.js';
@@ -22,10 +18,7 @@ export async function testConnection() {
     }
     addLog('正在測試連線...', 'info');
     try {
-        // ▼▼▼ 【修改處】移除 window.supabase，直接使用匯入的 createClient ▼▼▼
-        const testSupabase = createClient(supabaseUrl, supabaseKey);
-        // ▲▲▲ 【修改結束】 ▲▲▲
-        
+        const testSupabase = window.supabase.createClient(supabaseUrl, supabaseKey);
         const { error } = await testSupabase.from('county_codes').select('code', { count: 'exact', head: true });
         if (error && error.code !== '42P01') throw error;
 
@@ -63,7 +56,7 @@ export async function uploadMainFileWithSmartUpdate(fileInfo) {
             
             const newData = [];
             const updatedData = [];
-            const identicalData = []; 
+            const identicalData = [];
             const idsToDeleteForUpdate = [];
 
             for (const newRecord of chunk) {
@@ -74,7 +67,7 @@ export async function uploadMainFileWithSmartUpdate(fileInfo) {
                     idsToDeleteForUpdate.push(newRecord['編號']);
                     updatedData.push(newRecord);
                 } else {
-                    identicalData.push(existingRecord); 
+                    identicalData.push(existingRecord);
                 }
             }
             
@@ -142,15 +135,8 @@ export async function uploadSubFile(fileInfo) {
     }
 }
 
-
-// ▼▼▼ 【最終修正】搜尋資料函式 ▼▼▼
 /**
  * 從 Supabase 查詢符合條件的資料
- * @param {string} countyCode - 縣市代碼 (e.g., 'a', 'f')
- * @param {string} transactionType - 交易類型 ('a', 'b', 'c')
- * @param {string} searchField - 搜尋欄位 ('建案名稱' 或 '編號')
- * @param {string} keyword - 搜尋關鍵字
- * @returns {Promise<{data: any[], error: any, tableName: string}>} - 查詢結果
  */
 export async function searchData(countyCode, transactionType, searchField, keyword) {
     if (!state.supabase) throw new Error("Supabase 未連線");
@@ -160,7 +146,6 @@ export async function searchData(countyCode, transactionType, searchField, keywo
     
     addLog(`正在從資料表 [${tableName}] 中，以欄位 [${searchField}] 模糊搜尋關鍵字 [${keyword}]...`, 'info');
 
-    // 【邏輯修正】使用 select('*') 抓取所有實際存在的欄位，徹底避免 'id does not exist' 錯誤
     let query = state.supabase
         .from(tableName)
         .select('*') 
@@ -179,11 +164,6 @@ export async function searchData(countyCode, transactionType, searchField, keywo
 
 /**
  * 批次更新 Supabase 中的資料
- * @param {string} tableName - 要更新的資料表名稱
- * @param {Array<string>} ids - 要更新的紀錄【編號】陣列
- * @param {string} fieldToUpdate - 要更新的欄位名稱
- * @param {string} newValue - 新的欄位內容
- * @returns {Promise<{error: any}>} - 更新結果
  */
 export async function batchUpdateData(tableName, ids, fieldToUpdate, newValue) {
     if (!state.supabase) throw new Error("Supabase 未連線");
