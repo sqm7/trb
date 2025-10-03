@@ -62,13 +62,23 @@ export async function uploadMainFileWithSmartUpdate(fileInfo) {
                 const existingRecord = existingDataMap.get(newRecord['編號']);
                 if (!existingRecord) {
                     newData.push(newRecord);
+                    // --- ▼▼▼ 【新增】紀錄新增的資料 ▼▼▼ ---
+                    state.detailedRecords.new.push(newRecord);
+                    // --- ▲▲▲ 【新增結束】 ▲▲▲
                 } else if (!isEqual(newRecord, existingRecord, fileInfo.tableType)) {
                     idsToDeleteForUpdate.push(newRecord['編號']);
                     updatedData.push(newRecord);
+                    // --- ▼▼▼ 【新增】紀錄更新的資料 (新舊並陳) ▼▼▼ ---
+                    state.detailedRecords.updated.push({ before: existingRecord, after: newRecord });
+                    // --- ▲▲▲ 【新增結束】 ▲▲▲
                 } else {
                     identicalCount++;
+                    // --- ▼▼▼ 【新增】紀錄內容相同的資料 ▼▼▼ ---
+                    state.detailedRecords.identical.push(newRecord);
+                    // --- ▲▲▲ 【新增結束】 ▲▲▲
                 }
             }
+            
             
             addLog(`${fileInfo.fullPath} (區塊 ${Math.floor(i/chunkSize) + 1}): 新增 ${newData.length}, 更新 ${updatedData.length}, 跳過 ${identicalCount}`, 'info');
             state.summary.new += newData.length;
