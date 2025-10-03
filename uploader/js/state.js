@@ -23,7 +23,10 @@ export const state = {
         errors: 0, 
         warnings: 0 
     },
-    
+     detailedRecords: {
+        new: [],
+        updated: [],
+        identical: []
     // 標記當前是否正在上傳中，防止重複觸發
     isUploading: false
 };
@@ -37,5 +40,10 @@ export function resetSummary() {
         subAdded: 0, 
         errors: 0, 
         warnings: 0 
+    };
+    state.detailedRecords = {
+        new: [],
+        updated: [],
+        identical: []
     };
 }
