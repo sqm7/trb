@@ -2,7 +2,9 @@
 
 import { DOM } from './dom.js';
 import { state, resetSummary } from './state.js';
-import { addLog, resetUI, updateProgress, updateTime, displayFinalSummary, clearLogs } from './ui.js';
+// ▼▼▼ 【修改處 1】 ▼▼▼
+import { addLog, resetUI, updateProgress, updateTime, displayFinalSummary, clearLogs, renderUploadDetailsModal } from './ui.js';
+// ▲▲▲ 【修改結束】 ▲▲▲
 import { scanDirectory } from './file-handler.js';
 import { testConnection, uploadMainFileWithSmartUpdate, uploadSubFile, searchData, batchUpdateData } from './supabase-service.js';
 import { columnMappings, counties } from './config.js';
@@ -319,6 +321,7 @@ function populateCountySelect() {
     });
 }
 
+// ▼▼▼ 【修改處 2】 ▼▼▼
 function initialize() {
     populateCountySelect();
     
@@ -341,10 +344,25 @@ function initialize() {
 
     DOM.searchResultsContainer.addEventListener('click', handleDetailsToggle);
 
+    // 【新增】上傳詳情 Modal 的事件綁定
+    DOM.showUploadDetailsButton.addEventListener('click', () => {
+        renderUploadDetailsModal(); // 預設顯示 'new' 頁籤
+        DOM.uploadDetailsModal.classList.remove('hidden');
+    });
+    DOM.uploadDetailsModalCloseBtn.addEventListener('click', () => {
+        DOM.uploadDetailsModal.classList.add('hidden');
+    });
+    DOM.uploadDetailsTabs.addEventListener('click', (e) => {
+        if (e.target.matches('.details-tab-button')) {
+            renderUploadDetailsModal(e.target.dataset.tab);
+        }
+    });
+
     window.clearLogs = clearLogs;
     updateTime();
     setInterval(updateTime, 1000);
     resetUI();
 }
+// ▲▲▲ 【修改結束】 ▲▲▲
 
 document.addEventListener('DOMContentLoaded', initialize);
