@@ -63,6 +63,9 @@ export function resetUI() {
     if (DOM.startUploadButton) DOM.startUploadButton.disabled = false;
     if (DOM.selectFoldersButton) DOM.selectFoldersButton.disabled = false;
     
+    // 【修改】重設時，禁用詳情按鈕
+    if (DOM.showUploadDetailsButton) DOM.showUploadDetailsButton.disabled = true;
+
     state.allFiles = [];
     state.processedMainIds.clear();
     resetSummary();
@@ -90,6 +93,7 @@ export function updateTime() {
     DOM.currentTime.textContent = new Date().toLocaleTimeString();
 }
 
+// ▼▼▼ 【這就是修改處 1】 ▼▼▼
 /**
  * 顯示最終的統計總結報告
  */
@@ -119,4 +123,106 @@ export function displayFinalSummary() {
     `;
     addLog('--- <strong>上傳結果總結</strong> ---', 'success');
     addLog(summaryContent, 'info');
+
+    // 【新增】如果
+    if (summary.new > 0 || summary.updated > 0 || summary.identical > 0) {
+        DOM.showUploadDetailsButton.disabled = false;
+    }
 }
+// ▲▲▲ 【修改結束】 ▲▲▲
+
+
+// ▼▼▼ 【這就是修改處 2：新增整個函式區塊】 ▼▼▼
+/**
+ * 根據目前的頁籤，渲染上傳詳情 Modal 的內容
+ * @param {string} activeTab - 目前要顯示的頁籤 ('new', 'updated', 'identical')
+ */
+export function renderUploadDetailsModal(activeTab = 'new') {
+    const { newRecords, updatedRecords, identicalRecords } = state.summary;
+    const contentContainer = DOM.uploadDetailsContent;
+    let html = '';
+
+    // 更新頁籤按鈕的 active 狀態
+    DOM.uploadDetailsTabs.querySelectorAll('.details-tab-button').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.tab === activeTab);
+    });
+
+    switch (activeTab) {
+        case 'new':
+            html = generateSimpleTable(newRecords, '新增紀錄');
+            break;
+        case 'updated':
+            html = generateDiffTable(updatedRecords);
+            break;
+        case 'identical':
+            html = generateSimpleTable(identicalRecords, '內容相同紀錄');
+            break;
+    }
+    contentContainer.innerHTML = html;
+}
+
+/**
+ * 產生用於「新增」和「相同」頁籤的簡單表格
+ * @param {Array<object>} records - 要顯示的紀錄陣列
+ * @param {string} title - 表格標題
+ * @returns {string} - HTML 表格字串
+ */
+function generateSimpleTable(records, title) {
+    if (records.length === 0) return `<p class="text-center text-gray-500 py-8">此分類下沒有任何紀錄。</p>`;
+
+    const headers = Object.keys(records[0] || {}).filter(h => h !== 'id');
+    const headerHtml = `<thead><tr class="bg-gray-800 text-xs text-gray-400 sticky top-0">${headers.map(h => `<th>${h}</th>`).join('')}</tr></thead>`;
+    
+    const bodyHtml = `<tbody>${records.map(record => 
+        `<tr class="hover:bg-gray-800/50">${headers.map(h => 
+            `<td class="text-xs p-2 border-b border-gray-700 font-mono">${record[h] ?? ''}</td>`
+        ).join('')}</tr>`
+    ).join('')}</tbody>`;
+
+    return `<h3 class="text-lg font-semibold mb-4 text-white">${title} (${records.length} 筆)</h3><div class="overflow-auto" style="max-height: calc(80vh - 150px);"><table class="w-full min-w-max">${headerHtml}${bodyHtml}</table></div>`;
+}
+
+/**
+ * 產生用於「更新」頁籤的差異比對表格
+ * @param {Array<{oldData: object, newData: object}>} records - 要顯示的紀錄陣列
+ * @returns {string} - HTML 表格字串
+ */
+function generateDiffTable(records) {
+    if (records.length === 0) return `<p class="text-center text-gray-500 py-8">此分類下沒有任何紀錄。</p>`;
+
+    const allHeaders = new Set(['欄位名稱']);
+    records.forEach(({ oldData, newData }) => {
+        Object.keys(oldData).forEach(k => allHeaders.add(k));
+        Object.keys(newData).forEach(k => allHeaders.add(k));
+    });
+    
+    const headers = ['欄位名稱', ...Array.from(allHeaders).filter(h => h !== 'id' && h !== '欄位名稱').sort()];
+
+    let bodyHtml = '';
+    records.forEach(({ oldData, newData }, index) => {
+        // 為每一筆更新紀錄加上分隔標題
+        bodyHtml += `<tr class="bg-dark-card"><td colspan="${headers.length}" class="p-2 font-bold text-cyan-400 border-b-2 border-cyan-700">更新 #${index + 1} - 編號: ${newData['編號']}</td></tr>`;
+        
+        // 舊資料列
+        bodyHtml += `<tr class="bg-red-900/20"><td class="p-2 border-b border-gray-700 text-red-400 font-bold">舊資料</td>`;
+        headers.slice(1).forEach(header => {
+            const value = oldData[header] ?? '';
+            bodyHtml += `<td class="text-xs p-2 border-b border-gray-700 font-mono">${value}</td>`;
+        });
+        bodyHtml += `</tr>`;
+
+        // 新資料列
+        bodyHtml += `<tr class="bg-green-900/20"><td class="p-2 border-b border-gray-700 text-green-400 font-bold">新資料</td>`;
+        headers.slice(1).forEach(header => {
+            const oldValue = String(oldData[header] ?? '');
+            const newValue = String(newData[header] ?? '');
+            const isDifferent = oldValue !== newValue && header !== '建案名稱';
+            bodyHtml += `<td class="text-xs p-2 border-b border-gray-700 font-mono ${isDifferent ? 'diff-highlight' : ''}">${newValue}</td>`;
+        });
+        bodyHtml += `</tr>`;
+    });
+
+    const headerHtml = `<thead><tr class="bg-gray-800 text-xs text-gray-400 sticky top-0">${headers.map(h => `<th>${h}</th>`).join('')}</tr></thead>`;
+    return `<h3 class="text-lg font-semibold mb-4 text-white">更新紀錄 (${records.length} 筆)</h3><div class="overflow-auto" style="max-height: calc(80vh - 150px);"><table class="w-full min-w-max">${headerHtml}<tbody>${bodyHtml}</tbody></table></div>`;
+}
+// ▲▲▲ 【新增結束】 ▲▲▲
