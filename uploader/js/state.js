@@ -14,6 +14,7 @@ export const state = {
     // 用於後續處理附表時，判斷哪些附表資料需要被上傳
     processedMainIds: new Set(),
     
+    // ▼▼▼ 【這就是修改處】 ▼▼▼
     // 上傳過程的統計數據
     summary: { 
         new: 0, 
@@ -21,13 +22,19 @@ export const state = {
         identical: 0, 
         subAdded: 0, 
         errors: 0, 
-        warnings: 0 
+        warnings: 0,
+        // 新增：用來存放詳細紀錄的陣列
+        newRecords: [],
+        updatedRecords: [], // 將存放 { oldData, newData } 的物件
+        identicalRecords: [],
     },
+    // ▲▲▲ 【修改結束】 ▲▲▲
     
     // 標記當前是否正在上傳中，防止重複觸發
     isUploading: false
 };
 
+// ▼▼▼ 【這就是修改處】 ▼▼▼
 // 提供一個重設 summary 物件的方法，方便每次開始上傳時呼叫
 export function resetSummary() {
     state.summary = { 
@@ -36,6 +43,10 @@ export function resetSummary() {
         identical: 0, 
         subAdded: 0, 
         errors: 0, 
-        warnings: 0 
+        warnings: 0,
+        newRecords: [],
+        updatedRecords: [],
+        identicalRecords: [],
     };
 }
+// ▲▲▲ 【修改結束】 ▲▲▲
