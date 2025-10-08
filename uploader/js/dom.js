@@ -52,5 +52,14 @@ export const DOM = {
     // 更新執行區塊
     updateFieldSelect: document.getElementById('updateFieldSelect'),
     updateValueInput: document.getElementById('updateValueInput'),
-    executeBatchUpdateButton: document.getElementById('executeBatchUpdateButton')
+    executeBatchUpdateButton: document.getElementById('executeBatchUpdateButton'),
+
+    // ▼▼▼ 【這就是修改處】 ▼▼▼
+    // 上傳詳情 Modal
+    showUploadDetailsButton: document.getElementById('showUploadDetailsButton'),
+    uploadDetailsModal: document.getElementById('uploadDetailsModal'),
+    uploadDetailsModalCloseBtn: document.getElementById('uploadDetailsModalCloseBtn'),
+    uploadDetailsTabs: document.getElementById('uploadDetailsTabs'),
+    uploadDetailsContent: document.getElementById('uploadDetailsContent'),
+    // ▲▲▲ 【修改結束】 ▲▲▲
 };
