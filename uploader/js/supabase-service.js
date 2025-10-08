@@ -32,6 +32,7 @@ export async function testConnection() {
     }
 }
 
+// ▼▼▼ 【這就是修改處】 ▼▼▼
 /**
  * 上傳主表檔案，並進行智慧更新檢查
  */
@@ -62,11 +63,17 @@ export async function uploadMainFileWithSmartUpdate(fileInfo) {
                 const existingRecord = existingDataMap.get(newRecord['編號']);
                 if (!existingRecord) {
                     newData.push(newRecord);
+                    // 【新增】紀錄新增的資料
+                    state.summary.newRecords.push(newRecord); 
                 } else if (!isEqual(newRecord, existingRecord, fileInfo.tableType)) {
                     idsToDeleteForUpdate.push(newRecord['編號']);
                     updatedData.push(newRecord);
+                    // 【新增】紀錄更新的資料 (包含新舊對比)
+                    state.summary.updatedRecords.push({ oldData: existingRecord, newData: newRecord });
                 } else {
                     identicalCount++;
+                    // 【新增】紀錄相同的資料
+                    state.summary.identicalRecords.push(existingRecord);
                 }
             }
             
@@ -94,6 +101,7 @@ export async function uploadMainFileWithSmartUpdate(fileInfo) {
         state.summary.errors++;
     }
 }
+// ▲▲▲ 【修改結束】 ▲▲▲
 
 /**
  * 上傳附表檔案
@@ -147,7 +155,7 @@ export async function searchData(countyCode, transactionType, searchField, keywo
         .from(tableName)
         .select('*') 
         .ilike(searchField, `%${keyword}%`)
-        .limit(500);
+        .limit(2500);
 
     const { data, error } = await query;
 
