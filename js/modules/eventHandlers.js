@@ -604,11 +604,8 @@ export function handleGlobalClick(e) {
     }
 }
 
-// js/modules/eventHandlers.js
+let priceGridPlaceholder = null; // 用來標記原本在 DOM 中的位置
 
-// ... (保留原有其他函式) ...
-
-// ▼▼▼ 【修正後的 Modal 全螢幕切換函式】 ▼▼▼
 export function togglePriceGridFullScreen() {
     const container = dom.priceGridVisualContainer;
     const btn = dom.fullscreenPriceGridBtn;
@@ -616,47 +613,58 @@ export function togglePriceGridFullScreen() {
     if (!container || !btn) return;
 
     const icon = btn.querySelector('i');
-    // 檢查是否已經是 Modal 模式
     const isFullscreen = container.classList.contains('fullscreen-modal-view');
 
     if (!isFullscreen) {
-        // --- 開啟：進入 Modal 模式 ---
+        // --- 開啟全螢幕 ---
         
-        // 1. 動態建立黑色遮罩
+        // 1. 記錄原位：在原本的位置插入一個隱形的佔位符
+        priceGridPlaceholder = document.createComment("price-grid-placeholder");
+        container.parentNode.insertBefore(priceGridPlaceholder, container);
+
+        // 2. 搬移元素：將銷控表直接搬到 body 下層 (這能解決 z-index 被父層壓制的問題)
+        document.body.appendChild(container);
+
+        // 3. 建立黑色遮罩
         const backdrop = document.createElement('div');
         backdrop.className = 'custom-backdrop';
         backdrop.id = 'price-grid-backdrop';
-        // 讓使用者點擊黑色背景也能關閉
-        backdrop.addEventListener('click', togglePriceGridFullScreen);
+        backdrop.addEventListener('click', togglePriceGridFullScreen); // 點擊背景關閉
         document.body.appendChild(backdrop);
 
-        // 2. 將銷控表容器變成彈窗
+        // 4. 套用樣式與更新按鈕
         container.classList.add('fullscreen-modal-view');
-        
-        // 3. 更新按鈕狀態
         icon.classList.remove('fa-expand');
         icon.classList.add('fa-compress');
-        btn.title = "退出全螢幕"; // 更新提示文字
+        btn.title = "退出全螢幕";
         
-        // 4. 加入鍵盤監聽 (按 ESC 退出)
         document.addEventListener('keydown', handleEscKey);
 
     } else {
-        // --- 關閉：還原原始狀態 ---
+        // --- 關閉全螢幕 ---
         
-        // 1. 移除黑色遮罩
+        // 1. 移除遮罩
         const backdrop = document.getElementById('price-grid-backdrop');
         if (backdrop) backdrop.remove();
 
-        // 2. 移除彈窗樣式，還原回原本位置
+        // 2. 移除樣式
         container.classList.remove('fullscreen-modal-view');
-        
-        // 3. 還原按鈕狀態
+
+        // 3. 搬回原位：如果有佔位符，就插回去；否則放回 tab content
+        if (priceGridPlaceholder && priceGridPlaceholder.parentNode) {
+            priceGridPlaceholder.parentNode.insertBefore(container, priceGridPlaceholder);
+            priceGridPlaceholder.remove();
+            priceGridPlaceholder = null;
+        } else {
+            // 備案：如果找不到佔位符，放回原本的父容器末端
+            dom.priceGridReportContent.appendChild(container);
+        }
+
+        // 4. 還原按鈕
         icon.classList.remove('fa-compress');
         icon.classList.add('fa-expand');
         btn.title = "全螢幕檢視";
         
-        // 4. 移除鍵盤監聽
         document.removeEventListener('keydown', handleEscKey);
     }
 }
