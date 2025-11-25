@@ -212,6 +212,8 @@ function initialize() {
     dom.shareModalCloseBtn.addEventListener('click', () => dom.shareModal.classList.add('hidden'));
     dom.copyShareUrlBtn.addEventListener('click', copyShareUrl);
 
+    dom.fullscreenPriceGridBtn.addEventListener('click', togglePriceGridFullScreen);
+
     // --- 處理分頁變更的自訂事件 ---
     document.addEventListener('pageChange', (e) => {
         if (e.detail.type === 'main') {
