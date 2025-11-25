@@ -37,6 +37,7 @@ import {
     handleShareClick,
     copyShareUrl,
     handleExcludeCommercialToggle,
+    togglePriceGridFullScreen
 } from './modules/eventHandlers.js';
 import { state } from './modules/state.js';
 
