@@ -511,4 +511,24 @@ span.flatpickr-weekday {
     border-color: #7c3aed;
     color: white;
 }
-/* --- ▲▲▲ 新增結束 ▲▲▲ --- */
+
+/* --- 全螢幕模式樣式 (新增) --- */
+.fullscreen-mode {
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 9999;
+    background-color: var(--color-dark-bg); /* 確保背景不透明 */
+    padding: 2rem;
+    overflow-y: auto; /* 讓整個容器可垂直捲動 */
+    box-sizing: border-box;
+}
+
+/* 在全螢幕模式下，優化表格容器的顯示 */
+.fullscreen-mode #horizontal-price-grid-container {
+    /* 限制表格區域高度，讓標題固定在上方，表格內部捲動 (可選) */
+    /* max-height: calc(100vh - 250px); */ 
+    /* overflow: auto; */
+}
