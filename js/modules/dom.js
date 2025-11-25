@@ -81,6 +81,9 @@ export const dom = {
     
     // Price grid report
     priceGridReportContent: document.getElementById('price-grid-report-content'),
+    priceGridVisualContainer: document.getElementById('price-grid-visual-container'),
+    fullscreenPriceGridBtn: document.getElementById('fullscreen-price-grid-btn'),
+    // ▲▲▲ 【新增結束】 ▲▲▲
     priceGridProjectFilterContainer: document.getElementById('price-grid-project-filter-container'),
     horizontalPriceGridContainer: document.getElementById('horizontal-price-grid-container'),
     unitColorLegendContainer: document.getElementById('unit-color-legend-container'),
