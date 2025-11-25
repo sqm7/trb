@@ -603,3 +603,38 @@ export function handleGlobalClick(e) {
         heatmapRenderer.applyHeatmapGridFilter();
     }
 }
+
+
+export function togglePriceGridFullScreen() {
+    const container = dom.priceGridVisualContainer;
+    const btn = dom.fullscreenPriceGridBtn;
+    
+    if (!container || !btn) return;
+
+    const icon = btn.querySelector('i');
+    const isFullscreen = container.classList.contains('fullscreen-mode');
+
+    if (!isFullscreen) {
+        // 進入全螢幕
+        container.classList.add('fullscreen-mode');
+        icon.classList.remove('fa-expand');
+        icon.classList.add('fa-compress');
+        btn.title = "退出全螢幕";
+        // 加入 Esc 鍵監聽
+        document.addEventListener('keydown', handleEscKey);
+    } else {
+        // 退出全螢幕
+        container.classList.remove('fullscreen-mode');
+        icon.classList.remove('fa-compress');
+        icon.classList.add('fa-expand');
+        btn.title = "全螢幕檢視";
+        // 移除 Esc 鍵監聽
+        document.removeEventListener('keydown', handleEscKey);
+    }
+}
+
+function handleEscKey(e) {
+    if (e.key === 'Escape') {
+        togglePriceGridFullScreen();
+    }
+}
