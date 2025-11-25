@@ -604,7 +604,11 @@ export function handleGlobalClick(e) {
     }
 }
 
+// js/modules/eventHandlers.js
 
+// ... (保留原有其他函式) ...
+
+// ▼▼▼ 【修正後的 Modal 全螢幕切換函式】 ▼▼▼
 export function togglePriceGridFullScreen() {
     const container = dom.priceGridVisualContainer;
     const btn = dom.fullscreenPriceGridBtn;
@@ -612,23 +616,47 @@ export function togglePriceGridFullScreen() {
     if (!container || !btn) return;
 
     const icon = btn.querySelector('i');
-    const isFullscreen = container.classList.contains('fullscreen-mode');
+    // 檢查是否已經是 Modal 模式
+    const isFullscreen = container.classList.contains('fullscreen-modal-view');
 
     if (!isFullscreen) {
-        // 進入全螢幕
-        container.classList.add('fullscreen-mode');
+        // --- 開啟：進入 Modal 模式 ---
+        
+        // 1. 動態建立黑色遮罩
+        const backdrop = document.createElement('div');
+        backdrop.className = 'custom-backdrop';
+        backdrop.id = 'price-grid-backdrop';
+        // 讓使用者點擊黑色背景也能關閉
+        backdrop.addEventListener('click', togglePriceGridFullScreen);
+        document.body.appendChild(backdrop);
+
+        // 2. 將銷控表容器變成彈窗
+        container.classList.add('fullscreen-modal-view');
+        
+        // 3. 更新按鈕狀態
         icon.classList.remove('fa-expand');
         icon.classList.add('fa-compress');
-        btn.title = "退出全螢幕";
-        // 加入 Esc 鍵監聽
+        btn.title = "退出全螢幕"; // 更新提示文字
+        
+        // 4. 加入鍵盤監聽 (按 ESC 退出)
         document.addEventListener('keydown', handleEscKey);
+
     } else {
-        // 退出全螢幕
-        container.classList.remove('fullscreen-mode');
+        // --- 關閉：還原原始狀態 ---
+        
+        // 1. 移除黑色遮罩
+        const backdrop = document.getElementById('price-grid-backdrop');
+        if (backdrop) backdrop.remove();
+
+        // 2. 移除彈窗樣式，還原回原本位置
+        container.classList.remove('fullscreen-modal-view');
+        
+        // 3. 還原按鈕狀態
         icon.classList.remove('fa-compress');
         icon.classList.add('fa-expand');
         btn.title = "全螢幕檢視";
-        // 移除 Esc 鍵監聽
+        
+        // 4. 移除鍵盤監聽
         document.removeEventListener('keydown', handleEscKey);
     }
 }
@@ -638,3 +666,4 @@ function handleEscKey(e) {
         togglePriceGridFullScreen();
     }
 }
+// ▲▲▲ 【修正結束】 ▲▲▲
