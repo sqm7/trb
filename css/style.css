@@ -512,23 +512,46 @@ span.flatpickr-weekday {
     color: white;
 }
 
-/* --- 全螢幕模式樣式 (新增) --- */
-.fullscreen-mode {
-    position: fixed !important;
+/* --- [修正版] 銷控表全螢幕彈窗樣式 --- */
+
+/* 1. 背景遮罩 (黑色半透明) */
+.custom-backdrop {
+    position: fixed;
     top: 0;
     left: 0;
-    width: 100vw;
-    height: 100vh;
-    z-index: 9999;
-    background-color: var(--color-dark-bg); /* 確保背景不透明 */
-    padding: 2rem;
-    overflow-y: auto; /* 讓整個容器可垂直捲動 */
-    box-sizing: border-box;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.75); /* 75% 黑色透明度 */
+    z-index: 9998; /* 確保在最上層，但比彈窗低一層 */
+    backdrop-filter: blur(4px); /* 背景模糊效果，增加質感 */
+    animation: fadeIn 0.2s ease-out;
 }
 
-/* 在全螢幕模式下，優化表格容器的顯示 */
-.fullscreen-mode #horizontal-price-grid-container {
-    /* 限制表格區域高度，讓標題固定在上方，表格內部捲動 (可選) */
-    /* max-height: calc(100vh - 250px); */ 
-    /* overflow: auto; */
+/* 2. 中間彈出的視窗 (銷控表本體) */
+.fullscreen-modal-view {
+    position: fixed !important;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%); /* 絕對置中 */
+    width: 95vw; /* 寬度佔視窗 95% */
+    height: 90vh; /* 高度佔視窗 90% */
+    z-index: 9999;
+    background-color: var(--color-dark-bg); /* 使用深色背景 */
+    border: 1px solid var(--color-border-default);
+    border-radius: 12px; /* 圓角 */
+    padding: 2rem;
+    overflow-y: auto; /* 內容過長時視窗內捲動 */
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); /* 陰影 */
+    animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* 彈出動畫 */
+}
+
+/* 進出動畫定義 */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes popIn {
+    from { opacity: 0; transform: translate(-50%, -48%) scale(0.95); }
+    to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
 }
