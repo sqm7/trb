@@ -11,15 +11,19 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // ▼▼▼ 【新增】將顏色定義集中到此處 ▼▼▼
 export const THEME_COLORS = {
-    'dark-bg': '#1a1d29',
-    'dark-card': '#252836',
-    'cyan-accent': '#06b6d4',
-    'purple-accent': '#8b5cf6',
-    // 也可以把 style.css 中常用的顏色加進來管理
-    'form-bg': '#1f2937',
-    'border-default': '#4b5563',
-    'text-light': '#e5e7eb',
-    'text-dark': '#9ca3af'
+    'dark-bg': '#0f172a',      // slate-900
+    'dark-card': '#1e293b',    // slate-800
+    'cyan-accent': '#06b6d4',  // cyan-500
+    'purple-accent': '#f59e0b', // amber-500 (Primary/Gold) - REPLACED PURPLE
+    'form-bg': '#020617',      // slate-950
+    'border-default': '#334155', // slate-700
+    'text-light': '#f8fafc',   // slate-50
+    'text-dark': '#94a3b8',    // slate-400
+    // Extra colors for charts
+    'chart-primary': '#f59e0b', // amber-500
+    'chart-secondary': '#06b6d4', // cyan-500
+    'chart-tertiary': '#8b5cf6', // violet-500 (kept as tertiary)
+    'chart-quaternary': '#10b981' // emerald-500
 };
 // ▲▲▲ 【新增結束】 ▲▲▲
 

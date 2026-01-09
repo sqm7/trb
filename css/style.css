@@ -1,35 +1,78 @@
 :root {
-    --color-dark-bg: #1a1d29;
-    --color-dark-card: #252836;
+    /* Fintech Dark Palette (Slate 900 Base) */
+    --color-dark-bg: #0f172a;
+    /* slate-900 */
+    --color-dark-card: #1e293b;
+    /* slate-800 */
     --color-cyan-accent: #06b6d4;
-    --color-purple-accent: #8b5cf6;
-    --color-form-bg: #1f2937;
-    --color-border-default: #4b5563;
-    --color-text-light: #e5e7eb;
-    --color-text-dark: #9ca3af;
+    /* cyan-500 */
+    --color-purple-accent: #f59e0b;
+    /* amber-500 (Primary/Gold) */
+    --color-form-bg: #020617;
+    /* slate-950 */
+    --color-border-default: #334155;
+    /* slate-700 */
+    --color-text-light: #f8fafc;
+    /* slate-50 */
+    --color-text-dark: #94a3b8;
+    /* slate-400 */
     --color-text-red: #f87171;
-    --color-text-green: #4ade80;
-    --color-disabled-bg: #374151;
-    --color-multi-tag-bg: #4b5563;
-    --color-multi-tag-text: #d1d5db;
-    --color-tooltip-bg: #1a1d29;
-    --color-tooltip-border: #4b5563;
-    --color-special-remark-bg: rgba(139, 92, 246, 0.1);
-    --color-special-remark-hover-bg: rgba(139, 92, 246, 0.2);
-    --color-icon-parking: #a5b4fc;
-    --color-icon-special: #facc15;
+    /* red-400 */
+    --color-text-green: #34d399;
+    /* emerald-400 */
+    --color-disabled-bg: #1e293b;
+    /* slate-800 */
+    --color-multi-tag-bg: #334155;
+    /* slate-700 */
+    --color-multi-tag-text: #e2e8f0;
+    /* slate-200 */
+    --color-tooltip-bg: #0f172a;
+    --color-tooltip-border: #334155;
+    --color-special-remark-bg: rgba(245, 158, 11, 0.1);
+    --color-special-remark-hover-bg: rgba(245, 158, 11, 0.2);
+    --color-icon-parking: #60a5fa;
+    /* blue-400 */
+    --color-icon-special: #fbbf24;
+    /* amber-400 */
 }
 
 body {
     font-family: 'Inter', 'Noto Sans TC', sans-serif;
     background: var(--color-dark-bg);
     color: var(--color-text-light);
+    letter-spacing: -0.01em;
+    /* Modern tight spacing */
+}
+
+/* Data Numbers */
+.font-mono,
+.metric-card-value,
+.summary-value-positive,
+.summary-value-negative,
+td {
+    font-feature-settings: "tnum";
+    /* Tabular numbers for alignment */
+}
+
+/* Special number styling for critical data */
+.metric-card-value,
+.number-input-field {
+    font-family: 'Fira Code', monospace;
 }
 
 .glass-card {
-    background: rgba(37, 40, 54, 0.8);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(30, 41, 59, 0.7);
+    /* slate-800/70 */
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.glass-card-deep {
+    background: rgba(15, 23, 42, 0.6);
+    /* slate-900/60 */
+    border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 /* --- ▼▼▼ 請用這段新程式碼取代舊的 .form-input, .form-select... 那一行 ▼▼▼ --- */
@@ -315,7 +358,7 @@ td {
 }
 
 .suggestion-item input[type="checkbox"]:focus {
-    ring: var(--color-cyan-accent);
+    box-shadow: 0 0 0 2px var(--color-cyan-accent);
 }
 
 .scrollable-cell {
@@ -421,7 +464,7 @@ td {
 
 .tab-button {
     padding: 0.75rem 1.5rem;
-    font-medium;
+    font-weight: 500;
     border-bottom: 3px solid transparent;
     transition: all 0.3s ease;
     color: var(--color-text-dark);
@@ -722,6 +765,7 @@ td {
     font-weight: 500;
     border: none;
     outline: none;
+    appearance: textfield;
     -moz-appearance: textfield;
 }
 
