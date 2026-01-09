@@ -1,5 +1,25 @@
-# Development Documentation
-SPEC.md
-PLAN.md
-ARCHITECTURE.md
-.cursorrules
+# System Files
+.DS_Store
+Thumbs.db
+
+# Environment Variables & Secrets
+.env
+.env.local
+.env.*
+!.env.example
+
+# Supabase
+supabase/.temp/
+supabase/functions/_shared/supabase-client.ts
+
+# Deployment Scripts (containing secrets)
+deploy_github.sh
+
+# Dependencies
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Build Outputs
+dist/
+build/
