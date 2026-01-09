@@ -92,16 +92,16 @@ export function renderRankingChart() {
                 }
             },
             colors: [
-                '#06b6d4', // cyan-500
-                '#0ea5e9', // sky-500
-                '#3b82f6', // blue-500
-                '#6366f1', // indigo-500
-                '#8b5cf6', // violet-500
-                '#f59e0b', // amber-500 (Gold)
-                '#f97316', // orange-500
-                '#ef4444', // red-500
-                '#10b981', // emerald-500
-                '#14b8a6', // teal-500
+                '#818cf8', // indigo-400
+                '#c084fc', // purple-400
+                '#22d3ee', // cyan-400
+                '#fb7185', // rose-400
+                '#38bdf8', // sky-400
+                '#f472b6', // pink-400
+                '#a78bfa', // violet-400
+                '#34d399', // emerald-400
+                '#fbbf24', // amber-400
+                '#94a3b8', // slate-400
             ],
             dataLabels: {
                 enabled: true,

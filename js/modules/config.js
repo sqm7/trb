@@ -11,19 +11,19 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // ▼▼▼ 【新增】將顏色定義集中到此處 ▼▼▼
 export const THEME_COLORS = {
-    'dark-bg': '#0f172a',      // slate-900
-    'dark-card': '#1e293b',    // slate-800
-    'cyan-accent': '#06b6d4',  // cyan-500
-    'purple-accent': '#f59e0b', // amber-500 (Primary/Gold) - REPLACED PURPLE
-    'form-bg': '#020617',      // slate-950
-    'border-default': '#334155', // slate-700
-    'text-light': '#f8fafc',   // slate-50
-    'text-dark': '#94a3b8',    // slate-400
-    // Extra colors for charts
-    'chart-primary': '#f59e0b', // amber-500
-    'chart-secondary': '#06b6d4', // cyan-500
-    'chart-tertiary': '#8b5cf6', // violet-500 (kept as tertiary)
-    'chart-quaternary': '#10b981' // emerald-500
+    'dark-bg': '#09090b',      // zinc-950 (Deep Black/Gray)
+    'dark-card': '#18181b',    // zinc-900
+    'cyan-accent': '#22d3ee',  // cyan-400 (Brighter for dark mode)
+    'purple-accent': '#818cf8', // indigo-400 (Soft Indigo)
+    'form-bg': '#000000',      // Pure Black
+    'border-default': '#27272a', // zinc-800
+    'text-light': '#fafafa',   // zinc-50
+    'text-dark': '#a1a1aa',    // zinc-400
+    // Chart Colors - Aura Vibe (Neon/Cyber)
+    'chart-primary': '#818cf8', // indigo-400
+    'chart-secondary': '#c084fc', // purple-400
+    'chart-tertiary': '#22d3ee', // cyan-400
+    'chart-quaternary': '#fb7185' // rose-400
 };
 // ▲▲▲ 【新增結束】 ▲▲▲
 

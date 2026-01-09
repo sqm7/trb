@@ -1,47 +1,48 @@
 :root {
-    /* Fintech Dark Palette (Slate 900 Base) */
-    --color-dark-bg: #0f172a;
-    /* slate-900 */
-    --color-dark-card: #1e293b;
-    /* slate-800 */
-    --color-cyan-accent: #06b6d4;
-    /* cyan-500 */
-    --color-purple-accent: #f59e0b;
-    /* amber-500 (Primary/Gold) */
-    --color-form-bg: #020617;
-    /* slate-950 */
-    --color-border-default: #334155;
-    /* slate-700 */
-    --color-text-light: #f8fafc;
-    /* slate-50 */
-    --color-text-dark: #94a3b8;
-    /* slate-400 */
+    /* Aura / Vercel-like Aesthetic (Zinc/Black) */
+    --color-dark-bg: #09090b;
+    /* zinc-950 */
+    --color-dark-card: #18181b;
+    /* zinc-900 */
+    --color-cyan-accent: #22d3ee;
+    /* cyan-400 */
+    --color-purple-accent: #818cf8;
+    /* indigo-400 */
+    --color-form-bg: #000000;
+    /* pure black */
+    --color-border-default: #27272a;
+    /* zinc-800 */
+    --color-text-light: #fafafa;
+    /* zinc-50 */
+    --color-text-dark: #a1a1aa;
+    /* zinc-400 */
+
     --color-text-red: #f87171;
     /* red-400 */
     --color-text-green: #34d399;
     /* emerald-400 */
-    --color-disabled-bg: #1e293b;
-    /* slate-800 */
-    --color-multi-tag-bg: #334155;
-    /* slate-700 */
-    --color-multi-tag-text: #e2e8f0;
-    /* slate-200 */
-    --color-tooltip-bg: #0f172a;
-    --color-tooltip-border: #334155;
-    --color-special-remark-bg: rgba(245, 158, 11, 0.1);
-    --color-special-remark-hover-bg: rgba(245, 158, 11, 0.2);
+    --color-disabled-bg: #27272a;
+    /* zinc-800 */
+    --color-multi-tag-bg: #27272a;
+    /* zinc-800 */
+    --color-multi-tag-text: #e4e4e7;
+    /* zinc-200 */
+    --color-tooltip-bg: #09090b;
+    --color-tooltip-border: #27272a;
+    --color-special-remark-bg: rgba(129, 140, 248, 0.1);
+    --color-special-remark-hover-bg: rgba(129, 140, 248, 0.2);
     --color-icon-parking: #60a5fa;
     /* blue-400 */
-    --color-icon-special: #fbbf24;
-    /* amber-400 */
+    --color-icon-special: #a78bfa;
+    /* violet-400 */
 }
 
 body {
     font-family: 'Inter', 'Noto Sans TC', sans-serif;
     background: var(--color-dark-bg);
     color: var(--color-text-light);
-    letter-spacing: -0.01em;
-    /* Modern tight spacing */
+    letter-spacing: -0.015em;
+    /* Tighter spacing for pure modern sans styling */
 }
 
 /* Data Numbers */
@@ -61,12 +62,17 @@ td {
 }
 
 .glass-card {
-    background: rgba(30, 41, 59, 0.7);
-    /* slate-800/70 */
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    background: #18181b;
+    /* Fallback */
+    background: rgba(24, 24, 27, 0.6);
+    /* zinc-900 with opacity */
+    backdrop-filter: blur(8px);
+    /* Reduced blur for cleaner look */
+    -webkit-backdrop-filter: blur(8px);
     border: 1px solid rgba(255, 255, 255, 0.08);
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    /* Very subtle border */
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.2), 0 8px 16px -4px rgba(0, 0, 0, 0.3);
+    /* Cleaner shadow */
 }
 
 .glass-card-deep {
