@@ -477,8 +477,8 @@ td {
 }
 
 .tab-button.active {
-    color: var(--color-cyan-accent);
-    border-bottom-color: var(--color-cyan-accent);
+    color: var(--color-text-light);
+    border-bottom-color: var(--color-purple-accent);
 }
 
 .tab-content {
@@ -532,11 +532,11 @@ td {
 
 .sortable-th.asc .sort-icon {
     transform: rotate(180deg);
-    color: var(--color-cyan-accent);
+    color: var(--color-purple-accent);
 }
 
 .sortable-th.desc .sort-icon {
-    color: var(--color-cyan-accent);
+    color: var(--color-purple-accent);
 }
 
 .report-header {
@@ -560,8 +560,9 @@ td {
 }
 
 .avg-type-btn.active {
-    background-color: var(--color-cyan-accent);
+    background-color: var(--color-purple-accent);
     color: #ffffff;
+    box-shadow: 0 0 10px rgba(129, 140, 248, 0.4);
 }
 
 .capsule-btn {
@@ -579,9 +580,12 @@ td {
 
 .capsule-btn.active,
 .capsule-btn:hover {
-    background-color: var(--color-cyan-accent);
-    border-color: var(--color-cyan-accent);
-    color: white;
+    background-color: var(--color-text-light);
+    /* White background */
+    border-color: var(--color-text-light);
+    color: var(--color-dark-bg);
+    /* Black text */
+    font-weight: 600;
 }
 
 .sub-tab-nav {
