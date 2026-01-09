@@ -11,6 +11,8 @@ Thumbs.db
 # Supabase
 supabase/.temp/
 supabase/functions/_shared/supabase-client.ts
+supabase_schema_sqm/
+**/*.sql
 
 # Deployment Scripts (containing secrets)
 deploy_github.sh
@@ -28,5 +30,6 @@ build/
 SPEC.md
 PLAN.md
 ARCHITECTURE.md
+DEPLOYMENT.md
 .cursorrules
 task.md
