@@ -9,13 +9,13 @@ Thumbs.db
 !.env.example
 
 # Supabase
-supabase/.temp/
-supabase/functions/_shared/supabase-client.ts
+supabase/
 supabase_schema_sqm/
 **/*.sql
 
 # Deployment Scripts (containing secrets)
 deploy_github.sh
+start_server.sh
 
 # Dependencies
 node_modules/
@@ -31,5 +31,10 @@ SPEC.md
 PLAN.md
 ARCHITECTURE.md
 DEPLOYMENT.md
+readme.md
 .cursorrules
 task.md
+
+# Misc
+netlify.toml
+會員確認信.rtf
