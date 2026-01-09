@@ -9,23 +9,37 @@ export const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiO
 // 初始化 Supabase Client 並匯出
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// ▼▼▼ 【新增】將顏色定義集中到此處 ▼▼▼
+// ▼▼▼ Aura Be Consistent Design System Colors ▼▼▼
 export const THEME_COLORS = {
-    'dark-bg': '#09090b',      // zinc-950 (Deep Black/Gray)
-    'dark-card': '#18181b',    // zinc-900
-    'cyan-accent': '#22d3ee',  // cyan-400 (Brighter for dark mode)
-    'purple-accent': '#818cf8', // indigo-400 (Soft Indigo)
-    'form-bg': '#000000',      // Pure Black
-    'border-default': '#27272a', // zinc-800
-    'text-light': '#fafafa',   // zinc-50
-    'text-dark': '#a1a1aa',    // zinc-400
-    // Chart Colors - Aura Vibe (Neon/Cyber)
-    'chart-primary': '#818cf8', // indigo-400
-    'chart-secondary': '#c084fc', // purple-400
-    'chart-tertiary': '#22d3ee', // cyan-400
-    'chart-quaternary': '#fb7185' // rose-400
+    // Background
+    'dark-bg': '#050505',          // Near pure black - Aura primary
+    'dark-card': '#0A0A0A',        // Card background
+    'elevated': '#1F1F1F',         // Elevated surfaces
+    'form-bg': '#000000',          // Pure black for forms
+
+    // Primary & Accents
+    'primary': '#2563EB',          // Blue 600 - Primary actions
+    'indigo': '#4F46E5',           // Indigo 600 - Gradients
+    'cyan-accent': '#06B6D4',      // Cyan 500 - Gradient end
+    'purple-accent': '#818CF8',    // Indigo 400 - Secondary accent
+
+    // Text
+    'text-light': '#FFFFFF',       // Pure white
+    'text-dark': '#737373',        // Neutral 500
+
+    // Border
+    'border-default': 'rgba(255, 255, 255, 0.1)',
+
+    // Chart Colors - Aura Multi-color Palette
+    'chart-primary': '#2563EB',    // Blue
+    'chart-secondary': '#818CF8',  // Indigo
+    'chart-tertiary': '#06B6D4',   // Cyan
+    'chart-quaternary': '#EC4899', // Pink
+    'chart-orange': '#F97316',     // Orange
+    'chart-emerald': '#10B981',    // Emerald
+    'chart-purple': '#A855F7'      // Purple
 };
-// ▲▲▲ 【新增結束】 ▲▲▲
+// ▲▲▲ Aura Design System End ▲▲▲
 
 // 將所有 API 端點集中管理並匯出
 export const API_ENDPOINTS = {
