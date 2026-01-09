@@ -13,9 +13,6 @@ supabase/
 supabase_schema_sqm/
 **/*.sql
 
-# Deployment Scripts (containing secrets)
-deploy_github.sh
-start_server.sh
 
 # Dependencies
 node_modules/
@@ -26,15 +23,6 @@ yarn-error.log
 dist/
 build/
 
-# Development Documentation
-SPEC.md
-PLAN.md
-ARCHITECTURE.md
-DEPLOYMENT.md
-readme.md
-.cursorrules
-task.md
-
-# Misc
-會員確認信.rtf
-deploy_trb.sh
+# Private Scripts & Docs
+scripts/
+docs/
