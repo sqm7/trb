@@ -1,5 +1,6 @@
 // js/modules/renderers/uiComponents.js
 
+// Updated: 2026-01-11 22:15:00 (Cache Busting)
 import { dom } from '../dom.js';
 import * as ui from '../ui.js';
 import { state } from '../state.js';
