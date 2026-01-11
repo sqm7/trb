@@ -35,8 +35,8 @@ export function switchTab(targetTab) {
     document.querySelectorAll('.tab-button').forEach(button => button.classList.remove('active'));
     const contentEl = document.getElementById(`${targetTab}-content`);
     const buttonEl = document.querySelector(`button[data-tab="${targetTab}"]`);
-    if(contentEl) contentEl.classList.add('active');
-    if(buttonEl) buttonEl.classList.add('active');
+    if (contentEl) contentEl.classList.add('active');
+    if (buttonEl) buttonEl.classList.add('active');
 
     // 這段邏輯因為與 renderAreaHeatmap 耦合，暫時保留在 app.js 中處理
     // if (targetTab === 'velocity-report' && analysisDataCache) {
@@ -55,9 +55,9 @@ export function createPaginationControls(container, totalItems, currentPage, pag
     // On mobile (< 640px), show fewer page numbers
     const isMobile = window.innerWidth < 640;
     const maxVisiblePages = isMobile ? 5 : 9;
-    
+
     let paginationHtml = `<div class="pagination-info">共 ${totalItems} 筆資料</div><div class="flex items-center space-x-1 pagination-buttons">`;
-    
+
     paginationHtml += `<button class="pagination-btn" data-page="${currentPage - 1}" ${currentPage === 1 ? 'disabled' : ''}>&laquo;</button>`;
 
     let startPage, endPage;
@@ -99,9 +99,9 @@ export function createPaginationControls(container, totalItems, currentPage, pag
 
     paginationHtml += `<button class="pagination-btn" data-page="${currentPage + 1}" ${currentPage >= totalPages ? 'disabled' : ''}>&raquo;</button>`;
     paginationHtml += '</div>';
-    
+
     container.innerHTML = paginationHtml;
-    
+
     container.querySelectorAll('.pagination-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const page = parseInt(e.currentTarget.dataset.page);
@@ -134,18 +134,18 @@ export function createPaginationControls(container, totalItems, currentPage, pag
 export function getDateRangeOfWeek(weekString) {
     try {
         const [year, weekNumber] = weekString.replace('W', '').split('-').map(Number);
-        
+
         // 找到該年的1月4日，這一天保證在第一週
         const simple = new Date(year, 0, 4);
         // 取得1月4日是星期幾 (0=週日, 1=週一...)
         const dayOfWeek = simple.getDay() || 7; // 將週日(0)視為7
         // 移至該週的週一
         simple.setDate(simple.getDate() - dayOfWeek + 1);
-        
+
         // 計算目標週的開始日期
         const weekStart = new Date(simple);
         weekStart.setDate(simple.getDate() + (weekNumber - 1) * 7);
-        
+
         // 計算結束日期
         const weekEnd = new Date(weekStart);
         weekEnd.setDate(weekStart.getDate() + 6);
@@ -177,9 +177,9 @@ export function calculateQuantile(sortedArr, q) {
     const base = Math.floor(pos);
     const rest = pos - base;
     if (sortedArr[base + 1] !== undefined) {
-      return sortedArr[base] + rest * (sortedArr[base + 1] - sortedArr[base]);
+        return sortedArr[base] + rest * (sortedArr[base + 1] - sortedArr[base]);
     } else {
-      return sortedArr[base];
+        return sortedArr[base];
     }
 }
 // ▲▲▲ 【修正結束】 ▲▲▲

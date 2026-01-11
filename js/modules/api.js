@@ -104,7 +104,7 @@ export async function fetchProjectNameSuggestions(countyCode, query, districts) 
     const headers = await getAuthHeaders();
     if (!headers) throw new Error("認證標頭獲取失敗");
 
-    const payload = { countyCode, query, districts };
+    const payload = { countyCode, query, districts, detailed: true };
     const response = await fetch(API_ENDPOINTS.PROJECT_NAMES, {
         method: 'POST',
         headers: headers,

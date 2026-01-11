@@ -67,7 +67,7 @@ export function renderDistrictTags() {
             tagElement.appendChild(removeBtn);
             // 【關鍵修正】移除這裡的 addEventListener，改由 eventHandlers.js 統一處理
             dom.districtContainer.insertBefore(tagElement, dom.districtInputArea);
-       });
+        });
     } else {
         dom.districtInputArea.classList.remove('hidden');
     }

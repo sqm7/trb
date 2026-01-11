@@ -8,12 +8,12 @@ import * as ui from '../ui.js';
 const heatmapColorMapping = { high: { label: '高度溢價 (> 5%)', color: 'rgba(244, 63, 94, 0.5)' }, medium: { label: '中度溢價 (2-5%)', color: 'rgba(234, 179, 8, 0.4)' }, low: { label: '微幅溢價 (0-2%)', color: 'rgba(34, 197, 94, 0.3)' }, discount: { label: '建案折價 (< 0%)', color: 'rgba(139, 92, 246, 0.4)' }, };
 
 // ▼▼▼ 【修改處】新增 office 圖例 ▼▼▼
-const specialTypeMapping = { 
-    storefront: { label: '店舖類型', icon: '<i class="fas fa-store"></i>' }, 
+const specialTypeMapping = {
+    storefront: { label: '店舖類型', icon: '<i class="fas fa-store"></i>' },
     office: { label: '辦公室', icon: '<i class="fas fa-briefcase"></i>' },
-    anchor: { label: '基準戶', icon: '<i class="fas fa-anchor"></i>' }, 
-    terrace: { label: '露台戶', icon: '<i class="fas fa-seedling"></i>' }, 
-    insider: { label: '親友/員工', icon: '<i class="fas fa-users"></i>' }, 
+    anchor: { label: '基準戶', icon: '<i class="fas fa-anchor"></i>' },
+    terrace: { label: '露台戶', icon: '<i class="fas fa-seedling"></i>' },
+    insider: { label: '親友/員工', icon: '<i class="fas fa-users"></i>' },
 };
 // ▲▲▲ 【修改結束】 ▲▲▲
 
@@ -21,8 +21,8 @@ function getPremiumCategory(premium) { if (premium === null) return 'none'; if (
 function getHeatmapColor(premium) { if (premium === null) return '#1f2937'; const category = getPremiumCategory(premium); return heatmapColorMapping[category] ? heatmapColorMapping[category].color : 'rgba(34, 197, 94, 0.2)'; }
 
 export function renderHeatmapLegends() {
-    dom.heatmapColorLegend.innerHTML = Object.entries(heatmapColorMapping).map(([key, {label, color}]) => ` <div class="legend-item" data-filter-type="premium" data-filter-value="${key}"> <span class="color-legend-swatch" style="background-color: ${color};"></span> <span>${label}</span> </div> `).join('');
-    dom.heatmapIconLegend.innerHTML = Object.entries(specialTypeMapping).map(([key, {label, icon}]) => ` <div class="legend-item" data-filter-type="special" data-filter-value="${key}"> <span class="icon-legend-symbol">${icon}</span> <span>${label}</span> </div> `).join('');
+    dom.heatmapColorLegend.innerHTML = Object.entries(heatmapColorMapping).map(([key, { label, color }]) => ` <div class="legend-item" data-filter-type="premium" data-filter-value="${key}"> <span class="color-legend-swatch" style="background-color: ${color};"></span> <span>${label}</span> </div> `).join('');
+    dom.heatmapIconLegend.innerHTML = Object.entries(specialTypeMapping).map(([key, { label, icon }]) => ` <div class="legend-item" data-filter-type="special" data-filter-value="${key}"> <span class="icon-legend-symbol">${icon}</span> <span>${label}</span> </div> `).join('');
 }
 
 export function applyHeatmapGridFilter() {
@@ -73,7 +73,7 @@ export function renderPriceGapHeatmap() {
                     let iconHtml = '';
                     const premiumCategory = getPremiumCategory(premium);
                     let bgColor = getHeatmapColor(premium);
-                    
+
                     let formattedTooltip = '';
                     const baseInfo = `交易總價: ${ui.formatNumber(tooltipInfo.totalPrice, 0)} 萬\n房屋總價: ${ui.formatNumber(tooltipInfo.housePrice, 0)} 萬\n車位總價: ${ui.formatNumber(tooltipInfo.parkingPrice, 0)} 萬\n房屋面積: ${ui.formatNumber(tooltipInfo.houseArea, 2)} 坪\n房間數: ${tooltipInfo.rooms || '-'} 房`;
 
@@ -95,7 +95,7 @@ export function renderPriceGapHeatmap() {
                             iconHtml = `<span class="has-tooltip" data-tooltip="${specialLabel}">${specialTypeMapping[specialType].icon}</span> `;
                             bgColor = '#1f2937';
                         } else if (remarkText.includes('露台')) {
-                        // ▲▲▲ 【修改結束】 ▲▲▲
+                            // ▲▲▲ 【修改結束】 ▲▲▲
                             specialType = 'terrace';
                             specialLabel = specialTypeMapping[specialType].label;
                             iconHtml = `<span class="has-tooltip" data-tooltip="${specialLabel}: ${remarkText}">${specialTypeMapping[specialType].icon}</span> `;
@@ -142,17 +142,17 @@ export function displayCurrentPriceGrid() {
         dom.analyzeHeatmapBtn.disabled = true;
         return;
     }
-    
+
     const localAnalysisData = JSON.parse(JSON.stringify(state.analysisDataCache));
     const data = localAnalysisData.priceGridAnalysis.byProject[state.selectedPriceGridProject];
-    
+
     if (!data) {
         dom.horizontalPriceGridContainer.innerHTML = `<p class="text-gray-500">找不到建案「${state.selectedPriceGridProject}」的分析資料。</p>`;
         dom.unitColorLegendContainer.innerHTML = '';
         dom.analyzeHeatmapBtn.disabled = true;
         return;
     }
-    
+
     dom.analyzeHeatmapBtn.disabled = false;
     renderUnitColorLegend(data.unitColorMap);
     renderHorizontalPriceGrid(data.horizontalGrid, data.sortedFloors, data.sortedUnits, data.unitColorMap);
