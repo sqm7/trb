@@ -303,20 +303,104 @@ td {
     background-color: var(--color-disabled-bg);
 }
 
+/* === ▼▼▼ 現代化 Checkbox 樣式 ▼▼▼ === */
+/* 通用 checkbox 基礎樣式 */
+input[type="checkbox"] {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    width: 1.125rem;
+    height: 1.125rem;
+    border: 2px solid var(--color-border-default);
+    border-radius: 0.375rem;
+    background-color: rgba(31, 41, 55, 0.6);
+    cursor: pointer;
+    position: relative;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    flex-shrink: 0;
+}
+
+input[type="checkbox"]:hover {
+    border-color: var(--color-cyan-accent);
+    background-color: rgba(6, 182, 212, 0.1);
+    box-shadow: 0 0 8px rgba(6, 182, 212, 0.3);
+}
+
+input[type="checkbox"]:focus {
+    outline: none;
+    border-color: var(--color-cyan-accent);
+    box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.25);
+}
+
+input[type="checkbox"]:checked {
+    background: linear-gradient(135deg, var(--color-cyan-accent), var(--color-purple-accent));
+    border-color: transparent;
+    box-shadow: 0 0 12px rgba(6, 182, 212, 0.5),
+        0 0 4px rgba(139, 92, 246, 0.3);
+}
+
+input[type="checkbox"]:checked::after {
+    content: '';
+    position: absolute;
+    top: 45%;
+    left: 50%;
+    width: 5px;
+    height: 9px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: translate(-50%, -50%) rotate(45deg);
+    animation: checkmark-pop 0.2s ease-out;
+}
+
+@keyframes checkmark-pop {
+    0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) rotate(45deg) scale(0);
+    }
+
+    50% {
+        transform: translate(-50%, -50%) rotate(45deg) scale(1.2);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translate(-50%, -50%) rotate(45deg) scale(1);
+    }
+}
+
+/* Suggestion item checkbox */
 .suggestion-item input[type="checkbox"] {
     margin-right: 0.75rem;
-    height: 1rem;
-    width: 1rem;
-    border-radius: 0.25rem;
-    border-color: #6b7280;
-    background-color: var(--color-disabled-bg);
-    color: var(--color-cyan-accent);
-    cursor: pointer;
 }
 
 .suggestion-item input[type="checkbox"]:focus {
-    ring: var(--color-cyan-accent);
+    box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.25);
 }
+
+/* 表格內 checkbox - 稍微小一點 */
+.form-checkbox,
+.floor-checkbox,
+.project-checkbox {
+    width: 1rem !important;
+    height: 1rem !important;
+}
+
+.form-checkbox:checked::after,
+.floor-checkbox:checked::after,
+.project-checkbox:checked::after {
+    width: 4px;
+    height: 8px;
+}
+
+/* Checkbox label 組合樣式 */
+label:has(input[type="checkbox"]) {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+}
+
+/* === ▲▲▲ 現代化 Checkbox 樣式結束 ▲▲▲ === */
 
 .scrollable-cell {
     max-width: 25ch;
@@ -2284,6 +2368,7 @@ tr:hover td {
 .floor-table-row {
     height: auto;
 }
+
 /* --- Project Selection Labels --- */
 .project-district-label {
     font-size: 0.7rem;
