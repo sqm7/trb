@@ -23,13 +23,19 @@ export function renderRankingPagination(totalItems) {
     });
 }
 
-export function renderSuggestions(names) {
-    if (names.length === 0) {
+export function renderSuggestions(projects) {
+    if (projects.length === 0) {
         dom.projectNameSuggestions.innerHTML = `<div class="p-2 text-gray-500">${dom.projectNameInput.value ? '無相符建案' : '此區域無預售建案資料'}</div>`;
     } else {
-        dom.projectNameSuggestions.innerHTML = names.map(name => {
+        dom.projectNameSuggestions.innerHTML = projects.map(item => {
+            // 相容舊格式 (純字串) 和新格式 (物件 {name, district})
+            const name = typeof item === 'string' ? item : item.name;
+            const district = typeof item === 'string' ? '' : (item.district || '');
             const isChecked = state.selectedProjects.includes(name);
-            return `<label class="suggestion-item" data-name="${name}"><input type="checkbox" ${isChecked ? 'checked' : ''}><span class="flex-grow">${name}</span></label>`
+            const districtHtml = district
+                ? `<span class="project-district-label">${district}</span>`
+                : '';
+            return `<label class="suggestion-item" data-name="${name}"><input type="checkbox" ${isChecked ? 'checked' : ''}><span class="flex-grow">${name}</span>${districtHtml}</label>`
         }).join('');
     }
     dom.projectNameSuggestions.classList.remove('hidden');
