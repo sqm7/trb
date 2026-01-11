@@ -104,7 +104,8 @@ export async function fetchProjectNameSuggestions(countyCode, query, districts) 
     const headers = await getAuthHeaders();
     if (!headers) throw new Error("認證標頭獲取失敗");
 
-    const payload = { countyCode, query, districts, detailed: true };
+    // 暫時移除 detailed: true 以解決瀏覽器快取導致的版本不一致問題 (回傳字串陣列)
+    const payload = { countyCode, query, districts };
     const response = await fetch(API_ENDPOINTS.PROJECT_NAMES, {
         method: 'POST',
         headers: headers,
