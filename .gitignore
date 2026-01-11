@@ -28,3 +28,7 @@ scripts/
 docs/
 readme.md
 skills/
+
+# Agent & Shared Data
+.agent/workflows
+.shared/ui-ux-pro-max/data
