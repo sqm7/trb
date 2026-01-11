@@ -1,245 +1,35 @@
 :root {
-    /* ===== Aura Be Consistent Design System ===== */
-
-    /* Background Colors */
-    --color-dark-bg: #050505;
-    /* Near pure black - Aura primary */
-    --color-dark-card: #0A0A0A;
-    /* Card background */
-    --color-elevated: #1F1F1F;
-    /* Elevated surfaces */
-    --color-form-bg: #000000;
-    /* Pure black for forms */
-
-    /* Primary & Accent Colors */
-    --color-primary: #2563EB;
-    /* Blue 600 - Primary actions */
-    --color-indigo: #4F46E5;
-    /* Indigo 600 - Gradients */
-    --color-cyan-accent: #06B6D4;
-    /* Cyan 500 - Gradient end */
-    --color-purple-accent: #818CF8;
-    /* Indigo 400 - Secondary accent */
-    --color-light-indigo: #818CF8;
-    /* Light indigo for icons */
-
-    /* Icon Accent Palette (Multi-color) */
-    --accent-orange: #F97316;
-    /* Orange 500 */
-    --accent-emerald: #10B981;
-    /* Emerald 500 */
-    --accent-pink: #EC4899;
-    /* Pink 500 */
-    --accent-purple: #A855F7;
-    /* Purple 500 */
-
-    /* Text Colors */
-    --color-text-light: #FFFFFF;
-    /* Pure white */
-    --color-text-secondary: #A3A3A3;
-    /* Neutral 400 */
-    --color-text-dark: #737373;
-    /* Neutral 500 */
-    --color-text-input: #D4D4D8;
-    /* Zinc 300 */
+    --color-dark-bg: #1a1d29;
+    --color-dark-card: #252836;
+    --color-cyan-accent: #06b6d4;
+    --color-purple-accent: #8b5cf6;
+    --color-form-bg: #1f2937;
+    --color-border-default: #4b5563;
+    --color-text-light: #e5e7eb;
+    --color-text-dark: #9ca3af;
     --color-text-red: #f87171;
-    /* Red 400 */
-    --color-text-green: #34d399;
-    /* Emerald 400 */
-
-    /* Border Colors */
-    --color-border-default: rgba(255, 255, 255, 0.1);
-    /* Subtle border */
-    --color-border-hover: rgba(255, 255, 255, 0.2);
-    /* Hover border */
-
-    /* Legacy compatibility */
-    --color-disabled-bg: #1F1F1F;
-    --color-multi-tag-bg: #1F1F1F;
-    --color-multi-tag-text: #e4e4e7;
-    --color-tooltip-bg: #0A0A0A;
-    --color-tooltip-border: rgba(255, 255, 255, 0.1);
-    --color-special-remark-bg: rgba(129, 140, 248, 0.1);
-    --color-special-remark-hover-bg: rgba(129, 140, 248, 0.2);
-    --color-icon-parking: #60a5fa;
-    --color-icon-special: #a78bfa;
-
-    /* Shadows & Glow */
-    --shadow-glow: 0 0 30px rgba(79, 70, 229, 0.4);
-    --shadow-glow-strong: 0 0 40px rgba(79, 70, 229, 0.6);
-    --shadow-glow-blue: 0 0 20px rgba(37, 99, 235, 0.5);
-
-    /* Border Radius */
-    --radius-sm: 8px;
-    --radius-md: 16px;
-    --radius-lg: 24px;
-    --radius-full: 9999px;
-
-    /* Transitions */
-    --transition-default: all 0.3s ease;
-}
-
-/* ===== Aura Animations ===== */
-@keyframes orbit-slow {
-    from {
-        transform: rotate(0deg);
-    }
-
-    to {
-        transform: rotate(360deg);
-    }
-}
-
-@keyframes pulse-glow {
-
-    0%,
-    100% {
-        box-shadow: var(--shadow-glow);
-    }
-
-    50% {
-        box-shadow: var(--shadow-glow-strong);
-    }
-}
-
-@keyframes fade-in-up {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-/* ===== Aura Button Styles ===== */
-
-/* Primary Button - Solid Blue */
-.btn-primary,
-button[class*="bg-purple-600"],
-button[class*="bg-blue-600"],
-#analyze-btn,
-#analyze-heatmap-btn {
-    background: var(--color-primary) !important;
-    color: #FFFFFF;
-    font-weight: 600;
-    padding: 0.75rem 1.5rem;
-    border-radius: var(--radius-full);
-    border: none;
-    transition: var(--transition-default);
-    position: relative;
-    overflow: hidden;
-}
-
-.btn-primary:hover,
-button[class*="bg-purple-600"]:hover,
-button[class*="bg-blue-600"]:hover,
-#analyze-btn:hover,
-#analyze-heatmap-btn:hover {
-    transform: scale(1.02);
-    box-shadow: var(--shadow-glow-blue);
-}
-
-/* Gradient Button - Primary CTA */
-.btn-gradient,
-#search-btn {
-    background: linear-gradient(to right, var(--color-indigo), var(--color-primary), var(--color-cyan-accent)) !important;
-    color: #FFFFFF;
-    font-weight: 600;
-    padding: 0.75rem 1.5rem;
-    border-radius: var(--radius-full);
-    border: none;
-    box-shadow: var(--shadow-glow);
-    transition: var(--transition-default);
-}
-
-.btn-gradient:hover,
-#search-btn:hover {
-    box-shadow: var(--shadow-glow-strong);
-    transform: translateY(-2px);
-}
-
-/* Ghost/Secondary Button */
-.btn-ghost,
-button[class*="bg-gray-600"] {
-    background: rgba(255, 255, 255, 0.05) !important;
-    color: #FFFFFF;
-    border: 1px solid var(--color-border-default);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    padding: 0.75rem 1.5rem;
-    border-radius: var(--radius-full);
-    transition: var(--transition-default);
-}
-
-.btn-ghost:hover,
-button[class*="bg-gray-600"]:hover {
-    background: rgba(255, 255, 255, 0.1) !important;
-    border-color: var(--color-border-hover);
-}
-
-/* Export Button - Green with glow */
-#export-pdf-btn,
-button[class*="bg-green-600"] {
-    background: linear-gradient(135deg, #059669, #10B981) !important;
-    box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
-}
-
-#export-pdf-btn:hover,
-button[class*="bg-green-600"]:hover {
-    box-shadow: 0 0 30px rgba(16, 185, 129, 0.5);
-    transform: scale(1.02);
+    --color-text-green: #4ade80;
+    --color-disabled-bg: #374151;
+    --color-multi-tag-bg: #4b5563;
+    --color-multi-tag-text: #d1d5db;
+    --color-tooltip-bg: #1a1d29;
+    --color-tooltip-border: #4b5563;
+    --color-special-remark-bg: rgba(139, 92, 246, 0.1);
+    --color-special-remark-hover-bg: rgba(139, 92, 246, 0.2);
+    --color-icon-parking: #a5b4fc;
+    --color-icon-special: #facc15;
 }
 
 body {
-    font-family: 'Inter', 'Noto Sans TC', ui-sans-serif, system-ui, sans-serif;
+    font-family: 'Inter', 'Noto Sans TC', sans-serif;
     background: var(--color-dark-bg);
     color: var(--color-text-light);
-    letter-spacing: -0.015em;
-    line-height: 1.6;
-    /* Aura: Add subtle animated grid background */
-    background-image:
-        linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
-    background-size: 60px 60px;
-    background-position: center center;
-}
-
-/* Data Numbers */
-.font-mono,
-.metric-card-value,
-.summary-value-positive,
-.summary-value-negative,
-td {
-    font-feature-settings: "tnum";
-    /* Tabular numbers for alignment */
-}
-
-/* Special number styling for critical data */
-.metric-card-value,
-.number-input-field {
-    font-family: 'Fira Code', monospace;
 }
 
 .glass-card {
-    background: rgba(10, 10, 10, 0.8);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid var(--color-border-default);
-    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
-    transition: var(--transition-default);
-}
-
-.glass-card:hover {
-    border-color: var(--color-border-hover);
-}
-
-.glass-card-deep {
-    background: rgba(15, 23, 42, 0.6);
-    /* slate-900/60 */
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    background: rgba(37, 40, 54, 0.8);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 /* --- ▼▼▼ 請用這段新程式碼取代舊的 .form-input, .form-select... 那一行 ▼▼▼ --- */
@@ -525,7 +315,7 @@ td {
 }
 
 .suggestion-item input[type="checkbox"]:focus {
-    box-shadow: 0 0 0 2px var(--color-cyan-accent);
+    ring: var(--color-cyan-accent);
 }
 
 .scrollable-cell {
@@ -631,15 +421,15 @@ td {
 
 .tab-button {
     padding: 0.75rem 1.5rem;
-    font-weight: 500;
+    font-medium;
     border-bottom: 3px solid transparent;
     transition: all 0.3s ease;
     color: var(--color-text-dark);
 }
 
 .tab-button.active {
-    color: var(--color-text-light);
-    border-bottom-color: var(--color-purple-accent);
+    color: var(--color-cyan-accent);
+    border-bottom-color: var(--color-cyan-accent);
 }
 
 .tab-content {
@@ -653,30 +443,8 @@ td {
 .metric-card {
     background-color: var(--color-form-bg);
     padding: 1.5rem;
-    border-radius: var(--radius-lg);
-    border: 1px solid var(--color-border-default);
-    position: relative;
-    transition: var(--transition-default);
-}
-
-.metric-card::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: var(--radius-lg);
-    padding: 1px;
-    background: linear-gradient(135deg, rgba(79, 70, 229, 0.3), rgba(6, 182, 212, 0.3));
-    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
-    pointer-events: none;
-}
-
-.metric-card:hover {
-    border-color: var(--color-border-hover);
-    box-shadow: var(--shadow-glow);
-    transform: translateY(-2px);
+    border-radius: 0.75rem;
+    border: 1px solid var(--color-disabled-bg);
 }
 
 .metric-card-title {
@@ -715,11 +483,11 @@ td {
 
 .sortable-th.asc .sort-icon {
     transform: rotate(180deg);
-    color: var(--color-purple-accent);
+    color: var(--color-cyan-accent);
 }
 
 .sortable-th.desc .sort-icon {
-    color: var(--color-purple-accent);
+    color: var(--color-cyan-accent);
 }
 
 .report-header {
@@ -743,9 +511,8 @@ td {
 }
 
 .avg-type-btn.active {
-    background-color: var(--color-purple-accent);
+    background-color: var(--color-cyan-accent);
     color: #ffffff;
-    box-shadow: 0 0 10px rgba(129, 140, 248, 0.4);
 }
 
 .capsule-btn {
@@ -763,12 +530,9 @@ td {
 
 .capsule-btn.active,
 .capsule-btn:hover {
-    background-color: var(--color-text-light);
-    /* White background */
-    border-color: var(--color-text-light);
-    color: var(--color-dark-bg);
-    /* Black text */
-    font-weight: 600;
+    background-color: var(--color-cyan-accent);
+    border-color: var(--color-cyan-accent);
+    color: white;
 }
 
 .sub-tab-nav {
@@ -958,7 +722,6 @@ td {
     font-weight: 500;
     border: none;
     outline: none;
-    appearance: textfield;
     -moz-appearance: textfield;
 }
 

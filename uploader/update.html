@@ -14,13 +14,13 @@
             theme: {
                 extend: {
                     colors: {
-                        'dark-bg': '#050505',
-                        'dark-card': '#0A0A0A',
-                        'dark-sidebar': '#0A0A0A',
-                        'cyan-accent': '#2563EB',
-                        'cyan-light': '#60A5FA',
-                        'purple-accent': '#818CF8',
-                        'orange-accent': '#F97316'
+                        'dark-bg': '#1a1d29',
+                        'dark-card': '#252836',
+                        'dark-sidebar': '#1f2937',
+                        'cyan-accent': '#06b6d4',
+                        'cyan-light': '#67e8f9',
+                        'purple-accent': '#8b5cf6',
+                        'orange-accent': '#f59e0b'
                     }
                 }
             }
@@ -29,12 +29,12 @@
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            background: #050505;
+            background: linear-gradient(135deg, #1a1d29 0%, #252836 100%);
             min-height: 100vh;
         }
 
         .glass-card {
-            background: rgba(10, 10, 10, 0.8);
+            background: rgba(37, 40, 54, 0.8);
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
@@ -50,10 +50,10 @@
         }
 
         .terminal {
-            background: #0A0A0A;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: #0f172a;
+            border: 1px solid #334155;
             font-family: 'Courier New', monospace;
-            color: #737373;
+            color: #64748b;
         }
 
         .terminal-success {
@@ -69,7 +69,7 @@
         }
 
         .terminal-info {
-            color: #2563EB;
+            color: #06b6d4;
         }
 
         .status-indicator {
@@ -105,7 +105,7 @@
 
         /* --- ▼▼▼ 修改Modal寬度 ▼▼▼ --- */
         .modal-container {
-            background: #0A0A0A;
+            background: #1f2937;
             padding: 2rem;
             border-radius: 12px;
             width: 95%;
@@ -113,7 +113,7 @@
             max-height: 90vh;
             display: flex;
             flex-direction: column;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid #4b5563;
         }
 
         .modal-header {
@@ -124,7 +124,7 @@
             flex-grow: 1;
             overflow-y: auto;
             min-height: 0;
-            background-color: #050505;
+            background-color: #1a1d29;
             padding: 1rem;
             border-radius: 8px;
         }
@@ -136,8 +136,8 @@
         .form-input-custom {
             width: 100%;
             padding: 0.75rem 1rem;
-            background-color: #1F1F1F;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background-color: #374151;
+            border: 1px solid #4b5563;
             border-radius: 0.5rem;
             color: white;
             transition: all 0.2s;
@@ -145,8 +145,8 @@
 
         .form-input-custom:focus {
             outline: none;
-            border-color: #2563EB;
-            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.5);
+            border-color: #06b6d4;
+            box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.5);
         }
 
         /* --- ▼▼▼ 新增/修改的樣式 ▼▼▼ --- */
@@ -163,12 +163,12 @@
             vertical-align: middle;
             font-size: 0.8rem;
             /* 縮小字體 */
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            border-bottom: 1px solid #374151;
         }
 
         .results-table th {
             text-align: left;
-            color: #737373;
+            color: #9ca3af;
             font-weight: 500;
         }
 
@@ -181,7 +181,7 @@
         }
 
         .results-table .details-cell {
-            background-color: #050505;
+            background-color: #111827;
             padding: 1rem;
         }
 
@@ -198,13 +198,13 @@
 
         .details-grid .key {
             font-weight: 600;
-            color: #737373;
+            color: #9ca3af;
             font-size: 0.75rem;
             margin-bottom: 0.1rem;
         }
 
         .details-grid .value {
-            color: #FFFFFF;
+            color: #e5e7eb;
             word-break: break-all;
         }
 
@@ -217,8 +217,8 @@
 
         .details-toggle-btn {
             padding: 0.25rem 0.75rem;
-            border: 1px solid #2563EB;
-            color: #2563EB;
+            border: 1px solid #06b6d4;
+            color: #06b6d4;
             background-color: transparent;
             border-radius: 999px;
             cursor: pointer;
@@ -227,8 +227,8 @@
         }
 
         .details-toggle-btn:hover {
-            background-color: rgba(37, 99, 235, 0.2);
-            color: #60A5FA;
+            background-color: rgba(6, 182, 212, 0.2);
+            color: #67e8f9;
         }
 
         /* --- ▲▲▲ 樣式結束 ▲▲▲ --- */
@@ -239,12 +239,12 @@
             font-weight: 500;
             border-bottom: 3px solid transparent;
             transition: all 0.3s ease;
-            color: #737373;
+            color: #9ca3af;
         }
 
         .details-tab-button.active {
-            color: #2563EB;
-            border-bottom-color: #2563EB;
+            color: #06b6d4;
+            border-bottom-color: #06b6d4;
         }
 
         .diff-highlight {

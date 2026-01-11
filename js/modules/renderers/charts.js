@@ -92,16 +92,12 @@ export function renderRankingChart() {
                 }
             },
             colors: [
-                '#2563EB', // blue-600 (primary)
-                '#818CF8', // indigo-400
-                '#06B6D4', // cyan-500
-                '#EC4899', // pink-500
-                '#F97316', // orange-500
-                '#10B981', // emerald-500
-                '#A855F7', // purple-500
-                '#4F46E5', // indigo-600
-                '#14B8A6', // teal-500
-                '#737373', // neutral-500
+                '#06b6d4', '#22d3ee', '#0ea5e9', '#3b82f6', '#6366f1',
+                '#8b5cf6', '#a855f7', '#d946ef', '#ec4899', '#f43f5e',
+                '#06b6d4', '#22d3ee', '#0ea5e9', '#3b82f6', '#6366f1',
+                '#8b5cf6', '#a855f7', '#d946ef', '#ec4899', '#f43f5e',
+                '#06b6d4', '#22d3ee', '#0ea5e9', '#3b82f6', '#6366f1',
+                '#8b5cf6', '#a855f7', '#d946ef', '#ec4899', '#f43f5e',
             ],
             dataLabels: {
                 enabled: true,
@@ -114,7 +110,7 @@ export function renderRankingChart() {
                 },
                 background: {
                     enabled: true,
-                    foreColor: '#050505',
+                    foreColor: '#1a1d29',
                     padding: 4,
                     borderRadius: 4,
                     borderWidth: 0,
@@ -146,7 +142,7 @@ export function renderRankingChart() {
                 }
             },
             grid: {
-                borderColor: 'rgba(255, 255, 255, 0.1)',
+                borderColor: '#374151',
                 strokeDashArray: 3,
                 xaxis: { lines: { show: true } },
                 yaxis: { lines: { show: false } },
@@ -221,8 +217,8 @@ export function renderRankingChart() {
                     colorScale: {
                         ranges: [
                             { from: 0, to: totalValue * 0.1, color: THEME_COLORS['cyan-accent'] },
-                            { from: totalValue * 0.1, to: totalValue * 0.3, color: '#2563EB' },
-                            { from: totalValue * 0.3, to: totalValue * 0.6, color: '#4F46E5' },
+                            { from: totalValue * 0.1, to: totalValue * 0.3, color: '#4f91f7' },
+                            { from: totalValue * 0.3, to: totalValue * 0.6, color: '#7c3aed' },
                             { from: totalValue * 0.6, to: Infinity, color: THEME_COLORS['purple-accent'] }
                         ]
                     }
@@ -299,12 +295,12 @@ export function renderPriceBandChart() {
             height: 450,
             background: 'transparent',
             toolbar: { show: true },
-            foreColor: '#FFFFFF'
+            foreColor: '#e5e7eb'
         },
         title: {
             text: '各房型總價帶分佈箱型圖',
             align: 'center',
-            style: { fontSize: '16px', color: '#FFFFFF' }
+            style: { fontSize: '16px', color: '#e5e7eb' }
         },
         plotOptions: {
             boxPlot: {
@@ -314,14 +310,14 @@ export function renderPriceBandChart() {
         },
         xaxis: {
             type: 'category',
-            labels: { style: { colors: '#737373' }, rotate: -45, offsetY: 5, },
+            labels: { style: { colors: '#9ca3af' }, rotate: -45, offsetY: 5, },
             categories: seriesData.map(d => d.x).sort()
         },
         yaxis: {
-            title: { text: '房屋總價 (萬)', style: { color: '#737373' } },
+            title: { text: '房屋總價 (萬)', style: { color: '#9ca3af' } },
             labels: {
                 formatter: function (val) { return val.toLocaleString() + " 萬"; },
-                style: { colors: '#737373' }
+                style: { colors: '#9ca3af' }
             }
         },
         // ▼▼▼ 【從這裡開始是本次修正的核心】 ▼▼▼
@@ -336,7 +332,7 @@ export function renderPriceBandChart() {
                     const [min, q1, median, q3, max] = yData;
                     // 回傳一個我們自己打造的、完整的 HTML 提示框
                     return `
-                        <div class="apexcharts-tooltip-box" style="background: #0A0A0A; border: 1px solid rgba(255,255,255,0.1); padding: 8px 12px; border-radius: 8px; font-family: 'Noto Sans TC', sans-serif;">
+                        <div class="apexcharts-tooltip-box" style="background: #252836; border: 1px solid #4b5563; padding: 8px 12px; border-radius: 8px; font-family: 'Noto Sans TC', sans-serif;">
                             <div><strong>最高總價:</strong> ${max.toLocaleString()} 萬</div>
                             <div><strong>3/4位總價:</strong> ${q3.toLocaleString()} 萬</div>
                             <div><strong>中位數總價:</strong> ${median.toLocaleString()} 萬</div>
@@ -351,7 +347,7 @@ export function renderPriceBandChart() {
         },
         // ▲▲▲ 【核心修正到此結束】 ▲▲▲
         grid: {
-            borderColor: 'rgba(255, 255, 255, 0.1)'
+            borderColor: '#374151'
         }
     };
 
@@ -415,7 +411,7 @@ export function renderSalesVelocityChart() {
             height: 350,
             background: 'transparent',
             toolbar: { show: true },
-            foreColor: '#FFFFFF',
+            foreColor: '#e5e7eb',
             zoom: { enabled: false }
         },
         stroke: {
@@ -435,7 +431,7 @@ export function renderSalesVelocityChart() {
             categories: timeKeys,
             labels: {
                 style: {
-                    colors: '#737373'
+                    colors: '#9ca3af'
                 }
             }
         },
@@ -443,12 +439,12 @@ export function renderSalesVelocityChart() {
             title: {
                 text: metricDetails.label,
                 style: {
-                    color: '#737373'
+                    color: '#9ca3af'
                 }
             },
             labels: {
                 style: {
-                    colors: '#737373'
+                    colors: '#9ca3af'
                 },
                 formatter: function (val) {
                     return val.toLocaleString('zh-TW', {
@@ -476,14 +472,14 @@ export function renderSalesVelocityChart() {
             }
         },
         grid: {
-            borderColor: 'rgba(255, 255, 255, 0.1)'
+            borderColor: '#374151'
         },
         noData: {
             text: '載入中或無資料...',
             align: 'center',
             verticalAlign: 'middle',
             style: {
-                color: '#737373',
+                color: '#9ca3af',
                 fontSize: '14px',
             }
         }
@@ -500,7 +496,7 @@ export function renderSalesVelocityChart() {
 function generateColorRanges(maxValue) {
     const palette = ['#fef9c3', '#fef08a', '#fde047', '#facc15', '#fbbf24', '#f97316', '#ea580c', '#dc2626', '#b91c1c'];
     const ranges = [{
-        from: 0, to: 0, color: '#0A0A0A', name: '0 戶'
+        from: 0, to: 0, color: '#252836', name: '0 戶'
     }];
 
     if (maxValue <= 0) return ranges;
@@ -599,7 +595,7 @@ export function renderAreaHeatmap() {
             type: 'heatmap',
             background: 'transparent',
             toolbar: { show: true, tools: { download: true } },
-            foreColor: '#FFFFFF',
+            foreColor: '#e5e7eb',
             events: {
                 dataPointSelection: (event, chartContext, config) => {
                     const { seriesIndex, dataPointIndex } = config;
@@ -722,7 +718,7 @@ export function renderAreaHeatmap() {
                     if (value === 0) {
                         return 'transparent';
                     }
-                    return '#FFFFFF';
+                    return '#e5e7eb';
                 }]
             },
             formatter: function (val) {
@@ -756,7 +752,7 @@ export function renderAreaHeatmap() {
         title: {
             text: '房型面積分佈熱力圖',
             align: 'center',
-            style: { color: '#FFFFFF', fontSize: '16px' }
+            style: { color: '#e5e7eb', fontSize: '16px' }
         },
         tooltip: {
             theme: 'dark',
@@ -768,7 +764,7 @@ export function renderAreaHeatmap() {
             }
         },
         grid: {
-            borderColor: 'rgba(255, 255, 255, 0.1)'
+            borderColor: '#374151'
         },
     };
 

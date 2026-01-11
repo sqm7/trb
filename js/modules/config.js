@@ -9,37 +9,19 @@ export const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiO
 // 初始化 Supabase Client 並匯出
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// ▼▼▼ Aura Be Consistent Design System Colors ▼▼▼
+// ▼▼▼ 【新增】將顏色定義集中到此處 ▼▼▼
 export const THEME_COLORS = {
-    // Background
-    'dark-bg': '#050505',          // Near pure black - Aura primary
-    'dark-card': '#0A0A0A',        // Card background
-    'elevated': '#1F1F1F',         // Elevated surfaces
-    'form-bg': '#000000',          // Pure black for forms
-
-    // Primary & Accents
-    'primary': '#2563EB',          // Blue 600 - Primary actions
-    'indigo': '#4F46E5',           // Indigo 600 - Gradients
-    'cyan-accent': '#06B6D4',      // Cyan 500 - Gradient end
-    'purple-accent': '#818CF8',    // Indigo 400 - Secondary accent
-
-    // Text
-    'text-light': '#FFFFFF',       // Pure white
-    'text-dark': '#737373',        // Neutral 500
-
-    // Border
-    'border-default': 'rgba(255, 255, 255, 0.1)',
-
-    // Chart Colors - Aura Multi-color Palette
-    'chart-primary': '#2563EB',    // Blue
-    'chart-secondary': '#818CF8',  // Indigo
-    'chart-tertiary': '#06B6D4',   // Cyan
-    'chart-quaternary': '#EC4899', // Pink
-    'chart-orange': '#F97316',     // Orange
-    'chart-emerald': '#10B981',    // Emerald
-    'chart-purple': '#A855F7'      // Purple
+    'dark-bg': '#1a1d29',
+    'dark-card': '#252836',
+    'cyan-accent': '#06b6d4',
+    'purple-accent': '#8b5cf6',
+    // 也可以把 style.css 中常用的顏色加進來管理
+    'form-bg': '#1f2937',
+    'border-default': '#4b5563',
+    'text-light': '#e5e7eb',
+    'text-dark': '#9ca3af'
 };
-// ▲▲▲ Aura Design System End ▲▲▲
+// ▲▲▲ 【新增結束】 ▲▲▲
 
 // 將所有 API 端點集中管理並匯出
 export const API_ENDPOINTS = {
