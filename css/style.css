@@ -1818,10 +1818,11 @@ td:first-child,
     left: 40px;
     z-index: 5;
     background-color: var(--color-dark-card);
-    min-width: 100px;
-    max-width: 150px;
+    min-width: 120px;
+    /* 移除 max-width 限制，讓行政區標籤可以顯示 */
     white-space: normal;
     word-break: keep-all;
+    overflow: visible;
 }
 
 #ranking-table thead th:nth-child(1),
@@ -2387,9 +2388,19 @@ tr:hover td {
 .project-name-with-district {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    width: 100%;
+    justify-content: flex-start;
     gap: 0.5rem;
+}
+
+/* 建案名稱可縮減，標籤不可 */
+.project-name-with-district>span:first-child {
+    flex-shrink: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.project-name-with-district .project-district-label {
+    flex-shrink: 0;
 }
 
 .project-date-label {

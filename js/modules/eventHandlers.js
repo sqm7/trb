@@ -75,13 +75,16 @@ export async function mainAnalyzeData() {
         dom.tabsContainer.classList.remove('hidden');
         document.querySelectorAll('.report-header').forEach(el => { el.style.display = 'block'; });
 
-        // --- [新增] 前端資料補全：獲取行政區資訊 ---
+        // --- [修正] 前端資料補全：獲取行政區資訊 ---
         try {
             const county = dom.countySelect.value;
             const countyCode = countyCodeMap[county];
-            // 查詢該縣市所有建案的 metadata (包含行政區)，query 為空字串代表不篩選名稱
-            // 需要確認 api.fetchProjectNameSuggestions 回傳的結構是否可以直接使用
-            const projectMetaList = await api.fetchProjectNameSuggestions(countyCode, '', []);
+            // 使用 '%' 作為萬用字元查詢以獲取所有建案的 metadata
+            const projectMetaList = await api.fetchProjectNameSuggestions(countyCode, '%', []);
+
+            console.log('[District Debug] API 回傳筆數:', projectMetaList?.length || 0);
+            console.log('[District Debug] API 回傳前 3 筆範例:', JSON.stringify(projectMetaList?.slice(0, 3), null, 2));
+
             if (projectMetaList && Array.isArray(projectMetaList)) {
                 // 定義標準化函式：NFKC 正規化、轉大寫、去除所有空白
                 const normalizeName = (name) => {
@@ -92,25 +95,40 @@ export async function mainAnalyzeData() {
                 // 建立 建案名稱(標準化) -> 行政區 的對照表
                 const projectDistrictMap = {};
                 projectMetaList.forEach(item => {
-                    if (typeof item === 'object' && item.name) {
+                    if (typeof item === 'object' && item.name && item.district) {
                         const normalizedKey = normalizeName(item.name);
                         projectDistrictMap[normalizedKey] = item.district;
                     }
                 });
 
+                console.log('[District Debug] 對照表建立完成，共', Object.keys(projectDistrictMap).length, '筆');
+
                 // 將行政區資訊合併回 projectRanking
+                let matchCount = 0;
+                let mismatchExamples = [];
                 state.analysisDataCache.projectRanking.forEach(proj => {
                     const lookupKey = normalizeName(proj.projectName);
                     if (projectDistrictMap[lookupKey]) {
                         proj.district = projectDistrictMap[lookupKey];
+                        matchCount++;
+                    } else {
+                        // 記錄未匹配的建案（供 debug）
+                        if (mismatchExamples.length < 5) {
+                            mismatchExamples.push({ original: proj.projectName, normalized: lookupKey });
+                        }
                     }
                 });
+
+                console.log('[District Debug] 成功匹配:', matchCount, '/', state.analysisDataCache.projectRanking.length);
+                if (mismatchExamples.length > 0) {
+                    console.log('[District Debug] 未匹配範例:', JSON.stringify(mismatchExamples, null, 2));
+                }
                 console.log('行政區標籤資料補全完成');
             }
         } catch (err) {
             console.warn('行政區資料補全失敗，將不顯示行政區標籤:', err);
         }
-        // --- [新增結束] ---
+        // --- [修正結束] ---
 
         state.currentSort = { key: 'saleAmountSum', order: 'desc' };
         state.rankingCurrentPage = 1;
