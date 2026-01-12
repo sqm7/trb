@@ -1,11 +1,10 @@
 // js/modules/eventHandlers.js
 
-import { state, getFilters, getFiltersForCounty } from './state.js';
+import { state, getFilters } from './state.js';
 import { dom } from './dom.js';
 import * as api from './api.js';
 import * as ui from './ui.js';
 import { districtData, countyCodeMap } from './config.js';
-import { aggregateMultiCountyData } from './aggregator.js';
 
 // 引入所有渲染模組
 import * as reportRenderer from './renderers/reports.js';
@@ -61,100 +60,75 @@ export async function mainFetchData() {
     }
 }
 
-// --- 進度條更新函式 ---
-function updateAnalysisProgress(current, total, countyName) {
-    state.analysisProgress = { current, total, currentCounty: countyName, isRunning: true };
-    const percent = total > 0 ? Math.round((current / total) * 100) : 0;
-    dom.analysisProgressBar.style.width = `${percent}%`;
-    dom.analysisProgressText.textContent = `正在分析 ${countyName}...`;
-    dom.analysisProgressPercent.textContent = `${current}/${total}`;
-}
-
-function showProgressBar() {
-    dom.analysisProgressContainer.classList.remove('hidden');
-}
-
-function hideProgressBar() {
-    dom.analysisProgressContainer.classList.add('hidden');
-    state.analysisProgress.isRunning = false;
-}
-
-// --- 單一縣市資料抓取 ---
-async function fetchSingleCountyData(countyName) {
-    const filters = getFiltersForCounty(countyName);
-    const result = await api.analyzeData(filters);
-    // 為每個建案加上縣市標籤
-    if (result.projectRanking) {
-        result.projectRanking.forEach(proj => {
-            proj.county = countyName; // 加上縣市來源標籤
-        });
-    }
-    return result;
-}
-
 export async function mainAnalyzeData() {
-    // 檢查是否有選擇縣市
-    if (state.selectedCounties.length === 0) {
-        return ui.showMessage('請先選擇至少一個縣市再進行分析。');
-    }
-
-    const counties = state.selectedCounties;
-    const isMultiCounty = counties.length > 1;
-
-    // 顯示進度條或載入中
-    if (isMultiCounty) {
-        showProgressBar();
-        updateAnalysisProgress(0, counties.length, counties[0]);
-    } else {
-        ui.showLoading('分析中，請稍候...');
-    }
-
+    if (!dom.countySelect.value) return ui.showMessage('請先選擇一個縣市再進行分析。');
+    ui.showLoading('分析中，請稍候...');
     try {
-        const allResults = [];
+        state.analysisDataCache = await api.analyzeData(getFilters());
 
-        // 依序載入各縣市資料
-        for (let i = 0; i < counties.length; i++) {
-            const countyName = counties[i];
-
-            if (isMultiCounty) {
-                updateAnalysisProgress(i + 1, counties.length, countyName);
-            }
-
-            console.log(`[Multi-County] 正在載入: ${countyName} (${i + 1}/${counties.length})`);
-
-            const result = await fetchSingleCountyData(countyName);
-
-            if (result && (result.coreMetrics || result.projectRanking)) {
-                allResults.push(result);
-            } else {
-                console.warn(`[Multi-County] ${countyName} 無有效資料`);
-            }
-        }
-
-        // 隱藏進度條
-        hideProgressBar();
-
-        // 檢查是否有任何有效結果
-        if (allResults.length === 0) {
-            ui.showMessage('找不到符合條件的分析資料。');
-            return;
-        }
-
-        // 合併多縣市資料
-        state.analysisDataCache = aggregateMultiCountyData(allResults);
-
-        if (!state.analysisDataCache || !state.analysisDataCache.projectRanking || state.analysisDataCache.projectRanking.length === 0) {
-            const msg = state.analysisDataCache?.message || '找不到符合條件的分析資料。';
+        if (!state.analysisDataCache.coreMetrics || state.analysisDataCache.projectRanking.length === 0) {
+            const msg = state.analysisDataCache.message || '找不到符合條件的分析資料。';
             ui.showMessage(msg);
             return;
         }
-
         dom.messageArea.classList.add('hidden');
         dom.tabsContainer.classList.remove('hidden');
         document.querySelectorAll('.report-header').forEach(el => { el.style.display = 'block'; });
 
-        // 多縣市模式下，跳過前端區域補全 (後端已提供 district)
-        console.log(`[Multi-County] 資料合併完成，共 ${state.analysisDataCache.projectRanking.length} 筆建案`);
+        // --- [修正] 前端資料補全：獲取行政區資訊 ---
+        try {
+            const county = dom.countySelect.value;
+            const countyCode = countyCodeMap[county];
+            // 使用 '%' 作為萬用字元查詢以獲取所有建案的 metadata
+            const projectMetaList = await api.fetchProjectNameSuggestions(countyCode, '%', []);
+
+            console.log('[District Debug] API 回傳筆數:', projectMetaList?.length || 0);
+            console.log('[District Debug] API 回傳前 3 筆範例:', JSON.stringify(projectMetaList?.slice(0, 3), null, 2));
+
+            if (projectMetaList && Array.isArray(projectMetaList)) {
+                // 定義標準化函式：NFKC 正規化、轉大寫、去除所有空白
+                const normalizeName = (name) => {
+                    if (!name) return '';
+                    return String(name).normalize('NFKC').toUpperCase().replace(/\s+/g, '');
+                };
+
+                // 建立 建案名稱(標準化) -> 行政區 的對照表
+                const projectDistrictMap = {};
+                projectMetaList.forEach(item => {
+                    if (typeof item === 'object' && item.name && item.district) {
+                        const normalizedKey = normalizeName(item.name);
+                        projectDistrictMap[normalizedKey] = item.district;
+                    }
+                });
+
+                console.log('[District Debug] 對照表建立完成，共', Object.keys(projectDistrictMap).length, '筆');
+
+                // 將行政區資訊合併回 projectRanking
+                let matchCount = 0;
+                let mismatchExamples = [];
+                state.analysisDataCache.projectRanking.forEach(proj => {
+                    const lookupKey = normalizeName(proj.projectName);
+                    if (projectDistrictMap[lookupKey]) {
+                        proj.district = projectDistrictMap[lookupKey];
+                        matchCount++;
+                    } else {
+                        // 記錄未匹配的建案（供 debug）
+                        if (mismatchExamples.length < 5) {
+                            mismatchExamples.push({ original: proj.projectName, normalized: lookupKey });
+                        }
+                    }
+                });
+
+                console.log('[District Debug] 成功匹配:', matchCount, '/', state.analysisDataCache.projectRanking.length);
+                if (mismatchExamples.length > 0) {
+                    console.log('[District Debug] 未匹配範例:', JSON.stringify(mismatchExamples, null, 2));
+                }
+                console.log('行政區標籤資料補全完成');
+            }
+        } catch (err) {
+            console.warn('行政區資料補全失敗，將不顯示行政區標籤:', err);
+        }
+        // --- [修正結束] ---
 
         state.currentSort = { key: 'saleAmountSum', order: 'desc' };
         state.rankingCurrentPage = 1;
@@ -170,7 +144,6 @@ export async function mainAnalyzeData() {
         // 顯示 PDF 匯出按鈕
         dom.exportPdfBtn.classList.remove('hidden');
     } catch (error) {
-        hideProgressBar();
         console.error("數據分析失敗:", error);
         ui.showMessage(`數據分析失敗: ${error.message}`, true);
         state.analysisDataCache = null;
@@ -232,7 +205,7 @@ export async function onResultsTableClick(e) {
 
 
 export async function mainFetchProjectNameSuggestions(query) {
-    const county = state.selectedCounties[0];
+    const county = dom.countySelect.value;
     const countyCode = countyCodeMap[county];
     if (!countyCode) {
         dom.projectNameSuggestions.classList.add('hidden');
@@ -270,8 +243,7 @@ export function handleDateRangeChange() {
 }
 
 export function updateDistrictOptions() {
-    // 多縣市模式下，行政區選項改為聯集 (暫時使用第一個縣市)
-    const selectedCounty = state.selectedCounties[0];
+    const selectedCounty = dom.countySelect.value;
     clearSelectedDistricts();
     dom.districtSuggestions.innerHTML = '';
     if (selectedCounty && districtData[selectedCounty]) {
@@ -318,7 +290,7 @@ export function onDistrictSuggestionClick(e) {
     const target = e.target.closest('.suggestion-item'); if (!target) return;
     const name = target.dataset.name;
     const checkbox = target.querySelector('input[type="checkbox"]'); if (!name || !checkbox) return;
-    const allDistrictNames = districtData[state.selectedCounties[0]] || [];
+    const allDistrictNames = districtData[dom.countySelect.value] || [];
     const selectAllCheckbox = document.getElementById('district-select-all');
     setTimeout(() => {
         const isChecked = checkbox.checked;
@@ -349,7 +321,7 @@ export function removeDistrict(name) {
 }
 
 export function onProjectInputFocus() {
-    if (!dom.projectNameInput.value.trim() && state.selectedCounties.length > 0) {
+    if (!dom.projectNameInput.value.trim() && dom.countySelect.value) {
         mainFetchProjectNameSuggestions('');
     }
 }
@@ -390,7 +362,7 @@ export function clearSelectedProjects() {
 }
 
 export function toggleAnalyzeButtonState() {
-    const isCountySelected = state.selectedCounties.length > 0;
+    const isCountySelected = !!dom.countySelect.value;
     const isValidType = dom.typeSelect.value === '預售交易';
     dom.analyzeBtn.disabled = !(isCountySelected && isValidType);
     dom.analyzeHeatmapBtn.disabled = !(isCountySelected && isValidType);
@@ -833,117 +805,3 @@ function handleEscKey(e) {
     }
 }
 // ▲▲▲ 【修正結束】 ▲▲▲
-
-// =============================================
-// 多縣市選擇器事件處理
-// =============================================
-
-const MAX_COUNTIES = 6;
-const allCountyNames = Object.keys(countyCodeMap);
-
-/**
- * 初始化縣市選擇器 - 渲染所有縣市選項
- */
-export function initCountySuggestions() {
-    const suggestionsHtml = allCountyNames.map(name => {
-        const isChecked = state.selectedCounties.includes(name);
-        return `<label class="suggestion-item" data-name="${name}"><input type="checkbox" ${isChecked ? 'checked' : ''}><span class="flex-grow">${name}</span></label>`;
-    }).join('');
-    dom.countySuggestions.innerHTML = suggestionsHtml;
-}
-
-/**
- * 渲染選中的縣市標籤
- */
-export function renderCountyTags() {
-    dom.countyContainer.querySelectorAll('.multi-tag').forEach(tag => tag.remove());
-    dom.countyContainer.insertBefore(dom.countyInputArea, dom.countyContainer.firstChild);
-
-    if (state.selectedCounties.length > 0) {
-        dom.countyInputArea.classList.add('hidden');
-        state.selectedCounties.forEach(name => {
-            const tagElement = document.createElement('span');
-            tagElement.className = 'multi-tag';
-            tagElement.textContent = name;
-            const removeBtn = document.createElement('span');
-            removeBtn.className = 'multi-tag-remove';
-            removeBtn.innerHTML = '&times;';
-            removeBtn.dataset.name = name;
-            tagElement.appendChild(removeBtn);
-            dom.countyContainer.insertBefore(tagElement, dom.countyInputArea);
-        });
-    } else {
-        dom.countyInputArea.classList.remove('hidden');
-        dom.countyInputArea.textContent = '請選擇縣市...';
-    }
-    dom.clearCountiesBtn.classList.toggle('hidden', state.selectedCounties.length === 0);
-}
-
-/**
- * 縣市容器點擊事件 - 顯示/隱藏選項
- */
-export function onCountyContainerClick(e) {
-    if (e.target.classList.contains('multi-tag-remove')) {
-        e.stopPropagation();
-        removeCounty(e.target.dataset.name);
-        return;
-    }
-    const isHidden = dom.countySuggestions.classList.toggle('hidden');
-    dom.filterCard.classList.toggle('z-elevate-filters', !isHidden);
-}
-
-/**
- * 縣市選項點擊事件
- */
-export function onCountySuggestionClick(e) {
-    const target = e.target.closest('.suggestion-item');
-    if (!target) return;
-
-    const name = target.dataset.name;
-    const checkbox = target.querySelector('input[type="checkbox"]');
-    if (!name || !checkbox) return;
-
-    setTimeout(() => {
-        if (checkbox.checked) {
-            // 檢查是否超過上限
-            if (state.selectedCounties.length >= MAX_COUNTIES) {
-                checkbox.checked = false;
-                alert(`最多只能選擇 ${MAX_COUNTIES} 個縣市`);
-                return;
-            }
-            if (!state.selectedCounties.includes(name)) {
-                state.selectedCounties.push(name);
-            }
-        } else {
-            state.selectedCounties = state.selectedCounties.filter(c => c !== name);
-        }
-        renderCountyTags();
-        updateDistrictOptions(); // 更新行政區選項
-        toggleAnalyzeButtonState();
-    }, 0);
-}
-
-/**
- * 移除單一縣市
- */
-export function removeCounty(name) {
-    state.selectedCounties = state.selectedCounties.filter(c => c !== name);
-    renderCountyTags();
-
-    const checkbox = dom.countySuggestions.querySelector(`label[data-name="${name}"] input`);
-    if (checkbox) checkbox.checked = false;
-
-    updateDistrictOptions();
-    toggleAnalyzeButtonState();
-}
-
-/**
- * 清除所有選中的縣市
- */
-export function clearSelectedCounties() {
-    state.selectedCounties = [];
-    renderCountyTags();
-    dom.countySuggestions.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
-    updateDistrictOptions();
-    toggleAnalyzeButtonState();
-}

@@ -4,18 +4,7 @@
 export const dom = {
     // Filter elements
     filterCard: document.getElementById('filter-card'),
-    // 多縣市選擇器 (新版)
-    countyContainer: document.getElementById('county-container'),
-    countyInputArea: document.getElementById('county-input-area'),
-    countySuggestions: document.getElementById('county-suggestions'),
-    countyFilterWrapper: document.getElementById('county-filter-wrapper'),
-    clearCountiesBtn: document.getElementById('clear-counties-btn'),
-    // 分析進度條
-    analysisProgressContainer: document.getElementById('analysis-progress-container'),
-    analysisProgressBar: document.getElementById('analysis-progress-bar'),
-    analysisProgressText: document.getElementById('analysis-progress-text'),
-    analysisProgressPercent: document.getElementById('analysis-progress-percent'),
-    // 行政區選擇器
+    countySelect: document.getElementById('county'),
     districtContainer: document.getElementById('district-container'),
     districtInputArea: document.getElementById('district-input-area'),
     districtSuggestions: document.getElementById('district-suggestions'),
