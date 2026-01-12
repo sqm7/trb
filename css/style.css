@@ -2396,12 +2396,39 @@ tr:hover td {
     vertical-align: middle;
 }
 
+/* 排名表格中的建案名稱欄位 - 縣市標籤靠右 */
+.project-name-cell {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    width: 100%;
+}
+
 /* 排名表中建案名稱 + 行政區標籤 */
 .project-name-with-district {
     display: flex;
     align-items: center;
     justify-content: flex-start;
-    gap: 0.5rem;
+    gap: 0.25rem;
+    flex-shrink: 1;
+    min-width: 0;
+}
+
+/* 建案名稱文字 */
+.project-name-text {
+    flex-shrink: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* 縣市 + 行政區標籤容器 */
+.project-tags {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    flex-shrink: 0;
 }
 
 /* 建案名稱可縮減，標籤不可 */

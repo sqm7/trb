@@ -129,7 +129,7 @@ export function renderRankingReport() {
         const rankNumber = (state.rankingCurrentPage - 1) * state.rankingPageSize + index + 1;
         const countyLabel = (showCountyTag && proj.county) ? `<span class="project-county-label">${proj.county}</span>` : '';
         const districtLabel = proj.district ? `<span class="project-district-label">${proj.district}</span>` : '';
-        bodyHtml += `<tr class="hover:bg-dark-card transition-colors"><td>${rankNumber}</td><td><span class="project-name-with-district">${proj.projectName}${countyLabel}${districtLabel}</span></td><td>${ui.formatNumber(proj.saleAmountSum, 0)}</td><td>${ui.formatNumber(proj.houseAreaSum)}</td><td>${proj.transactionCount.toLocaleString()}</td><td>${ui.formatNumber(proj.marketShare)}%</td><td>${ui.formatNumber(proj.averagePrice)}</td><td>${ui.formatNumber(proj.minPrice)}</td><td>${ui.formatNumber(proj.maxPrice)}</td><td>${ui.formatNumber(proj.medianPrice)}</td><td>${ui.formatNumber(proj.avgParkingPrice, 0)}</td></tr>`;
+        bodyHtml += `<tr class="hover:bg-dark-card transition-colors"><td>${rankNumber}</td><td><div class="project-name-cell"><span class="project-name-text">${proj.projectName}</span><span class="project-tags">${countyLabel}${districtLabel}</span></div></td><td>${ui.formatNumber(proj.saleAmountSum, 0)}</td><td>${ui.formatNumber(proj.houseAreaSum)}</td><td>${proj.transactionCount.toLocaleString()}</td><td>${ui.formatNumber(proj.marketShare)}%</td><td>${ui.formatNumber(proj.averagePrice)}</td><td>${ui.formatNumber(proj.minPrice)}</td><td>${ui.formatNumber(proj.maxPrice)}</td><td>${ui.formatNumber(proj.medianPrice)}</td><td>${ui.formatNumber(proj.avgParkingPrice, 0)}</td></tr>`;
     });
     bodyHtml += '</tbody>';
 
