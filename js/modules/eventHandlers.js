@@ -135,19 +135,27 @@ export async function mainAnalyzeData() {
             });
 
             const results = await Promise.all(metaPromises);
-            const projectDistrictMap = {};
+            const projectMetaMap = {}; // 改名為 projectMetaMap，儲存 { district, county }
 
             const normalizeName = (name) => {
                 if (!name) return '';
-                return String(name).normalize('NFKC').toUpperCase().replace(/\s+/g, '');
+                // Normalize Unicode, convert to uppercase, remove all whitespace and punctuation
+                return String(name)
+                    .normalize('NFKC')
+                    .toUpperCase()
+                    .replace(/[\s\.\-\·\．\、\,\，\!\！\?\？\(\)\（\）\[\]\【\】\:\：\;\；\'\"\'\"\"]/g, '');
             };
 
-            results.forEach(({ list }) => {
+            results.forEach(({ county, list }) => {
                 if (Array.isArray(list)) {
                     list.forEach(item => {
-                        if (typeof item === 'object' && item.name && item.district) {
+                        if (typeof item === 'object' && item.name) {
                             const normalizedKey = normalizeName(item.name);
-                            projectDistrictMap[normalizedKey] = item.district;
+                            // 儲存縣市與行政區
+                            projectMetaMap[normalizedKey] = {
+                                district: item.district || '',
+                                county: county
+                            };
                         }
                     });
                 }
@@ -156,13 +164,14 @@ export async function mainAnalyzeData() {
             // 合併回 projectRanking
             state.analysisDataCache.projectRanking.forEach(proj => {
                 const lookupKey = normalizeName(proj.projectName);
-                if (projectDistrictMap[lookupKey]) {
-                    proj.district = projectDistrictMap[lookupKey];
+                if (projectMetaMap[lookupKey]) {
+                    proj.district = projectMetaMap[lookupKey].district;
+                    proj.county = projectMetaMap[lookupKey].county;
                 }
             });
 
         } catch (err) {
-            console.warn('行政區資料補全失敗:', err);
+            console.warn('行政區/縣市資料補全失敗:', err);
         }
         // --- [前端資料補全結束] ---
 
@@ -262,18 +271,23 @@ export async function mainFetchProjectNameSuggestions(query) {
 
         const results = await Promise.all(promises);
 
-        // 合併與去重
+        // 合併與去重, 並注入縣市資訊
         let allNames = [];
         const seenNames = new Set();
 
-        results.forEach(list => {
+        results.forEach((list, index) => {
+            const countyName = state.selectedCounties[index]; // 對應的縣市名稱
             if (Array.isArray(list)) {
                 list.forEach(item => {
                     // item 可以是 string 或 object
                     const name = typeof item === 'string' ? item : item.name;
                     if (!seenNames.has(name)) {
                         seenNames.add(name);
-                        allNames.push(item);
+                        // 注入縣市資訊
+                        const enrichedItem = typeof item === 'string'
+                            ? { name: item, county: countyName }
+                            : { ...item, county: countyName };
+                        allNames.push(enrichedItem);
                     }
                 });
             }

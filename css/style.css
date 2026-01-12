@@ -2384,6 +2384,18 @@ tr:hover td {
     vertical-align: middle;
 }
 
+.project-county-label {
+    font-size: 0.7rem;
+    color: var(--color-purple-accent);
+    margin-left: 0.5rem;
+    padding: 0.125rem 0.5rem;
+    background-color: rgba(139, 92, 246, 0.15);
+    border-radius: 9999px;
+    flex-shrink: 0;
+    white-space: nowrap;
+    vertical-align: middle;
+}
+
 /* 排名表中建案名稱 + 行政區標籤 */
 .project-name-with-district {
     display: flex;

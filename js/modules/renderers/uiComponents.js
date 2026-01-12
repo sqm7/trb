@@ -28,12 +28,19 @@ export function renderSuggestions(projects) {
         dom.projectNameSuggestions.innerHTML = `<div class="p-2 text-gray-500">${dom.projectNameInput.value ? '無相符建案' : '此區域無預售建案資料'}</div>`;
     } else {
         dom.projectNameSuggestions.innerHTML = projects.map(item => {
-            // 相容舊格式 (純字串) 和新格式 (物件 {name, district, earliestDate})
+            // 相容舊格式 (純字串) 和新格式 (物件 {name, district, earliestDate, county})
             const name = typeof item === 'string' ? item : item.name;
             const district = typeof item === 'string' ? '' : (item.district || '');
             const earliestDate = typeof item === 'string' ? '' : (item.earliestDate || '');
+            const county = typeof item === 'string' ? '' : (item.county || '');
 
             const isChecked = state.selectedProjects.includes(name);
+
+            // 只在選擇多個縣市時顯示縣市標籤
+            const showCountyTag = state.selectedCounties.length > 1;
+            const countyHtml = (showCountyTag && county)
+                ? `<span class="project-county-label">${county}</span>`
+                : '';
 
             const districtHtml = district
                 ? `<span class="project-district-label">${district}</span>`
@@ -44,7 +51,7 @@ export function renderSuggestions(projects) {
                 ? `<span class="project-date-label">${earliestDate.substring(0, 7).replace('-', '/')}</span>`
                 : '';
 
-            return `<label class="suggestion-item" data-name="${name}"><input type="checkbox" ${isChecked ? 'checked' : ''}><span class="flex-grow">${name}</span>${districtHtml}${dateHtml}</label>`
+            return `<label class="suggestion-item" data-name="${name}"><input type="checkbox" ${isChecked ? 'checked' : ''}><span class="flex-grow">${name}</span>${countyHtml}${districtHtml}${dateHtml}</label>`;
         }).join('');
     }
     dom.projectNameSuggestions.classList.remove('hidden');
