@@ -2401,6 +2401,7 @@ tr:hover td {
 
 .project-name-with-district .project-district-label {
     flex-shrink: 0;
+    margin-left: auto;
 }
 
 .project-date-label {
