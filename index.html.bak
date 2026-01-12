@@ -68,26 +68,9 @@
             <div id="filter-card" class="glass-card p-6 rounded-xl shadow-lg mb-8">
                 <div id="filter-form"
                     class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-4 items-end">
-                    <div id="county-filter-wrapper">
-                        <div class="flex justify-between items-center">
-                            <label for="county-input-area" class="block text-sm font-medium text-gray-300">縣市
-                                (至多6個)</label>
-                            <button id="clear-counties-btn"
-                                class="text-xs text-cyan-400 hover:text-cyan-300 hidden transition-opacity">清除選取</button>
-                        </div>
-                        <div class="relative mt-1">
-                            <div id="county-container"
-                                class="form-multiselect flex flex-nowrap items-center gap-2 p-1 min-h-[42px] rounded-md overflow-x-auto">
-                                <div id="county-input-area" class="text-gray-400/80 flex-grow py-1 px-2 cursor-pointer">
-                                    請選擇縣市...</div>
-                            </div>
-                            <div id="county-suggestions"
-                                class="absolute z-50 w-full mt-1 bg-dark-card border border-gray-600 rounded-md shadow-lg hidden suggestions-container">
-                                <!-- Options will be populated by JS -->
-                            </div>
-                        </div>
-                        <!-- Hidden select for compatibility if needed, or remove completely -->
-                        <select id="county" class="hidden">
+                    <div>
+                        <label for="county" class="block text-sm font-medium text-gray-300">縣市</label>
+                        <select id="county" class="form-select mt-1 block w-full pl-3 pr-10 py-2 text-base rounded-md">
                             <option value="">請選擇縣市</option>
                         </select>
                     </div>

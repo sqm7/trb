@@ -13,6 +13,9 @@ import {
     updateDistrictOptions,
     toggleAnalyzeButtonState,
     handleDateRangeChange,
+    onCountyContainerClick,
+    onCountySuggestionClick,
+    clearSelectedCounties, // New import
     onDistrictContainerClick,
     onDistrictSuggestionClick,
     clearSelectedDistricts,
@@ -112,7 +115,14 @@ function initialize() {
     // --- 主要按鈕與篩選器事件 ---
     dom.searchBtn.addEventListener('click', () => { state.currentPage = 1; mainFetchData(); });
     dom.analyzeBtn.addEventListener('click', mainAnalyzeData);
-    dom.countySelect.addEventListener('change', updateDistrictOptions);
+    // --- 縣市多選元件事件 ---
+    dom.countyContainer.addEventListener('click', onCountyContainerClick);
+    dom.countySuggestions.addEventListener('click', onCountySuggestionClick);
+    if (dom.clearCountiesBtn) {
+        dom.clearCountiesBtn.addEventListener('click', clearSelectedCounties);
+    }
+
+    // dom.countySelect.addEventListener('change', updateDistrictOptions); // 舊的，可保留或移除
     dom.typeSelect.addEventListener('change', toggleAnalyzeButtonState);
 
     // --- 日期相關事件 ---

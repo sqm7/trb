@@ -8,6 +8,7 @@ export const state = {
     currentPage: 1,
     pageSize: 30,
     totalRecords: 0,
+    selectedCounties: [],
     selectedDistricts: [],
     selectedProjects: [],
     suggestionDebounceTimer: null,
@@ -29,7 +30,7 @@ export const state = {
         rawTransactions: [],
         roomType: '',
         areaRange: ''
-    }, 
+    },
     currentHeatmapDetailMetric: 'median',
     excludeCommercialInRanking: false, // 核心指標與排名報告中，是否排除商辦店面的開關狀態
 };
@@ -44,9 +45,9 @@ export function getFilters() {
     if (dom.dateEndInput.value) filters.dateEnd = dom.dateEndInput.value;
     if (dom.buildingTypeSelect.value) filters.buildingType = dom.buildingTypeSelect.value;
     if (state.selectedProjects.length > 0) filters.projectNames = state.selectedProjects;
-    
+
     // 將開關的狀態加入到篩選條件中
     filters.excludeCommercial = state.excludeCommercialInRanking;
-    
+
     return filters;
 }

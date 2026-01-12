@@ -5,6 +5,11 @@ export const dom = {
     // Filter elements
     filterCard: document.getElementById('filter-card'),
     countySelect: document.getElementById('county'),
+    countyContainer: document.getElementById('county-container'),
+    countyInputArea: document.getElementById('county-input-area'),
+    countySuggestions: document.getElementById('county-suggestions'),
+    countyFilterWrapper: document.getElementById('county-filter-wrapper'),
+    clearCountiesBtn: document.getElementById('clear-counties-btn'),
     districtContainer: document.getElementById('district-container'),
     districtInputArea: document.getElementById('district-input-area'),
     districtSuggestions: document.getElementById('district-suggestions'),

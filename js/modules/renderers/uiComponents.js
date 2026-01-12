@@ -89,3 +89,25 @@ export function renderDistrictTags() {
     }
     dom.clearDistrictsBtn.classList.toggle('hidden', state.selectedDistricts.length === 0);
 }
+
+export function renderCountyTags() {
+    dom.countyContainer.querySelectorAll('.multi-tag').forEach(tag => tag.remove());
+    dom.countyContainer.insertBefore(dom.countyInputArea, dom.countyContainer.firstChild);
+    if (state.selectedCounties.length > 0) {
+        dom.countyInputArea.classList.add('hidden');
+        state.selectedCounties.forEach(name => {
+            const tagElement = document.createElement('span');
+            tagElement.className = 'multi-tag';
+            tagElement.textContent = name;
+            const removeBtn = document.createElement('span');
+            removeBtn.className = 'multi-tag-remove';
+            removeBtn.innerHTML = '&times;';
+            removeBtn.dataset.name = name;
+            tagElement.appendChild(removeBtn);
+            dom.countyContainer.insertBefore(tagElement, dom.countyInputArea);
+        });
+    } else {
+        dom.countyInputArea.classList.remove('hidden');
+    }
+    dom.clearCountiesBtn.classList.toggle('hidden', state.selectedCounties.length === 0);
+}
