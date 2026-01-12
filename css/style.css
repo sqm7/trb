@@ -2372,13 +2372,24 @@ tr:hover td {
 /* --- Project Selection Labels --- */
 .project-district-label {
     font-size: 0.7rem;
-    color: var(--color-text-muted);
+    color: var(--color-text-dark);
+    /* darker than muted for visibility */
     margin-left: 0.5rem;
     padding: 0.125rem 0.5rem;
     background-color: rgba(55, 65, 81, 0.5);
     border-radius: 9999px;
     flex-shrink: 0;
     white-space: nowrap;
+    vertical-align: middle;
+}
+
+/* 排名表中建案名稱 + 行政區標籤 */
+.project-name-with-district {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    gap: 0.5rem;
 }
 
 .project-date-label {

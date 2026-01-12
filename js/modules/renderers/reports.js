@@ -126,7 +126,8 @@ export function renderRankingReport() {
     let bodyHtml = '<tbody>';
     pagedData.forEach((proj, index) => {
         const rankNumber = (state.rankingCurrentPage - 1) * state.rankingPageSize + index + 1;
-        bodyHtml += `<tr class="hover:bg-dark-card transition-colors"><td>${rankNumber}</td><td>${proj.projectName}</td><td>${ui.formatNumber(proj.saleAmountSum, 0)}</td><td>${ui.formatNumber(proj.houseAreaSum)}</td><td>${proj.transactionCount.toLocaleString()}</td><td>${ui.formatNumber(proj.marketShare)}%</td><td>${ui.formatNumber(proj.averagePrice)}</td><td>${ui.formatNumber(proj.minPrice)}</td><td>${ui.formatNumber(proj.maxPrice)}</td><td>${ui.formatNumber(proj.medianPrice)}</td><td>${ui.formatNumber(proj.avgParkingPrice, 0)}</td></tr>`;
+        const districtLabel = proj.district ? `<span class="project-district-label">${proj.district}</span>` : '';
+        bodyHtml += `<tr class="hover:bg-dark-card transition-colors"><td>${rankNumber}</td><td><span class="project-name-with-district">${proj.projectName}${districtLabel}</span></td><td>${ui.formatNumber(proj.saleAmountSum, 0)}</td><td>${ui.formatNumber(proj.houseAreaSum)}</td><td>${proj.transactionCount.toLocaleString()}</td><td>${ui.formatNumber(proj.marketShare)}%</td><td>${ui.formatNumber(proj.averagePrice)}</td><td>${ui.formatNumber(proj.minPrice)}</td><td>${ui.formatNumber(proj.maxPrice)}</td><td>${ui.formatNumber(proj.medianPrice)}</td><td>${ui.formatNumber(proj.avgParkingPrice, 0)}</td></tr>`;
     });
     bodyHtml += '</tbody>';
 

@@ -74,6 +74,44 @@ export async function mainAnalyzeData() {
         dom.messageArea.classList.add('hidden');
         dom.tabsContainer.classList.remove('hidden');
         document.querySelectorAll('.report-header').forEach(el => { el.style.display = 'block'; });
+
+        // --- [新增] 前端資料補全：獲取行政區資訊 ---
+        try {
+            const county = dom.countySelect.value;
+            const countyCode = countyCodeMap[county];
+            // 查詢該縣市所有建案的 metadata (包含行政區)，query 為空字串代表不篩選名稱
+            // 需要確認 api.fetchProjectNameSuggestions 回傳的結構是否可以直接使用
+            const projectMetaList = await api.fetchProjectNameSuggestions(countyCode, '', []);
+            if (projectMetaList && Array.isArray(projectMetaList)) {
+                // 定義標準化函式：NFKC 正規化、轉大寫、去除所有空白
+                const normalizeName = (name) => {
+                    if (!name) return '';
+                    return String(name).normalize('NFKC').toUpperCase().replace(/\s+/g, '');
+                };
+
+                // 建立 建案名稱(標準化) -> 行政區 的對照表
+                const projectDistrictMap = {};
+                projectMetaList.forEach(item => {
+                    if (typeof item === 'object' && item.name) {
+                        const normalizedKey = normalizeName(item.name);
+                        projectDistrictMap[normalizedKey] = item.district;
+                    }
+                });
+
+                // 將行政區資訊合併回 projectRanking
+                state.analysisDataCache.projectRanking.forEach(proj => {
+                    const lookupKey = normalizeName(proj.projectName);
+                    if (projectDistrictMap[lookupKey]) {
+                        proj.district = projectDistrictMap[lookupKey];
+                    }
+                });
+                console.log('行政區標籤資料補全完成');
+            }
+        } catch (err) {
+            console.warn('行政區資料補全失敗，將不顯示行政區標籤:', err);
+        }
+        // --- [新增結束] ---
+
         state.currentSort = { key: 'saleAmountSum', order: 'desc' };
         state.rankingCurrentPage = 1;
         reportRenderer.renderRankingReport();
