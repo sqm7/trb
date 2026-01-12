@@ -38,7 +38,14 @@ import {
     handleShareClick,
     copyShareUrl,
     handleExcludeCommercialToggle,
-    togglePriceGridFullScreen
+    togglePriceGridFullScreen,
+    // ▼▼▼ 多縣市選擇器 ▼▼▼
+    initCountySuggestions,
+    renderCountyTags,
+    onCountyContainerClick,
+    onCountySuggestionClick,
+    clearSelectedCounties
+    // ▲▲▲ 多縣市選擇器 ▲▲▲
 } from './modules/eventHandlers.js';
 import { state } from './modules/state.js';
 
@@ -81,16 +88,16 @@ function initialize() {
 
     setupUserStatus();
 
+    // ▼▼▼ 多縣市選擇器初始化 (取代舊版單選下拉選單) ▼▼▼
     try {
-        const countyNames = Object.keys(districtData);
-        countyNames.forEach(name => {
-            dom.countySelect.add(new Option(name, name));
-        });
+        initCountySuggestions(); // 初始化縣市選項
+        renderCountyTags(); // 渲染初始標籤狀態
     } catch (error) {
-        console.error("填入縣市資料時發生錯誤:", error);
+        console.error("初始化縣市選擇器時發生錯誤:", error);
         ui.showMessage("系統初始化失敗：載入縣市資料時出錯。", true);
         return;
     }
+    // ▲▲▲ 多縣市選擇器初始化 ▲▲▲
 
     dom.rankingPaginationControls.id = 'ranking-pagination-controls';
     dom.rankingPaginationControls.className = 'flex justify-between items-center mt-4 text-sm text-gray-400';
@@ -112,7 +119,13 @@ function initialize() {
     // --- 主要按鈕與篩選器事件 ---
     dom.searchBtn.addEventListener('click', () => { state.currentPage = 1; mainFetchData(); });
     dom.analyzeBtn.addEventListener('click', mainAnalyzeData);
-    dom.countySelect.addEventListener('change', updateDistrictOptions);
+
+    // ▼▼▼ 多縣市選擇器事件 (取代舊版 countySelect.change) ▼▼▼
+    dom.countyContainer.addEventListener('click', onCountyContainerClick);
+    dom.countySuggestions.addEventListener('click', onCountySuggestionClick);
+    dom.clearCountiesBtn.addEventListener('click', clearSelectedCounties);
+    // ▲▲▲ 多縣市選擇器事件 ▲▲▲
+
     dom.typeSelect.addEventListener('change', toggleAnalyzeButtonState);
 
     // --- 日期相關事件 ---
