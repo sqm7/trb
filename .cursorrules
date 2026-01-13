@@ -22,3 +22,11 @@
 ## Documentation Rules
 
 - **Update Trigger**: Update `SPEC.md` and `PLAN.md` BEFORE coding for major features, and AFTER coding for status updates.
+
+## ⚠️ Pitfalls (避坑指南)
+
+- **Supabase Edge Functions Pagination**: 
+  - `supabase.from().select()` default limit is 1000 rows.
+  - **Always** use pagination or `fetchAllData` for large datasets.
+  - **Avoid** complex logic in simple query functions to prevent `BOOT_ERROR` (import dependency issues).
+  - **Preferred Pattern**: If metadata exists in another comprehensive dataset (e.g., Ranking), harvest it on the frontend instead of re-fetching on the backend.

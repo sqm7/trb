@@ -247,6 +247,9 @@ export function renderUnitPriceReport() {
             const maxShopMultiple = Math.max(...typeComparison.map(item => item.shopMultiple || 0), 1);
             const maxOfficeMultiple = Math.max(...typeComparison.map(item => item.officeMultiple || 0), 1);
 
+            // 判斷是否需要顯示縣市標籤 (多縣市選取時)
+            const showCountyTag = state.selectedCounties.length > 1;
+
             let comparisonHtml = `<table class="min-w-full divide-y divide-gray-800 report-table"><thead><tr><th>建案名稱</th><th>住宅均價(萬/坪)</th><th>店舖均價(萬/坪)</th><th>店舖對住宅倍數</th><th>事務所均價(萬/坪)</th><th>事務所對住宅倍數</th></tr></thead><tbody>`;
             typeComparison.forEach(item => {
                 const residentialAvgToShow = (item.residentialAvg && typeof item.residentialAvg === 'object') ? item.residentialAvg[state.currentAverageType] : 0;
@@ -269,7 +272,11 @@ export function renderUnitPriceReport() {
                        </div>`
                     : '-';
 
-                comparisonHtml += `<tr class="hover:bg-dark-card"><td>${item.projectName}</td><td>${residentialAvgToShow > 0 ? ui.formatNumber(residentialAvgToShow) : '-'}</td><td>${shopAvgToShow > 0 ? ui.formatNumber(shopAvgToShow) : '-'}</td><td>${shopMultipleHtml}</td><td>${officeAvgToShow > 0 ? ui.formatNumber(officeAvgToShow) : '-'}</td><td>${officeMultipleHtml}</td></tr>`;
+                // 建立縣市和行政區標籤
+                const countyLabel = (showCountyTag && item.county) ? `<span class="project-county-label">${item.county}</span>` : '';
+                const districtLabel = item.district ? `<span class="project-district-label">${item.district}</span>` : '';
+
+                comparisonHtml += `<tr class="hover:bg-dark-card"><td><div class="project-name-cell"><span class="project-name-text">${item.projectName}</span><span class="project-tags">${countyLabel}${districtLabel}</span></div></td><td>${residentialAvgToShow > 0 ? ui.formatNumber(residentialAvgToShow) : '-'}</td><td>${shopAvgToShow > 0 ? ui.formatNumber(shopAvgToShow) : '-'}</td><td>${shopMultipleHtml}</td><td>${officeAvgToShow > 0 ? ui.formatNumber(officeAvgToShow) : '-'}</td><td>${officeMultipleHtml}</td></tr>`;
             });
             comparisonHtml += `</tbody></table>`;
             comparisonContainer.innerHTML = comparisonHtml;

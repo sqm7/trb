@@ -161,6 +161,27 @@ export async function mainAnalyzeData() {
                 }
             });
 
+            // [New] 從 projectRanking 補充 Metadata 到 projectMetaMap
+            // 這是關鍵修復：因為 analyze-project-ranking 函式能正確取得行政區，我們利用它來補全其他報表的缺漏
+            if (state.analysisDataCache.projectRanking) {
+                state.analysisDataCache.projectRanking.forEach(proj => {
+                    if (proj.district && proj.projectName) {
+                        const normalizedKey = normalizeName(proj.projectName);
+                        if (!projectMetaMap[normalizedKey]) {
+                            projectMetaMap[normalizedKey] = { district: '', county: '' };
+                        }
+                        // 如果 Map 中沒有 district，就用 Ranking 的
+                        if (!projectMetaMap[normalizedKey].district) {
+                            projectMetaMap[normalizedKey].district = proj.district;
+                        }
+                        // 如果 Map 中沒有 county，就用 Ranking 的
+                        if (!projectMetaMap[normalizedKey].county && proj.county) {
+                            projectMetaMap[normalizedKey].county = proj.county;
+                        }
+                    }
+                });
+            }
+
             // 合併回 projectRanking
             state.analysisDataCache.projectRanking.forEach(proj => {
                 const lookupKey = normalizeName(proj.projectName);
@@ -169,6 +190,17 @@ export async function mainAnalyzeData() {
                     proj.county = projectMetaMap[lookupKey].county;
                 }
             });
+
+            // 合併回 typeComparison (店面、事務所與住宅價差比較)
+            if (state.analysisDataCache.unitPriceAnalysis && state.analysisDataCache.unitPriceAnalysis.typeComparison) {
+                state.analysisDataCache.unitPriceAnalysis.typeComparison.forEach(item => {
+                    const lookupKey = normalizeName(item.projectName);
+                    if (projectMetaMap[lookupKey]) {
+                        item.district = projectMetaMap[lookupKey].district;
+                        item.county = projectMetaMap[lookupKey].county;
+                    }
+                });
+            }
 
         } catch (err) {
             console.warn('行政區/縣市資料補全失敗:', err);
