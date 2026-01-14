@@ -412,7 +412,7 @@ function renderCountyOptions() {
         dom.countySuggestions.innerHTML = html;
     } catch (e) {
         console.error("Error rendering county options:", e);
-        dom.countySuggestions.innerHTML = '<div class="p-2 text-red-500">載入失敗</div>';
+        dom.countySuggestions.innerHTML = `<div class="p-2 text-red-500">載入失敗: ${e.message || e}</div>`;
     }
 }
 
