@@ -41,6 +41,7 @@ export async function mainFetchData() {
         // 若完全未選，則無法查詢
         const filters = getFilters();
         if (state.selectedCounties.length > 0) {
+            filters.counties = state.selectedCounties;
             filters.countyCode = countyCodeMap[state.selectedCounties[0]];
         }
 
