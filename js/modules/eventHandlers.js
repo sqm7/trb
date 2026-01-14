@@ -77,32 +77,41 @@ export async function mainAnalyzeData() {
         const totalCounties = state.selectedCounties.length;
 
         // --- Sequential Loading Loop ---
-        // --- Multi-Target Parallel Fetching Refactor ---
-        // 建構多目標並行查詢 Payload
-        const multiTargets = state.selectedCounties.map(cName => {
-            const cCode = countyCodeMap[cName];
-            const target = { county: cCode, districts: [] };
+        for (let i = 0; i < totalCounties; i++) {
+            const countyName = state.selectedCounties[i];
+            const countyCode = countyCodeMap[countyName];
 
-            // 處理行政區篩選
+            // 更新 UI 顯示進度
+            ui.showLoading(`正在載入 ${countyName} 資料 (${i + 1}/${totalCounties})...`);
+
+            // 建構該縣市的專屬 Filter
+            const currentFilter = getFilters();
+            currentFilter.countyCode = countyCode;
+
+            // 處理行政區篩選：只保留屬於當前縣市的行政區
+            // 如果使用者選了 [台北市-大安, 新北市-板橋]，查台北市時應該只送大安，查新北時只送板橋
             if (state.selectedDistricts.length > 0) {
-                const validDistricts = districtData[cName] || [];
+                const validDistricts = districtData[countyName] || [];
                 const targetDistricts = state.selectedDistricts.filter(d => validDistricts.includes(d));
+
+                // 如果該縣市有選行政區，就用選的；如果沒選 (代表使用者只想篩別的縣市的區，或者想看該縣市全區？)
+                // 邏輯判斷：如果 user 在任何縣市都沒選區 -> 全區
+                // 如果 user 在 A 縣市選了區，但 B 縣市沒選 -> B 縣市應該是全區還是不查？通常是全區。
                 if (targetDistricts.length > 0) {
-                    target.districts = targetDistricts;
+                    currentFilter.districts = targetDistricts;
+                } else {
+                    // 檢查使用者是否在其他縣市有選區？如果有，那這個縣市是否應該全選？
+                    // 簡單邏輯：只要該縣市沒被選區，就查該縣市全區
+                    // 所以這裡不需要特別處理，只要不傳 districts 參數就是全區
+                    delete currentFilter.districts;
                 }
             }
-            return target;
-        });
 
-        // 建構主 Filter
-        const mainFilter = getFilters();
-        // 移除單一 county/districts 參數，改用 multiTargets
-        delete mainFilter.countyCode;
-        delete mainFilter.districts;
-        mainFilter.multiTargets = multiTargets;
+            const cityResult = await api.analyzeData(currentFilter);
 
-        // 發送單一請求
-        aggregatedData = await api.analyzeData(mainFilter);
+            // 聚合數據
+            aggregatedData = aggregateAnalysisData(aggregatedData, cityResult);
+        }
 
         state.analysisDataCache = aggregatedData;
 
