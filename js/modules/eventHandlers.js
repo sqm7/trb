@@ -385,28 +385,35 @@ export function onCountyContainerClick(e) {
 }
 
 function renderCountyOptions() {
-    // 渲染所有可用縣市，標記已選
-    const allCounties = Object.keys(countyCodeMap); // 假設 config 裡的 Key 就是縣市名
-    // 或者從 config.js 導出 countyList 因為 map 可能有別的用途
-    // 這裡我們直接用 districtData 的 keys 因為通常 districtData 有所有縣市
-    const availableCounties = Object.keys(districtData);
+    try {
+        // 渲染所有可用縣市，標記已選
+        const availableCounties = (districtData && Object.keys(districtData).length > 0)
+            ? Object.keys(districtData)
+            : (typeof countyCodeMap !== 'undefined' ? Object.keys(countyCodeMap) : []);
 
-    // 如果 config.js 裡的 districtData 只有部分，那就要用 countyCodeMap 的 keys
-    // 但 countyCodeMap key 也是縣市名
+        if (availableCounties.length === 0) {
+            console.error("No county data available");
+            dom.countySuggestions.innerHTML = '<div class="p-2 text-gray-500">無法載入縣市資料</div>';
+            return;
+        }
 
-    const html = availableCounties.map(name => {
-        const isSelected = state.selectedCounties.includes(name);
-        const isDisabled = !isSelected && state.selectedCounties.length >= 6;
+        const html = availableCounties.map(name => {
+            const isSelected = state.selectedCounties.includes(name);
+            const isDisabled = !isSelected && state.selectedCounties.length >= 6;
 
-        return `
+            return `
             <label class="suggestion-item flex items-center p-2 hover:bg-gray-700 cursor-pointer ${isDisabled ? 'opacity-50 cursor-not-allowed' : ''}" data-name="${name}">
                 <input type="checkbox" class="mr-2" ${isSelected ? 'checked' : ''} ${isDisabled ? 'disabled' : ''}>
                 <span class="flex-grow text-gray-200">${name}</span>
             </label>
-        `;
-    }).join('');
+            `;
+        }).join('');
 
-    dom.countySuggestions.innerHTML = html;
+        dom.countySuggestions.innerHTML = html;
+    } catch (e) {
+        console.error("Error rendering county options:", e);
+        dom.countySuggestions.innerHTML = '<div class="p-2 text-red-500">載入失敗</div>';
+    }
 }
 
 export function onCountySuggestionClick(e) {
