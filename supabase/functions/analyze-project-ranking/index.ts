@@ -3,10 +3,10 @@ import { corsHeaders } from '../_shared/cors.ts';
 import { countyCodeToName, countyNameToCode } from '../_shared/constants.ts';
 import { AdaptiveUnitResolver } from '../_shared/unit-parser.ts';
 import { createSupabaseClient } from '../_shared/supabase-client.ts';
-import { getRoomCategory } from '../_shared/unit-parser.ts';
+
 
 import {
-  fetchAllData,
+  getRoomCategory, fetchAllData,
   calculateParkingAnalysis,
   calculateSalesVelocity,
   calculatePriceGridAnalysis,
