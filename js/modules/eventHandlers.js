@@ -37,27 +37,86 @@ export async function mainFetchData() {
     ui.showLoading('查詢中，請稍候...');
     try {
         // [Multi-City Support for Data List]
-        // 目前資料列表 API 若僅支援單一縣市，我們暫時取第一個選取的縣市
-        // 若完全未選，則無法查詢
+        // 實作多縣市並行查詢與聚合
+        // 由於分頁邏輯在後端，多縣市的嚴格分頁非常複雜 (需要 Cursor 或 Global Index)。
+        // 這裡採用簡易策略：對每個選取的縣市都請求「當前頁碼」，然後在前端合併顯示。
+        // 這會導致每頁顯示的筆數 = pageSize * selectedCounties.length，且排序可能交錯，
+        // 但確保了使用者能看到所有縣市的即時資料，不會有遺漏，且效能尚可。
+
         const filters = getFilters();
-        if (state.selectedCounties.length > 0) {
-            filters.countyCode = countyCodeMap[state.selectedCounties[0]];
+        const pagination = { page: state.currentPage, limit: state.pageSize };
+
+        // 如果沒有選縣市，直接返回 (UI 應該擋住了，但防呆)
+        if (state.selectedCounties.length === 0) {
+            ui.showMessage('請至少選擇一個縣市。');
+            return;
         }
 
-        const pagination = { page: state.currentPage, limit: state.pageSize };
-        const result = await api.fetchData(filters, pagination);
+        const promises = state.selectedCounties.map(async (countyName) => {
+            const countyCode = countyCodeMap[countyName];
+            const localFilters = { ...filters, countyCode };
 
-        state.totalRecords = result.count || 0;
-        if (!result.data || result.data.length === 0) {
+            // 處理行政區篩選：只保留屬於當前縣市的行政區
+            // 邏輯同 mainAnalyzeData
+            if (state.selectedDistricts.length > 0) {
+                const validDistricts = districtData[countyName] || [];
+                const targetDistricts = state.selectedDistricts.filter(d => validDistricts.includes(d));
+
+                if (targetDistricts.length > 0) {
+                    localFilters.districts = targetDistricts;
+                } else {
+                    // 如果使用者在其他縣市選了區，但在這個縣市沒選 (且沒選全選)，
+                    // 根據邏輯：沒被選區的縣市查全區
+                    delete localFilters.districts;
+                }
+            }
+
+            try {
+                return await api.fetchData(localFilters, pagination);
+            } catch (error) {
+                console.warn(`查詢 ${countyName} 失敗:`, error);
+                // 容錯：單一縣市失敗不影響其他
+                return { data: [], count: 0 };
+            }
+        });
+
+        const results = await Promise.all(promises);
+
+        // 合併數據
+        let mergedData = [];
+        let totalRecordsSum = 0;
+
+        results.forEach(result => {
+            if (result.data && Array.isArray(result.data)) {
+                mergedData = [...mergedData, ...result.data];
+            }
+            totalRecordsSum += (result.count || 0);
+        });
+
+        // 排序：依據交易日降序
+        mergedData.sort((a, b) => {
+            const dateA = a['交易日'] || '';
+            const dateB = b['交易日'] || '';
+            // 假設格式為字串比較即可 (ISO date or numeric string)
+            if (dateA < dateB) return 1;
+            if (dateA > dateB) return -1;
+            return 0;
+        });
+
+        state.totalRecords = totalRecordsSum;
+
+        if (mergedData.length === 0) {
             ui.showMessage('找不到符合條件的資料。');
             componentRenderer.renderPagination();
             return;
         }
-        tableRenderer.renderTable(result.data);
-        componentRenderer.renderPagination();
+
+        tableRenderer.renderTable(mergedData);
+        componentRenderer.renderPagination(); // 更新分頁元件 (顯示總筆數/頁數)
         dom.messageArea.classList.add('hidden');
         dom.tabsContainer.classList.remove('hidden');
         ui.switchTab('data-list');
+
     } catch (error) {
         console.error('查詢錯誤:', error);
         ui.showMessage(`查詢錯誤: ${error.message}`, true);
