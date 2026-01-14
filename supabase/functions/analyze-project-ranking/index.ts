@@ -86,12 +86,12 @@ serve(async (req) => {
             query = query.in('建案名稱', projectNames); 
         }
 
-        const { data: rawData, error: rawError } = await fetchAllData(query);
-        if (rawError) throw rawError;
+        const rawData = await fetchAllData(query);
+        
 
         if (!rawData || rawData.length === 0) return { rawData: [], parkData: [] };
 
-        const { data: parkData } = await fetchAllData(supabase.from(parkTableName).select(parkSelectColumns));
+        const parkData = await fetchAllData(supabase.from(parkTableName).select(parkSelectColumns));
         
         return { rawData: rawData || [], parkData: parkData || [] };
     });
