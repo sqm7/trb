@@ -73,45 +73,58 @@ export async function mainAnalyzeData() {
     dom.messageArea.classList.add('hidden');
 
     try {
-        let aggregatedData = null;
-        const totalCounties = state.selectedCounties.length;
+        // --- [Multi-City Support: Single Backend Request] ---
+        // 改用一次性請求，由後端負責聚合運算以確保中位數正確性
 
-        // --- Sequential Loading Loop ---
+        let aggregatedData = null;
+
+        // 建構 Filter
+        const filters = getFilters();
+
+        // 如果有多個縣市，傳遞 counties陣列
+        if (state.selectedCounties.length > 0) {
+            filters.counties = state.selectedCounties;
+            // 為了相容性，countyCode 仍設為第一個選取的縣市
+            filters.countyCode = countyCodeMap[state.selectedCounties[0]];
+        }
+
+        // 處理行政區篩選
+        if (state.selectedDistricts.length > 0) {
+            // 我們傳遞所有選取的行政區名稱給後端
+            // 後端需要處理跨縣市行政區撞名的問題 (如果有的話)
+            // 目前架構是: select * from table where district in (...)
+            // 只要不同縣市的表分開查，就不會撞名 (例如新北市的中區不會被台北市的中區查到，因為查台北市表時找不到中區)
+            // 唯一例外是如果此處 districtData 包含了所有縣市的行政區
+            filters.districts = state.selectedDistricts;
+        } else {
+            delete filters.districts;
+        }
+
+        // 發送單一請求
+        aggregatedData = await api.analyzeData(filters);
+
+        // --- Sequential Loading Loop (Deprecated) ---
+        /*
+        const totalCounties = state.selectedCounties.length;
         for (let i = 0; i < totalCounties; i++) {
             const countyName = state.selectedCounties[i];
             const countyCode = countyCodeMap[countyName];
-
-            // 更新 UI 顯示進度
             ui.showLoading(`正在載入 ${countyName} 資料 (${i + 1}/${totalCounties})...`);
-
-            // 建構該縣市的專屬 Filter
             const currentFilter = getFilters();
             currentFilter.countyCode = countyCode;
-
-            // 處理行政區篩選：只保留屬於當前縣市的行政區
-            // 如果使用者選了 [台北市-大安, 新北市-板橋]，查台北市時應該只送大安，查新北時只送板橋
             if (state.selectedDistricts.length > 0) {
                 const validDistricts = districtData[countyName] || [];
                 const targetDistricts = state.selectedDistricts.filter(d => validDistricts.includes(d));
-
-                // 如果該縣市有選行政區，就用選的；如果沒選 (代表使用者只想篩別的縣市的區，或者想看該縣市全區？)
-                // 邏輯判斷：如果 user 在任何縣市都沒選區 -> 全區
-                // 如果 user 在 A 縣市選了區，但 B 縣市沒選 -> B 縣市應該是全區還是不查？通常是全區。
                 if (targetDistricts.length > 0) {
                     currentFilter.districts = targetDistricts;
                 } else {
-                    // 檢查使用者是否在其他縣市有選區？如果有，那這個縣市是否應該全選？
-                    // 簡單邏輯：只要該縣市沒被選區，就查該縣市全區
-                    // 所以這裡不需要特別處理，只要不傳 districts 參數就是全區
                     delete currentFilter.districts;
                 }
             }
-
             const cityResult = await api.analyzeData(currentFilter);
-
-            // 聚合數據
             aggregatedData = aggregateAnalysisData(aggregatedData, cityResult);
         }
+        */
 
         state.analysisDataCache = aggregatedData;
 
