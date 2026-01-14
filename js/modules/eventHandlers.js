@@ -386,6 +386,12 @@ export function onCountyContainerClick(e) {
 
 function renderCountyOptions() {
     try {
+        // [Defensive Fix] Ensure selectedCounties exists
+        if (!state.selectedCounties) {
+            console.warn("state.selectedCounties was undefined, initializing to []");
+            state.selectedCounties = [];
+        }
+
         // 渲染所有可用縣市，標記已選
         const availableCounties = (districtData && Object.keys(districtData).length > 0)
             ? Object.keys(districtData)
