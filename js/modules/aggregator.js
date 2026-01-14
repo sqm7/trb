@@ -13,7 +13,14 @@ export function aggregateAnalysisData(currentTotal, newData) {
     if (!newData) return currentTotal;
     if (!currentTotal) {
         // 如果還沒有累積數據，直接複製一份 newData (深拷貝以避免副作用)
+        // 確保 transactionDetails 存在以便後續計算
         return JSON.parse(JSON.stringify(newData));
+    }
+
+    // 0. 合併 Raw Transaction Details (關鍵！用於重算中位數)
+    if (newData.transactionDetails && Array.isArray(newData.transactionDetails)) {
+        if (!currentTotal.transactionDetails) currentTotal.transactionDetails = [];
+        currentTotal.transactionDetails = [...currentTotal.transactionDetails, ...newData.transactionDetails];
     }
 
     // 1. 合併 Core Metrics
@@ -27,8 +34,14 @@ export function aggregateAnalysisData(currentTotal, newData) {
     // 3. 合併 Price Band Analysis
     currentTotal.priceBandAnalysis = aggregatePriceBandAnalysis(currentTotal.priceBandAnalysis, newData.priceBandAnalysis);
 
-    // 4. 合併 Unit Price Analysis
+    // 4. 合併 Unit Price Analysis (並進行重算)
+    // 我們先做簡單的合併，然後利用 accumulated raw data 進行修正
     currentTotal.unitPriceAnalysis = aggregateUnitPriceAnalysis(currentTotal.unitPriceAnalysis, newData.unitPriceAnalysis);
+
+    // 【重算中位數與分位數】
+    if (currentTotal.transactionDetails && currentTotal.transactionDetails.length > 0) {
+        recalculateUnitPriceStats(currentTotal.unitPriceAnalysis, currentTotal.transactionDetails);
+    }
 
     // 5. 合併 Parking Analysis
     currentTotal.parkingAnalysis = aggregateParkingAnalysis(currentTotal.parkingAnalysis, newData.parkingAnalysis);
@@ -37,10 +50,9 @@ export function aggregateAnalysisData(currentTotal, newData) {
     currentTotal.salesVelocityAnalysis = aggregateSalesVelocityAnalysis(currentTotal.salesVelocityAnalysis, newData.salesVelocityAnalysis);
 
     // 7. 合併 Price Grid Analysis (垂直水平分析)
-    // 注意：垂直水平分析通常針對單一建案，但在跨縣市分析時，我們可能需要展示所有建案的列表供選擇
     currentTotal.priceGridAnalysis = aggregatePriceGridAnalysis(currentTotal.priceGridAnalysis, newData.priceGridAnalysis);
 
-    // 8. 合併 Area Distribution Analysis (新增)
+    // 8. 合併 Area Distribution Analysis
     currentTotal.areaDistributionAnalysis = aggregateAreaDistributionAnalysis(currentTotal.areaDistributionAnalysis, newData.areaDistributionAnalysis);
 
     return currentTotal;
@@ -54,8 +66,6 @@ function aggregateCoreMetrics(metricsA, metricsB) {
     const totalHouseArea = (metricsA.totalHouseArea || 0) + (metricsB.totalHouseArea || 0);
     const transactionCount = (metricsA.transactionCount || 0) + (metricsB.transactionCount || 0);
 
-    // 重新計算總平均價格 (加權平均)
-    // 總平均 = 每一筆的 (總價 / 面積) ? 不，是 總銷 / 總坪
     const overallAveragePrice = totalHouseArea > 0 ? totalSaleAmount / totalHouseArea : 0;
 
     return {
@@ -63,8 +73,9 @@ function aggregateCoreMetrics(metricsA, metricsB) {
         totalHouseArea,
         overallAveragePrice,
         transactionCount,
-        // 以下欄位較難合併，或者不重要
-        medianPrice: 0, // 無法精確合併中位數
+        // 這裡的中位數較難重算，且 UI 上似乎較少強調全域總中位數 (報表多是分類中位數)
+        // 如果需要，也可以用 transactionDetails 重算
+        medianPrice: 0,
         q1Price: 0,
         q3Price: 0,
         minPrice: Math.min(metricsA.minPrice || Infinity, metricsB.minPrice || Infinity),
@@ -75,10 +86,6 @@ function aggregateCoreMetrics(metricsA, metricsB) {
 function aggregatePriceBandAnalysis(bandsA, bandsB) {
     if (!bandsB) return bandsA;
 
-    // 將 B 的數據合併到 A
-    // 假設結構為 Array of objects: { roomType, count, avgPrice, ... }
-
-    // 使用 Map 來按房型合併
     const bandMap = new Map();
 
     const addToMap = (item) => {
@@ -87,12 +94,6 @@ function aggregatePriceBandAnalysis(bandsA, bandsB) {
             bandMap.set(key, { ...item, projectNames: item.projectNames ? [...item.projectNames] : [] });
         } else {
             const existing = bandMap.get(key);
-
-            // 加權平均單價
-            // 注意：這裡我們可能只有 avgPrice 和 count，沒有總金額。我們只能用 avgPrice * count 近似總金額
-            // 但更準確的是 avgPrice * count = totalAmount (假設 avgPrice 是算術平均)
-            // 如果是加權平均單價，則需要面積。
-            // 這裡簡化處理：使用 count 加權
             const totalAmountA = existing.avgPrice * existing.count;
             const totalAmountB = item.avgPrice * item.count;
             const newCount = existing.count + item.count;
@@ -103,13 +104,10 @@ function aggregatePriceBandAnalysis(bandsA, bandsB) {
             existing.minPrice = Math.min(existing.minPrice, item.minPrice);
             existing.maxPrice = Math.max(existing.maxPrice, item.maxPrice);
 
-            // 合併 projectNames
             if (item.projectNames) {
                 const newProjectNames = new Set([...existing.projectNames, ...item.projectNames]);
                 existing.projectNames = Array.from(newProjectNames);
             }
-            // 中位數無法合併，暫時保留 A 的或取平均 (僅供參考)
-            // existing.medianPrice = (existing.medianPrice + item.medianPrice) / 2; 
         }
     };
 
@@ -122,24 +120,21 @@ function aggregatePriceBandAnalysis(bandsA, bandsB) {
 function aggregateUnitPriceAnalysis(unitA, unitB) {
     if (!unitB) return unitA;
 
-    // Helper to merge stats block
+    // Helper to merge stats block WITHOUT recalculating medians yet (reserving structure)
     const mergeStats = (statsA, statsB) => {
         if (!statsB) return statsA;
         if (!statsA) return statsB;
-        if (!statsA.count) return statsB;
-        if (!statsB.count) return statsA;
 
-        const newCount = statsA.count + statsB.count;
+        const newCount = (statsA.count || 0) + (statsB.count || 0);
+        if (newCount === 0) return statsA;
 
-        // 合併平均價格物件 (arithmetic, weighted)
+        // 加權平均計算
         const newAvgPrice = {};
         ['arithmetic', 'weighted'].forEach(type => {
             const priceA = statsA.avgPrice?.[type] || 0;
             const priceB = statsB.avgPrice?.[type] || 0;
-            // 這裡也只能用 count 加權近似，因為我們沒有每個類別的總坪數
-            // 除非後端提供了該類別的總坪數 Sum Area
-            // 假設 count 是足夠好的權重
-            newAvgPrice[type] = (priceA * statsA.count + priceB * statsB.count) / newCount;
+            // Count weighting
+            newAvgPrice[type] = (priceA * (statsA.count || 0) + priceB * (statsB.count || 0)) / newCount;
         });
 
         // Min/Max global
@@ -157,7 +152,7 @@ function aggregateUnitPriceAnalysis(unitA, unitB) {
             maxPrice: newMaxPrice,
             minPriceProject,
             maxPriceProject,
-            // 中位數無法合併
+            // 佔位符，待 recalculateUnitPriceStats 填入
             medianPrice: 0,
             q1Price: 0,
             q3Price: 0
@@ -168,7 +163,7 @@ function aggregateUnitPriceAnalysis(unitA, unitB) {
     const officeStats = mergeStats(unitA.officeStats, unitB.officeStats);
     const storeStats = mergeStats(unitA.storeStats, unitB.storeStats);
 
-    // Type Comparison Table 合併
+    // Type Comparison Table 合併 (單純連接陣列)
     let typeComparison = [...(unitA.typeComparison || [])];
     if (unitB.typeComparison) {
         typeComparison = [...typeComparison, ...unitB.typeComparison];
@@ -181,6 +176,75 @@ function aggregateUnitPriceAnalysis(unitA, unitB) {
         typeComparison
     };
 }
+
+// === 新增：重算單價分析的中位數與分位數 ===
+function recalculateUnitPriceStats(unitAnalysis, transactions) {
+    if (!unitAnalysis || !transactions || transactions.length === 0) return;
+
+    // 1. 分類交易數據
+    const residentialTx = [];
+    const officeTx = [];
+    const storeTx = [];
+
+    // 需對應後端的 getRoomCategory 邏輯
+    // 這裡進行簡易分類 (需與後端保持一致)
+    transactions.forEach(record => {
+        const type = record['建物型態'];
+        const usage = record['主要用途'];
+        const unitPrice = record['房屋單價(萬)'];
+
+        if (typeof unitPrice !== 'number' || unitPrice <= 0) return;
+
+        // 簡易分類邏輯 (參考 analysis-engine.ts)
+        // 店舖
+        if (type?.includes('店') || usage === '商業用' || record['備註']?.includes('店')) {
+            storeTx.push(unitPrice);
+            return;
+        }
+
+        // 辦公
+        if (type?.includes('辦公') || type?.includes('廠辦') || type?.includes('事務所') || usage?.includes('辦公')) {
+            officeTx.push(unitPrice);
+            return;
+        }
+
+        // 住宅 (預設)
+        residentialTx.push(unitPrice);
+    });
+
+    // 2. 計算並更新
+    if (unitAnalysis.residentialStats) updateQuantiles(unitAnalysis.residentialStats, residentialTx);
+    if (unitAnalysis.officeStats) updateQuantiles(unitAnalysis.officeStats, officeTx);
+    if (unitAnalysis.storeStats) updateQuantiles(unitAnalysis.storeStats, storeTx);
+}
+
+function updateQuantiles(statsObj, prices) {
+    if (!prices || prices.length === 0) {
+        statsObj.medianPrice = 0;
+        statsObj.q1Price = 0;
+        statsObj.q3Price = 0;
+        return;
+    }
+
+    // 排序
+    prices.sort((a, b) => a - b);
+
+    statsObj.medianPrice = calculateQuantile(prices, 0.5);
+    statsObj.q1Price = calculateQuantile(prices, 0.25);
+    statsObj.q3Price = calculateQuantile(prices, 0.75);
+}
+
+function calculateQuantile(sortedArr, q) {
+    const pos = (sortedArr.length - 1) * q;
+    const base = Math.floor(pos);
+    const rest = pos - base;
+    if (sortedArr[base + 1] !== undefined) {
+        return parseFloat((sortedArr[base] + rest * (sortedArr[base + 1] - sortedArr[base])).toFixed(2));
+    } else {
+        return parseFloat(sortedArr[base].toFixed(2));
+    }
+}
+// === 結束新增 ===
 
 function aggregateParkingAnalysis(parkA, parkB) {
     if (!parkB) return parkA;
@@ -214,10 +278,9 @@ function aggregateParkingAnalysis(parkA, parkB) {
             typeMap.set(item.type, { ...item });
         } else {
             const existing = typeMap.get(item.type);
-            const totalCount = existing.count + item.count; // 總車位數
-            const totalTx = existing.transactionCount + item.transactionCount; // 有價交易數
+            const totalCount = existing.count + item.count;
+            const totalTx = existing.transactionCount + item.transactionCount;
 
-            // 平均價格加權 (用有價交易數)
             const priceA = existing.avgPrice;
             const priceB = item.avgPrice;
             const newAvg = totalTx > 0 ? (priceA * existing.transactionCount + priceB * item.transactionCount) / totalTx : 0;
@@ -225,8 +288,6 @@ function aggregateParkingAnalysis(parkA, parkB) {
             existing.count = totalCount;
             existing.transactionCount = totalTx;
             existing.avgPrice = newAvg;
-
-            // 中位數無法準確合併
         }
     };
     (parkA.avgPriceByType || []).forEach(mergeTypeItem);
@@ -242,13 +303,10 @@ function aggregateParkingAnalysis(parkA, parkB) {
             const existing = floorMap.get(item.floor);
             const newCount = existing.count + item.count;
 
-            // 這裡我們可以合併 rawRecords，因為在前端我們需要它們來計算中位數等
-            // 但如果數據量太大可能有性能問題。目前先合併。
             if (item.rawRecords) {
                 existing.rawRecords = [...(existing.rawRecords || []), ...item.rawRecords];
             }
 
-            // 重新計算平均 (如果 rawRecords 太大沒傳，就用 count 加權)
             const newAvg = newCount > 0 ? (existing.avgPrice * existing.count + item.avgPrice * item.count) / newCount : 0;
 
             existing.count = newCount;
@@ -256,7 +314,6 @@ function aggregateParkingAnalysis(parkA, parkB) {
             existing.minPrice = Math.min(existing.minPrice, item.minPrice);
             existing.maxPrice = Math.max(existing.maxPrice, item.maxPrice);
 
-            // 繼承極值資料
             if (item.maxPrice > existing.maxPrice) {
                 existing.maxPriceProject = item.maxPriceProject;
                 existing.maxPriceUnit = item.maxPriceUnit;
@@ -286,25 +343,19 @@ function aggregateSalesVelocityAnalysis(velA, velB) {
     // 1. 合併 allRoomTypes
     const allRoomTypes = Array.from(new Set([...(velA.allRoomTypes || []), ...(velB.allRoomTypes || [])]));
 
-    // 2. 合併各個視圖 (monthly, quarterly, yearly, weekly)
+    // 2. 合併各個視圖
     const views = ['monthly', 'quarterly', 'yearly', 'weekly'];
     const mergedViews = {};
 
     views.forEach(view => {
         const viewDataA = velA[view] || {};
         const viewDataB = velB[view] || {};
-
-        // 結構: { '2023-01': { '2房': { count, priceSum, areaSum, avgPrice }, '3房': ... } }
         const mergedTimeKeys = {};
-
-        // 取得所有時間鍵
         const allTimeKeys = new Set([...Object.keys(viewDataA), ...Object.keys(viewDataB)]);
 
         allTimeKeys.forEach(timeKey => {
             const timeObjA = viewDataA[timeKey] || {};
             const timeObjB = viewDataB[timeKey] || {};
-
-            // 取得該時間點下所有房型
             const allRooms = new Set([...Object.keys(timeObjA), ...Object.keys(timeObjB)]);
             const mergedRooms = {};
 
@@ -329,36 +380,21 @@ function aggregateSalesVelocityAnalysis(velA, velB) {
                     mergedRooms[room] = { ...dataB };
                 }
             });
-
             mergedTimeKeys[timeKey] = mergedRooms;
         });
-
         mergedViews[view] = mergedTimeKeys;
     });
 
-    // 3. 合併 areaDistributionAnalysis (面積分佈)
-    // 注意：原本 aggregator 裡寫的是 areaHeatmap，但 charts.js 讀取的是 state.analysisDataCache.areaDistributionAnalysis
-    // 檢查 charts.js line 547: const distributionData = state.analysisDataCache.areaDistributionAnalysis;
-    // 這裡 velA 是 salesVelocityAnalysis 還是整個物件? 
-    // 上層呼叫: currentTotal.salesVelocityAnalysis = aggregateSalesVelocityAnalysis(...)
-    // 但 areaDistributionAnalysis 是獨立的?
-    // 查看 aggregateAnalysisData 函式...
-    // 沒有 areaDistributionAnalysis 的合併！這也是個 bug。
-    // Wait, areaHeatmap logic in aggregator seems to refer to something else? 
-    // chart.js line 547 reads `state.analysisDataCache.areaDistributionAnalysis`.
-    // aggregator.js line 12 only copies coreMetrics, projectRanking, etc.
-    // IT IS MISSING areaDistributionAnalysis MERGE completely.
-
-    // 暫時先修好 salesVelocityAnalysis 的結構
     return {
         allRoomTypes,
         ...mergedViews
     };
 }
 
-// Helper to add areaDistributionAnalysis if needed, but better do it in main function
+// 修正 Area Distribution 合併
 function aggregateAreaDistributionAnalysis(distA, distB) {
     if (!distB) return distA;
+    if (!distA) return distB;
     // Structure: { '2房': [23.5, 30.1, ...], '3房': [...] }
     const merged = { ...distA };
     Object.keys(distB).forEach(room => {
@@ -374,10 +410,7 @@ function aggregateAreaDistributionAnalysis(distA, distB) {
 function aggregatePriceGridAnalysis(gridA, gridB) {
     if (!gridB) return gridA;
 
-    // 合併 Project List
     const projectNames = [...(gridA.projectNames || []), ...(gridB.projectNames || [])];
-
-    // 合併 byProject map
     const byProject = { ...(gridA.byProject || {}), ...(gridB.byProject || {}) };
 
     return {
