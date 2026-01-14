@@ -777,7 +777,7 @@ label:has(input[type="checkbox"]) {
 
 .z-elevate-filters {
     position: relative;
-    z-index: 30;
+    z-index: 60;
 }
 
 /* 面積級距數字輸入框 */
