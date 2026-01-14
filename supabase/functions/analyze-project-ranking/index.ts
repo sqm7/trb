@@ -1,10 +1,9 @@
-// 檔案路徑: supabase/functions/analyze-project-ranking/index.ts (優化修正版)
-
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { corsHeaders } from '../_shared/cors.ts';
-import { countyCodeToName } from '../_shared/constants.ts';
+import { countyCodeToName, countyNameToCode } from '../_shared/constants.ts';
 import { AdaptiveUnitResolver } from '../_shared/unit-parser.ts';
 import { createSupabaseClient } from '../_shared/supabase-client.ts';
+import { getRoomCategory } from '../_shared/unit-parser.ts';
 
 import {
   fetchAllData,
@@ -12,14 +11,31 @@ import {
   calculateSalesVelocity,
   calculatePriceGridAnalysis,
   calculateQuantile,
+  calculatePriceBandAnalysis,
+  calculateUnitPriceAnalysis,
+  calculateAreaDistribution,
+  safeDivide
+} from '../_shared/analysis-engine.ts';
+
+serve(async (req) => {
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders });
+  }
+
+  try {
+    const supabase = createSupabaseClient(req);
+
+    // 1. 建立查詢
     const mainSelectColumns = `"編號", "建案名稱", "行政區", "交易日", "交易總價(萬)", "房屋單價(萬)", "房屋面積(坪)", "樓層", "總樓層", "建物型態", "主要用途", "房數", "廳數", "衛浴數", "車位總價(萬)", "車位數", "車位面積(坪)", "備註", "戶別", "車位類別"`;
-    const parkSelectColumns = `"編號", "車位類別", "車位價格(萬)", "車位面積(坪)", "車位所在樓層", "transaction_id"`;  safeDivide,
+    // 即使不需要車位分析，也需要車位資料來扣除車位價格，計算純房屋單價
+    const parkSelectColumns = `"編號", "車位類別", "車位價格(萬)", "車位面積(坪)", "車位所在樓層", "transaction_id"`;
+
     const { filters } = await req.json();
     const { countyCode, districts, type, dateStart, dateEnd, projectNames, buildingType, excludeCommercial, roomCategory, counties } = filters;
     const userFloorPremium = filters.userFloorPremium || 0.3;
 
     if ((!countyCode && (!counties || counties.length === 0)) || !type) {
-      throw new Error("查詢缺少縣市代碼(或縣市列表)或交易類型。");
+        throw new Error("查詢缺少縣市代碼(或縣市列表)或交易類型。");
     }
 
     const targetCounties = (counties && counties.length > 0) 
@@ -95,37 +111,10 @@ import {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
         });
     }
-          '"建物型態".ilike.%店面%',
-          '"建物型態".ilike.%店舖%',
-          '"建物型態".ilike.%店鋪%',
-          'and("主要用途".eq.商業用,"樓層".eq.1)',
-          'and("主要用途".eq.住商用,"樓層".eq.1)',
-          '"備註".ilike.%店面%',
-          '"備註".ilike.%店舖%',
-          '"備註".ilike.%店鋪%',
-          '"戶別".ilike.%店面%',
-          '"戶別".ilike.%店舖%',
-          '"戶別".ilike.%店鋪%',
-          'and("建物型態".ilike.%住宅大樓%,"樓層".eq.1,"房數".eq.0)'
-        ].join(',');
-        query = query.or(orConditions);
-      } else if (buildingType === '工廠') {
-        query = query.in('建物型態', ['工廠', '廠辦']);
-      } else {
-        query = query.eq('建物型態', buildingType);
-      }
-    }
-
-    if (projectNames && Array.isArray(projectNames) && projectNames.length > 0) { query = query.in('建案名稱', projectNames); }
-
-    // 獲取原始資料 ...
-    const [allRawData, allParkData] = await Promise.all([fetchAllData(query), fetchAllData(supabase.from(parkTableName).select(parkSelectColumns))]);
-    if (!allRawData || allRawData.length === 0) return new Response(JSON.stringify({ message: "在指定的條件下，找不到可用於分析的資料。" }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
 
     const parkDataMap = new Map<string, any[]>();
     if (allParkData) { for (const parkRecord of allParkData) { const id = parkRecord['編號']; if (!parkDataMap.has(id)) parkDataMap.set(id, []); parkDataMap.get(id)!.push(parkRecord); } }
 
-    // 戶別解析與二次校正 ...
     const unitResolver = new AdaptiveUnitResolver(allRawData);
     const initialResults = new Map<string, { record: any, result: ReturnType<AdaptiveUnitResolver['resolveWithContext']> }>();
     allRawData.forEach(record => {
@@ -164,22 +153,18 @@ import {
     const finalUnitIds = new Map<string, string>();
     initialResults.forEach((value, key) => { finalUnitIds.set(key, value.result.identifier); });
 
-    // 使用 getRoomCategory 進行篩選
     const dataForRanking = excludeCommercial
       ? allRawData.filter(item => {
         const category = getRoomCategory(item);
-        // 只要不是 '店舖', '辦公/事務所', '廠辦/工廠' 的都保留
         return !['店舖', '辦公/事務所', '廠辦/工廠'].includes(category);
       })
       : allRawData;
 
-    // 呼叫分析引擎進行計算 ...
     let totalSaleAmount = 0, totalHouseArea = 0, totalHousePrice = 0;
     dataForRanking.forEach(r => { totalSaleAmount += r['交易總價(萬)'] || 0; totalHouseArea += r['房屋面積(坪)'] || 0; totalHousePrice += r['房屋總價(萬)'] || 0; });
     const coreMetrics = { totalSaleAmount: parseFloat(totalSaleAmount.toFixed(2)), totalHouseArea: parseFloat(totalHouseArea.toFixed(2)), overallAveragePrice: parseFloat(safeDivide(totalHousePrice, totalHouseArea).toFixed(2)), transactionCount: dataForRanking.length };
 
     const projectGroups = new Map<string, any>();
-    // 確保後續的排名計算也使用篩選後的資料
     for (const record of dataForRanking) {
       const projectName = record['建案名稱'];
       if (!projectName) continue;
@@ -203,7 +188,6 @@ import {
     const priceGridAnalysis = calculatePriceGridAnalysis(allRawData, parkDataMap, finalUnitIds, userFloorPremium);
     const areaDistributionAnalysis = calculateAreaDistribution(allRawData);
 
-    // 回傳結果 ...
     let transactionDetails = allRawData;
     if (roomCategory) {
       // transactionDetails = allRawData.filter(record => getRoomCategoryForPriceBand(record) === roomCategory);
