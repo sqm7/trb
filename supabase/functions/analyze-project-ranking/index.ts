@@ -91,7 +91,7 @@ serve(async (req) => {
 
         if (!rawData || rawData.length === 0) return { rawData: [], parkData: [] };
 
-        const parkData = await fetchAllData(supabase.from(parkTableName).select(parkSelectColumns));
+        let parkData: any[] = []; try { parkData = await fetchAllData(supabase.from(parkTableName).select(parkSelectColumns)); } catch (e) { console.warn(`Parking table ${parkTableName} not found, continuing without parking data`); }
         
         return { rawData: rawData || [], parkData: parkData || [] };
     });
