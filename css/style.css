@@ -505,7 +505,7 @@ label:has(input[type="checkbox"]) {
 
 .tab-button {
     padding: 0.75rem 1.5rem;
-    font-medium;
+    font-weight: 500;
     border-bottom: 3px solid transparent;
     transition: all 0.3s ease;
     color: var(--color-text-dark);
@@ -807,6 +807,7 @@ label:has(input[type="checkbox"]) {
     border: none;
     outline: none;
     -moz-appearance: textfield;
+    appearance: textfield;
 }
 
 .number-input-field::-webkit-outer-spin-button,
@@ -2499,4 +2500,422 @@ tr:hover td {
 
 .dimension-btn:hover:not(.active) {
     color: var(--color-text-light);
+}
+
+/* ========================================
+   📱 行動版優化樣式 (2026-01-15)
+   ======================================== */
+
+@media (max-width: 640px) {
+
+    /* === 1. 全域觸控優化 === */
+    button,
+    .capsule-btn,
+    .tab-btn,
+    .sub-tab-btn,
+    .dimension-btn,
+    .avg-type-btn,
+    .bubble-metric-btn {
+        min-height: 44px;
+        /* Apple 推薦的最小觸控尺寸 */
+        min-width: 44px;
+    }
+
+    /* === 2. 表格容器橫滑優化 === */
+    .overflow-x-auto,
+    #ranking-table-container,
+    #price-band-table-container,
+    #type-comparison-table-container,
+    #price-band-location-table-container,
+    #heatmap-details-content,
+    #velocity-table-container,
+    #parking-ratio-table-container,
+    #ramp-plane-price-by-floor-table-container {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scroll-snap-type: x proximity;
+        scrollbar-width: thin;
+    }
+
+    /* 表格橫滑提示陰影 */
+    .overflow-x-auto::after {
+        content: '';
+        position: absolute;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        width: 30px;
+        background: linear-gradient(to left, var(--color-dark-bg) 0%, transparent 100%);
+        pointer-events: none;
+        opacity: 0.7;
+    }
+
+    /* === 3. 報告區塊間距調整 === */
+    .report-header {
+        padding: 0.75rem;
+        margin-bottom: 1rem;
+    }
+
+    .report-section-title {
+        font-size: 1rem !important;
+        margin-bottom: 0.5rem;
+    }
+
+    /* === 4. 圖表高度自適應 === */
+    #ranking-chart-container,
+    #price-band-chart-container,
+    #velocity-chart-container,
+    #unit-price-bubble-chart,
+    #price-band-location-chart,
+    #area-heatmap-container {
+        min-height: 280px !important;
+        max-height: 350px !important;
+    }
+
+    /* 熱力圖特別處理 */
+    #area-heatmap-container {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* === 5. 篩選區塊堆疊佈局 === */
+    #filter-form {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 0.75rem !important;
+    }
+
+    #filter-form>div {
+        width: 100% !important;
+    }
+
+    /* 按鈕區域獨立處理 */
+    #filter-form .flex.items-end.gap-4 {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    #filter-form button {
+        width: 100%;
+        justify-content: center;
+        padding: 0.875rem 1rem;
+    }
+
+    /* === 6. 泡泡圖控制項行動版佈局 === */
+    #unit-price-report-content .flex.flex-wrap.items-end.gap-4 {
+        flex-direction: column;
+        align-items: stretch !important;
+    }
+
+    #unit-price-report-content .flex.flex-wrap.items-end.gap-4>div {
+        width: 100%;
+    }
+
+    #unit-price-report-content input[type="number"] {
+        width: 100% !important;
+    }
+
+    #bubble-size-toggle {
+        width: 100%;
+        display: flex;
+    }
+
+    #bubble-size-toggle button {
+        flex: 1;
+    }
+
+    #bubble-chart-refresh {
+        width: 100%;
+    }
+
+    /* === 7. 區域交叉表格行動版 === */
+    .location-cross-table {
+        font-size: 0.75rem;
+    }
+
+    .location-cross-table th,
+    .location-cross-table td {
+        padding: 0.375rem 0.5rem;
+        min-width: 50px;
+    }
+
+    #price-band-dimension-toggle {
+        flex-wrap: wrap;
+        gap: 0.25rem;
+    }
+
+    #price-band-dimension-toggle button {
+        flex: 1;
+        min-width: 80px;
+    }
+
+    /* === 8. 房型篩選膠囊按鈕 === */
+    #velocity-room-filter-container,
+    #price-band-room-filter-container {
+        overflow-x: auto;
+        flex-wrap: nowrap !important;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: 0.5rem;
+    }
+
+    .capsule-btn {
+        font-size: 0.75rem;
+        padding: 0.5rem 0.875rem;
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+
+    /* === 9. 子頁籤橫滑 === */
+    .sub-tab-nav {
+        overflow-x: auto;
+        flex-wrap: nowrap !important;
+        -webkit-overflow-scrolling: touch;
+        gap: 0.25rem;
+    }
+
+    .sub-tab-btn {
+        white-space: nowrap;
+        flex-shrink: 0;
+        font-size: 0.8rem;
+        padding: 0.625rem 1rem;
+    }
+
+    /* === 10. 核心指標卡片網格 === */
+    #core-metrics-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 0.5rem !important;
+    }
+
+    .metric-card {
+        padding: 0.625rem !important;
+    }
+
+    .metric-card-value {
+        font-size: 1.125rem !important;
+    }
+
+    .metric-card-title {
+        font-size: 0.65rem !important;
+        line-height: 1.2;
+    }
+
+    /* === 11. 模態框行動版 === */
+    #modal .bg-dark-card,
+    #modal>div>div {
+        width: 95vw !important;
+        max-width: 95vw !important;
+        margin: 1rem;
+        max-height: 85vh;
+        overflow-y: auto;
+    }
+
+    /* === 12. 資料列表行動版 === */
+    #results-table-container {
+        font-size: 0.75rem;
+    }
+
+    #results-table-container th,
+    #results-table-container td {
+        padding: 0.5rem 0.375rem;
+    }
+
+    /* 隱藏行動版不必要的欄位 */
+    #results-table-container th:nth-child(n+6),
+    #results-table-container td:nth-child(n+6) {
+        display: none;
+    }
+
+    /* === 13. 垂直水平分析 3D 樓層 === */
+    .floor-3d-stack {
+        transform: scale(0.7);
+        transform-origin: top center;
+    }
+
+    .floor-3d-layer {
+        width: 100px;
+        height: 100px;
+    }
+
+    /* === 14. 分頁控制項 === */
+    #pagination-controls,
+    #ranking-pagination-controls {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .pagination-btn {
+        min-height: 44px;
+        padding: 0.5rem 1rem;
+    }
+
+    /* === 15. 固定底部操作列 (可選) === */
+    .mobile-bottom-bar {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: var(--color-dark-card);
+        border-top: 1px solid var(--color-border-default);
+        padding: 0.75rem 1rem;
+        display: flex;
+        gap: 0.5rem;
+        z-index: 1000;
+        box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.3);
+    }
+
+    .mobile-bottom-bar button {
+        flex: 1;
+    }
+
+    /* === 16. 觸控回饋動畫 === */
+    button:active,
+    .capsule-btn:active,
+    .tab-btn:active {
+        transform: scale(0.97);
+        opacity: 0.9;
+    }
+
+    /* === 17. 長按防止選取文字 === */
+    button,
+    .capsule-btn,
+    .tab-btn {
+        -webkit-user-select: none;
+        user-select: none;
+        -webkit-touch-callout: none;
+    }
+}
+
+/* === 中型平板優化 (641px - 1024px) === */
+@media (min-width: 641px) and (max-width: 1024px) {
+
+    /* 兩欄佈局 */
+    #core-metrics-grid {
+        grid-template-columns: repeat(3, 1fr) !important;
+    }
+
+    /* 圖表高度 */
+    #ranking-chart-container,
+    #price-band-chart-container,
+    #velocity-chart-container,
+    #unit-price-bubble-chart {
+        min-height: 350px !important;
+    }
+
+    /* 篩選區塊 */
+    #filter-form {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+}
+
+/* === 橫向模式優化 === */
+@media (max-width: 896px) and (orientation: landscape) {
+    #filter-card {
+        max-height: 40vh;
+        overflow-y: auto;
+    }
+
+    #area-heatmap-container {
+        min-height: 250px !important;
+        max-height: 300px !important;
+    }
+}
+
+/* === iOS Safari 安全區域 === */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+    body {
+        padding-bottom: env(safe-area-inset-bottom);
+    }
+
+    .mobile-bottom-bar {
+        padding-bottom: calc(0.75rem + env(safe-area-inset-bottom));
+    }
+}
+
+/* === 觸控裝置懸停效果取消 === */
+@media (hover: none) and (pointer: coarse) {
+
+    button:hover,
+    .capsule-btn:hover,
+    .tab-btn:hover {
+        /* 移除懸停效果，避免 sticky hover 問題 */
+        background-color: inherit;
+    }
+
+    .capsule-btn.active:hover {
+        background-color: var(--color-cyan-accent);
+    }
+}
+
+/* ========================================
+   📱 行動版標籤優化 (2026-01-15 11:45)
+   ======================================== */
+
+/* --- 通用樣式 (Desktop 預設橫排) --- */
+.suggestion-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    gap: 0.5rem;
+    overflow: hidden;
+}
+
+.suggestion-name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex-shrink: 1;
+}
+
+.suggestion-tags {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    flex-shrink: 0;
+}
+
+.suggestion-item input[type="checkbox"] {
+    flex-shrink: 0;
+    margin-right: 0.5rem;
+}
+
+/* --- 行動版堆疊樣式 --- */
+@media (max-width: 640px) {
+
+    /* 建案名稱與標籤改為上下堆疊 */
+    .project-name-cell,
+    .suggestion-content {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        justify-content: flex-start !important;
+        gap: 0.25rem !important;
+    }
+
+    /* 標籤容器允許換行 */
+    .project-tags,
+    .suggestion-tags {
+        display: flex;
+        flex-wrap: wrap;
+        width: 100%;
+        margin-top: 0.125rem;
+    }
+
+    /* 調整名稱文字大小與寬度 */
+    .project-name-text,
+    .suggestion-name {
+        width: 100%;
+        white-space: normal;
+        /* 允許長名稱換行 */
+        word-break: break-all;
+    }
+
+    /* 調整標籤樣式以適應堆疊 */
+    .project-county-label,
+    .project-district-label,
+    .project-date-label {
+        margin-left: 0 !important;
+        margin-right: 0.25rem;
+        margin-bottom: 0.25rem;
+        font-size: 0.7rem;
+    }
 }

@@ -51,7 +51,16 @@ export function renderSuggestions(projects) {
                 ? `<span class="project-date-label">${earliestDate.substring(0, 7).replace('-', '/')}</span>`
                 : '';
 
-            return `<label class="suggestion-item" data-name="${name}"><input type="checkbox" ${isChecked ? 'checked' : ''}><span class="flex-grow">${name}</span>${countyHtml}${districtHtml}${dateHtml}</label>`;
+            return `
+            <label class="suggestion-item" data-name="${name}">
+                <input type="checkbox" ${isChecked ? 'checked' : ''}>
+                <div class="suggestion-content">
+                    <span class="suggestion-name">${name}</span>
+                    <div class="suggestion-tags">
+                        ${countyHtml}${districtHtml}${dateHtml}
+                    </div>
+                </div>
+            </label>`;
         }).join('');
     }
     dom.projectNameSuggestions.classList.remove('hidden');
