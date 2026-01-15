@@ -2880,42 +2880,57 @@ tr:hover td {
 }
 
 /* --- 行動版堆疊樣式 --- */
-@media (max-width: 640px) {
+@media (max-width: 768px) {
 
-    /* 建案名稱與標籤改為上下堆疊 */
+    /* 強制建案名稱與標籤上下堆疊 */
     .project-name-cell,
-    .suggestion-content {
+    .suggestion-content,
+    div.project-name-cell,
+    div.suggestion-content {
         flex-direction: column !important;
         align-items: flex-start !important;
         justify-content: flex-start !important;
+        gap: 0.35rem !important;
+        display: flex !important;
+        white-space: normal !important;
+        /* 解除可能繼承的 nowrap */
+    }
+
+    /* 標籤容器樣式調整 */
+    .project-tags,
+    .suggestion-tags {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        width: 100% !important;
+        margin-top: 0.25rem !important;
         gap: 0.25rem !important;
     }
 
-    /* 標籤容器允許換行 */
-    .project-tags,
-    .suggestion-tags {
-        display: flex;
-        flex-wrap: wrap;
-        width: 100%;
-        margin-top: 0.125rem;
-    }
-
-    /* 調整名稱文字大小與寬度 */
+    /* 調整名稱文字，確保佔滿寬度並允許換行 */
     .project-name-text,
     .suggestion-name {
-        width: 100%;
-        white-space: normal;
-        /* 允許長名稱換行 */
-        word-break: break-all;
+        width: 100% !important;
+        white-space: normal !important;
+        word-break: break-all !important;
+        line-height: 1.4 !important;
+        display: block !important;
     }
 
-    /* 調整標籤樣式以適應堆疊 */
+    /* 調整標籤樣式以適應堆疊，移除水平間距 */
+    .project-tags span,
+    .suggestion-tags span,
     .project-county-label,
     .project-district-label,
     .project-date-label {
         margin-left: 0 !important;
-        margin-right: 0.25rem;
-        margin-bottom: 0.25rem;
-        font-size: 0.7rem;
+        margin-right: 0.25rem !important;
+        margin-bottom: 0.35rem !important;
+        font-size: 0.75rem !important;
+        display: inline-block !important;
+    }
+
+    /* 針對表格單元格的額外優化 */
+    td:has(.project-name-cell) {
+        min-width: 150px;
     }
 }
