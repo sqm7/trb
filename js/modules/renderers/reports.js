@@ -143,7 +143,16 @@ export function renderRankingReport() {
 export function renderPriceBandReport() {
     if (!state.analysisDataCache || !state.analysisDataCache.priceBandAnalysis) return;
 
-    const { priceBandAnalysis } = state.analysisDataCache;
+    const priceBandData = state.analysisDataCache.priceBandAnalysis;
+
+    // 相容性處理：支援新舊兩種數據格式
+    // 新格式: { details, locationCrossTable, allDistricts, allRoomTypes }
+    // 舊格式: Array (直接是 details 內容)
+    const priceBandAnalysis = Array.isArray(priceBandData) ? priceBandData : (priceBandData.details || []);
+    const locationCrossTable = priceBandData.locationCrossTable || null;
+    const allDistricts = priceBandData.allDistricts || [];
+    const allRoomTypesFromData = priceBandData.allRoomTypes || [];
+
     const allRoomTypes = [...new Set(priceBandAnalysis.map(item => item.roomType))];
     const sortOrder = ['套房', '1房', '2房', '3房', '4房', '5房以上', '毛胚', '店舖', '辦公/事務所', '廠辦/工廠', '其他'];
 
@@ -221,6 +230,269 @@ export function renderPriceBandReport() {
     dom.priceBandTable.innerHTML = headerHtml + bodyHtml;
 
     renderPriceBandChart();
+
+    // 渲染區域分組表格
+    renderPriceBandLocationTable(locationCrossTable, allDistricts, allRoomTypesFromData);
+}
+
+/**
+ * 外部可調用的區域表格渲染函式
+ */
+export function renderPriceBandLocationTableOnly() {
+    renderPriceBandLocationTable(null, [], []);
+}
+
+/**
+ * 渲染區域分組交叉表格
+ */
+function renderPriceBandLocationTable(locationCrossTable, allDistricts, allRoomTypes) {
+    const container = dom.priceBandLocationTableContainer;
+    if (!container) return;
+
+    const dimension = state.currentPriceBandDimension || 'district';
+    const countyFilter = state.priceBandCountyFilter || 'all';
+    const selectedCounties = state.selectedCounties || [];
+
+    // 更新縣市篩選下拉選單
+    if (dom.priceBandCountyFilter) {
+        // 只有選多縣市且為行政區維度時才顯示篩選器
+        const showFilter = dimension === 'district' && selectedCounties.length > 1;
+        if (dom.priceBandCountyFilterWrapper) {
+            dom.priceBandCountyFilterWrapper.style.display = showFilter ? 'flex' : 'none';
+        }
+
+        // 更新選項
+        let optionsHtml = '<option value="all">全部縣市</option>';
+        selectedCounties.forEach(county => {
+            optionsHtml += `<option value="${county}" ${countyFilter === county ? 'selected' : ''}>${county}</option>`;
+        });
+        dom.priceBandCountyFilter.innerHTML = optionsHtml;
+    }
+
+    // 如果沒有交易數據，顯示提示
+    if (!state.analysisDataCache || !state.analysisDataCache.transactionDetails) {
+        container.innerHTML = '<p class="text-gray-500 text-center p-4">無區域分組數據可供分析。</p>';
+        return;
+    }
+
+    const transactionDetails = state.analysisDataCache.transactionDetails;
+    let locations = [];
+    let crossTable = {};
+
+    if (dimension === 'county') {
+        // 縣市維度：以縣市為欄位
+        const counties = new Set();
+
+        transactionDetails.forEach(record => {
+            const county = record['縣市'] || '未知';
+            const roomType = getRoomTypeGroupOnFrontend(record);
+
+            counties.add(county);
+            if (!crossTable[roomType]) crossTable[roomType] = {};
+            crossTable[roomType][county] = (crossTable[roomType][county] || 0) + 1;
+        });
+
+        locations = Array.from(counties).sort();
+    } else {
+        // 行政區維度：根據篩選條件顯示行政區
+        const districts = new Set();
+
+        transactionDetails.forEach(record => {
+            const county = record['縣市'] || '未知';
+            const district = record['行政區'] || '未知';
+            const roomType = getRoomTypeGroupOnFrontend(record);
+
+            // 如果有縣市篩選，只顯示該縣市的行政區
+            if (countyFilter !== 'all' && county !== countyFilter) {
+                return;
+            }
+
+            districts.add(district);
+            if (!crossTable[roomType]) crossTable[roomType] = {};
+            crossTable[roomType][district] = (crossTable[roomType][district] || 0) + 1;
+        });
+
+        locations = Array.from(districts).sort();
+    }
+
+    if (locations.length === 0) {
+        container.innerHTML = '<p class="text-gray-500 text-center p-4">無區域分組數據可供分析。</p>';
+        return;
+    }
+
+    // 排序房型
+    const sortOrder = ['套房', '1房', '2房', '3房', '4房', '5房以上', '毛胚', '店舖', '辦公/事務所', '廠辦/工廠', '其他'];
+
+    // 與房型去化分析的房型篩選器連動
+    const selectedRoomTypes = state.selectedVelocityRooms || [];
+    let sortedRoomTypes = Object.keys(crossTable);
+
+    if (selectedRoomTypes.length > 0) {
+        sortedRoomTypes = sortedRoomTypes.filter(roomType => selectedRoomTypes.includes(roomType));
+    }
+
+    sortedRoomTypes.sort((a, b) => {
+        const indexA = sortOrder.indexOf(a);
+        const indexB = sortOrder.indexOf(b);
+        if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+        if (indexA !== -1) return -1;
+        if (indexB !== -1) return 1;
+        return a.localeCompare(b);
+    });
+
+    // 建構表格
+    let html = '<table class="min-w-full divide-y divide-gray-800 report-table location-cross-table">';
+
+    // 表頭：房型 | 區域1 | 區域2 | ... | 總計
+    html += '<thead><tr><th class="sticky-col">房型</th>';
+    locations.forEach(loc => {
+        html += `<th>${loc}</th>`;
+    });
+    html += '<th class="total-col">總計</th></tr></thead>';
+
+    // 表身
+    html += '<tbody>';
+    const locationTotals = {}; // 每個區域的總計
+    locations.forEach(loc => locationTotals[loc] = 0);
+    let grandTotal = 0;
+
+    sortedRoomTypes.forEach(roomType => {
+        const rowData = crossTable[roomType] || {};
+        let rowTotal = 0;
+
+        html += `<tr class="hover:bg-dark-card"><td class="sticky-col font-medium">${roomType}</td>`;
+
+        locations.forEach(loc => {
+            const count = rowData[loc] || 0;
+            rowTotal += count;
+            locationTotals[loc] += count;
+
+            // 使用顏色深淺表示數量多寡
+            const intensity = count > 0 ? Math.min(count / 20, 1) : 0;
+            const bgColor = count > 0 ? `rgba(6, 182, 212, ${intensity * 0.3})` : 'transparent';
+
+            html += `<td style="background-color: ${bgColor}">${count > 0 ? count.toLocaleString() : '-'}</td>`;
+        });
+
+        grandTotal += rowTotal;
+        html += `<td class="total-col font-bold">${rowTotal.toLocaleString()}</td></tr>`;
+    });
+
+    // 總計行
+    html += '<tr class="bg-dark-card font-bold border-t-2 border-gray-600"><td class="sticky-col">總計</td>';
+    locations.forEach(loc => {
+        html += `<td>${locationTotals[loc].toLocaleString()}</td>`;
+    });
+    html += `<td class="total-col">${grandTotal.toLocaleString()}</td></tr>`;
+
+    html += '</tbody></table>';
+
+    container.innerHTML = html;
+
+    // 渲染長條圖
+    renderPriceBandLocationChart(sortedRoomTypes, locations, crossTable, dimension);
+}
+
+// 圖表實例管理
+let priceBandLocationChartInstance = null;
+
+/**
+ * 渲染區域房型成交筆數長條圖
+ */
+function renderPriceBandLocationChart(roomTypes, locations, crossTable, dimension) {
+    const chartContainer = dom.priceBandLocationChart;
+    if (!chartContainer) return;
+
+    // 銷毀舊圖表
+    if (priceBandLocationChartInstance) {
+        priceBandLocationChartInstance.destroy();
+        priceBandLocationChartInstance = null;
+    }
+
+    if (roomTypes.length === 0 || locations.length === 0) {
+        chartContainer.innerHTML = '';
+        return;
+    }
+
+    // 準備堆疊長條圖的數據：每個房型一個系列，X 軸為區域
+    const series = roomTypes.map(roomType => {
+        const data = locations.map(loc => (crossTable[roomType] && crossTable[roomType][loc]) || 0);
+        return {
+            name: roomType,
+            data: data
+        };
+    });
+
+    const dimensionLabel = dimension === 'county' ? '縣市' : '行政區';
+
+    const options = {
+        series: series,
+        chart: {
+            type: 'bar',
+            height: Math.max(350, locations.length * 35),
+            stacked: true,
+            background: 'transparent',
+            toolbar: { show: true },
+            foreColor: '#e5e7eb',
+        },
+        plotOptions: {
+            bar: {
+                horizontal: true,
+                barHeight: '70%',
+                borderRadius: 4,
+            }
+        },
+        colors: ['#06b6d4', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444', '#3b82f6', '#ec4899', '#84cc16', '#6366f1', '#14b8a6'],
+        dataLabels: {
+            enabled: false
+        },
+        xaxis: {
+            categories: locations,
+            title: {
+                text: '成交筆數',
+                style: { color: '#9ca3af' }
+            },
+            labels: {
+                style: { colors: '#9ca3af' }
+            }
+        },
+        yaxis: {
+            title: {
+                text: dimensionLabel,
+                style: { color: '#9ca3af' }
+            },
+            labels: {
+                style: { colors: '#e5e7eb' },
+                maxWidth: 150
+            }
+        },
+        legend: {
+            position: 'top',
+            horizontalAlign: 'center',
+            labels: {
+                colors: '#e5e7eb'
+            }
+        },
+        tooltip: {
+            theme: 'dark',
+            y: {
+                formatter: function (val) {
+                    return val + ' 筆';
+                }
+            }
+        },
+        grid: {
+            borderColor: '#374151'
+        },
+        title: {
+            text: `各${dimensionLabel}房型成交筆數分佈`,
+            align: 'center',
+            style: { fontSize: '16px', color: '#e5e7eb' }
+        }
+    };
+
+    priceBandLocationChartInstance = new ApexCharts(chartContainer, options);
+    priceBandLocationChartInstance.render();
 }
 
 export function renderUnitPriceReport() {
@@ -284,6 +556,11 @@ export function renderUnitPriceReport() {
             comparisonContainer.innerHTML = '<p class="text-gray-500 text-center p-4">無符合條件的建案可進行類型比較。</p>';
         }
     }
+
+    // 渲染單價分佈泡泡圖
+    import('./charts.js').then(chartModule => {
+        chartModule.renderUnitPriceBubbleChart();
+    });
 }
 
 // ▼▼▼ 【這就是附有診斷日誌的函式】 ▼▼▼
@@ -657,6 +934,9 @@ export function renderSalesVelocityReport() {
     renderVelocityTable();
     renderSalesVelocityChart();
     renderAreaHeatmap();
+
+    // 渲染區域房型成交筆數表格與圖表
+    renderPriceBandLocationTable(null, [], []);
 }
 
 export function renderPriceGridAnalysis() {

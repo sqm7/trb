@@ -27,6 +27,8 @@ import {
     handleGlobalClick,
     switchAverageType,
     handlePriceBandRoomFilterClick,
+    handlePriceBandDimensionClick,
+    handlePriceBandCountyFilterChange,
     handleParkingFloorFilterChange, // <-- 新增匯入
     handleVelocityRoomFilterClick,
     handleVelocitySubTabClick,
@@ -40,6 +42,8 @@ import {
     handleLegendClick,
     handleShareClick,
     copyShareUrl,
+    handleBubbleMetricToggle,
+    handleBubbleChartRefresh,
     handleExcludeCommercialToggle,
     togglePriceGridFullScreen
 } from './modules/eventHandlers.js';
@@ -187,6 +191,12 @@ function initialize() {
     // --- 停車位、去化分析與垂直水平分析相關事件 ---
     dom.priceBandRoomFilterContainer.addEventListener('click', handlePriceBandRoomFilterClick);
     dom.priceBandTable.addEventListener('click', handlePriceBandRoomFilterClick); // Handle project list button clicks in table
+    if (dom.priceBandDimensionToggle) {
+        dom.priceBandDimensionToggle.addEventListener('click', handlePriceBandDimensionClick);
+    }
+    if (dom.priceBandCountyFilter) {
+        dom.priceBandCountyFilter.addEventListener('change', handlePriceBandCountyFilterChange);
+    }
     dom.rampPlanePriceByFloorTableContainer.addEventListener('click', handleParkingFloorFilterChange); // <-- 新增這一行
     dom.velocityRoomFilterContainer.addEventListener('click', handleVelocityRoomFilterClick);
     dom.velocitySubTabsContainer.addEventListener('click', handleVelocitySubTabClick);
@@ -199,6 +209,14 @@ function initialize() {
 
     dom.heatmapMetricToggle.addEventListener('click', handleHeatmapMetricToggle);
     dom.heatmapDetailsContainer.addEventListener('click', handleHeatmapDetailsInteraction);
+
+    // 泡泡圖控制項事件
+    if (dom.bubbleSizeToggle) {
+        dom.bubbleSizeToggle.addEventListener('click', handleBubbleMetricToggle);
+    }
+    if (dom.bubbleChartRefresh) {
+        dom.bubbleChartRefresh.addEventListener('click', handleBubbleChartRefresh);
+    }
 
     // 熱力圖面積級距控制
     dom.heatmapIntervalInput.addEventListener('change', chartRenderer.renderAreaHeatmap);

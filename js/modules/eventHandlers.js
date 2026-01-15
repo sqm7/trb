@@ -698,6 +698,60 @@ export function handlePriceBandRoomFilterClick(e) {
 }
 
 /**
+ * 處理總價帶分析區域維度切換事件
+ */
+export function handlePriceBandDimensionClick(e) {
+    const button = e.target.closest('.dimension-btn');
+    if (!button || button.classList.contains('active')) return;
+
+    const dimension = button.dataset.dimension;
+    if (!dimension) return;
+
+    state.currentPriceBandDimension = dimension;
+    // 切換維度時重置縣市篩選
+    state.priceBandCountyFilter = 'all';
+
+    // 更新按鈕狀態
+    dom.priceBandDimensionToggle.querySelector('.active').classList.remove('active');
+    button.classList.add('active');
+
+    // 重新渲染報表
+    reportRenderer.renderPriceBandReport();
+}
+
+/**
+ * 處理總價帶分析縣市篩選變更事件
+ */
+export function handlePriceBandCountyFilterChange(e) {
+    state.priceBandCountyFilter = e.target.value;
+    reportRenderer.renderPriceBandReport();
+}
+
+/**
+ * 處理泡泡圖影響力指標切換
+ */
+export function handleBubbleMetricToggle(e) {
+    const button = e.target.closest('.bubble-metric-btn');
+    if (!button || button.classList.contains('active')) return;
+
+    state.bubbleSizeMetric = button.dataset.metric;
+
+    // 更新按鈕狀態
+    dom.bubbleSizeToggle.querySelector('.active').classList.remove('active');
+    button.classList.add('active');
+
+    // 重新渲染圖表
+    chartRenderer.renderUnitPriceBubbleChart();
+}
+
+/**
+ * 處理泡泡圖更新按鈕
+ */
+export function handleBubbleChartRefresh() {
+    chartRenderer.renderUnitPriceBubbleChart();
+}
+
+/**
  * 處理總價帶分析表格中的「建案組成」按鈕點擊事件
  * @param {HTMLElement} button - 被點擊的按鈕元素
  */
@@ -747,6 +801,8 @@ export function handleVelocityRoomFilterClick(e) {
     tableRenderer.renderVelocityTable();
     chartRenderer.renderSalesVelocityChart();
     chartRenderer.renderAreaHeatmap();
+    // 同步更新區域房型成交筆數表格
+    reportRenderer.renderSalesVelocityReport && reportRenderer.renderPriceBandLocationTableOnly();
 }
 
 export function handleVelocitySubTabClick(e) {

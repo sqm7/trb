@@ -10,6 +10,7 @@ let salesVelocityChartInstance = null;
 let priceBandChartInstance = null;
 let rankingChartInstance = null;
 let parkingRatioChartInstance = null; // <-- 新增這一行
+let unitPriceBubbleChartInstance = null; // 單價泡泡圖
 
 
 /**
@@ -258,12 +259,20 @@ export function renderPriceBandChart() {
         priceBandChartInstance = null;
     }
 
-    if (!state.analysisDataCache || !state.analysisDataCache.priceBandAnalysis || state.analysisDataCache.priceBandAnalysis.length === 0) {
+    if (!state.analysisDataCache || !state.analysisDataCache.priceBandAnalysis) {
         dom.priceBandChart.innerHTML = '<p class="text-gray-500 p-4 text-center">無總價帶資料可繪製圖表。</p>';
         return;
     }
 
-    const { priceBandAnalysis } = state.analysisDataCache;
+    // 相容性處理：支援新舊數據格式
+    const priceBandData = state.analysisDataCache.priceBandAnalysis;
+    const priceBandAnalysis = Array.isArray(priceBandData) ? priceBandData : (priceBandData.details || []);
+
+    if (priceBandAnalysis.length === 0) {
+        dom.priceBandChart.innerHTML = '<p class="text-gray-500 p-4 text-center">無總價帶資料可繪製圖表。</p>';
+        return;
+    }
+
     const filteredAnalysis = priceBandAnalysis.filter(item => state.selectedPriceBandRoomTypes.includes(item.roomType));
 
     if (filteredAnalysis.length === 0) {
@@ -847,4 +856,213 @@ export function renderParkingRatioChart() {
 
     parkingRatioChartInstance = new ApexCharts(dom.parkingRatioChartContainer, options);
     parkingRatioChartInstance.render();
+}
+
+/**
+ * 渲染單價分佈泡泡圖
+ */
+export function renderUnitPriceBubbleChart() {
+    const chartContainer = dom.unitPriceBubbleChart;
+    if (!chartContainer) return;
+
+    // 銷毀舊圖表
+    if (unitPriceBubbleChartInstance) {
+        unitPriceBubbleChartInstance.destroy();
+        unitPriceBubbleChartInstance = null;
+    }
+
+    if (!state.analysisDataCache || !state.analysisDataCache.transactionDetails) {
+        chartContainer.innerHTML = '<p class="text-gray-500 p-4 text-center">無交易數據可繪製泡泡圖。</p>';
+        return;
+    }
+
+    // 讀取控制項參數
+    const minPrice = parseFloat(dom.bubbleMinPrice?.value) || 30;
+    const maxPrice = parseFloat(dom.bubbleMaxPrice?.value) || 150;
+    const interval = parseFloat(dom.bubbleInterval?.value) || 5;
+    const sizeMetric = state.bubbleSizeMetric || 'count';
+
+    if (minPrice >= maxPrice || interval <= 0) {
+        chartContainer.innerHTML = '<p class="text-gray-500 p-4 text-center">單價區間設定無效，請調整參數。</p>';
+        return;
+    }
+
+    const transactions = state.analysisDataCache.transactionDetails;
+
+    // 建立單價區間統計
+    const priceRanges = [];
+    for (let i = minPrice; i < maxPrice; i += interval) {
+        priceRanges.push({
+            min: i,
+            max: Math.min(i + interval, maxPrice),
+            label: `${i}-${Math.min(i + interval, maxPrice)}`,
+            count: 0,
+            totalArea: 0,
+            transactions: []
+        });
+    }
+
+    // 統計各區間數據
+    transactions.forEach(tx => {
+        const unitPrice = tx['房屋單價(萬)'];
+        const area = tx['房屋面積(坪)'] || 0;
+        if (typeof unitPrice !== 'number' || unitPrice < minPrice || unitPrice >= maxPrice) return;
+
+        const rangeIndex = Math.floor((unitPrice - minPrice) / interval);
+        if (rangeIndex >= 0 && rangeIndex < priceRanges.length) {
+            priceRanges[rangeIndex].count++;
+            priceRanges[rangeIndex].totalArea += area;
+            priceRanges[rangeIndex].transactions.push(tx);
+        }
+    });
+
+    // 過濾掉無數據的區間
+    const validRanges = priceRanges.filter(r => r.count > 0);
+
+    if (validRanges.length === 0) {
+        chartContainer.innerHTML = '<p class="text-gray-500 p-4 text-center">在指定單價區間內無交易數據。</p>';
+        return;
+    }
+
+    // 計算最大值用於正規化
+    const maxCount = Math.max(...validRanges.map(r => r.count));
+    const maxArea = Math.max(...validRanges.map(r => r.totalArea));
+
+    // 準備泡泡圖數據
+    const seriesData = validRanges.map(range => {
+        const midPrice = (range.min + range.max) / 2;
+        const sizeValue = sizeMetric === 'count' ? range.count : range.totalArea;
+        const maxSizeValue = sizeMetric === 'count' ? maxCount : maxArea;
+        // 正規化氣泡大小 (5-50)
+        const bubbleSize = 5 + (sizeValue / maxSizeValue) * 45;
+
+        return {
+            x: range.label,
+            y: midPrice,
+            z: bubbleSize,
+            count: range.count,
+            totalArea: range.totalArea,
+            avgPrice: midPrice
+        };
+    });
+
+    const options = {
+        series: [{
+            name: '單價分佈',
+            data: seriesData
+        }],
+        chart: {
+            type: 'bubble',
+            height: 450,
+            background: 'transparent',
+            toolbar: { show: true },
+            foreColor: '#e5e7eb',
+            events: {
+                dataPointSelection: function (event, chartContext, config) {
+                    const dataPoint = seriesData[config.dataPointIndex];
+                    if (dataPoint) {
+                        const metricLabel = sizeMetric === 'count' ? '成交件數' : '總坪數';
+                        const metricValue = sizeMetric === 'count'
+                            ? dataPoint.count.toLocaleString() + ' 筆'
+                            : dataPoint.totalArea.toFixed(2) + ' 坪';
+                        alert(`單價區間：${dataPoint.x} 萬/坪\n${metricLabel}：${metricValue}\n平均單價：${dataPoint.avgPrice.toFixed(1)} 萬/坪`);
+                    }
+                }
+            }
+        },
+        plotOptions: {
+            bubble: {
+                minBubbleRadius: 8,
+                maxBubbleRadius: 50
+            }
+        },
+        stroke: {
+            width: 1,
+            colors: ['rgba(255, 255, 255, 0.3)']
+        },
+        colors: ['#06b6d4'],
+        fill: {
+            opacity: 0.7,
+            type: 'gradient',
+            gradient: {
+                shade: 'dark',
+                type: 'diagonal1',
+                shadeIntensity: 0.4,
+                gradientToColors: ['#8b5cf6'],
+                inverseColors: false,
+                opacityFrom: 0.85,
+                opacityTo: 0.5,
+            }
+        },
+        dataLabels: {
+            enabled: true,
+            textAnchor: 'middle',
+            style: {
+                fontSize: '11px',
+                fontWeight: 600,
+                colors: ['#fff']
+            },
+            formatter: function (val, { seriesIndex, dataPointIndex, w }) {
+                const data = w.config.series[seriesIndex].data[dataPointIndex];
+                return sizeMetric === 'count' ? data.count : Math.round(data.totalArea);
+            }
+        },
+        xaxis: {
+            type: 'category',
+            title: {
+                text: '單價區間 (萬/坪)',
+                style: { color: '#9ca3af' }
+            },
+            labels: {
+                rotate: -45,
+                style: { colors: '#9ca3af', fontSize: '11px' }
+            }
+        },
+        yaxis: {
+            title: {
+                text: '平均單價 (萬/坪)',
+                style: { color: '#9ca3af' }
+            },
+            labels: {
+                style: { colors: '#9ca3af' },
+                formatter: (val) => val.toFixed(0)
+            },
+            min: minPrice - interval,
+            max: maxPrice + interval
+        },
+        legend: {
+            show: false
+        },
+        tooltip: {
+            theme: 'dark',
+            custom: function ({ seriesIndex, dataPointIndex, w }) {
+                const data = w.config.series[seriesIndex].data[dataPointIndex];
+                const metricLabel = sizeMetric === 'count' ? '成交件數' : '總坪數';
+                const metricValue = sizeMetric === 'count'
+                    ? data.count.toLocaleString() + ' 筆'
+                    : data.totalArea.toFixed(2) + ' 坪';
+                return `
+                    <div style="background: #1f2937; border: 1px solid #374151; padding: 10px; border-radius: 8px;">
+                        <div style="font-weight: 600; color: #06b6d4; margin-bottom: 6px;">單價區間：${data.x} 萬/坪</div>
+                        <div style="color: #e5e7eb;">成交件數：${data.count.toLocaleString()} 筆</div>
+                        <div style="color: #e5e7eb;">總坪數：${data.totalArea.toFixed(2)} 坪</div>
+                        <div style="color: #a855f7; margin-top: 4px; font-weight: 500;">${metricLabel}影響力：${metricValue}</div>
+                    </div>
+                `;
+            }
+        },
+        grid: {
+            borderColor: '#374151',
+            xaxis: { lines: { show: true } },
+            yaxis: { lines: { show: true } }
+        },
+        title: {
+            text: `單價分佈泡泡圖（依${sizeMetric === 'count' ? '成交件數' : '房屋坪數'}）`,
+            align: 'center',
+            style: { fontSize: '16px', color: '#e5e7eb' }
+        }
+    };
+
+    unitPriceBubbleChartInstance = new ApexCharts(chartContainer, options);
+    unitPriceBubbleChartInstance.render();
 }

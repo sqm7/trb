@@ -86,12 +86,30 @@ function aggregateCoreMetrics(metricsA, metricsB) {
 function aggregatePriceBandAnalysis(bandsA, bandsB) {
     if (!bandsB) return bandsA;
 
+    // 相容性處理：支援新舊格式
+    // 新格式: { details, locationCrossTable, allDistricts, allRoomTypes }
+    // 舊格式: Array
+    const detailsA = Array.isArray(bandsA) ? bandsA : (bandsA.details || []);
+    const detailsB = Array.isArray(bandsB) ? bandsB : (bandsB.details || []);
+
+    const crossTableA = bandsA.locationCrossTable || {};
+    const crossTableB = bandsB.locationCrossTable || {};
+    const districtsA = bandsA.allDistricts || [];
+    const districtsB = bandsB.allDistricts || [];
+    const roomTypesA = bandsA.allRoomTypes || [];
+    const roomTypesB = bandsB.allRoomTypes || [];
+
+    // 合併 details
     const bandMap = new Map();
 
     const addToMap = (item) => {
         const key = item.roomType;
         if (!bandMap.has(key)) {
-            bandMap.set(key, { ...item, projectNames: item.projectNames ? [...item.projectNames] : [] });
+            bandMap.set(key, {
+                ...item,
+                projectNames: item.projectNames ? [...item.projectNames] : [],
+                byDistrict: item.byDistrict ? { ...item.byDistrict } : {}
+            });
         } else {
             const existing = bandMap.get(key);
             const totalAmountA = existing.avgPrice * existing.count;
@@ -108,13 +126,41 @@ function aggregatePriceBandAnalysis(bandsA, bandsB) {
                 const newProjectNames = new Set([...existing.projectNames, ...item.projectNames]);
                 existing.projectNames = Array.from(newProjectNames);
             }
+
+            // 合併 byDistrict
+            if (item.byDistrict) {
+                Object.entries(item.byDistrict).forEach(([district, count]) => {
+                    existing.byDistrict[district] = (existing.byDistrict[district] || 0) + count;
+                });
+            }
         }
     };
 
-    bandsA.forEach(addToMap);
-    bandsB.forEach(addToMap);
+    detailsA.forEach(addToMap);
+    detailsB.forEach(addToMap);
 
-    return Array.from(bandMap.values());
+    // 合併 locationCrossTable
+    const mergedCrossTable = { ...crossTableA };
+    Object.entries(crossTableB).forEach(([roomType, districtCounts]) => {
+        if (!mergedCrossTable[roomType]) {
+            mergedCrossTable[roomType] = { ...districtCounts };
+        } else {
+            Object.entries(districtCounts).forEach(([district, count]) => {
+                mergedCrossTable[roomType][district] = (mergedCrossTable[roomType][district] || 0) + count;
+            });
+        }
+    });
+
+    // 合併 allDistricts 和 allRoomTypes
+    const mergedDistricts = Array.from(new Set([...districtsA, ...districtsB])).sort();
+    const mergedRoomTypes = Array.from(new Set([...roomTypesA, ...roomTypesB]));
+
+    return {
+        details: Array.from(bandMap.values()),
+        locationCrossTable: mergedCrossTable,
+        allDistricts: mergedDistricts,
+        allRoomTypes: mergedRoomTypes
+    };
 }
 
 function aggregateUnitPriceAnalysis(unitA, unitB) {

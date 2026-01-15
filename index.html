@@ -280,6 +280,48 @@
                         <h3 class="report-section-title">店面、事務所與住宅價差比較</h3>
                         <div id="type-comparison-table-container" class="overflow-x-auto mt-4"></div>
                     </div>
+
+                    <!-- 單價分佈泡泡圖 -->
+                    <div class="mt-8 report-header">
+                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+                            <h3 class="report-section-title mb-0">單價分佈泡泡圖</h3>
+                            <div class="flex flex-wrap items-end gap-4">
+                                <div>
+                                    <label for="bubble-min-price"
+                                        class="block text-xs font-medium text-gray-400 mb-1">最低單價 (萬/坪)</label>
+                                    <input type="number" id="bubble-min-price"
+                                        class="form-input w-24 p-2 text-base rounded-md" value="30">
+                                </div>
+                                <div>
+                                    <label for="bubble-max-price"
+                                        class="block text-xs font-medium text-gray-400 mb-1">最高單價 (萬/坪)</label>
+                                    <input type="number" id="bubble-max-price"
+                                        class="form-input w-24 p-2 text-base rounded-md" value="150">
+                                </div>
+                                <div>
+                                    <label for="bubble-interval"
+                                        class="block text-xs font-medium text-gray-400 mb-1">單價級距 (萬)</label>
+                                    <input type="number" id="bubble-interval"
+                                        class="form-input w-20 p-2 text-base rounded-md" value="5" min="1" max="20">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-400 mb-1">影響力指標</label>
+                                    <div id="bubble-size-toggle" class="inline-flex bg-dark-card p-1 rounded-lg">
+                                        <button data-metric="count"
+                                            class="bubble-metric-btn active px-3 py-1 text-sm font-semibold rounded-md transition-colors">成交件數</button>
+                                        <button data-metric="area"
+                                            class="bubble-metric-btn px-3 py-1 text-sm font-semibold rounded-md transition-colors">房屋坪數</button>
+                                    </div>
+                                </div>
+                                <button id="bubble-chart-refresh"
+                                    class="btn-primary px-4 py-2 rounded-md text-sm font-semibold">
+                                    <i class="fas fa-sync-alt mr-1"></i>更新圖表
+                                </button>
+                            </div>
+                        </div>
+                        <div id="unit-price-bubble-chart" style="min-height: 450px;"></div>
+                        <p class="text-sm text-gray-500 mt-2">* 泡泡大小代表該單價區間的影響力（成交件數或總坪數），顏色深淺代表單價高低。點擊泡泡可查看詳細資訊。</p>
+                    </div>
                     <div id="average-type-explanation"
                         class="mt-8 p-4 bg-dark-card border border-gray-700 rounded-lg text-sm text-gray-400 space-y-3 report-header">
 
@@ -399,6 +441,34 @@
                                 <p class="text-gray-500 text-center">點擊左側熱力圖的格子以查看詳細數據</p>
                             </div>
                         </div>
+                    </div>
+
+                    <!-- 區域分組分析 -->
+                    <div class="mt-8 report-header">
+                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+                            <h3 class="report-section-title mb-0">各區域房型成交筆數</h3>
+                            <div class="flex flex-wrap items-center gap-3">
+                                <div class="flex items-center gap-2">
+                                    <label class="text-sm font-medium text-gray-400">分組維度:</label>
+                                    <div id="price-band-dimension-toggle"
+                                        class="inline-flex bg-dark-card p-1 rounded-lg">
+                                        <button data-dimension="district"
+                                            class="dimension-btn active px-4 py-1 text-sm font-semibold rounded-md transition-colors">行政區</button>
+                                        <button data-dimension="county"
+                                            class="dimension-btn px-4 py-1 text-sm font-semibold rounded-md transition-colors">縣市</button>
+                                    </div>
+                                </div>
+                                <div id="price-band-county-filter-wrapper" class="flex items-center gap-2">
+                                    <label class="text-sm font-medium text-gray-400">顯示範圍:</label>
+                                    <select id="price-band-county-filter"
+                                        class="form-select text-sm py-1 px-3 min-w-[120px]">
+                                        <option value="all">全部縣市</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="price-band-location-table-container" class="overflow-x-auto"></div>
+                        <div id="price-band-location-chart" class="mt-6" style="min-height: 350px;"></div>
                     </div>
                 </div>
 

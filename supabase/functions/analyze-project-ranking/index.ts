@@ -167,7 +167,12 @@ serve(async (req) => {
     const areaDistributionAnalysis = calculateAreaDistribution(allRawData);
 
     // 回傳結果 ...
-    let transactionDetails = allRawData;
+    // 為每筆記錄注入縣市名稱（因為原始數據沒有此欄位）
+    const countyName = countyCodeToName[countyCode.toUpperCase()] || countyCode;
+    let transactionDetails = allRawData.map(record => ({
+      ...record,
+      '縣市': countyName
+    }));
     if (roomCategory) {
       // transactionDetails = allRawData.filter(record => getRoomCategoryForPriceBand(record) === roomCategory);
     }

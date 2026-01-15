@@ -48,6 +48,11 @@ export const dom = {
     priceBandChart: document.getElementById('price-band-chart'),
     priceBandTable: document.getElementById('price-band-table'),
     priceBandRoomFilterContainer: document.getElementById('price-band-room-filter-container'),
+    priceBandDimensionToggle: document.getElementById('price-band-dimension-toggle'),
+    priceBandLocationTableContainer: document.getElementById('price-band-location-table-container'),
+    priceBandCountyFilter: document.getElementById('price-band-county-filter'),
+    priceBandCountyFilterWrapper: document.getElementById('price-band-county-filter-wrapper'),
+    priceBandLocationChart: document.getElementById('price-band-location-chart'),
 
     // Unit price report
     unitPriceReportContent: document.getElementById('unit-price-report-content'),
@@ -59,6 +64,14 @@ export const dom = {
     officeStatsExtraInfo: document.getElementById('office-stats-extra-info'),
     storeStatsExtraInfo: document.getElementById('store-stats-extra-info'),
     typeComparisonTableContainer: document.getElementById('type-comparison-table-container'),
+
+    // Unit price bubble chart
+    bubbleMinPrice: document.getElementById('bubble-min-price'),
+    bubbleMaxPrice: document.getElementById('bubble-max-price'),
+    bubbleInterval: document.getElementById('bubble-interval'),
+    bubbleSizeToggle: document.getElementById('bubble-size-toggle'),
+    bubbleChartRefresh: document.getElementById('bubble-chart-refresh'),
+    unitPriceBubbleChart: document.getElementById('unit-price-bubble-chart'),
 
     // Parking report
     parkingReportContent: document.getElementById('parking-report-content'),

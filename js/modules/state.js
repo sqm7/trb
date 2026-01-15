@@ -21,6 +21,10 @@ export const state = {
     currentVelocityMetric: 'count',
     selectedVelocityRooms: [],
     selectedPriceBandRoomTypes: [],
+    // 總價帶分析區域維度 (district / county)
+    currentPriceBandDimension: 'district',
+    // 總價帶分析縣市篩選 (all / 特定縣市名)
+    priceBandCountyFilter: 'all',
     selectedPriceGridProject: null,
     isHeatmapActive: false,
     currentLegendFilter: { type: null, value: null },
@@ -33,6 +37,8 @@ export const state = {
     },
     currentHeatmapDetailMetric: 'median',
     excludeCommercialInRanking: false, // 核心指標與排名報告中，是否排除商辦店面的開關狀態
+    // 單價泡泡圖設定
+    bubbleSizeMetric: 'count', // 'count' 或 'area'
 };
 
 // 根據當前狀態獲取篩選條件
