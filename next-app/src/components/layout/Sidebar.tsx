@@ -11,14 +11,17 @@ import {
     Settings,
     FileText,
     LogOut,
-    Building
+    Building,
+    BookOpen,
+    AtSign
 } from "lucide-react";
 
 const NAV_ITEMS = [
     { label: "總覽儀表板", href: "/", icon: LayoutDashboard },
-    { label: "進階分析", href: "/analysis", icon: PieChart },
     { label: "地圖模式", href: "/map", icon: Map },
     { label: "分析報告", href: "/reports", icon: FileText },
+    { label: "開發者日誌", href: "https://medium.com/@sqmtalk7", icon: BookOpen, isExternal: true },
+    { label: "Threads", href: "https://www.threads.net/@sqm.talk", icon: AtSign, isExternal: true },
 ];
 
 export function Sidebar() {
@@ -41,10 +44,15 @@ export function Sidebar() {
                 <nav className="flex flex-col gap-1 space-y-1">
                     {NAV_ITEMS.map((item) => {
                         const isActive = pathname === item.href;
+                        // @ts-ignore
+                        const isExternal = item.isExternal;
+
                         return (
                             <Link
                                 key={item.href}
                                 href={item.href}
+                                target={isExternal ? "_blank" : undefined}
+                                rel={isExternal ? "noopener noreferrer" : undefined}
                                 className={cn(
                                     "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-all duration-200",
                                     isActive

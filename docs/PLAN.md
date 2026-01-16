@@ -195,5 +195,11 @@ refactor: 重構
 - [x] Implement data aggregation by `建案名稱` in `SalesVelocityReport.tsx`
 - [x] Calculate min/max/median statistics for each project
 - [x] Render aggregated summary table in modal
+- [x] Render aggregated summary table in modal
 - [x] Add expand/collapse functionality for details
+
+### [Current Task] Refining UI and Integrations (2026-01-16)
+- [x] Remove Legacy UI: "Data List" tab and "Advanced Analysis" sidebar item
+- [x] Add Sidebar Social Links: Developer Log (Medium) and Threads
+- [x] Enhance Project Search: Display County, District, and Date in suggestions
 

@@ -112,11 +112,20 @@ export function FilterBar({ onAnalyze, isLoading }: FilterBarProps) {
                         } else if (res && res.names && Array.isArray(res.names)) {
                             list = res.names;
                         }
-                        return list.map((item: any) => ({
-                            label: typeof item === 'string' ? item : (item.name || item.建案名稱 || String(item)),
-                            value: typeof item === 'string' ? item : (item.name || item.建案名稱 || String(item)),
-                            group: c
-                        }));
+                        return list.map((item: any) => {
+                            const isString = typeof item === 'string';
+                            const name = isString ? item : (item.name || item.建案名稱 || String(item));
+                            return {
+                                label: name,
+                                value: name,
+                                group: c,
+                                details: isString ? undefined : {
+                                    county: c,
+                                    district: item.district || item.行政區,
+                                    date: item.earliestDate || item.交易日
+                                }
+                            };
+                        });
                     })
                     .catch(err => {
                         console.error(`Failed to fetch projects for ${c}:`, err);

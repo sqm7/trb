@@ -2,7 +2,7 @@
 
 import React, { useMemo } from "react";
 import { cn } from "@/lib/utils";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, Store, Briefcase, Sprout, Users, Anchor, CircleParking } from "lucide-react";
 
 interface HeatmapGridProps {
     data: any;
@@ -15,20 +15,24 @@ const formatNumber = (num: number, decimals: number = 0) => {
 };
 
 // Premium Color Mapping
-const getHeatmapColor = (premium: number | null) => {
+const getHeatmapColor = (premium: number | null, tx: any) => {
+    // Special Types Overrides (Match HeatmapReport Legend)
+    if (tx.isStorefront) return 'rgba(217, 119, 6, 0.4)'; // Amber-600 low opacity
+    if (tx.isOffice) return 'rgba(37, 99, 235, 0.4)'; // Blue-600 low opacity
+
     if (premium === null) return '#1f2937'; // 灰色
     if (premium < 0) return 'rgba(139, 92, 246, 0.4)'; // Discount: Violet
-    if (premium === 0) return '#06b6d4'; // Anchor: Cyan (Border usually, but color here) - logic adjusted
+    if (premium === 0) return '#06b6d4'; // Anchor: Cyan (typically border, but use color to highlight)
     if (premium > 5) return 'rgba(244, 63, 94, 0.5)'; // High: Red
     if (premium > 2) return 'rgba(234, 179, 8, 0.4)'; // Medium: Yellow
     return 'rgba(34, 197, 94, 0.3)'; // Low: Green
 };
 
 const getSpecialIcon = (tx: any) => {
-    if (tx.isStorefront) return { icon: <i className="fas fa-store" />, label: "店舖" };
-    if (tx.isOffice) return { icon: <i className="fas fa-briefcase" />, label: "辦公" };
-    if (tx.remark?.includes("露台")) return { icon: <i className="fas fa-seedling" />, label: "露台" };
-    if (tx.remark?.includes("親友") || tx.remark?.includes("員工")) return { icon: <i className="fas fa-users" />, label: "親友" };
+    if (tx.isStorefront) return { icon: <Store className="w-3 h-3" />, label: "店舖" };
+    if (tx.isOffice) return { icon: <Briefcase className="w-3 h-3" />, label: "辦公" };
+    if (tx.remark?.includes("露台")) return { icon: <Sprout className="w-3 h-3" />, label: "露台" };
+    if (tx.remark?.includes("親友") || tx.remark?.includes("員工")) return { icon: <Users className="w-3 h-3" />, label: "親友" };
     return null;
 };
 
@@ -79,7 +83,7 @@ export function PricingHeatmap({ data, floorPremium = 0.3 }: HeatmapGridProps) {
                                         <td key={`${floor}-${unit}`} className="p-1 border-l border-zinc-800/50 align-top">
                                             <div className="flex flex-col gap-1">
                                                 {cellData.map((tx: any, idx: number) => {
-                                                    const bgColor = getHeatmapColor(tx.premium);
+                                                    const bgColor = getHeatmapColor(tx.premium, tx);
                                                     const special = getSpecialIcon(tx);
                                                     const isAnchor = tx.premium === 0;
 
@@ -93,11 +97,11 @@ export function PricingHeatmap({ data, floorPremium = 0.3 }: HeatmapGridProps) {
                                                             style={{ backgroundColor: bgColor }}
                                                         >
                                                             <div className="flex items-center justify-between gap-1">
-                                                                <span className="font-semibold text-white">
-                                                                    {special && <span className="mr-1 text-zinc-200" title={special.label}>{special.icon}</span>}
+                                                                <span className="font-semibold text-white flex items-center gap-1">
+                                                                    {special && <span className="text-zinc-200" title={special.label}>{special.icon}</span>}
                                                                     {tx.unitPrice.toFixed(1)}萬
                                                                 </span>
-                                                                {tx.hasParking && <span className="text-[10px] bg-zinc-900/40 px-1 rounded text-zinc-300" title="含車位">P</span>}
+                                                                {tx.hasParking && <CircleParking className="w-3 h-3 text-zinc-400" />}
                                                             </div>
                                                             <div className="text-[10px] text-zinc-300/80 mt-0.5">
                                                                 {tx.transactionDate}
@@ -196,16 +200,18 @@ export function PricingHeatmap({ data, floorPremium = 0.3 }: HeatmapGridProps) {
                                     <tr key={idx} className="bg-zinc-900/20 border-b border-zinc-800 hover:bg-zinc-800/20">
                                         <td className="px-4 py-3 font-medium text-white">{item.unitType}</td>
                                         <td className="px-4 py-3">{item.anchorInfo}</td>
-                                        <td className={cn("px-4 py-3", item.horizontalPriceDiff > 0 ? "text-red-400" : "text-zinc-400")}>
-                                            {item.horizontalPriceDiff > 0 ? '+' : ''}{item.horizontalPriceDiff.toFixed(2)} 萬/坪
+                                        <td className={cn("px-4 py-3", (item.horizontalPriceDiff || 0) > 0 ? "text-red-400" : "text-zinc-400")}>
+                                            {typeof item.horizontalPriceDiff === 'number'
+                                                ? `${item.horizontalPriceDiff > 0 ? '+' : ''}${item.horizontalPriceDiff.toFixed(2)} 萬/坪`
+                                                : '-'}
                                         </td>
                                         <td className="px-4 py-3">{item.unitsSold} 戶</td>
                                         <td className={cn("px-4 py-3 font-bold", item.timePremiumContribution > 0 ? "text-red-400" : "text-violet-400")}>
                                             {item.timePremiumContribution > 0 ? '+' : ''}{formatNumber(item.timePremiumContribution)} 萬
                                         </td>
-                                        <td className="px-4 py-3">{item.contributionPercentage}%</td>
+                                        <td className="px-4 py-3">{typeof item.contributionPercentage === 'number' ? item.contributionPercentage.toFixed(2) : '0.00'}%</td>
                                         <td className="px-4 py-3">{formatNumber(item.baselineHousePrice)} 萬</td>
-                                        <td className="px-4 py-3">{item.avgPriceAdjustment} 萬/坪</td>
+                                        <td className="px-4 py-3">{typeof item.avgPriceAdjustment === 'number' ? item.avgPriceAdjustment.toFixed(2) : '-'} 萬/坪</td>
                                     </tr>
                                 ))}
                             </tbody>

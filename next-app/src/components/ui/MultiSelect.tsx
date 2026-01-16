@@ -6,6 +6,11 @@ export interface MultiSelectOption {
     label: string;
     value: string;
     group?: string;
+    details?: {
+        county?: string;
+        district?: string;
+        date?: string;
+    }
 }
 
 interface MultiSelectProps {
@@ -139,18 +144,33 @@ const MultiSelect = forwardRef<HTMLDivElement, MultiSelectProps>(({
                     ) : filteredOptions.length === 0 ? (
                         <div className="p-2 text-center text-zinc-500 text-sm">No options found</div>
                     ) : (
-                        filteredOptions.map((option) => (
-                            <div
-                                key={option.value}
-                                className={cn(
-                                    "px-3 py-2 cursor-pointer text-sm flex items-center justify-between hover:bg-zinc-800 transition-colors",
-                                    value.includes(option.value) && "bg-violet-500/10 text-violet-400"
+                        filteredOptions.map((option) => (<div
+                            key={option.value}
+                            className={cn(
+                                "px-3 py-2 cursor-pointer text-sm flex items-start justify-between hover:bg-zinc-800 transition-colors",
+                                value.includes(option.value) && "bg-violet-500/10 text-violet-400"
+                            )}
+                            onClick={() => handleSelect(option.value)}
+                        >
+                            <div className="flex flex-col">
+                                <span className="font-medium">{option.label}</span>
+                                {option.details && (
+                                    <div className="flex items-center gap-2 mt-0.5">
+                                        {(option.details.county || option.details.district) && (
+                                            <span className="text-xs text-zinc-500 bg-zinc-800/80 px-1.5 rounded border border-zinc-700">
+                                                {option.details.county}{option.details.district}
+                                            </span>
+                                        )}
+                                        {option.details.date && (
+                                            <span className="text-xs text-zinc-600 font-mono">
+                                                {option.details.date.substring(0, 7)}
+                                            </span>
+                                        )}
+                                    </div>
                                 )}
-                                onClick={() => handleSelect(option.value)}
-                            >
-                                <span>{option.label}</span>
-                                {value.includes(option.value) && <Check size={16} />}
                             </div>
+                            {value.includes(option.value) && <Check size={16} className="mt-1" />}
+                        </div>
                         ))
                     )}
                 </div>
