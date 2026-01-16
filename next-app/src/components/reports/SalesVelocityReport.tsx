@@ -127,15 +127,25 @@ export function SalesVelocityReport({ data }: SalesVelocityReportProps) {
 
         // Calculate Stats for each project
         const aggregated = Object.entries(groupedByProject).map(([projectName, txs]) => {
-            const totalPrices = txs.map((t: any) => t['產權總價'] || t['交易總價(萬)'] || t.totalPrice || 0).filter((p: number) => p > 0);
+            const totalPrices = txs.map((t: any) => t['產權總價'] || t['交易總價(萬)'] || t.totalPrice || 0).filter((p: number) => p > 0).sort((a: number, b: number) => a - b);
             const unitPrices = txs.map((t: any) => t['房屋單價'] || t['房屋單價(萬)'] || t.unitPrice || 0).filter((p: number) => p > 0);
+
+            // Calculate Median Total Price
+            let medianTotalPrice = 0;
+            if (totalPrices.length > 0) {
+                const mid = Math.floor(totalPrices.length / 2);
+                medianTotalPrice = totalPrices.length % 2 !== 0
+                    ? totalPrices[mid]
+                    : (totalPrices[mid - 1] + totalPrices[mid]) / 2;
+            }
 
             return {
                 projectName,
                 count: txs.length,
                 priceRange: {
-                    min: totalPrices.length > 0 ? Math.min(...totalPrices) : 0,
-                    max: totalPrices.length > 0 ? Math.max(...totalPrices) : 0
+                    min: totalPrices.length > 0 ? totalPrices[0] : 0,
+                    max: totalPrices.length > 0 ? totalPrices[totalPrices.length - 1] : 0,
+                    median: medianTotalPrice
                 },
                 unitPriceRange: {
                     min: unitPrices.length > 0 ? Math.min(...unitPrices) : 0,
@@ -291,8 +301,9 @@ export function SalesVelocityReport({ data }: SalesVelocityReportProps) {
                                 <table className="w-full text-xs border-collapse">
                                     <thead className="bg-zinc-800 text-zinc-300 sticky top-0 z-10 shadow-sm">
                                         <tr>
-                                            <th className="p-3 text-left w-[30%]">建案名稱 (戶數)</th>
-                                            <th className="p-3 text-center w-[35%]">成交單價範圍 (萬/坪)</th>
+                                            <th className="p-3 text-left w-[25%]">建案名稱 (戶數)</th>
+                                            <th className="p-3 text-center w-[25%]">成交單價範圍 (萬/坪)</th>
+                                            <th className="p-3 text-center w-[15%]">總價中位數</th>
                                             <th className="p-3 text-center w-[35%]">成交總價範圍 (萬)</th>
                                         </tr>
                                     </thead>
@@ -320,6 +331,9 @@ export function SalesVelocityReport({ data }: SalesVelocityReportProps) {
                                                             : `${item.unitPriceRange.min.toFixed(1)} ~ ${item.unitPriceRange.max.toFixed(1)}`
                                                         }
                                                     </td>
+                                                    <td className="p-3 text-center font-mono text-violet-400">
+                                                        {formatPrice((item.priceRange as any).median || 0)}
+                                                    </td>
                                                     <td className="p-3 text-center font-mono text-zinc-300">
                                                         {item.priceRange.min === item.priceRange.max
                                                             ? formatPrice(item.priceRange.min)
@@ -331,7 +345,7 @@ export function SalesVelocityReport({ data }: SalesVelocityReportProps) {
                                                 {/* Expanded Details Row */}
                                                 {item.isExpanded && (
                                                     <tr>
-                                                        <td colSpan={3} className="p-0 bg-zinc-950/30 inset-shadow">
+                                                        <td colSpan={4} className="p-0 bg-zinc-950/30 inset-shadow">
                                                             <div className="p-2 pl-8 border-l-2 border-zinc-700/50 ml-4 my-1">
                                                                 <table className="w-full text-xs bg-transparent opacity-80">
                                                                     <thead className="text-zinc-500 border-b border-white/5">
@@ -344,7 +358,7 @@ export function SalesVelocityReport({ data }: SalesVelocityReportProps) {
                                                                         </tr>
                                                                     </thead>
                                                                     <tbody>
-                                                                        {item.transactions.slice(0, 10).map((tx, ti) => (
+                                                                        {item.transactions.slice(0, (item as any).showAll ? undefined : 10).map((tx: any, ti: number) => (
                                                                             <tr key={ti} className="hover:text-white">
                                                                                 <td className="py-1 pl-2">{tx['樓層'] || tx.floor || '-'}</td>
                                                                                 <td className="py-1 text-left text-zinc-400">
@@ -355,10 +369,33 @@ export function SalesVelocityReport({ data }: SalesVelocityReportProps) {
                                                                                 <td className="py-1 text-right font-mono pr-2">{formatPrice(tx['交易總價(萬)'] || tx.totalPrice || 0)}</td>
                                                                             </tr>
                                                                         ))}
-                                                                        {item.transactions.length > 10 && (
+                                                                        {item.transactions.length > 10 && !(item as any).showAll && (
                                                                             <tr>
-                                                                                <td colSpan={5} className="py-2 text-center text-zinc-500 italic">
-                                                                                    ... 還有 {item.transactions.length - 10} 筆 ...
+                                                                                <td colSpan={5} className="py-2 text-center">
+                                                                                    <button
+                                                                                        onClick={(e) => {
+                                                                                            e.stopPropagation();
+                                                                                            setAggregatedDetails(prev => prev.map((p, i) => i === idx ? { ...p, showAll: true } : p));
+                                                                                        }}
+                                                                                        className="text-zinc-500 hover:text-zinc-300 italic text-xs hover:underline"
+                                                                                    >
+                                                                                        ... 還有 {item.transactions.length - 10} 筆 (點擊展開) ...
+                                                                                    </button>
+                                                                                </td>
+                                                                            </tr>
+                                                                        )}
+                                                                        {item.transactions.length > 10 && (item as any).showAll && (
+                                                                            <tr>
+                                                                                <td colSpan={5} className="py-2 text-center">
+                                                                                    <button
+                                                                                        onClick={(e) => {
+                                                                                            e.stopPropagation();
+                                                                                            setAggregatedDetails(prev => prev.map((p, i) => i === idx ? { ...p, showAll: false } : p));
+                                                                                        }}
+                                                                                        className="text-zinc-500 hover:text-zinc-300 italic text-xs hover:underline"
+                                                                                    >
+                                                                                        ... 收合 ...
+                                                                                    </button>
                                                                                 </td>
                                                                             </tr>
                                                                         )}
@@ -381,6 +418,7 @@ export function SalesVelocityReport({ data }: SalesVelocityReportProps) {
                     </div>
                 )}
             </ReportWrapper>
+
 
         </div>
     );
