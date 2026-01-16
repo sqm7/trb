@@ -164,4 +164,23 @@ refactor: 重構
 ### [Current Task] Fix Data List Discrepancy
 - [x] Implement independent data fetching in `DataListReport.tsx` using `api.fetchData`
 - [x] Add missing columns (`交易筆棟數`) and tooltip logic for `戶型`
-- [ ] Verify data loading and pagination
+- [x] Verify data loading and pagination
+
+### [Current Task] Restore Parking Sub-table Button
+- [x] Analyze legacy implementation of parking sub-table button
+- [x] Add 'Parking Sub-table' button to `DataListReport.tsx`
+- [x] Implement `fetchSubData` logic and display in a `Modal` component
+- [x] Verify functionality (Button appearance, Modal opening, Data display)
+- [x] Refine Modal UI (Hide raw Price/Area columns)
+
+### [Current Task] Include Unknown Floors in Parking Analysis
+- [x] Update `ParkingAnalysisReport.tsx` to include 'Unknown' in valid floors
+- [x] Add color mapping for 'Unknown' floor
+- [x] Verify chart display
+
+### [Current Task] Documentation Refactoring (Legacy Separation)
+- [x] Create `docs/legacy/` directory
+- [x] Move `SPEC_NEW.md` to trash (redundant) -> moved to `SPEC_LEGACY.md`
+- [x] Extract Legacy sections from `ARCHITECTURE.md` to `docs/legacy/ARCHITECTURE_LEGACY.md`
+- [x] Clean up `ARCHITECTURE.md` to focus on Next.js
+- [x] Add cross-reference links in new docs pointing to legacy docs

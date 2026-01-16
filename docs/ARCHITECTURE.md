@@ -1,80 +1,13 @@
-# 🏗️ ARCHITECTURE.md - 技術架構
+# 🏗️ ARCHITECTURE.md - 技術架構 (Next.js)
 
-**版本**: 3.0.0  
-**最後更新**: 2026-01-15
+**版本**: 3.1.0  
+**最後更新**: 2026-01-16
+
+> **⚠️ 舊版文件**: 若您需要參考 Vanilla JS 版本的架構，請查看 [docs/legacy/ARCHITECTURE_LEGACY.md](legacy/ARCHITECTURE_LEGACY.md)。
 
 ---
 
-## 📁 目錄結構
-
-```
-text antigravity/
-├── index.html              # 主應用入口（分析儀表板）
-├── login.html              # 登入頁面（目前停用）
-├── map-tool.html           # 地圖工具
-├── report-viewer.html      # 公開報告檢視器
-├── toolA.html              # 工具 A
-├── netlify.toml            # Netlify 部署配置
-├── .gitignore              # Git忽略配置
-├── docs/                   # 開發文檔
-├── scripts/                # 自動化腳本
-├── .cursorrules            # 編碼行為準則
-│
-├── css/
-│   ├── images/
-│   │   └── og-cover.png    # 社群分享預覽圖
-│   └── style.css           # 全域樣式（深色主題）
-│
-├── js/
-│   ├── app.js              # 應用入口
-│   ├── supabase-client.js  # Supabase 客戶端
-│   └── modules/
-│       ├── api.js          # API 請求層
-│       ├── config.js       # 應用配置（顏色、端點、縣市數據）
-│       ├── state.js        # 中央狀態管理
-│       ├── dom.js          # DOM 元素引用
-│       ├── ui.js           # UI 通用邏輯
-│       ├── aggregator.js   # 多縣市數據聚合器
-│       ├── eventHandlers.js # 事件處理器（50+ 函式）
-│       ├── pdfExport.js    # PDF 導出
-│       └── renderers/      # 渲染模組
-│           ├── reports.js  # 報告頁面渲染（12 個渲染函式）
-│           ├── charts.js   # 圖表渲染（ApexCharts, 7 種圖表）
-│           ├── tables.js   # 表格渲染
-│           ├── heatmap.js  # 熱力圖渲染
-│           └── uiComponents.js # UI 元件
-│
-├── supabase/
-│   ├── config.toml         # Supabase 本地配置
-│   └── functions/          # Edge Functions
-│       ├── _shared/        # 共享模組
-│       │   ├── analysis-engine.ts  # 分析引擎（10+ 計算函式）
-│       │   ├── unit-parser.ts      # 戶別解析器（870+ 行）
-│       │   ├── constants.ts        # 常數定義（縣市代碼對照）
-│       │   ├── supabase-client.ts  # Supabase 客戶端
-│       │   └── cors.ts             # CORS 設定
-│       ├── analyze-project-ranking/  # 主分析端點
-│       ├── analyze-data/     # 數據分析
-│       ├── analyze-district-price/ # 區域價格分析
-│       ├── query-data/       # 數據查詢端點
-│       ├── query-names/      # 建案名稱查詢
-│       ├── query-sub-data/   # 附表數據查詢
-│       ├── generate-share-link/    # 分享連結生成
-│       └── public-report/    # 公開報告
-│
-└── uploader/               # 數據上傳工具
-    ├── index.html
-    ├── update.html
-    ├── create_mappings_table.sql  # 建案名稱對應表 SQL
-    └── js/
-        ├── main.js             # 主程式邏輯
-        ├── supabase-service.js # Supabase 操作
-        ├── file-handler.js     # 檔案處理（含建案名稱替換）
-        ├── state.js            # 狀態管理
-        └── ...
-    └── ...
-
-## 🏗️ Next.js 架構 (Migration)
+## 🏗️ Next.js 架構 (Current)
 
 ### 目錄結構 (next-app/src)
 ```
@@ -97,7 +30,8 @@ src/
 │   │   ├── PriceBandChart.tsx
 │   │   ├── SalesVelocityChart.tsx
 │   │   ├── AreaHeatmapChart.tsx
-│   │   └── ParkingRatioChart.tsx
+│   │   ├── ParkingRatioChart.tsx
+│   │   └── BubbleChart.tsx # [New]
 │   └── reports/            # 整合報告視圖
 │       ├── ReportWrapper.tsx
 │       ├── RankingReport.tsx
@@ -117,21 +51,18 @@ src/
 
 ---
 
-## 🔄 數據流架構
+## 🔄 數據流架構 (Next.js)
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                         使用者瀏覽器                              │
 ├─────────────────────────────────────────────────────────────────┤
-│  index.html                                                     │
-│    ├── app.js (入口)                                            │
-│    ├── modules/                                                 │
-│    │   ├── state.js ◄──────── 中央狀態管理                     │
-│    │   ├── eventHandlers.js ── 事件處理                        │
-│    │   ├── api.js ─────────── API 請求                         │
-│    │   ├── aggregator.js ──── 多縣市聚合                       │
-│    │   └── renderers/* ────── UI 渲染                          │
-│    └── config.js ───────────── 配置常數                        │
+│  Next.js App (src/app/page.tsx)                                 │
+│    ├── useFilterStore (Zustand) ◄──── 中央狀態管理               │
+│    ├── FilterBar (Component) ─── 觸發篩選變更                   │
+│    ├── api.ts ──────────────── 封裝 fetch 請求                  │
+│    ├── aggregator.ts ───────── 多縣市數據前端聚合               │
+│    └── components/reports/* ── 接收 Data Prop 進行渲染          │
 └────────────────────────┬────────────────────────────────────────┘
                          │ HTTPS POST
                          ▼
@@ -143,7 +74,7 @@ src/
 │    ├── 建構 SQL 查詢（含特殊店面篩選）                           │
 │    ├── 調用 _shared/unit-parser.ts (戶別解析)                   │
 │    ├── 調用 _shared/analysis-engine.ts (分析計算)               │
-│    ├── 注入縣市名稱至 transactionDetails                        │
+│    ├── 注入縣市名稱至 transactionDetails (供前端聚合用)         │
 │    └── 回傳 JSON 結果                                           │
 └────────────────────────┬────────────────────────────────────────┘
                          │ Postgres Query
@@ -161,105 +92,28 @@ src/
 
 ---
 
-## 📊 前端模組詳解
+## 📊 前端模組詳解 (Next.js)
 
-### state.js - 中央狀態管理
+### useFilterStore.ts - Zustand 狀態管理
 
-```javascript
-export const state = {
-    // 分頁
-    currentPage: 1,
-    pageSize: 30,
-    totalRecords: 0,
-    
-    // 多縣市選擇
-    selectedCounties: [],
-    selectedDistricts: [],
-    selectedProjects: [],
-    
-    // 分析數據快取
-    analysisDataCache: null,  // 所有分析結果的快取
-    
-    // 排序設定
-    currentSort: { key: 'saleAmountSum', order: 'desc' },
-    
-    // 報告控制
-    currentAverageType: 'arithmetic',
-    currentVelocityView: 'monthly',
-    currentVelocityMetric: 'count',
-    
-    // 總價帶區域分析
-    currentPriceBandDimension: 'district',  // 'district' 或 'county'
-    priceBandCountyFilter: 'all',
-    
-    // 熱力圖狀態
-    isHeatmapActive: false,
-    currentLegendFilter: { type: null, value: null },
-    
-    // 泡泡圖設定
-    bubbleSizeMetric: 'count',  // 'count' 或 'area'
-    
-    // 開關
-    excludeCommercialInRanking: false,
-};
-```
+負責管理全域的篩選條件與 UI 狀態：
 
+*   **Filters**: `countyCode`, `districts`, `projectNames`, `dateStart`, `dateEnd`...
+*   **Settings**: `excludeCommercial`, `parkingFloorFilter`, `velocityView`...
+*   **Actions**: `setFilters`, `resetFilters`, `toggleProperty`...
 
-### aggregator.js - 數據聚合器
-| 函式 | 功能 |
-|------|------|
-| `aggregateAnalysisData(current, new)` | 合併多縣市分析結果 |
-| `aggregateCoreMetrics(...)` | 合併核心指標 |
-| `aggregatePriceBandAnalysis(...)` | 合併總價帶分析 |
-| `aggregateSalesVelocityAnalysis(...)` | 合併去化分析 (含時間序列處理) |
+### DataListReport.tsx - 獨立數據查詢
 
+為了保證資料列表的完整性，我們採用了 **獨立查詢策略**：
+1.  **不共用分析 API**: 不使用 `analyze-project-ranking` 的回傳數據（因可能被截斷或過濾）。
+2.  **獨立 Fetch**: 直接呼叫 `api.fetchData` (對應 `query-data` 端點)。
+3.  **智慧補償 (Smart Fallback)**:
+    *   當使用者點擊「附表」按鈕時，調用 `api.fetchSubData`。
+    *   若無附表資料（回傳空），但主表有車位紀錄，則**自動降級**顯示主表的匯總資訊（價格/面積），並標示樓層為 `Unknown`。
 
-### eventHandlers.js - 主要事件處理器
+### ParkingAnalysisReport.tsx - 車位分析
 
-| 函式 | 功能 |
-|------|------|
-| `mainFetchData()` | 觸發數據查詢 (支援多縣市並行) |
-| `mainAnalyzeData()` | 觸發分析計算 (含前端 Metadata 補全) |
-| `handleExcludeCommercialToggle()` | 排除商辦開關 |
-| `handlePriceBandRoomFilterClick()` | 總價帶房型篩選 |
-| `handlePriceBandDimensionClick()` | 區域維度切換 (行政區/縣市) |
-| `handlePriceBandCountyFilterChange()` | 區域表格縣市篩選 |
-| `handleBubbleMetricToggle()` | 泡泡圖指標切換 |
-| `handleBubbleChartRefresh()` | 泡泡圖更新 |
-| `handleVelocityRoomFilterClick()` | 銷售速度房型篩選 |
-| `handleParkingFloorFilterChange()` | 車位樓層篩選 |
-| `handleHeatmapMetricToggle()` | 熱力圖指標切換 |
-| `handleSuggestFloorPremium()` | 建議樓層價差 |
-| `analyzeHeatmap()` | 觸發熱力圖分析 |
-| `handleShareClick()` | 分享報告 |
-| `togglePriceGridFullScreen()` | 全螢幕切換 |
-
-### renderers/reports.js - 報告渲染
-
-| 函式 | 對應報告 |
-|------|----------|
-| `renderRankingReport()` | 核心指標與排名 |
-| `renderPriceBandReport()` | 總價帶分析 |
-| `renderPriceBandLocationTableOnly()` | 區域房型交叉表格 (外部調用) |
-| `renderPriceBandLocationTable()` | 區域房型交叉表格 |
-| `renderPriceBandLocationChart()` | 區域房型長條圖 |
-| `renderUnitPriceReport()` | 房屋單價分析 |
-| `renderParkingAnalysisReport()` | 車位單價分析 |
-| `renderSalesVelocityReport()` | 房型去化分析 |
-| `renderPriceGridAnalysis()` | 垂直水平分析 |
-| `renderPriceBandDetails()` | 總價帶明細 Modal |
-| `calculateFloorPremiumSuggestion()` | 樓層價差建議計算 |
-
-### renderers/charts.js - 圖表渲染
-
-| 函式 | 圖表類型 |
-|------|----------|
-| `renderRankingChart()` | Treemap / Bar Chart |
-| `renderPriceBandChart()` | 箱型圖 |
-| `renderSalesVelocityChart()` | 堆疊長條圖 |
-| `renderAreaHeatmap()` | 熱力圖 |
-| `renderParkingRatioChart()` | 圓餅圖 |
-| `renderUnitPriceBubbleChart()` | 單價分佈泡泡圖 (新增) |
+*   **Unknown Floor Support**: 支援顯示 `Unknown` 樓層的數據（灰色標示），解決資料缺漏造成的統計不符問題。
 
 ---
 
