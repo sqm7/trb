@@ -1,0 +1,158 @@
+@import "tailwindcss";
+
+@theme {
+  /* Aura Theme: True Black/Zinc + Violet/Indigo */
+  --color-dark-bg: #09090b;
+  /* zinc-950 */
+  --color-dark-card: #18181b;
+  /* zinc-900 */
+  --color-dark-surface: #27272a;
+  /* zinc-800 */
+
+  --color-primary: #8b5cf6;
+  /* violet-500 */
+  --color-primary-hover: #7c3aed;
+  /* violet-600 */
+  --color-primary-foreground: #ffffff;
+
+  --color-secondary: #27272a;
+  /* zinc-800 */
+  --color-secondary-hover: #3f3f46;
+  /* zinc-700 */
+  --color-secondary-foreground: #fafafa;
+  /* zinc-50 */
+
+  --color-destructive: #ef4444;
+  /* red-500 */
+  --color-destructive-foreground: #ffffff;
+
+  --color-muted: #27272a;
+  /* zinc-800 */
+  --color-muted-foreground: #a1a1aa;
+  /* zinc-400 */
+
+  --color-accent: #27272a;
+  /* zinc-800 */
+  --color-accent-foreground: #fafafa;
+  /* zinc-50 */
+
+  --color-border: #27272a;
+  /* zinc-800 */
+  --color-input: #27272a;
+  /* zinc-800 */
+  --color-ring: #8b5cf6;
+  /* violet-500 */
+
+  --color-text-primary: #fafafa;
+  /* zinc-50 */
+  --color-text-secondary: #a1a1aa;
+  /* zinc-400 */
+
+  /* Chart Colors */
+  --color-chart-1: #8b5cf6;
+  /* violet-500 */
+  --color-chart-2: #06b6d4;
+  /* cyan-500 */
+  --color-chart-3: #10b981;
+  /* emerald-500 */
+  --color-chart-4: #f43f5e;
+  /* rose-500 */
+  --color-chart-5: #f59e0b;
+  /* amber-500 */
+
+  /* Specific Logic Colors */
+  --color-icon-parking: #a5b4fc;
+  /* indigo-300 */
+  --color-icon-special: #facc15;
+  /* yellow-400 */
+
+  /* Animations */
+  --animate-accordion-down: accordion-down 0.2s ease-out;
+  --animate-accordion-up: accordion-up 0.2s ease-out;
+  --animate-spin: spin 1s linear infinite;
+
+  @keyframes accordion-down {
+    from {
+      height: 0;
+    }
+
+    to {
+      height: var(--radix-accordion-content-height);
+    }
+  }
+
+  @keyframes accordion-up {
+    from {
+      height: var(--radix-accordion-content-height);
+    }
+
+    to {
+      height: 0;
+    }
+  }
+
+  @keyframes spin {
+    from {
+      transform: rotate(0deg);
+    }
+
+    to {
+      transform: rotate(360deg);
+    }
+  }
+}
+
+:root {
+  color-scheme: dark;
+}
+
+body {
+  background-color: var(--color-dark-bg);
+  color: var(--color-text-primary);
+  font-family: 'Inter', 'Noto Sans TC', sans-serif;
+  @apply antialiased selection:bg-violet-500/30 selection:text-violet-200;
+}
+
+/* Custom Components & Utilities */
+@layer components {
+  .glass-panel {
+    @apply bg-zinc-900/70 backdrop-blur-md border border-white/5 shadow-xl;
+  }
+
+  .glass-card {
+    @apply bg-zinc-900/50 backdrop-blur-sm border border-white/5 transition-all duration-300 hover:bg-zinc-900/70 hover:border-violet-500/20;
+  }
+
+  .container-custom {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--color-border);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-secondary-hover);
+}
+
+/* Loading Spinner */
+.loader {
+  border: 3px solid var(--color-muted);
+  border-top: 3px solid var(--color-primary);
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  animation: spin 1s linear infinite;
+}
