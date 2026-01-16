@@ -337,6 +337,7 @@ export function SalesVelocityReport({ data }: SalesVelocityReportProps) {
                                                                     <thead className="text-zinc-500 border-b border-white/5">
                                                                         <tr>
                                                                             <th className="py-1 text-left font-normal pl-2">樓層</th>
+                                                                            <th className="py-1 text-left font-normal">戶型</th>
                                                                             <th className="py-1 text-right font-normal">坪數</th>
                                                                             <th className="py-1 text-right font-normal">單價</th>
                                                                             <th className="py-1 text-right font-normal pr-2">總價</th>
@@ -346,6 +347,9 @@ export function SalesVelocityReport({ data }: SalesVelocityReportProps) {
                                                                         {item.transactions.slice(0, 10).map((tx, ti) => (
                                                                             <tr key={ti} className="hover:text-white">
                                                                                 <td className="py-1 pl-2">{tx['樓層'] || tx.floor || '-'}</td>
+                                                                                <td className="py-1 text-left text-zinc-400">
+                                                                                    {tx['戶型'] || '-'}
+                                                                                </td>
                                                                                 <td className="py-1 text-right font-mono">{(tx['房屋面積(坪)'] || tx.houseArea || 0).toFixed(1)}</td>
                                                                                 <td className="py-1 text-right font-mono text-cyan-500">{(tx['房屋單價(萬)'] || tx.unitPrice || 0).toFixed(1)}</td>
                                                                                 <td className="py-1 text-right font-mono pr-2">{formatPrice(tx['交易總價(萬)'] || tx.totalPrice || 0)}</td>
@@ -353,7 +357,7 @@ export function SalesVelocityReport({ data }: SalesVelocityReportProps) {
                                                                         ))}
                                                                         {item.transactions.length > 10 && (
                                                                             <tr>
-                                                                                <td colSpan={4} className="py-2 text-center text-zinc-500 italic">
+                                                                                <td colSpan={5} className="py-2 text-center text-zinc-500 italic">
                                                                                     ... 還有 {item.transactions.length - 10} 筆 ...
                                                                                 </td>
                                                                             </tr>

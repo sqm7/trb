@@ -51,3 +51,46 @@ export function getRoomType(record: any): string {
 
     return '其他';
 }
+
+/**
+ * 從「戶別」欄位中提取簡化的「戶型」代號
+ * 例如: "A2棟14F號" -> "A2", "B1-5F" -> "B1"
+ */
+export function extractUnitType(unitName: string): string {
+    if (!unitName) return '-';
+
+    // 1. 移除 "棟", "號", "樓", "F" 等後綴及其後的內容 (如果有明確分隔)
+    // 常見格式: "A2棟14F號", "A5棟10樓", "B1-5F", "T1-12F"
+
+    let processed = unitName.trim();
+
+    // Case 1: "A2棟..." -> "A2"
+    if (processed.includes('棟')) {
+        processed = processed.split('棟')[0];
+    }
+
+    // Case 2: "XXX號" (通常出現在最後，且前面可能是樓層)
+    // 很多時候 "A2棟14F號" -> "A2" (已經被 Case 1 處理)
+    // 如果沒有棟，例如 "14F-5號" -> 可能是透天或公寓，較難處理，暫不強行截斷
+
+    // Case 3: 含有 "-" (通常是 戶型-樓層，如 B1-5F)
+    // 但要小心 "B1-1" 這種可能是戶型本身
+    // 判斷 "-" 後面是否為樓層 (數字+F 或 純數字)
+    if (processed.includes('-')) {
+        const parts = processed.split('-');
+        // 如果 part[1] 看起來像樓層 (5F, 12, 12F)
+        if (/^\d+F?$/.test(parts[1])) {
+            processed = parts[0];
+        }
+    }
+
+    // Case 4: 含有樓層關鍵字但沒有明確分隔符 (比較危險，需保守)
+    // 例如 "A1戶10樓"
+    if (processed.includes('戶')) {
+        processed = processed.split('戶')[0];
+    }
+
+    // Advanced cleaning: 移除可能殘留的 "F" 如果它在末尾且前面是數字 (通常被 Case 1/3 處理了，但以防萬一)
+
+    return processed;
+}

@@ -171,7 +171,8 @@ serve(async (req) => {
     const countyName = countyCodeToName[countyCode.toUpperCase()] || countyCode;
     let transactionDetails = allRawData.map(record => ({
       ...record,
-      '縣市': countyName
+      '縣市': countyName,
+      '戶型': finalUnitIds.get(record['編號']) || record['戶別'] // 注入後端過濾後的戶型
     }));
     if (roomCategory) {
       // transactionDetails = allRawData.filter(record => getRoomCategoryForPriceBand(record) === roomCategory);
