@@ -8,6 +8,7 @@ import { VelocityTable } from "@/components/tables/VelocityTable"; // Import the
 import { Select } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { getRoomType } from "@/lib/room-utils";
 
 interface SalesVelocityReportProps {
     data: {
@@ -27,11 +28,20 @@ export function SalesVelocityReport({ data }: SalesVelocityReportProps) {
     const [maxArea, setMaxArea] = useState(65);
     const [interval, setInterval] = useState(5);
 
-    // Heatmap detail modal state
-    const [heatmapDetail, setHeatmapDetail] = useState<{
+    // Aggregated Detail State
+    const [aggregatedDetails, setAggregatedDetails] = useState<{
+        projectName: string;
+        count: number;
+        priceRange: { min: number; max: number }; // Total Price
+        unitPriceRange: { min: number; max: number }; // Unit Price
+        transactions: any[];
+        isExpanded: boolean;
+    }[]>([]);
+
+    const [heatmapModalMeta, setHeatmapModalMeta] = useState<{
         roomType: string;
         areaRange: string;
-        transactions: any[];
+        totalCount: number;
     } | null>(null);
 
     // Common Room Selection
@@ -48,6 +58,13 @@ export function SalesVelocityReport({ data }: SalesVelocityReportProps) {
     // Helper for formatting
     const formatPrice = (val: number) => {
         return Math.round(val) + "萬";
+    };
+
+    // Toggle expand/collapse for a project group
+    const toggleProjectExpand = (index: number) => {
+        setAggregatedDetails(prev => prev.map((item, i) =>
+            i === index ? { ...item, isExpanded: !item.isExpanded } : item
+        ));
     };
 
     // Handle heatmap cell click
@@ -68,21 +85,81 @@ export function SalesVelocityReport({ data }: SalesVelocityReportProps) {
 
         const transactionDetails = data.transactionDetails || [];
 
+        // Import the utility function (we need to import it at file level usually, but for this edit we assume it's imported)
+        // Note: I will add the import statement in a separate edit or ensure it's here.
+        // Actually, let's use the helper logic here directly or if I can't add import easily.
+        // Best practice: Use the imported function.
+
         const filtered = transactionDetails.filter((tx: any) => {
-            // Support both data structures (API raw keys vs normalized keys)
-            const txRoom = tx['房型'] || tx.roomType || tx['戶型']; // Some data uses 戶型
-            // Ensure we use '房屋面積(坪)' for area
-            const txArea = parseFloat(tx['房屋面積(坪)'] || tx.houseArea || (tx['建物移轉平方公尺'] ? tx['建物移轉平方公尺'] * 0.3025 : 0));
+            // Use our robust room classification logic
+            const txRoom = getRoomType(tx);
+
+            // Ensure we use '房屋面積(坪)' for area, handling multiple possible keys
+            const txArea = parseFloat(
+                tx['房屋面積(坪)'] ||
+                tx.houseArea ||
+                (tx['建物移轉平方公尺'] ? tx['建物移移轉平方公尺'] * 0.3025 : 0)
+            );
 
             if (!txRoom) return false;
 
-            // Loose matching for room type
+            // Room type match
             const roomMatch = txRoom === roomType;
+
+            // Area match
             const areaMatch = txArea >= minA && txArea < maxA;
 
             return roomMatch && areaMatch;
         });
-        setHeatmapDetail({ roomType, areaRange, transactions: filtered });
+
+        console.log(`[Heatmap Click] Room: ${roomType}, Range: ${minA}-${maxA}, Found: ${filtered.length}`);
+
+        // Aggregate by Project Name
+        const groupedByProject: Record<string, any[]> = {};
+
+        filtered.forEach((tx: any) => {
+            const projectName = tx['建案名稱'] || tx.projectName || '未知建案';
+            if (!groupedByProject[projectName]) {
+                groupedByProject[projectName] = [];
+            }
+            groupedByProject[projectName].push(tx);
+        });
+
+        // Calculate Stats for each project
+        const aggregated = Object.entries(groupedByProject).map(([projectName, txs]) => {
+            const totalPrices = txs.map((t: any) => t['產權總價'] || t['交易總價(萬)'] || t.totalPrice || 0).filter((p: number) => p > 0);
+            const unitPrices = txs.map((t: any) => t['房屋單價'] || t['房屋單價(萬)'] || t.unitPrice || 0).filter((p: number) => p > 0);
+
+            return {
+                projectName,
+                count: txs.length,
+                priceRange: {
+                    min: totalPrices.length > 0 ? Math.min(...totalPrices) : 0,
+                    max: totalPrices.length > 0 ? Math.max(...totalPrices) : 0
+                },
+                unitPriceRange: {
+                    min: unitPrices.length > 0 ? Math.min(...unitPrices) : 0,
+                    max: unitPrices.length > 0 ? Math.max(...unitPrices) : 0
+                },
+                transactions: txs.sort((a: any, b: any) => {
+                    // Sort by unit price desc by default
+                    const pA = a['房屋單價'] || a['房屋單價(萬)'] || a.unitPrice || 0;
+                    const pB = b['房屋單價'] || b['房屋單價(萬)'] || b.unitPrice || 0;
+                    return pB - pA;
+                }),
+                isExpanded: false
+            };
+        });
+
+        // Sort projects by Unit Price High to Low (using max unit price)
+        aggregated.sort((a, b) => b.unitPriceRange.max - a.unitPriceRange.max);
+
+        setAggregatedDetails(aggregated);
+        setHeatmapModalMeta({
+            roomType,
+            areaRange,
+            totalCount: filtered.length
+        });
     };
 
     const availableRooms = ['套房', '1房', '2房', '3房', '4房', '毛胚', '店舖', '辦公/事務所'];
@@ -187,46 +264,115 @@ export function SalesVelocityReport({ data }: SalesVelocityReportProps) {
                     onDataPointClick={handleHeatmapClick}
                 />
 
-                {/* Heatmap Detail Modal */}
-                {heatmapDetail && (
+                {/* Aggregated Heatmap Detail Modal */}
+                {heatmapModalMeta && (
                     <div className="mt-4 p-4 bg-zinc-900/50 border border-white/10 rounded-lg">
                         <div className="flex justify-between items-center mb-3">
-                            <h4 className="text-white font-medium">
-                                {heatmapDetail.roomType} - {heatmapDetail.areaRange} 坪
-                                <span className="text-zinc-400 text-sm ml-2">(共 {heatmapDetail.transactions.length} 筆)</span>
-                            </h4>
+                            <div>
+                                <h4 className="text-white font-medium flex items-center gap-2">
+                                    <span className="text-cyan-400">{heatmapModalMeta.roomType}</span>
+                                    <span className="text-zinc-500">|</span>
+                                    <span>{heatmapModalMeta.areaRange} 坪</span>
+                                </h4>
+                                <p className="text-zinc-400 text-xs mt-1">
+                                    共找到 {aggregatedDetails.length} 個建案，合計 {heatmapModalMeta.totalCount} 筆交易
+                                </p>
+                            </div>
                             <button
-                                onClick={() => setHeatmapDetail(null)}
-                                className="text-zinc-400 hover:text-white text-sm"
+                                onClick={() => setHeatmapModalMeta(null)}
+                                className="text-zinc-400 hover:text-white text-sm bg-zinc-800/50 px-3 py-1 rounded-full hover:bg-zinc-700 transition-colors"
                             >
                                 ✕ 關閉
                             </button>
                         </div>
-                        {heatmapDetail.transactions.length > 0 ? (
-                            <div className="max-h-60 overflow-y-auto">
-                                <table className="w-full text-xs">
-                                    <thead className="bg-zinc-800 text-zinc-400 sticky top-0">
+
+                        {aggregatedDetails.length > 0 ? (
+                            <div className="max-h-[500px] overflow-y-auto pr-1 custom-scrollbar">
+                                <table className="w-full text-xs border-collapse">
+                                    <thead className="bg-zinc-800 text-zinc-300 sticky top-0 z-10 shadow-sm">
                                         <tr>
-                                            <th className="p-2 text-left">建案</th>
-                                            <th className="p-2 text-right">坪數</th>
-                                            <th className="p-2 text-right">單價</th>
-                                            <th className="p-2 text-right">總價</th>
+                                            <th className="p-3 text-left w-[30%]">建案名稱 (戶數)</th>
+                                            <th className="p-3 text-center w-[35%]">成交單價範圍 (萬/坪)</th>
+                                            <th className="p-3 text-center w-[35%]">成交總價範圍 (萬)</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-white/5">
-                                        {heatmapDetail.transactions.slice(0, 50).map((tx: any, i: number) => (
-                                            <tr key={i} className="hover:bg-zinc-800/50">
-                                                <td className="p-2">{tx.建案名稱 || tx.projectName || '-'}</td>
-                                                <td className="p-2 text-right font-mono">{(tx.房屋面積 || tx['房屋面積(坪)'] || tx.houseArea || 0).toFixed(1)}</td>
-                                                <td className="p-2 text-right font-mono text-cyan-400">{(tx.房屋單價 || tx['房屋單價(萬)'] || tx.unitPrice || 0).toFixed(1)}</td>
-                                                <td className="p-2 text-right font-mono">{formatPrice(tx.產權總價 || tx['交易總價(萬)'] || tx.totalPrice || 0)}</td>
-                                            </tr>
+                                        {aggregatedDetails.map((item, idx) => (
+                                            <React.Fragment key={idx}>
+                                                {/* Summary Row */}
+                                                <tr
+                                                    className={cn(
+                                                        "group transition-colors cursor-pointer select-none",
+                                                        item.isExpanded ? "bg-zinc-800/60" : "hover:bg-zinc-800/30"
+                                                    )}
+                                                    onClick={() => toggleProjectExpand(idx)}
+                                                >
+                                                    <td className="p-3 font-medium text-white flex items-center gap-2">
+                                                        <span className={cn("text-zinc-500 transition-transform duration-200", item.isExpanded ? "rotate-90" : "")}>▶</span>
+                                                        {item.projectName}
+                                                        <span className="px-1.5 py-0.5 rounded-full bg-zinc-700 text-zinc-300 text-[10px] min-w-[24px] text-center">
+                                                            {item.count}
+                                                        </span>
+                                                    </td>
+                                                    <td className="p-3 text-center font-mono text-cyan-400">
+                                                        {item.unitPriceRange.min === item.unitPriceRange.max
+                                                            ? item.unitPriceRange.min.toFixed(1)
+                                                            : `${item.unitPriceRange.min.toFixed(1)} ~ ${item.unitPriceRange.max.toFixed(1)}`
+                                                        }
+                                                    </td>
+                                                    <td className="p-3 text-center font-mono text-zinc-300">
+                                                        {item.priceRange.min === item.priceRange.max
+                                                            ? formatPrice(item.priceRange.min)
+                                                            : `${formatPrice(item.priceRange.min)} ~ ${formatPrice(item.priceRange.max)}`
+                                                        }
+                                                    </td>
+                                                </tr>
+
+                                                {/* Expanded Details Row */}
+                                                {item.isExpanded && (
+                                                    <tr>
+                                                        <td colSpan={3} className="p-0 bg-zinc-950/30 inset-shadow">
+                                                            <div className="p-2 pl-8 border-l-2 border-zinc-700/50 ml-4 my-1">
+                                                                <table className="w-full text-xs bg-transparent opacity-80">
+                                                                    <thead className="text-zinc-500 border-b border-white/5">
+                                                                        <tr>
+                                                                            <th className="py-1 text-left font-normal pl-2">樓層</th>
+                                                                            <th className="py-1 text-right font-normal">坪數</th>
+                                                                            <th className="py-1 text-right font-normal">單價</th>
+                                                                            <th className="py-1 text-right font-normal pr-2">總價</th>
+                                                                        </tr>
+                                                                    </thead>
+                                                                    <tbody>
+                                                                        {item.transactions.slice(0, 10).map((tx, ti) => (
+                                                                            <tr key={ti} className="hover:text-white">
+                                                                                <td className="py-1 pl-2">{tx['樓層'] || tx.floor || '-'}</td>
+                                                                                <td className="py-1 text-right font-mono">{(tx['房屋面積(坪)'] || tx.houseArea || 0).toFixed(1)}</td>
+                                                                                <td className="py-1 text-right font-mono text-cyan-500">{(tx['房屋單價(萬)'] || tx.unitPrice || 0).toFixed(1)}</td>
+                                                                                <td className="py-1 text-right font-mono pr-2">{formatPrice(tx['交易總價(萬)'] || tx.totalPrice || 0)}</td>
+                                                                            </tr>
+                                                                        ))}
+                                                                        {item.transactions.length > 10 && (
+                                                                            <tr>
+                                                                                <td colSpan={4} className="py-2 text-center text-zinc-500 italic">
+                                                                                    ... 還有 {item.transactions.length - 10} 筆 ...
+                                                                                </td>
+                                                                            </tr>
+                                                                        )}
+                                                                    </tbody>
+                                                                </table>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                )}
+                                            </React.Fragment>
                                         ))}
                                     </tbody>
                                 </table>
                             </div>
                         ) : (
-                            <p className="text-zinc-500 text-center py-4">無詳細資料</p>
+                            <p className="text-zinc-500 text-center py-8 bg-zinc-900/30 rounded border border-dashed border-zinc-800">
+                                無詳細資料
+                            </p>
                         )}
                     </div>
                 )}

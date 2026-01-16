@@ -183,4 +183,15 @@ refactor: 重構
 - [x] Move `SPEC_NEW.md` to trash (redundant) -> moved to `SPEC_LEGACY.md`
 - [x] Extract Legacy sections from `ARCHITECTURE.md` to `docs/legacy/ARCHITECTURE_LEGACY.md`
 - [x] Clean up `ARCHITECTURE.md` to focus on Next.js
-- [x] Add cross-reference links in new docs pointing to legacy docs
+### [Current Task] Fix Heatmap Interaction Bug
+- [x] Analyze legacy filtering logic in `charts.js`
+- [x] Port `getRoomCategory` logic to new utility `src/lib/room-utils.ts`
+- [x] Update `SalesVelocityReport.tsx` to use robust filtering
+- [x] Verify click interaction logic
+
+### [Current Task] Restore Heatmap Detail Aggregation
+- [x] Implement data aggregation by `建案名稱` in `SalesVelocityReport.tsx`
+- [x] Calculate min/max/median statistics for each project
+- [x] Render aggregated summary table in modal
+- [x] Add expand/collapse functionality for details
+
