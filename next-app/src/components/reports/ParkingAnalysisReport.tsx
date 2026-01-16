@@ -65,7 +65,7 @@ export function ParkingAnalysisReport({ data }: ParkingAnalysisReportProps) {
 
     const { parkingRatio, avgPriceByType, rampPlanePriceByFloor } = data.parkingAnalysis;
 
-    const validFloors = ['B1', 'B2', 'B3', 'B4', 'B5_below'];
+    const validFloors = ['B1', 'B2', 'B3', 'B4', 'B5_below', 'Unknown'];
     const filteredFloorData = rampPlanePriceByFloor?.filter(f => validFloors.includes(f.floor) && f.count > 0) || [];
 
     // Compute dynamic stats based on selected floors
@@ -95,6 +95,7 @@ export function ParkingAnalysisReport({ data }: ParkingAnalysisReportProps) {
         'B3': '#6366f1',
         'B4': '#8b5cf6',
         'B5_below': '#a855f7',
+        'Unknown': '#71717a', // Zinc-500 for neutral/unknown
     };
 
     return (
