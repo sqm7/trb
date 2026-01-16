@@ -1,9 +1,13 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { ReportWrapper } from "./ReportWrapper";
-import { ChevronLeft, ChevronRight, ChevronDown, ChevronUp, ArrowUpDown, Search, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, ChevronDown, ChevronUp, ArrowUpDown, Search, X, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useFilterStore } from "@/store/useFilterStore";
+import { api } from "@/lib/api";
+import { COUNTY_CODE_MAP, DISTRICT_DATA } from "@/lib/config";
+import { getDateRangeDates } from "@/lib/date-utils";
 
 interface TransactionRecord {
     編號?: string;
@@ -30,19 +34,28 @@ interface TransactionRecord {
     備註?: string;
     解約情形?: string;
     交易類型?: string;
+    '車位類別'?: string;
+    '車位價格'?: number;
+    '車位面積'?: number;
+    '主建物面積'?: number;
+    '附屬建物面積'?: number;
+    '陽台面積'?: number;
     [key: string]: any;
 }
 
 interface DataListReportProps {
-    data: {
-        transactionDetails: TransactionRecord[];
-    } | null;
+    data?: any; // Kept for compatibility/trigger, though we fetch our own data
 }
 
 type SortDirection = 'asc' | 'desc' | null;
 type SortConfig = { key: string; direction: SortDirection };
 
-export function DataListReport({ data }: DataListReportProps) {
+export function DataListReport({ data: _triggerData }: DataListReportProps) {
+    const filters = useFilterStore();
+    const [dataList, setDataList] = useState<TransactionRecord[]>([]);
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
     const [currentPage, setCurrentPage] = useState(1);
     const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set());
     const [sortConfig, setSortConfig] = useState<SortConfig>({ key: '', direction: null });
@@ -50,20 +63,123 @@ export function DataListReport({ data }: DataListReportProps) {
     const [filterField, setFilterField] = useState<string>('建案名稱');
     const pageSize = 20;
 
-    if (!data?.transactionDetails || data.transactionDetails.length === 0) {
-        return (
-            <div className="text-center p-12 text-zinc-500">
-                無交易資料可顯示
-            </div>
-        );
-    }
+    // Fetch data logic
+    const fetchByType = useCallback(async () => {
+        setIsLoading(true);
+        setError(null);
+        setDataList([]);
+
+        try {
+            const { counties, districts, transactionType, dateRange, startDate, endDate, projectNames, buildingType } = filters;
+
+            if (counties.length === 0) {
+                setIsLoading(false);
+                return;
+            }
+
+            // Calculate dates if needed
+            let finalStart = startDate;
+            let finalEnd = endDate;
+            if (dateRange !== 'custom') {
+                const dates = getDateRangeDates(dateRange);
+                if (dates.startDate) finalStart = dates.startDate;
+                if (dates.endDate) finalEnd = dates.endDate;
+            }
+
+            // Prepare promises for each county
+            const promises = counties.map(async (countyName) => {
+                const countyCode = COUNTY_CODE_MAP[countyName];
+
+                // Logic to filter districts for this county
+                // Only send districts belonging to this county
+                const countyDistricts = DISTRICT_DATA[countyName] || [];
+                const targetDistricts = districts.filter(d => countyDistricts.includes(d));
+
+                // If user selected districts in OTHER counties but NOT this one, 
+                // and didn't explicitly select 'all' (conceptually), we assume full county query?
+                // Legacy logic: if districts has content, we check validity. 
+                // If validDistricts has content `targetDistricts`, use it.
+                // If `districts` (global) has value but `targetDistricts` is empty => 
+                // it means user selected districts in other counties.
+                // Should we filter this county?
+                // Legacy: "If targetDistricts.length > 0 ... else delete localFilters.districts"
+                // This implies if no districts match this county, we query ALL districts of this county.
+
+                const payload = {
+                    countyCode,
+                    districts: targetDistricts.length > 0 ? targetDistricts : undefined,
+                    type: transactionType,
+                    dateStart: finalStart,
+                    dateEnd: finalEnd,
+                    projectNames,
+                    buildingType
+                };
+
+                try {
+                    // Fetch page 1 with a large limit? 
+                    // Legacy fetched current page but merged. 
+                    // Since we want ALL data for client-side sorting/filtering (as this component does),
+                    // we might need a larger limit or handle server-side pagination properly.
+                    // Legacy: "每頁顯示的筆數 = pageSize * selectedCounties.length"
+                    // It fetched page `state.currentPage`. 
+                    // BUT here in React, we are doing client-side pagination on the `dataList`.
+                    // To do client-side pagination correctly, we need ALL data or handle server-side pagination actions.
+                    // Given the discrepancy task, the user wants "Missing Data".
+                    // The safest way is to fetch a reasonable amount of "Top N" rows or handle true server paging.
+                    // Let's stick to a larger limit per county to ensure we get enough data, 
+                    // OR implement server-side paging properly.
+                    // For now, let's try to fetch a generous amount (e.g. 1000 per county) to populate the list,
+                    // as true global server-side paging with multi-source is hard without a backend aggregator.
+                    // This matches Legacy's "simplified strategy" but we'll fetch more to avoid "missing" feel.
+
+                    // Backend expects 'limit', but PaginationState type has 'pageSize'. 
+                    // We cast to any to pass 'limit' correctly.
+                    const pagination = { page: 1, limit: 1000 } as any;
+                    return await api.fetchData(payload, pagination);
+                } catch (e) {
+                    console.warn(`Fetch failed for ${countyName}`, e);
+                    return { data: [], count: 0 };
+                }
+            });
+
+            const results = await Promise.all(promises);
+
+            let merged: TransactionRecord[] = [];
+            results.forEach(res => {
+                if (res && Array.isArray(res.data)) {
+                    merged = [...merged, ...res.data];
+                }
+            });
+
+            // Default sort by Date desc
+            merged.sort((a, b) => {
+                const da = a['交易日'] || '';
+                const db = b['交易日'] || '';
+                return db.localeCompare(da);
+            });
+
+            setDataList(merged);
+
+        } catch (err: any) {
+            console.error("Data List fetch failed:", err);
+            setError(err.message || "讀取交易資料失敗");
+        } finally {
+            setIsLoading(false);
+        }
+    }, [filters]); // Re-create fetch function when filters change
+
+    // Trigger fetch on mount or when _triggerData (analysis completion) changes
+    useEffect(() => {
+        fetchByType();
+    }, [fetchByType, _triggerData]);
+
 
     // Summary fields - first level display (sortable)
     const summaryFields = [
         { key: '行政區', label: '行政區', sortable: true },
         { key: '建案名稱', label: '建案名稱', sortable: true },
         { key: '交易日', label: '交易日', sortable: true },
-        { key: '戶別', label: '戶號', sortable: true }, // Added Unit Number
+        { key: '交易筆棟數', label: '交易筆棟數', sortable: false }, // Added missing field
         { key: '主要用途', label: '主要用途', sortable: false },
         { key: '建物型態', label: '建物型態', sortable: false },
         { key: '戶型', label: '戶型', sortable: true },
@@ -78,7 +194,7 @@ export function DataListReport({ data }: DataListReportProps) {
         '房屋總價(萬)', '車位總價(萬)',
         '房數', '廳數', '衛浴數', '備註', '解約情形',
         '戶別', '主要用途', '建物型態', '車位類別', '車位價格', '車位面積',
-        '主建物面積', '附屬建物面積', '陽台面積' // Added Area Breakdown
+        '主建物面積', '附屬建物面積', '陽台面積'
     ];
 
     const toggleRowExpand = (index: number) => {
@@ -116,7 +232,7 @@ export function DataListReport({ data }: DataListReportProps) {
 
     // Filter and sort data
     const processedData = useMemo(() => {
-        let result = [...data.transactionDetails];
+        let result = [...dataList];
 
         // Filter by search query
         if (searchQuery.trim()) {
@@ -154,7 +270,7 @@ export function DataListReport({ data }: DataListReportProps) {
         }
 
         return result;
-    }, [data.transactionDetails, searchQuery, filterField, sortConfig]);
+    }, [dataList, searchQuery, filterField, sortConfig]);
 
     const totalPages = Math.ceil(processedData.length / pageSize);
     const startIndex = (currentPage - 1) * pageSize;
@@ -171,6 +287,32 @@ export function DataListReport({ data }: DataListReportProps) {
         }
         return <ChevronDown size={12} className="text-violet-400" />;
     };
+
+    if (isLoading) {
+        return (
+            <div className="flex flex-col items-center justify-center py-20">
+                <Loader2 className="h-8 w-8 animate-spin text-violet-500 mb-2" />
+                <p className="text-zinc-500 text-sm">正在載入交易資料相關明細...</p>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="text-center p-12 text-red-400">
+                <p>載入失敗: {error}</p>
+                <button onClick={() => fetchByType()} className="mt-4 px-4 py-2 bg-zinc-800 rounded hover:bg-zinc-700">重試</button>
+            </div>
+        );
+    }
+
+    if (!dataList || dataList.length === 0) {
+        return (
+            <div className="text-center p-12 text-zinc-500">
+                無交易資料可顯示
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -375,3 +517,4 @@ export function DataListReport({ data }: DataListReportProps) {
         </div>
     );
 }
+

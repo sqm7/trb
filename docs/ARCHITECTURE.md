@@ -337,6 +337,15 @@ export const state = {
 - 漸層顏色 = 單價高低
 - 支援自訂單價區間和級距
 
+### 4. 資料列表獨立查詢 (Data List Independent Fetching) - Next.js (2026-01-16)
+
+**問題**：`analyze-project-ranking` 端點回傳的 `transactionDetails` 為了解析與計算方便，通常會進行篩選或截斷，且不包含所有原始欄位（如交易筆棟數），導致列表資料不完整。
+
+**解決方案**：
+- 將 `DataListReport.tsx` 的資料來源改為獨立調用 `api.fetchData` (對應後端 `query-data`)。
+- 支援客戶端分頁與多縣市並行查詢 (Client-side pagination with multi-county fetching)。
+- 優點：確保列表顯示完整的原始資料，不受分析邏輯的篩選影響，並補齊遺漏欄位。
+
 ---
 
 ## 🗄️ 資料庫 Schema

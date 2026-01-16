@@ -161,3 +161,7 @@ docs: 文件更新
 style: 格式調整
 refactor: 重構
 ```
+### [Current Task] Fix Data List Discrepancy
+- [x] Implement independent data fetching in `DataListReport.tsx` using `api.fetchData`
+- [x] Add missing columns (`交易筆棟數`) and tooltip logic for `戶型`
+- [ ] Verify data loading and pagination
