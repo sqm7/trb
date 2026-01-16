@@ -129,7 +129,7 @@ function calculateStats(transactions: any[], finalUnitIds: Map<string, string>) 
     const count = transactions.length;
     if (count === 0) {
         return {
-            count: 0, avgPrice: { arithmetic: 0, weighted: 0 }, minPrice: 0, maxPrice: 0, medianPrice: 0, q1Price: 0, q3Price: 0,
+            count: 0, avgPrice: 0, weightedAvgPrice: 0, minPrice: 0, maxPrice: 0, medianPrice: 0, q1Price: 0, q3Price: 0,
             minPriceProject: null, maxPriceProject: null, minPriceUnit: null, maxPriceUnit: null, minPriceFloor: null, maxPriceFloor: null
         };
     }
@@ -152,10 +152,8 @@ function calculateStats(transactions: any[], finalUnitIds: Map<string, string>) 
 
     return {
         count,
-        avgPrice: {
-            arithmetic: safeDivide(totalUnitPriceSum, prices.length),
-            weighted: safeDivide(totalHousePrice, totalHouseArea),
-        },
+        avgPrice: safeDivide(totalUnitPriceSum, prices.length),
+        weightedAvgPrice: safeDivide(totalHousePrice, totalHouseArea),
         minPrice: minPriceRecord['房屋單價(萬)'],
         maxPrice: maxPriceRecord['房屋單價(萬)'],
         medianPrice: calculateQuantile(sortedPrices, 0.5),
@@ -328,10 +326,10 @@ export function calculateUnitPriceAnalysis(mainData: any[], finalUnitIds: Map<st
                 projectName,
                 district: group.district || '',
                 county: group.county || '',
-                residentialAvg,
-                shopAvg,
+                residentialAvg: residentialAvg.weighted, // Return number directly
+                shopAvg: shopAvg.weighted,               // Return number directly
                 shopMultiple: parseFloat(safeDivide(shopAvg.weighted, residentialAvg.weighted).toFixed(2)),
-                officeAvg,
+                officeAvg: officeAvg.weighted,           // Return number directly
                 officeMultiple: parseFloat(safeDivide(officeAvg.weighted, residentialAvg.weighted).toFixed(2)),
             };
         }
