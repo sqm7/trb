@@ -77,16 +77,76 @@ export function PriceBandReport({ data }: PriceBandReportProps) {
     // All available room types in data (for filters)
     const allAvailableTypes = useMemo(() => Array.from(new Set(details.map(d => d.roomType))), [details]);
 
-    // Filter main table data
+    // Filter main table data for Chart (keep independent or synced?)
+    // Chart usually renders what is visible. If we merge bathrooms, Chart might want merged data too?
+    // Let's keep filteredData as BASE for now, and tableData for Table.
     const filteredData = useMemo(() => {
         return details.filter(d => selectedRoomTypes.includes(d.roomType));
     }, [details, selectedRoomTypes]);
+
+    const [mergeBathrooms, setMergeBathrooms] = useState(true);
 
     const toggleRoomType = (type: string) => {
         setSelectedRoomTypes(prev =>
             prev.includes(type) ? prev.filter(t => t !== type) : [...prev, type]
         );
     };
+
+    // Calculate detailed table data, optionally merging bathrooms
+    const tableData = useMemo(() => {
+        const baseData = details.filter(d => selectedRoomTypes.includes(d.roomType));
+
+        if (!mergeBathrooms) {
+            return baseData;
+        }
+
+        // Group by roomType
+        const grouped = new Map<string, PriceBandItem>();
+
+        baseData.forEach(item => {
+            const key = item.roomType;
+            if (!grouped.has(key)) {
+                // Clone basic structure, but reset specific stats
+                grouped.set(key, {
+                    ...item,
+                    bathrooms: null, // Indicate merged
+                    projectNames: item.projectNames ? [...item.projectNames] : [],
+                    count: 0,
+                    avgPrice: 0 // Will recalculate
+                });
+            }
+
+            const group = grouped.get(key)!;
+            const currentTotalVal = group.avgPrice * group.count;
+            const itemTotalVal = item.avgPrice * item.count;
+
+            const newCount = group.count + item.count;
+            const newTotalVal = currentTotalVal + itemTotalVal;
+
+            group.count = newCount;
+            group.avgPrice = newCount > 0 ? newTotalVal / newCount : 0;
+            group.minPrice = Math.min(group.minPrice, item.minPrice);
+            group.maxPrice = Math.max(group.maxPrice, item.maxPrice);
+
+            // Weighted Average of Medians/Quartiles (Approximate)
+            // This is a trade-off for client-side aggregation without raw data
+            const weightA = group.count - item.count;
+            const weightB = item.count;
+            group.medianPrice = (group.medianPrice * weightA + item.medianPrice * weightB) / newCount;
+            group.q1Price = (group.q1Price * weightA + item.q1Price * weightB) / newCount;
+            group.q3Price = (group.q3Price * weightA + item.q3Price * weightB) / newCount;
+
+            if (item.projectNames) {
+                const newSet = new Set([...(group.projectNames || []), ...item.projectNames]);
+                group.projectNames = Array.from(newSet);
+            }
+        });
+
+        return Array.from(grouped.values()).sort((a, b) => {
+            return defaultTypes.indexOf(a.roomType) - defaultTypes.indexOf(b.roomType);
+        });
+
+    }, [details, selectedRoomTypes, mergeBathrooms, defaultTypes]);
 
     // Prepare data for Location Cross Table & Chart
     const crossTableData = useMemo(() => {
@@ -116,8 +176,6 @@ export function PriceBandReport({ data }: PriceBandReportProps) {
                 }
                 const county = tx['縣市'] || '未知';
 
-                // Only process if this room type is relevant (exists in our stats)
-                // Actually we should aggregate everything, then filter by selectedRoomTypes
                 if (!tempTable[room]) tempTable[room] = {};
                 tempTable[room][county] = (tempTable[room][county] || 0) + 1;
                 counties.add(county);
@@ -168,7 +226,6 @@ export function PriceBandReport({ data }: PriceBandReportProps) {
                     }
 
                     let room = typeof rawRoom === 'string' ? rawRoom.replace(/\s+/g, '') : rawRoom;
-                    // Normalize number-only room types (e.g. "3" -> "3房")
                     if (typeof room === 'number' || (typeof room === 'string' && /^\d+$/.test(room))) {
                         room = `${room}房`;
                     }
@@ -183,8 +240,7 @@ export function PriceBandReport({ data }: PriceBandReportProps) {
                     districts.add(district);
                 });
             } else if (locationCrossTable) {
-                // Legacy / fallback if no raw details (cannot filter by county easily without logic)
-                // Assuming locationCrossTable contains all loaded districts
+                // Legacy / fallback if no raw details
                 const relevantLocations = new Set<string>();
                 selectedRoomTypes.forEach(roomType => {
                     const locs = locationCrossTable[roomType];
@@ -226,39 +282,78 @@ export function PriceBandReport({ data }: PriceBandReportProps) {
             return { locations: sortedDistricts, rows, locationTotals, grandTotal };
         }
 
-
-
         return null; // No data available
     }, [locationCrossTable, transactionDetails, selectedRoomTypes, locationDimension, activeViewCounty]);
+
+    const [expandedRoomTypes, setExpandedRoomTypes] = useState<Set<string>>(new Set());
+
+    const toggleExpand = (roomType: string) => {
+        setExpandedRoomTypes(prev => {
+            const next = new Set(prev);
+            if (next.has(roomType)) {
+                next.delete(roomType);
+            } else {
+                next.add(roomType);
+            }
+            return next;
+        });
+    };
+
+    // Helper to get sub-items for a merged row
+    const getSubItems = (roomType: string) => {
+        return details.filter(d => d.roomType === roomType).sort((a, b) => {
+            // Sort by bathrooms amount?
+            const bathsA = Number(a.bathrooms) || 0;
+            const bathsB = Number(b.bathrooms) || 0;
+            return bathsA - bathsB;
+        });
+    };
 
     return (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
 
             {/* 1. Filter Toggles */}
-            <div className="flex flex-wrap gap-2">
-                {allAvailableTypes.map(type => (
+            <div className="flex flex-wrap items-center justify-between gap-4">
+                <div className="flex flex-wrap gap-2">
+                    {allAvailableTypes.map(type => (
+                        <button
+                            key={type}
+                            onClick={() => toggleRoomType(type)}
+                            className={cn(
+                                "px-3 py-1 rounded-full text-xs font-medium transition-colors border",
+                                selectedRoomTypes.includes(type)
+                                    ? "bg-violet-500/20 border-violet-500 text-violet-200"
+                                    : "bg-zinc-800/50 border-zinc-700 text-zinc-500 hover:bg-zinc-800"
+                            )}
+                        >
+                            {type}
+                        </button>
+                    ))}
+                </div>
+
+                <div className="flex items-center gap-2 bg-zinc-800/50 p-1 rounded-lg border border-white/5">
+                    <span className="text-xs text-zinc-400 pl-2">表格顯示:</span>
                     <button
-                        key={type}
-                        onClick={() => toggleRoomType(type)}
+                        onClick={() => setMergeBathrooms(!mergeBathrooms)}
                         className={cn(
-                            "px-3 py-1 rounded-full text-xs font-medium transition-colors border",
-                            selectedRoomTypes.includes(type)
-                                ? "bg-violet-500/20 border-violet-500 text-violet-200"
-                                : "bg-zinc-800/50 border-zinc-700 text-zinc-500 hover:bg-zinc-800"
+                            "px-3 py-1 text-xs font-medium rounded-md transition-all",
+                            mergeBathrooms
+                                ? "bg-violet-500 text-white shadow-sm"
+                                : "text-zinc-400 hover:text-white hover:bg-zinc-700"
                         )}
                     >
-                        {type}
+                        {mergeBathrooms ? "依房型合併" : "顯示衛浴細節"}
                     </button>
-                ))}
+                </div>
             </div>
 
             {/* 2. Chart */}
             <ReportWrapper title="各房型總價帶分佈箱型圖" description="顯示各房型總價的中位數與四分位距">
-                <PriceBandChart data={filteredData} />
+                <PriceBandChart data={tableData} />
             </ReportWrapper>
 
             {/* 3. Detailed Table */}
-            <ReportWrapper title="總價帶詳細數據" description="各房型詳細價格統計">
+            <ReportWrapper title="總價帶詳細數據" description={mergeBathrooms ? "各房型合併統計 (點擊「全部」可展開細節)" : "各房型詳細價格統計"}>
                 <div className="overflow-x-auto">
                     <table className="w-full text-sm text-left">
                         <thead className="bg-zinc-900/80 text-zinc-400 uppercase text-xs font-semibold">
@@ -276,31 +371,77 @@ export function PriceBandReport({ data }: PriceBandReportProps) {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-white/5">
-                            {filteredData.map((item, idx) => (
-                                <tr key={idx} className="hover:bg-zinc-800/50 transition-colors">
-                                    <td className="px-4 py-3 font-medium text-white">{item.roomType}</td>
-                                    <td className="px-4 py-3 text-zinc-400">{item.bathrooms ?? '-'}</td>
-                                    <td className="px-4 py-3">
-                                        {item.projectNames && item.projectNames.length > 0 ? (
-                                            <button
-                                                onClick={() => openProjectModal(item.roomType, item.bathrooms, item.projectNames || [])}
-                                                className="px-2 py-1 text-xs font-medium rounded-full bg-violet-500/20 border border-violet-500/50 text-violet-300 hover:bg-violet-500/30 transition-colors cursor-pointer"
-                                            >
-                                                {item.projectNames.length} 個建案
-                                            </button>
-                                        ) : (
-                                            <span className="text-zinc-500">-</span>
-                                        )}
-                                    </td>
-                                    <td className="px-4 py-3 text-zinc-300">{item.count.toLocaleString()}</td>
-                                    <td className="px-4 py-3 font-mono text-zinc-300">{item.avgPrice.toLocaleString(undefined, { maximumFractionDigits: 0 })}</td>
-                                    <td className="px-4 py-3 font-mono text-zinc-500">{item.minPrice.toLocaleString()}</td>
-                                    <td className="px-4 py-3 font-mono text-zinc-500">{item.q1Price.toLocaleString()}</td>
-                                    <td className="px-4 py-3 font-mono text-violet-400 font-bold">{item.medianPrice.toLocaleString()}</td>
-                                    <td className="px-4 py-3 font-mono text-zinc-500">{item.q3Price.toLocaleString()}</td>
-                                    <td className="px-4 py-3 font-mono text-zinc-500">{item.maxPrice.toLocaleString()}</td>
-                                </tr>
-                            ))}
+                            {tableData.map((item, idx) => {
+                                const isMergedRow = mergeBathrooms && item.bathrooms === null;
+                                const isExpanded = expandedRoomTypes.has(item.roomType);
+                                const subItems = (isMergedRow && isExpanded) ? getSubItems(item.roomType) : [];
+
+                                return (
+                                    <React.Fragment key={idx}>
+                                        <tr className={cn("hover:bg-zinc-800/50 transition-colors", isExpanded && "bg-zinc-800/30")}>
+                                            <td className="px-4 py-3 font-medium text-white">{item.roomType}</td>
+                                            <td className="px-4 py-3 text-zinc-400">
+                                                {isMergedRow ? (
+                                                    <button
+                                                        onClick={() => toggleExpand(item.roomType)}
+                                                        className="flex items-center gap-1 text-xs px-2 py-0.5 rounded bg-zinc-700/50 hover:bg-zinc-600 hover:text-white transition-colors cursor-pointer"
+                                                    >
+                                                        <span>全部</span>
+                                                        <span className={cn("transform transition-transform text-[10px]", isExpanded ? "rotate-180" : "")}>
+                                                            ▼
+                                                        </span>
+                                                    </button>
+                                                ) : (
+                                                    item.bathrooms ?? '-'
+                                                )}
+                                            </td>
+                                            <td className="px-4 py-3">
+                                                {item.projectNames && item.projectNames.length > 0 ? (
+                                                    <button
+                                                        onClick={() => openProjectModal(item.roomType, item.bathrooms, item.projectNames || [])}
+                                                        className="px-2 py-1 text-xs font-medium rounded-full bg-violet-500/20 border border-violet-500/50 text-violet-300 hover:bg-violet-500/30 transition-colors cursor-pointer"
+                                                    >
+                                                        {item.projectNames.length} 個建案
+                                                    </button>
+                                                ) : (
+                                                    <span className="text-zinc-500">-</span>
+                                                )}
+                                            </td>
+                                            <td className="px-4 py-3 text-zinc-300">{item.count.toLocaleString()}</td>
+                                            <td className="px-4 py-3 font-mono text-zinc-300">{item.avgPrice.toLocaleString(undefined, { maximumFractionDigits: 0 })}</td>
+                                            <td className="px-4 py-3 font-mono text-zinc-500">{item.minPrice.toLocaleString()}</td>
+                                            <td className="px-4 py-3 font-mono text-zinc-500">{item.q1Price.toLocaleString()}</td>
+                                            <td className="px-4 py-3 font-mono text-violet-400 font-bold">{item.medianPrice.toLocaleString()}</td>
+                                            <td className="px-4 py-3 font-mono text-zinc-500">{item.q3Price.toLocaleString()}</td>
+                                            <td className="px-4 py-3 font-mono text-zinc-500">{item.maxPrice.toLocaleString()}</td>
+                                        </tr>
+                                        {/* Render Sub-rows if expanded */}
+                                        {subItems.map((sub, sIdx) => (
+                                            <tr key={`${idx}-sub-${sIdx}`} className="bg-zinc-900/50 hover:bg-zinc-900 border-l-2 border-l-violet-500/30">
+                                                <td className="px-4 py-2 font-medium text-zinc-500 text-xs pl-8">↳ {sub.roomType}</td>
+                                                <td className="px-4 py-2 text-zinc-400 text-xs">{sub.bathrooms} 衛</td>
+                                                <td className="px-4 py-2">
+                                                    {sub.projectNames && sub.projectNames.length > 0 ? (
+                                                        <button
+                                                            onClick={() => openProjectModal(sub.roomType, sub.bathrooms, sub.projectNames || [])}
+                                                            className="text-xs text-zinc-500 hover:text-zinc-300 underline decoration-zinc-700"
+                                                        >
+                                                            {sub.projectNames.length} 建案
+                                                        </button>
+                                                    ) : '-'}
+                                                </td>
+                                                <td className="px-4 py-2 text-zinc-500 text-xs">{sub.count.toLocaleString()}</td>
+                                                <td className="px-4 py-2 font-mono text-zinc-500 text-xs">{sub.avgPrice.toLocaleString(undefined, { maximumFractionDigits: 0 })}</td>
+                                                <td className="px-4 py-2 font-mono text-zinc-600 text-xs">{sub.minPrice.toLocaleString()}</td>
+                                                <td className="px-4 py-2 font-mono text-zinc-600 text-xs">{sub.q1Price.toLocaleString()}</td>
+                                                <td className="px-4 py-2 font-mono text-zinc-500 text-xs font-medium">{sub.medianPrice.toLocaleString()}</td>
+                                                <td className="px-4 py-2 font-mono text-zinc-600 text-xs">{sub.q3Price.toLocaleString()}</td>
+                                                <td className="px-4 py-2 font-mono text-zinc-600 text-xs">{sub.maxPrice.toLocaleString()}</td>
+                                            </tr>
+                                        ))}
+                                    </React.Fragment>
+                                );
+                            })}
                             {filteredData.length === 0 && (
                                 <tr><td colSpan={10} className="p-8 text-center text-zinc-500">請選擇房型顯示數據</td></tr>
                             )}

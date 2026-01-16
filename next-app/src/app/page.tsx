@@ -96,6 +96,10 @@ export default function DashboardPage() {
 
       if (successCount === 0) {
         throw new Error("無法取得任何縣市的分析數據");
+      } else if (successCount < countyCodes.length) {
+        // Partial success
+        const failedCount = countyCodes.length - successCount;
+        setError(`注意：有 ${failedCount} 個縣市的資料載入失敗，分析結果可能不完整。`);
       }
 
       setAnalysisData(totalResult);
