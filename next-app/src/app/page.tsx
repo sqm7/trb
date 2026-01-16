@@ -17,6 +17,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { COUNTY_CODE_MAP } from "@/lib/config";
 import { getDateRangeDates } from "@/lib/date-utils";
 
+import { aggregateAnalysisData } from "@/lib/aggregator";
+
 export default function DashboardPage() {
   const filters = useFilterStore();
   const [loading, setLoading] = useState(false);
@@ -26,11 +28,17 @@ export default function DashboardPage() {
   const handleAnalyze = useCallback(async () => {
     setLoading(true);
     setError(null);
+    setAnalysisData(null); // Clear previous data
+
     try {
-      // Construct filter object for API
       // Map county names to codes
       const countyCodes = filters.counties.map(name => COUNTY_CODE_MAP[name] || name);
-      const primaryCountyCode = countyCodes.length > 0 ? countyCodes[0] : undefined;
+
+      if (countyCodes.length === 0) {
+        setError("請至少選擇一個縣市");
+        setLoading(false);
+        return;
+      }
 
       // Date handling
       let { dateRange, startDate, endDate } = filters;
@@ -44,9 +52,8 @@ export default function DashboardPage() {
         }
       }
 
-      const payload = {
-        countyCode: primaryCountyCode,
-        counties: countyCodes,
+      // Prepare common payload base
+      const basePayload = {
         districts: filters.districts,
         transactionType: filters.transactionType,
         type: filters.transactionType,
@@ -54,19 +61,47 @@ export default function DashboardPage() {
         buildingType: filters.buildingType,
         excludeCommercial: filters.excludeCommercial,
         floorPremium: filters.floorPremium,
-
         dateRange,
-        startDate,
-        endDate
+        dateStart: startDate,
+        dateEnd: endDate
       };
 
-      console.log("Analyzing with payload:", payload);
-      // Cast to any to avoid strict type checks if store properties don't exactly match API type definition
-      const data = await api.analyzeProjectRanking(payload as any);
-      setAnalysisData(data);
-    } catch (err) {
+      console.log("Analyzing with counties:", countyCodes);
+
+      // Fetch data for all counties in parallel
+      const promises = countyCodes.map(countyCode => {
+        const payload = { ...basePayload, countyCode, counties: [countyCode] };
+        return api.analyzeProjectRanking(payload as any)
+          .catch(err => {
+            console.error(`Failed to fetch data for ${countyCode}:`, err);
+            return null;
+          });
+      });
+
+      const results = await Promise.all(promises);
+
+      // Aggregate results
+      let totalResult: any = null;
+      let successCount = 0;
+
+      for (const result of results) {
+        if (result) {
+          console.log("Merging result for county:", result.projectRanking?.[0]?.county);
+          totalResult = aggregateAnalysisData(totalResult, result);
+          successCount++;
+        }
+      }
+
+      console.log("Aggregation complete. Total Transaction Details:", totalResult?.transactionDetails?.length);
+
+      if (successCount === 0) {
+        throw new Error("無法取得任何縣市的分析數據");
+      }
+
+      setAnalysisData(totalResult);
+    } catch (err: any) {
       console.error("Analysis failed:", err);
-      setError("無法取得分析數據，請稍後再試。");
+      setError(err.message || "無法取得分析數據，請稍後再試。");
     } finally {
       setLoading(false);
     }

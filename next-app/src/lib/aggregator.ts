@@ -76,40 +76,62 @@ function aggregateCoreMetrics(metricsA: any, metricsB: any) {
     };
 }
 
+
 function aggregatePriceBandAnalysis(bandsA: any, bandsB: any) {
     if (!bandsB) return bandsA;
 
-    const detailsA = Array.isArray(bandsA) ? bandsA : (bandsA.details || []);
-    const detailsB = Array.isArray(bandsB) ? bandsB : (bandsB.details || []);
+    // Normalize: Handle both array format (legacy) and object format
+    const detailsA = Array.isArray(bandsA) ? bandsA : (bandsA?.details || []);
+    const detailsB = Array.isArray(bandsB) ? bandsB : (bandsB?.details || []);
 
-    const crossTableA = bandsA.locationCrossTable || {};
-    const crossTableB = bandsB.locationCrossTable || {};
-    const districtsA = bandsA.allDistricts || [];
-    const districtsB = bandsB.allDistricts || [];
-    const roomTypesA = bandsA.allRoomTypes || [];
-    const roomTypesB = bandsB.allRoomTypes || [];
+    const crossTableA = bandsA?.locationCrossTable || {};
+    const crossTableB = bandsB?.locationCrossTable || {};
+    const districtsA = bandsA?.allDistricts || [];
+    const districtsB = bandsB?.allDistricts || [];
+    const roomTypesA = bandsA?.allRoomTypes || [];
+    const roomTypesB = bandsB?.allRoomTypes || [];
 
     const bandMap = new Map();
 
     const addToMap = (item: any) => {
-        const key = item.roomType;
+        // Robust Key Generation: Ensure bathrooms is treated consistently
+        const baths = (item.bathrooms !== null && item.bathrooms !== undefined) ? String(item.bathrooms) : 'null';
+        // Normalize roomType: remove all whitespace to match frontend 'selectedRoomTypes'
+        const normalizedRoomType = (item.roomType || '').replace(/\s+/g, '');
+        const key = `${normalizedRoomType}-${baths}`;
+
+        // Ensure numeric values
+        const itemCount = Number(item.count) || 0;
+        const itemAvg = Number(item.avgPrice) || 0;
+        const itemMin = Number(item.minPrice) || 0;
+        const itemMax = Number(item.maxPrice) || 0;
+
         if (!bandMap.has(key)) {
             bandMap.set(key, {
                 ...item,
+                roomType: normalizedRoomType, // Store normalized value for frontend filtering
+                count: itemCount,
+                avgPrice: itemAvg,
+                minPrice: itemMin,
+                maxPrice: itemMax,
                 projectNames: item.projectNames ? [...item.projectNames] : [],
                 byDistrict: item.byDistrict ? { ...item.byDistrict } : {}
             });
         } else {
             const existing = bandMap.get(key);
-            const totalAmountA = existing.avgPrice * existing.count;
-            const totalAmountB = item.avgPrice * item.count;
-            const newCount = existing.count + item.count;
+
+            const existingCount = Number(existing.count) || 0;
+            const existingAvg = Number(existing.avgPrice) || 0;
+
+            const totalAmountA = existingAvg * existingCount;
+            const totalAmountB = itemAvg * itemCount;
+            const newCount = existingCount + itemCount;
             const newAvgPrice = newCount > 0 ? (totalAmountA + totalAmountB) / newCount : 0;
 
             existing.count = newCount;
-            existing.avgPrice = newAvgPrice;
-            existing.minPrice = Math.min(existing.minPrice, item.minPrice);
-            existing.maxPrice = Math.max(existing.maxPrice, item.maxPrice);
+            existing.avgPrice = parseFloat(newAvgPrice.toFixed(2));
+            existing.minPrice = Math.min(existing.minPrice, itemMin);
+            existing.maxPrice = Math.max(existing.maxPrice, itemMax);
 
             if (item.projectNames) {
                 const newProjectNames = new Set([...existing.projectNames, ...item.projectNames]);
@@ -139,7 +161,7 @@ function aggregatePriceBandAnalysis(bandsA: any, bandsB: any) {
     });
 
     const mergedDistricts = Array.from(new Set([...districtsA, ...districtsB])).sort();
-    const mergedRoomTypes = Array.from(new Set([...roomTypesA, ...roomTypesB]));
+    const mergedRoomTypes = Array.from(new Set([...roomTypesA, ...roomTypesB])).sort();
 
     return {
         details: Array.from(bandMap.values()),

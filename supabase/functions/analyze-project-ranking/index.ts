@@ -172,7 +172,8 @@ serve(async (req) => {
     let transactionDetails = allRawData.map(record => ({
       ...record,
       '縣市': countyName,
-      '戶型': finalUnitIds.get(record['編號']) || record['戶別'] // 注入後端過濾後的戶型
+      '戶型': finalUnitIds.get(record['編號']) || record['戶別'], // 注入後端過濾後的戶型
+      '房型': getRoomCategory(record) // 注入統一的房型分類 (e.g. "2房", "3房")
     }));
     if (roomCategory) {
       // transactionDetails = allRawData.filter(record => getRoomCategoryForPriceBand(record) === roomCategory);
