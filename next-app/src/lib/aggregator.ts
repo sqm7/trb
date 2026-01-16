@@ -248,6 +248,18 @@ function recalculateUnitPriceStats(unitAnalysis: any, transactions: any[]) {
     const storeTx: number[] = [];
     const storeSum: { price: number, area: number, count: number } = { price: 0, area: 0, count: 0 };
 
+    // Track min/max records
+    const initialExtremes = () => ({
+        minPrice: Infinity,
+        maxPrice: -Infinity,
+        minRecord: null as any,
+        maxRecord: null as any
+    });
+
+    const resExtremes = initialExtremes();
+    const officeExtremes = initialExtremes();
+    const storeExtremes = initialExtremes();
+
     transactions.forEach(record => {
         const type = record['建物型態'];
         const usage = record['主要用途'];
@@ -259,32 +271,60 @@ function recalculateUnitPriceStats(unitAnalysis: any, transactions: any[]) {
 
         let targetTx = residentialTx;
         let targetSum = residentialSum;
+        let targetExtremes = resExtremes;
 
         if (type?.includes('店') || usage === '商業用' || record['備註']?.includes('店')) {
             targetTx = storeTx;
             targetSum = storeSum;
+            targetExtremes = storeExtremes;
         } else if (type?.includes('辦公') || type?.includes('廠辦') || type?.includes('事務所') || usage?.includes('辦公')) {
             targetTx = officeTx;
             targetSum = officeSum;
+            targetExtremes = officeExtremes;
         }
 
         targetTx.push(unitPrice);
         targetSum.price += totalPrice;
         targetSum.area += totalArea;
         targetSum.count += 1;
+
+        // Update extremes
+        if (unitPrice > targetExtremes.maxPrice) {
+            targetExtremes.maxPrice = unitPrice;
+            targetExtremes.maxRecord = record;
+        }
+        if (unitPrice < targetExtremes.minPrice) {
+            targetExtremes.minPrice = unitPrice;
+            targetExtremes.minRecord = record;
+        }
     });
 
-    const updateStats = (statsObj: any, tx: number[], sum: any) => {
+    const updateStats = (statsObj: any, tx: number[], sum: any, extremes: any) => {
         if (!statsObj) return;
         updateQuantiles(statsObj, tx);
         statsObj.count = sum.count;
         statsObj.avgPrice = sum.count > 0 ? tx.reduce((a, b) => a + b, 0) / sum.count : 0;
         statsObj.weightedAvgPrice = sum.area > 0 ? sum.price / sum.area : 0;
+
+        // Update Extreme Details
+        if (extremes.maxRecord) {
+            statsObj.maxPrice = extremes.maxPrice;
+            statsObj.maxPriceProject = extremes.maxRecord['建案名稱'];
+            // Use '戶型' (Backend filtered unit name) if available, otherwise fallback to '戶別'
+            statsObj.maxPriceUnit = extremes.maxRecord['戶型'] || extremes.maxRecord['戶別'];
+            statsObj.maxPriceFloor = extremes.maxRecord['樓層'];
+        }
+        if (extremes.minRecord) {
+            statsObj.minPrice = extremes.minPrice;
+            statsObj.minPriceProject = extremes.minRecord['建案名稱'];
+            statsObj.minPriceUnit = extremes.minRecord['戶型'] || extremes.minRecord['戶別'];
+            statsObj.minPriceFloor = extremes.minRecord['樓層'];
+        }
     };
 
-    if (unitAnalysis.residentialStats) updateStats(unitAnalysis.residentialStats, residentialTx, residentialSum);
-    if (unitAnalysis.officeStats) updateStats(unitAnalysis.officeStats, officeTx, officeSum);
-    if (unitAnalysis.storeStats) updateStats(unitAnalysis.storeStats, storeTx, storeSum);
+    if (unitAnalysis.residentialStats) updateStats(unitAnalysis.residentialStats, residentialTx, residentialSum, resExtremes);
+    if (unitAnalysis.officeStats) updateStats(unitAnalysis.officeStats, officeTx, officeSum, officeExtremes);
+    if (unitAnalysis.storeStats) updateStats(unitAnalysis.storeStats, storeTx, storeSum, storeExtremes);
 
     // Rebuild Type Comparison Table from Transactions
     const projectMap = new Map<string, {
