@@ -2,12 +2,13 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { ReportWrapper } from "./ReportWrapper";
-import { ChevronLeft, ChevronRight, ChevronDown, ChevronUp, ArrowUpDown, Search, X, Loader2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, ChevronDown, ChevronUp, ArrowUpDown, Search, X, Loader2, Table2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useFilterStore } from "@/store/useFilterStore";
 import { api } from "@/lib/api";
 import { COUNTY_CODE_MAP, DISTRICT_DATA } from "@/lib/config";
 import { getDateRangeDates } from "@/lib/date-utils";
+import { Modal } from "@/components/ui/Modal";
 
 interface TransactionRecord {
     編號?: string;
@@ -63,6 +64,12 @@ export function DataListReport({ data: _triggerData }: DataListReportProps) {
     const [filterField, setFilterField] = useState<string>('建案名稱');
     const pageSize = 20;
 
+    // Sub-table State
+    const [isSubTableOpen, setIsSubTableOpen] = useState(false);
+    const [subTableData, setSubTableData] = useState<any[]>([]);
+    const [subTableLoading, setSubTableLoading] = useState(false);
+    const [subTableTitle, setSubTableTitle] = useState('');
+
     // Fetch data logic
     const fetchByType = useCallback(async () => {
         setIsLoading(true);
@@ -95,16 +102,6 @@ export function DataListReport({ data: _triggerData }: DataListReportProps) {
                 const countyDistricts = DISTRICT_DATA[countyName] || [];
                 const targetDistricts = districts.filter(d => countyDistricts.includes(d));
 
-                // If user selected districts in OTHER counties but NOT this one, 
-                // and didn't explicitly select 'all' (conceptually), we assume full county query?
-                // Legacy logic: if districts has content, we check validity. 
-                // If validDistricts has content `targetDistricts`, use it.
-                // If `districts` (global) has value but `targetDistricts` is empty => 
-                // it means user selected districts in other counties.
-                // Should we filter this county?
-                // Legacy: "If targetDistricts.length > 0 ... else delete localFilters.districts"
-                // This implies if no districts match this county, we query ALL districts of this county.
-
                 const payload = {
                     countyCode,
                     districts: targetDistricts.length > 0 ? targetDistricts : undefined,
@@ -116,22 +113,6 @@ export function DataListReport({ data: _triggerData }: DataListReportProps) {
                 };
 
                 try {
-                    // Fetch page 1 with a large limit? 
-                    // Legacy fetched current page but merged. 
-                    // Since we want ALL data for client-side sorting/filtering (as this component does),
-                    // we might need a larger limit or handle server-side pagination properly.
-                    // Legacy: "每頁顯示的筆數 = pageSize * selectedCounties.length"
-                    // It fetched page `state.currentPage`. 
-                    // BUT here in React, we are doing client-side pagination on the `dataList`.
-                    // To do client-side pagination correctly, we need ALL data or handle server-side pagination actions.
-                    // Given the discrepancy task, the user wants "Missing Data".
-                    // The safest way is to fetch a reasonable amount of "Top N" rows or handle true server paging.
-                    // Let's stick to a larger limit per county to ensure we get enough data, 
-                    // OR implement server-side paging properly.
-                    // For now, let's try to fetch a generous amount (e.g. 1000 per county) to populate the list,
-                    // as true global server-side paging with multi-source is hard without a backend aggregator.
-                    // This matches Legacy's "simplified strategy" but we'll fetch more to avoid "missing" feel.
-
                     // Backend expects 'limit', but PaginationState type has 'pageSize'. 
                     // We cast to any to pass 'limit' correctly.
                     const pagination = { page: 1, limit: 1000 } as any;
@@ -166,7 +147,7 @@ export function DataListReport({ data: _triggerData }: DataListReportProps) {
         } finally {
             setIsLoading(false);
         }
-    }, [filters]); // Re-create fetch function when filters change
+    }, [filters]);
 
     // Trigger fetch on mount or when _triggerData (analysis completion) changes
     useEffect(() => {
@@ -174,12 +155,95 @@ export function DataListReport({ data: _triggerData }: DataListReportProps) {
     }, [fetchByType, _triggerData]);
 
 
+    const handleFetchSubTable = async (record: TransactionRecord) => {
+        if (!record.編號 || !record.縣市代碼) return;
+
+        const type = record['交易類型'] || filters.transactionType;
+
+        setSubTableTitle(`車位/附表明細 - ${record['建案名稱'] || record['編號']}`);
+        setSubTableLoading(true);
+        setIsSubTableOpen(true);
+        setSubTableData([]);
+
+        try {
+            const res = await api.fetchSubData(record.編號, type, record.縣市代碼);
+
+            let combinedResults: any[] = [];
+
+            // 1. Parse Backend Response (supports { park: [], build: [] } structure)
+            if (res.park && Array.isArray(res.park) && res.park.length > 0) {
+                combinedResults = [...combinedResults, ...res.park.map((p: any) => ({ ...p, _category: '車位資料' }))];
+            }
+
+            if (res.build && Array.isArray(res.build) && res.build.length > 0) {
+                combinedResults = [...combinedResults, ...res.build.map((b: any) => ({ ...b, _category: '建物明細' }))];
+            }
+
+            // Also check standard array retrieval just in case (legacy or simple response)
+            if (Array.isArray(res) && combinedResults.length === 0) {
+                combinedResults = [...combinedResults, ...res];
+            } else if (res.data && Array.isArray(res.data) && combinedResults.length === 0) {
+                combinedResults = [...combinedResults, ...res.data];
+            }
+
+            // 2. Fallback: If no sub-table data found, but main record indicates parking, show main record info
+            if (combinedResults.length === 0) {
+                const hasParking = record['車位數'] && Number(record['車位數']) > 0;
+                const hasParkingPrice = record['車位總價'] || record['車位總價(萬)'];
+
+                if (hasParking || hasParkingPrice) {
+                    // Normalize units
+                    const price = record['車位總價']
+                        ? Number(record['車位總價'])
+                        : (record['車位總價(萬)'] ? Number(record['車位總價(萬)']) * 10000 : 0);
+
+                    const area = record['車位總面積']
+                        ? Number(record['車位總面積'])
+                        : (record['車位面積'] ? Number(record['車位面積']) : 0);
+
+                    combinedResults.push({
+                        '車位類別': record['車位類別'] || '無資料',
+                        '車位價格': price,
+                        '車位面積': area,
+                        '車位樓層': '-', // Main record does not have specific parking floor info
+                        '車位價格(萬)': record['車位總價(萬)'] || (price / 10000),
+                        '車位面積(坪)': record['車位面積(坪)'] || (area / 3.30579).toFixed(2),
+                        '編號': record['編號'],
+                        _category: '車位資料(來自交易明細)'
+                    });
+                }
+            }
+
+            setSubTableData(combinedResults);
+
+        } catch (err) {
+            console.error(err);
+
+            // Fallback on error too
+            const hasParking = record['車位數'] && Number(record['車位數']) > 0;
+            if (hasParking) {
+                const price = record['車位總價'] ? Number(record['車位總價']) : (record['車位總價(萬)'] ? Number(record['車位總價(萬)']) * 10000 : 0);
+                setSubTableData([{
+                    '車位類別': record['車位類別'] || '無資料',
+                    '車位價格': price,
+                    '車位面積': record['車位總面積'] || 0,
+                    '編號': record['編號'],
+                    _category: '車位資料(來自交易明細)'
+                }]);
+            } else {
+                setSubTableData([]);
+            }
+        } finally {
+            setSubTableLoading(false);
+        }
+    };
+
     // Summary fields - first level display (sortable)
     const summaryFields = [
         { key: '行政區', label: '行政區', sortable: true },
         { key: '建案名稱', label: '建案名稱', sortable: true },
         { key: '交易日', label: '交易日', sortable: true },
-        { key: '交易筆棟數', label: '交易筆棟數', sortable: false }, // Added missing field
+        { key: '交易筆棟數', label: '交易筆棟數', sortable: false },
         { key: '主要用途', label: '主要用途', sortable: false },
         { key: '建物型態', label: '建物型態', sortable: false },
         { key: '戶型', label: '戶型', sortable: true },
@@ -357,7 +421,7 @@ export function DataListReport({ data: _triggerData }: DataListReportProps) {
                     <table className="w-full text-sm text-left">
                         <thead className="bg-zinc-900/80 text-zinc-400 uppercase text-xs font-semibold sticky top-0">
                             <tr>
-                                <th className="px-3 py-3 w-20">操作</th>
+                                <th className="px-3 py-3 w-28 text-center">操作</th>
                                 {summaryFields.map(field => (
                                     <th
                                         key={field.key}
@@ -388,18 +452,28 @@ export function DataListReport({ data: _triggerData }: DataListReportProps) {
                                             isExpanded && "bg-zinc-800/30"
                                         )}>
                                             <td className="px-3 py-2">
-                                                <button
-                                                    onClick={() => toggleRowExpand(globalIndex)}
-                                                    className={cn(
-                                                        "flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors",
-                                                        isExpanded
-                                                            ? "bg-violet-500/20 text-violet-300"
-                                                            : "bg-zinc-700 text-zinc-300 hover:bg-zinc-600"
-                                                    )}
-                                                >
-                                                    {isExpanded ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
-                                                    明細
-                                                </button>
+                                                <div className="flex items-center gap-2 justify-center">
+                                                    <button
+                                                        onClick={() => handleFetchSubTable(record)}
+                                                        className="px-2 py-1 rounded text-xs font-medium bg-cyan-900/30 text-cyan-400 hover:bg-cyan-900/50 hover:text-cyan-300 transition-colors flex items-center gap-1 border border-cyan-800/50"
+                                                        title="查看車位或其他附表資料"
+                                                    >
+                                                        <Table2 size={12} />
+                                                        附表
+                                                    </button>
+                                                    <button
+                                                        onClick={() => toggleRowExpand(globalIndex)}
+                                                        className={cn(
+                                                            "flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors border",
+                                                            isExpanded
+                                                                ? "bg-violet-500/20 text-violet-300 border-violet-500/30"
+                                                                : "bg-zinc-800 text-zinc-400 border-zinc-700 hover:bg-zinc-700 hover:text-zinc-200"
+                                                        )}
+                                                    >
+                                                        {isExpanded ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+                                                        明細
+                                                    </button>
+                                                </div>
                                             </td>
                                             {summaryFields.map(field => (
                                                 <td key={field.key} className="px-3 py-2 whitespace-nowrap">
@@ -514,7 +588,90 @@ export function DataListReport({ data: _triggerData }: DataListReportProps) {
                     </button>
                 </div>
             </div>
+
+            {/* Sub Table Modal */}
+            <Modal
+                isOpen={isSubTableOpen}
+                onClose={() => setIsSubTableOpen(false)}
+                className="max-w-5xl"
+                title={
+                    <div className="flex items-center gap-2">
+                        <Table2 className="text-cyan-400" />
+                        <span>{subTableTitle}</span>
+                    </div>
+                }
+            >
+                {subTableLoading ? (
+                    <div className="flex flex-col items-center justify-center py-12">
+                        <Loader2 className="h-8 w-8 animate-spin text-cyan-400 mb-3" />
+                        <p className="text-zinc-500 text-sm animate-pulse">正在讀取附表資料...</p>
+                    </div>
+                ) : subTableData.length > 0 ? (
+                    <div className="space-y-4">
+                        <div className="bg-zinc-800/30 rounded-lg overflow-hidden border border-white/5">
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-sm text-left">
+                                    <thead className="bg-zinc-900/80 text-zinc-400 uppercase text-xs font-semibold">
+                                        <tr>
+                                            <th className="px-4 py-3 whitespace-nowrap bg-zinc-900 text-cyan-400">類別</th>
+                                            {Object.keys(subTableData[0])
+                                                .filter(k =>
+                                                    k !== 'id' &&
+                                                    k !== '編號' &&
+                                                    k !== 'created_at' &&
+                                                    k !== '_category' &&
+                                                    k !== '車位價格' &&
+                                                    k !== '車位面積'
+                                                )
+                                                .map(key => (
+                                                    <th key={key} className="px-4 py-3 whitespace-nowrap bg-zinc-900">{key}</th>
+                                                ))}
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-white/5">
+                                        {subTableData.map((row, idx) => (
+                                            <tr key={idx} className="hover:bg-zinc-800/50 transition-colors">
+                                                <td className="px-4 py-3 whitespace-nowrap text-cyan-400 font-medium">
+                                                    {row['_category'] || '附表'}
+                                                </td>
+                                                {Object.keys(row)
+                                                    .filter(k =>
+                                                        k !== 'id' &&
+                                                        k !== '編號' &&
+                                                        k !== 'created_at' &&
+                                                        k !== '_category' &&
+                                                        k !== '車位價格' &&
+                                                        k !== '車位面積'
+                                                    )
+                                                    .map(key => (
+                                                        <td key={key} className="px-4 py-3 whitespace-nowrap text-zinc-300">
+                                                            {formatValue(row[key])}
+                                                        </td>
+                                                    ))}
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div className="flex justify-end">
+                            <button
+                                onClick={() => setIsSubTableOpen(false)}
+                                className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-sm text-white rounded transition-colors"
+                            >
+                                關閉
+                            </button>
+                        </div>
+                    </div>
+                ) : (
+                    <div className="flex flex-col items-center justify-center py-12 text-zinc-500">
+                        <div className="bg-zinc-800/50 p-4 rounded-full mb-3">
+                            <Table2 size={24} className="opacity-20" />
+                        </div>
+                        <p>此筆交易沒有相關附表資料</p>
+                    </div>
+                )}
+            </Modal>
         </div>
     );
 }
-
