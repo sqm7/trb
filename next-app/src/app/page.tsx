@@ -86,7 +86,9 @@ export default function DashboardPage() {
       let successCount = 0;
 
       for (const result of results) {
-        if (result) {
+        // Validate result has expected structure (at least projectRanking/coreMetrics)
+        // API returns { message: "..." } on failure but with 200 status in some cases
+        if (result && result.projectRanking && result.coreMetrics) {
           console.log("Merging result for county:", result.projectRanking?.[0]?.county);
           totalResult = aggregateAnalysisData(totalResult, result);
           successCount++;
@@ -96,6 +98,9 @@ export default function DashboardPage() {
       console.log("Aggregation complete. Total Transaction Details:", totalResult?.transactionDetails?.length);
 
       if (successCount === 0) {
+        if (filters.projectNames.length > 0) {
+          throw new Error("這段時間 這個建案查詢不到資料");
+        }
         throw new Error("無法取得任何縣市的分析數據");
       } else if (successCount < countyCodes.length) {
         // Partial success
