@@ -38,6 +38,7 @@
 - [x] 重構圖表元件 (`Charts/*`)
 - [x] 重構報告視圖 (`RankingReport`, `PriceBandReport` 等)
 - [x] 實作主儀表板頁面 (`page.tsx`)
+- [ ] 實作系統設定頁面 (`/settings`)
 
 ### [Phase 4] 驗證與優化
 - [x] 功能對齊測試 (多縣市、圖表互動、數據正確性)
