@@ -204,19 +204,27 @@ export function HeatmapReport({ data }: HeatmapReportProps) {
                     </Select>
                 </div>
 
-                {/* Floor Premium Slider */}
                 <div className="flex items-center gap-3">
                     <span className="text-sm text-zinc-400">樓層價差:</span>
                     <input
                         type="range"
                         min={0}
-                        max={2}
+                        max={10}
                         step={0.05}
                         value={floorPremium}
                         onChange={(e) => setFloorPremium(Number(e.target.value))}
                         className="w-28 accent-violet-500"
                     />
-                    <span className="text-sm font-mono text-violet-400 w-16">{floorPremium.toFixed(2)} 萬/坪</span>
+                    <Input
+                        type="number"
+                        min={0}
+                        max={10}
+                        step={0.01}
+                        value={floorPremium}
+                        onChange={(e) => setFloorPremium(Math.max(0, Number(e.target.value)))}
+                        className="w-20 h-8 bg-zinc-950/50 text-right pr-2"
+                    />
+                    <span className="text-sm font-mono text-violet-400 w-12">萬/坪</span>
                 </div>
 
                 {/* Action Buttons */}

@@ -210,6 +210,8 @@ refactor: 重構
 - [x] **Unit Correction**: Change "Floor Price Difference" unit to `萬/坪` in Heatmap
 - [x] **UI Improvement**: Replcae parking circle with blue 'P' badge
 - [x] **New Feature**: Floor Range Average Calculator (Weighted Average: Total Price/Area)
+- [x] **New Feature**: Floor Premium Input (0.35 etc.) synced with slider
+- [x] **Enhancement**: Increased Floor Premium Max Range to 10
 - [x] **Bug Fix**: Fix Tooltip clipping using Portal implementation
 - [x] **Data List**: Restore "交易明細列表" tab to main dashboard
 - [x] **Filtering Fix**: Respect `excludeCommercial` in Heatmap
