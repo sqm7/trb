@@ -212,5 +212,8 @@ refactor: 重構
 - [x] **New Feature**: Floor Range Average Calculator (Weighted Average: Total Price/Area)
 - [x] **Bug Fix**: Fix Tooltip clipping using Portal implementation
 - [x] **Data List**: Restore "交易明細列表" tab to main dashboard
+- [x] **Filtering Fix**: Respect `excludeCommercial` in Heatmap
+- [x] **Unit Normalization**: Port AdaptiveUnitResolver to frontend for smart unit naming
+
 
 

@@ -3,6 +3,7 @@
  * src/lib/heatmap-utils.ts
  * 負責將原始交易資料轉換為熱力圖所需的水平銷控表格式
  */
+import { AdaptiveUnitResolver } from "@/lib/unit-parser";
 
 export interface HeatmapDataInput {
     transactionDetails: any[];
@@ -29,13 +30,22 @@ export function generateHeatmapData(projectTransactions: any[], floorPremiumPerc
     const floorsSet = new Set<string>();
     const unitsSet = new Set<string>();
 
+    // Initialize Unit Resolver with all transactions for context learning
+    const unitResolver = new AdaptiveUnitResolver(projectTransactions);
+
     projectTransactions.forEach(tx => {
         // Safe property access
         let floor = tx['樓層'] || tx.floor || tx.layer;
         if (floor === undefined || floor === null) return; // Skip invalid records
         if (typeof floor === 'number') floor = String(floor);
 
-        const unit = tx['戶別'] || tx['戶型'] || tx.unit || '?';
+        if (typeof floor === 'number') floor = String(floor);
+
+        // Resolve Normalized Unit Name
+        const unit = unitResolver.resolve(tx);
+        // Fallback or keep raw if resolve returns empty? usually returns identifier.
+        // If empty, fallback to raw? NO, resolver should handle fallback.
+        // Original: const unit = tx['戶別'] || tx['戶型'] || tx.unit || '?';
 
         floorsSet.add(floor);
         unitsSet.add(unit);
@@ -141,15 +151,8 @@ export function generateHeatmapData(projectTransactions: any[], floorPremiumPerc
                     const floorDiff = currentFloorVal - anchorFloorVal;
 
                     // Theoretical Unit Price = Anchor Unit Price + (Floor Diff * Premium %)
-                    // Wait, usually premium is percentage of BASE.
-                    // Let's assume floor premium is % per floor.
-                    // New Price = Old Price * (1 + rate)^diff ~ Old Price + Old Price * rate * diff
-                    // Simplifed model: 
+                    // Simplified model: 
                     const floorAdjustment = floorDiff * floorPremiumPercent; // %
-
-                    // Also need Unit Type adjustment?
-                    // If we assume same unit type should have same price except floor...
-                    // But we are comparing different units.
 
                     // If we treat the Anchor as THE baseline for the whole project:
                     const theoreticalPrice = anchorTx['房屋單價(萬)'] * (1 + floorAdjustment / 100);
@@ -183,6 +186,77 @@ export function generateHeatmapData(projectTransactions: any[], floorPremiumPerc
         unitColorMap[u] = colors[i % colors.length];
     });
 
+    // 3. Horizontal Comparison (Unit Type Analysis)
+    const unitTypeStats: Record<string, {
+        totalPremium: number;
+        totalSoldArea: number;
+        count: number;
+        anchorPrice: number | null;
+    }> = {};
+
+    // Initialize map
+    sortedUnits.forEach(u => {
+        unitTypeStats[u] = { totalPremium: 0, totalSoldArea: 0, count: 0, anchorPrice: null };
+    });
+
+    // Find anchor price for each unit type (Baseline Logic: Anchor Floor's price for this unit)
+    if (anchorTx) {
+        const getFloorVal = (f: string) => f.startsWith('B') ? -parseInt(f.substring(1)) : parseInt(f);
+        const anchorFloorVal = getFloorVal(anchorTx['樓層'].toString());
+
+        projectTransactions.forEach(tx => {
+            const unit = unitResolver.resolve(tx); // Ensure consistent resolution
+            const floorVal = getFloorVal(tx['樓層']?.toString());
+            if (floorVal === anchorFloorVal) {
+                unitTypeStats[unit].anchorPrice = parseFloat(tx['房屋單價(萬)'] || 0);
+            }
+        });
+    }
+
+    // Accumulate Stats
+    Object.keys(horizontalGrid).forEach(floor => {
+        Object.keys(horizontalGrid[floor]).forEach(unit => {
+            horizontalGrid[floor][unit].forEach((tx: any) => {
+                if (tx.premium !== null && tx.tooltipInfo.housePrice && tx.tooltipInfo.houseArea) {
+                    // Using the calculated theoretical price from earlier loop
+                    const getFloorVal = (f: string) => f.startsWith('B') ? -parseInt(f.substring(1)) : parseInt(f);
+                    const anchorFloorVal = anchorTx ? getFloorVal(anchorTx['樓層'].toString()) : 0;
+                    const currentFloorVal = getFloorVal(tx.floor);
+                    const floorDiff = currentFloorVal - anchorFloorVal;
+                    const floorAdjustment = floorDiff * floorPremiumPercent;
+                    const theoreticalPrice = anchorTx ? (anchorTx['房屋單價(萬)'] * (1 + floorAdjustment / 100)) : 0;
+
+                    if (theoreticalPrice > 0) {
+                        const baselineHousePrice = (theoreticalPrice * tx.tooltipInfo.houseArea);
+                        const premiumValue = tx.tooltipInfo.housePrice - baselineHousePrice;
+
+                        if (unitTypeStats[unit]) {
+                            unitTypeStats[unit].totalPremium += premiumValue;
+                            unitTypeStats[unit].totalSoldArea += tx.tooltipInfo.houseArea;
+                            unitTypeStats[unit].count++;
+                        }
+                    }
+                }
+            });
+        });
+    });
+
+    const horizontalComparison = Object.keys(unitTypeStats).map(unit => {
+        const stats = unitTypeStats[unit];
+        if (stats.count === 0) return null;
+
+        return {
+            unitType: unit,
+            anchorInfo: stats.anchorPrice ? `${anchorTx['樓層']}F / ${stats.anchorPrice}萬` : 'N/A',
+            horizontalPriceDiff: stats.totalSoldArea > 0 ? (stats.totalPremium / stats.totalSoldArea) : 0,
+            unitsSold: stats.count,
+            timePremiumContribution: stats.totalPremium,
+            contributionPercentage: totalPricePremiumValue > 0 ? (stats.totalPremium / totalPricePremiumValue) * 100 : 0,
+            baselineHousePrice: totalBaselineHousePrice,
+            avgPriceAdjustment: stats.totalSoldArea > 0 ? (stats.totalPremium / stats.totalSoldArea) : 0
+        };
+    }).filter(Boolean);
+
     return {
         horizontalGrid,
         sortedFloors,
@@ -194,7 +268,7 @@ export function generateHeatmapData(projectTransactions: any[], floorPremiumPerc
             totalSoldArea,
             transactionCount
         },
-        horizontalComparison: [], // TODO: Implement if needed
+        horizontalComparison,
         refFloorForComparison: anchorTx ? anchorTx['樓層'] : '-'
     };
 }

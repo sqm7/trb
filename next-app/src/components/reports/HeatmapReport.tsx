@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { RefreshCcw, Share2, Code } from "lucide-react";
 
 import { generateHeatmapData } from "@/lib/heatmap-utils";
+import { useFilterStore } from "@/store/useFilterStore";
 
 interface HeatmapReportProps {
     data: {
@@ -130,22 +131,39 @@ export function HeatmapReport({ data }: HeatmapReportProps) {
     const projectData = React.useMemo(() => {
         if (!selectedProject) return null;
 
-        // 1. Try existing analysis data
-        if (byProject[selectedProject] && byProject[selectedProject].horizontalGrid) {
-            return byProject[selectedProject];
-        }
-
-        // 2. Fallback: Generate on the fly from transaction details
+        // 1. Prefer generating on the fly to support dynamic floorPremium
         if (data.transactionDetails) {
-            const projectTx = data.transactionDetails.filter((tx: any) => tx['建案名稱'] === selectedProject);
+            const { excludeCommercial } = useFilterStore.getState(); // Access flattened state directly 
+            // Better to use hook if we want reactivity, but useMemo dep array handles re-runs if we include it.
+            // Let's add hook usage at top level.
+
+            let projectTx = data.transactionDetails.filter((tx: any) => tx['建案名稱'] === selectedProject);
+
+            if (excludeCommercial) {
+                projectTx = projectTx.filter((tx: any) => {
+                    const mainPurpose = tx['主要用途'] || '';
+                    const buildingType = tx['建物型態'] || '';
+                    const note = tx['備註'] || '';
+                    // Simple exclude logic matching backend/spec
+                    if (mainPurpose.includes('商業') || buildingType.includes('店') || note.includes('店')) return false;
+                    if (mainPurpose.includes('辦公') || buildingType.includes('辦公') || buildingType.includes('事務所')) return false;
+                    return true;
+                });
+            }
+
             if (projectTx.length > 0) {
                 try {
                     return generateHeatmapData(projectTx, floorPremium);
                 } catch (err) {
                     console.error("Heatmap generation error:", err);
-                    return null;
+                    // Fallback to pre-calculated if generation fails
                 }
             }
+        }
+
+        // 2. Fallback: Use existing analysis data (backend static)
+        if (byProject[selectedProject] && byProject[selectedProject].horizontalGrid) {
+            return byProject[selectedProject];
         }
 
         return null;
