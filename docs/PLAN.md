@@ -169,6 +169,20 @@ refactor: 重構
 - [x] Add missing columns (`交易筆棟數`) and tooltip logic for `戶型`
 - [x] Verify data loading and pagination
 
+### [Current Task] Migrate Legacy Tools
+- [x] **Map Tool Migration**
+    - [x] Create `/app/map/page.tsx`
+    - [x] Implement `LeafletMap.tsx` (using react-leaflet)
+    - [x] Port functionalities: Address Search, Overpass API (Buildings), GeoJSON Upload
+    - [x] Apply Cyberpunk styling
+- [x] **Floor Plan Tool Migration**
+    - [x] Create `/app/tools/floor-plan/page.tsx`
+    - [x] Implement `FloorPlanCanvas.tsx`
+    - [x] Port functionalities: Scale setting, Line/Area measurement, Snap-to-point
+    - [x] **Refinement**: Ortho Mode (Shift), Enter/Right-click finish, Auto-close polygon
+- [x] **Sidebar Integration**
+    - [x] Add "地圖模式" and "平面圖測量" links
+
 ### [Current Task] Restore Parking Sub-table Button
 - [x] Analyze legacy implementation of parking sub-table button
 - [x] Add 'Parking Sub-table' button to `DataListReport.tsx`

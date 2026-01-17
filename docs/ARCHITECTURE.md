@@ -17,9 +17,13 @@ src/
 │   ├── login/                 # [New] 登入頁面
 │   │   └── page.tsx
 │   ├── admin/                 # [New] 後台管理
-│   │   └── uploader/          # 資料上傳工具
-│   │       └── page.tsx
-│   ├── layout.tsx             # Root layout
+│   │   ├── features/
+│   │   │   ├── Analysis/       # Charts & Data reports
+│   │   │   ├── Map/            # Map Tool Components
+│   │   │   │   └── LeafletMap.tsx
+│   │   │   └── FloorPlan/      # Floor Plan Tool Components
+│   │   │       └── FloorPlanCanvas.tsx
+│   │   ├── layout/             # Sidebar, Header
 │   └── globals.css            # 全域樣式 (Tailwind) 全域樣式 (Aura Theme)
 ├── components/
 │   ├── ui/                 # 基礎元件 (Button, Card, Input...)
