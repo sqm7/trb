@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useState } from "react";
+import { createPortal } from "react-dom";
 import { cn } from "@/lib/utils";
-import { AlertCircle, Store, Briefcase, Sprout, Users, Anchor, CircleParking } from "lucide-react";
+import { Store, Briefcase, Sprout, Users } from "lucide-react";
 
 interface HeatmapGridProps {
     data: any;
@@ -36,17 +37,77 @@ const getSpecialIcon = (tx: any) => {
     return null;
 };
 
+const PortalTooltip = ({ children, triggerRect, isTopRow }: { children: React.ReactNode, triggerRect: DOMRect | null, isTopRow: boolean }) => {
+    if (!triggerRect) return null;
+
+    // Calculate position
+    const style: React.CSSProperties = {
+        position: 'fixed',
+        left: triggerRect.left + triggerRect.width / 2,
+        transform: 'translateX(-50%)',
+        zIndex: 9999, // High z-index
+    };
+
+    if (isTopRow) {
+        style.top = triggerRect.bottom + 8;
+    } else {
+        style.bottom = (window.innerHeight - triggerRect.top) + 8;
+    }
+
+    return createPortal(
+        <div style={style} className="pointer-events-none">
+            {children}
+        </div>,
+        document.body
+    );
+};
+
 export function PricingHeatmap({ data, floorPremium = 0.3 }: HeatmapGridProps) {
     const { horizontalGrid, sortedFloors, sortedUnits, unitColorMap, summary, horizontalComparison } = data;
+    const [hoverData, setHoverData] = useState<{ rect: DOMRect, data: any, isTopRow: boolean } | null>(null);
+
+    const handleMouseEnter = (e: React.MouseEvent, tx: any, isTopRow: boolean) => {
+        const rect = e.currentTarget.getBoundingClientRect();
+        setHoverData({ rect, data: tx, isTopRow });
+    };
+
+    const handleMouseLeave = () => {
+        setHoverData(null);
+    };
 
     if (!horizontalGrid || !sortedFloors || !sortedUnits) {
         return <div className="text-zinc-500 text-center p-8">無有效熱力圖資料</div>;
     }
 
     return (
-        <div className="space-y-8 overflow-x-auto">
+        <div className="space-y-8 overflow-x-auto relative">
+            {/* Tooltip Portal */}
+            {hoverData && (
+                <PortalTooltip triggerRect={hoverData.rect} isTopRow={hoverData.isTopRow}>
+                    <div className="w-48 bg-zinc-900 border border-zinc-700 rounded-lg p-3 shadow-xl animate-in fade-in zoom-in-95 duration-200">
+                        <div className="space-y-1">
+                            {hoverData.data.premium === 0 && <div className="text-cyan-400 font-bold mb-1">★ 基準戶</div>}
+                            {hoverData.data.premium !== null && (
+                                <div className="text-zinc-300">
+                                    調價: <span className={cn(
+                                        hoverData.data.premium > 0 ? "text-red-400" : hoverData.data.premium < 0 ? "text-violet-400" : "text-zinc-400"
+                                    )}>{hoverData.data.premium > 0 ? '+' : ''}{hoverData.data.premium.toFixed(2)}%</span>
+                                </div>
+                            )}
+                            <div className="h-px bg-zinc-700 my-2" />
+                            <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-xs text-zinc-400">
+                                <span>成交總價:</span> <span className="text-white text-right">{formatNumber(hoverData.data.tooltipInfo.totalPrice)}萬</span>
+                                <span>房屋總價:</span> <span className="text-white text-right">{formatNumber(hoverData.data.tooltipInfo.housePrice)}萬</span>
+                                <span>車位總價:</span> <span className="text-white text-right">{formatNumber(hoverData.data.tooltipInfo.parkingPrice)}萬</span>
+                                <span>房屋面積:</span> <span className="text-white text-right">{formatNumber(hoverData.data.tooltipInfo.houseArea, 2)}坪</span>
+                            </div>
+                        </div>
+                    </div>
+                </PortalTooltip>
+            )}
+
             {/* 1. Main Heatmap Grid */}
-            <div className="min-w-max">
+            <div className="min-w-max pb-32">
                 <table className="divide-y divide-zinc-800 border-collapse w-full text-sm">
                     <thead>
                         <tr>
@@ -63,7 +124,7 @@ export function PricingHeatmap({ data, floorPremium = 0.3 }: HeatmapGridProps) {
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-zinc-800/50">
-                        {sortedFloors.map((floor: string) => (
+                        {sortedFloors.map((floor: string, floorIndex: number) => (
                             <tr key={floor} className="hover:bg-zinc-800/30 transition-colors">
                                 <td className="sticky left-0 bg-dark-card z-10 p-2 font-bold text-zinc-300 border-r border-zinc-800 text-center">
                                     {floor}
@@ -86,6 +147,7 @@ export function PricingHeatmap({ data, floorPremium = 0.3 }: HeatmapGridProps) {
                                                     const bgColor = getHeatmapColor(tx.premium, tx);
                                                     const special = getSpecialIcon(tx);
                                                     const isAnchor = tx.premium === 0;
+                                                    const isTopRow = floorIndex < 3; // First 3 rows go down
 
                                                     return (
                                                         <div
@@ -95,37 +157,22 @@ export function PricingHeatmap({ data, floorPremium = 0.3 }: HeatmapGridProps) {
                                                                 isAnchor && "ring-1 ring-cyan-500"
                                                             )}
                                                             style={{ backgroundColor: bgColor }}
+                                                            onMouseEnter={(e) => handleMouseEnter(e, tx, isTopRow)}
+                                                            onMouseLeave={handleMouseLeave}
                                                         >
                                                             <div className="flex items-center justify-between gap-1">
                                                                 <span className="font-semibold text-white flex items-center gap-1">
                                                                     {special && <span className="text-zinc-200" title={special.label}>{special.icon}</span>}
                                                                     {tx.unitPrice.toFixed(1)}萬
                                                                 </span>
-                                                                {tx.hasParking && <CircleParking className="w-3 h-3 text-zinc-400" />}
+                                                                {tx.hasParking && (
+                                                                    <span className="flex items-center justify-center w-3.5 h-3.5 bg-blue-500 text-white text-[9px] font-bold rounded-sm ml-0.5" title="含車位">
+                                                                        P
+                                                                    </span>
+                                                                )}
                                                             </div>
                                                             <div className="text-[10px] text-zinc-300/80 mt-0.5">
                                                                 {tx.transactionDate}
-                                                            </div>
-
-                                                            {/* Custom Tooltip */}
-                                                            <div className="absolute z-50 hidden group-hover:block w-48 bg-zinc-900 border border-zinc-700 rounded-lg p-3 shadow-xl -translate-y-full -translate-x-1/2 left-1/2 top-[-8px]">
-                                                                <div className="space-y-1">
-                                                                    {isAnchor && <div className="text-cyan-400 font-bold mb-1">★ 基準戶</div>}
-                                                                    {tx.premium !== null && (
-                                                                        <div className="text-zinc-300">
-                                                                            調價: <span className={cn(
-                                                                                tx.premium > 0 ? "text-red-400" : tx.premium < 0 ? "text-violet-400" : "text-zinc-400"
-                                                                            )}>{tx.premium > 0 ? '+' : ''}{tx.premium.toFixed(2)}%</span>
-                                                                        </div>
-                                                                    )}
-                                                                    <div className="h-px bg-zinc-700 my-2" />
-                                                                    <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-xs text-zinc-400">
-                                                                        <span>成交總價:</span> <span className="text-white text-right">{formatNumber(tx.tooltipInfo.totalPrice)}萬</span>
-                                                                        <span>房屋總價:</span> <span className="text-white text-right">{formatNumber(tx.tooltipInfo.housePrice)}萬</span>
-                                                                        <span>車位總價:</span> <span className="text-white text-right">{formatNumber(tx.tooltipInfo.parkingPrice)}萬</span>
-                                                                        <span>房屋坪數:</span> <span className="text-white text-right">{formatNumber(tx.tooltipInfo.houseArea, 2)}坪</span>
-                                                                    </div>
-                                                                </div>
                                                             </div>
                                                         </div>
                                                     );

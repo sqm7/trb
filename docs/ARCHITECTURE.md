@@ -210,6 +210,15 @@ src/
 - 支援客戶端分頁與多縣市並行查詢 (Client-side pagination with multi-county fetching)。
 - 優點：確保列表顯示完整的原始資料，不受分析邏輯的篩選影響，並補齊遺漏欄位。
 
+### 6. Portal Tooltip Implementation (2026-01-17)
+
+**問題**：熱力圖表格需要 `overflow-x-auto` 支援水平滾動，導致內部的 Tooltip 在邊界處被裁切 (Clipping)。
+
+**解決方案**：
+- 使用 `React.createPortal` 將 Tooltip 渲染至 `document.body`。
+- 根據觸發元素 (Cell) 的 `getBoundingClientRect` 動態計算固定位置。
+- 實作智慧定位：前幾排 (Top Rows) 向下顯示，其餘向上顯示，避免被視窗邊界切斷。
+
 ---
 
 ## 🗄️ 資料庫 Schema

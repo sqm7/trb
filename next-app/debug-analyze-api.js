@@ -9,12 +9,14 @@ async function testAnalyze() {
     console.log("Testing analyze-project-ranking for 'J PARK-A'...");
 
     const payload = {
-        filters: { // Matches api.ts structure
+        filters: {
             countyCode: "A",
-            counties: ["A"],
-            projectNames: ["NON_EXISTENT_PROJECT_999"],
-            type: "預售交易", // Matches backend check
-            dateRange: "year",
+            townCode: "A01", // Assuming Taipei/Songshan or similar match
+            projectNames: ["東方大境"],
+            type: "預售交易",
+            period: "2020Q1", // Adjust as needed to catch data
+            startYear: 2020,
+            endYear: 2025 // Wide range to ensure hits
         }
     };
 
@@ -36,9 +38,14 @@ async function testAnalyze() {
 
         const data = await response.json();
         console.log("API Success.");
-        console.log("Core Metrics:", data.coreMetrics);
-        console.log("Project Ranking Length:", data.projectRanking?.length);
-        console.log("Transaction Details Length:", data.transactionDetails?.length);
+
+        if (data.transactionDetails && data.transactionDetails.length > 0) {
+            console.log("First Transaction Keys:", Object.keys(data.transactionDetails[0]));
+            console.log("First Transaction Sample:", JSON.stringify(data.transactionDetails[0], null, 2));
+        } else {
+            console.log("No transactions found.");
+            // Try fetching from a known file if API fails to find specifically for this ad-hoc query
+        }
 
         if (data.projectRanking?.length > 0) {
             console.log("First Project:", data.projectRanking[0]);

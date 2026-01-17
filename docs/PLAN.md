@@ -206,3 +206,11 @@ refactor: 重構
 - [x] UI Refinement: Fixed MultiSelect layout (Horizontal Scroll, District Context, Group Headers)
 - [x] UI Refinement: Dynamic hint for county selection limit
 
+### [Current Task] Heatmap Refinement & New Features (2026-01-17)
+- [x] **Unit Correction**: Change "Floor Price Difference" unit to `萬/坪` in Heatmap
+- [x] **UI Improvement**: Replcae parking circle with blue 'P' badge
+- [x] **New Feature**: Floor Range Average Calculator (Weighted Average: Total Price/Area)
+- [x] **Bug Fix**: Fix Tooltip clipping using Portal implementation
+- [x] **Data List**: Restore "交易明細列表" tab to main dashboard
+
+

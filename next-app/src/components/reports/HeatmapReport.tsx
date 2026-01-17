@@ -20,6 +20,96 @@ interface HeatmapReportProps {
     } | null;
 }
 
+
+
+function FloorRangeCalculator({ transactions, project }: { transactions: any[], project: string }) {
+    const [startFloor, setStartFloor] = useState<string>("");
+    const [endFloor, setEndFloor] = useState<string>("");
+    const [result, setResult] = useState<{ avg: number, count: number } | null>(null);
+
+    const handleCalculate = () => {
+        if (!project || !transactions) return;
+
+        const start = parseInt(startFloor);
+        const end = parseInt(endFloor);
+
+        if (isNaN(start) || isNaN(end) || start > end) {
+            setResult(null);
+            return;
+        }
+
+        // Filter transactions for this project and floor range
+        const targetTxs = transactions.filter(tx => {
+            if (tx['建案名稱'] !== project) return false;
+            // Floor parsing logic: '12' -> 12, 'B1' -> -1 (Exclude B floors for range calc usually? Or handle them?)
+            // Assuming user inputs standard floor numbers (e.g. 3 to 10)
+            const floorStr = String(tx['樓層']);
+            // Skip non-numeric start chars so "10F" becomes 10. Simple parseInt handles "10"
+            const floorVal = parseInt(floorStr);
+            if (isNaN(floorVal)) return false; // Skip basements or weird floors for now
+
+            return floorVal >= start && floorVal <= end;
+        });
+
+        if (targetTxs.length === 0) {
+            setResult({ avg: 0, count: 0 });
+            return;
+        }
+
+        const totalHousePrice = targetTxs.reduce((sum, tx) => sum + (tx['房屋總價(萬)'] || 0), 0);
+        const totalHouseArea = targetTxs.reduce((sum, tx) => sum + (tx['房屋面積(坪)'] || 0), 0);
+
+        const avg = totalHouseArea > 0 ? totalHousePrice / totalHouseArea : 0;
+        setResult({ avg, count: targetTxs.length });
+    };
+
+    return (
+        <div className="flex flex-wrap items-center gap-4 bg-zinc-900/30 p-4 rounded-lg border border-white/5">
+            <div className="flex items-center gap-2">
+                <span className="text-sm text-zinc-400 font-semibold">區間均價試算:</span>
+                <div className="flex items-center gap-2">
+                    <Input
+                        type="number"
+                        placeholder="起樓"
+                        className="w-20 h-8 bg-zinc-950/50"
+                        value={startFloor}
+                        onChange={e => setStartFloor(e.target.value)}
+                    />
+                    <span className="text-zinc-500">~</span>
+                    <Input
+                        type="number"
+                        placeholder="迄樓"
+                        className="w-20 h-8 bg-zinc-950/50"
+                        value={endFloor}
+                        onChange={e => setEndFloor(e.target.value)}
+                    />
+                </div>
+                <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={handleCalculate}
+                    className="h-8 ml-2"
+                >
+                    計算
+                </Button>
+            </div>
+
+            {result && (
+                <div className="flex items-center gap-4 ml-4 animate-in fade-in">
+                    <div className="flex flex-col">
+                        <span className="text-xs text-zinc-500">平均單價 (加權)</span>
+                        <span className="text-lg font-bold text-violet-400">{result.avg.toFixed(2)} 萬/坪</span>
+                    </div>
+                    <div className="flex flex-col">
+                        <span className="text-xs text-zinc-500">參考筆數</span>
+                        <span className="text-sm text-zinc-300">{result.count} 筆</span>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+}
+
 export function HeatmapReport({ data }: HeatmapReportProps) {
     const [selectedProject, setSelectedProject] = useState<string>("");
     const [floorPremium, setFloorPremium] = useState<number>(0.3);
@@ -103,12 +193,12 @@ export function HeatmapReport({ data }: HeatmapReportProps) {
                         type="range"
                         min={0}
                         max={2}
-                        step={0.1}
+                        step={0.05}
                         value={floorPremium}
                         onChange={(e) => setFloorPremium(Number(e.target.value))}
                         className="w-28 accent-violet-500"
                     />
-                    <span className="text-sm font-mono text-violet-400 w-12">{floorPremium.toFixed(1)}%</span>
+                    <span className="text-sm font-mono text-violet-400 w-16">{floorPremium.toFixed(2)} 萬/坪</span>
                 </div>
 
                 {/* Action Buttons */}
@@ -133,6 +223,14 @@ export function HeatmapReport({ data }: HeatmapReportProps) {
                     </Button>
                 </div>
             </div>
+
+            {/* Floor Range Calculator */}
+            {selectedProject && data.transactionDetails && (
+                <FloorRangeCalculator
+                    transactions={data.transactionDetails}
+                    project={selectedProject}
+                />
+            )}
 
             {/* Legend Section */}
             <div className="flex flex-wrap gap-4 p-4 bg-zinc-900/20 rounded-lg border border-white/5">
