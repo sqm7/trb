@@ -205,7 +205,14 @@ export function FilterBar({ onAnalyze, isLoading }: FilterBarProps) {
                 {/* County */}
                 <div className="xl:col-span-1">
                     <div className="flex justify-between items-center mb-1">
-                        <label className="text-sm font-medium text-zinc-300">縣市 (至多6個)</label>
+                        <div className="flex items-center gap-2">
+                            <label className="text-sm font-medium text-zinc-300">縣市</label>
+                            {counties.length > 3 && (
+                                <span className="text-xs text-amber-500 font-normal animate-in fade-in">
+                                    (已選 {counties.length}/6)
+                                </span>
+                            )}
+                        </div>
                         {counties.length > 0 && (
                             <button onClick={() => setCounties([])} className="text-xs text-cyan-400 hover:text-cyan-300">清除</button>
                         )}
@@ -356,13 +363,7 @@ export function FilterBar({ onAnalyze, isLoading }: FilterBarProps) {
                         {isLoading ? '分析中...' : '分析報表'}
                     </Button>
 
-                    <Button
-                        variant="default"
-                        className="bg-gradient-to-r from-cyan-500 to-violet-500 hover:opacity-90 border-0 text-white min-w-[140px]"
-                    >
-                        <Search className="mr-2 h-4 w-4" />
-                        查詢資料列表
-                    </Button>
+
                 </div>
 
             </div>

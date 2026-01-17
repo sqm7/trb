@@ -5,12 +5,16 @@ import { Search, Bell, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
+import { NAV_ITEMS } from "./Sidebar";
+import { cn } from "@/lib/utils";
 
 export function Header() {
+    const [isMenuOpen, setIsMenuOpen] = React.useState(false);
+
     return (
         <header className="sticky top-0 z-40 flex h-16 w-full items-center border-b border-white/5 bg-zinc-950/80 backdrop-blur-md px-6 shadow-sm">
             <div className="flex items-center gap-4 lg:hidden">
-                <Button variant="ghost" size="icon" className="-ml-2">
+                <Button variant="ghost" size="icon" className="-ml-2" onClick={() => setIsMenuOpen(!isMenuOpen)}>
                     <Menu className="h-5 w-5" />
                 </Button>
             </div>
@@ -48,6 +52,31 @@ export function Header() {
                     </Button>
                 </div>
             </div>
+
+            {/* Mobile Menu Overlay */}
+            {isMenuOpen && (
+                <div className="absolute top-16 left-0 w-full bg-zinc-950 border-b border-zinc-800 p-4 shadow-xl lg:hidden animate-in slide-in-from-top-2">
+                    <nav className="flex flex-col gap-2">
+                        {NAV_ITEMS.map((item) => {
+                            // @ts-ignore
+                            const isExternal = item.isExternal;
+                            return (
+                                <Link
+                                    key={item.href}
+                                    href={item.href}
+                                    target={isExternal ? "_blank" : undefined}
+                                    rel={isExternal ? "noopener noreferrer" : undefined}
+                                    onClick={() => setIsMenuOpen(false)}
+                                    className="flex items-center gap-3 rounded-md px-3 py-3 text-sm font-medium text-zinc-400 hover:bg-zinc-900 hover:text-zinc-100 transition-colors"
+                                >
+                                    <item.icon className="h-5 w-5 text-zinc-500" />
+                                    {item.label}
+                                </Link>
+                            );
+                        })}
+                    </nav>
+                </div>
+            )}
         </header>
     );
 }

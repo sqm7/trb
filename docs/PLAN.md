@@ -202,4 +202,7 @@ refactor: 重構
 - [x] Remove Legacy UI: "Data List" tab and "Advanced Analysis" sidebar item
 - [x] Add Sidebar Social Links: Developer Log (Medium) and Threads
 - [x] Enhance Project Search: Display County, District, and Date in suggestions
+- [x] UI Refinement: Removed unused "Query Data List" button from FilterBar
+- [x] UI Refinement: Fixed MultiSelect layout (Horizontal Scroll, District Context, Group Headers)
+- [x] UI Refinement: Dynamic hint for county selection limit
 

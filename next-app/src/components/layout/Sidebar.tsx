@@ -16,7 +16,7 @@ import {
     AtSign
 } from "lucide-react";
 
-const NAV_ITEMS = [
+export const NAV_ITEMS = [
     { label: "總覽儀表板", href: "/", icon: LayoutDashboard },
     { label: "地圖模式", href: "/map", icon: Map },
     { label: "分析報告", href: "/reports", icon: FileText },
