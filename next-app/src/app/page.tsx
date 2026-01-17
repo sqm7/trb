@@ -9,6 +9,7 @@ import { SalesVelocityReport } from "@/components/reports/SalesVelocityReport";
 import { ParkingAnalysisReport } from "@/components/reports/ParkingAnalysisReport";
 import { UnitPriceAnalysisReport } from "@/components/reports/UnitPriceAnalysisReport";
 import { HeatmapReport } from "@/components/reports/HeatmapReport";
+import { DataListReport } from "@/components/reports/DataListReport";
 
 import { api } from "@/lib/api";
 import { useFilterStore } from "@/store/useFilterStore";
@@ -155,6 +156,7 @@ export default function DashboardPage() {
                 <TabsTrigger value="heatmap">調價熱力圖</TabsTrigger>
                 <TabsTrigger value="velocity">銷售速度與房型</TabsTrigger>
                 <TabsTrigger value="parking">車位分析</TabsTrigger>
+                <TabsTrigger value="data-list">交易明細列表</TabsTrigger>
 
               </TabsList>
             </div>
@@ -186,7 +188,9 @@ export default function DashboardPage() {
               <ParkingAnalysisReport data={analysisData} />
             </TabsContent>
 
-
+            <TabsContent value="data-list" className="focus-visible:outline-none focus-visible:ring-0">
+              <DataListReport trigger={analysisData} />
+            </TabsContent>
           </Tabs>
         </div>
       )}

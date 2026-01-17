@@ -146,7 +146,8 @@ const MultiSelect = forwardRef<HTMLDivElement, MultiSelectProps>(({
                             <div className="p-2 text-center text-zinc-500 text-sm">No options found</div>
                         ) : (
                             filteredOptions.map((option, index) => {
-                                const showHeader = index === 0 || option.group !== filteredOptions[index - 1].group;
+                                if (!option) return null;
+                                const showHeader = index === 0 || option.group !== filteredOptions[index - 1]?.group;
                                 return (
                                     <React.Fragment key={option.value}>
                                         {showHeader && option.group && (

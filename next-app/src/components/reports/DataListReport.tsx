@@ -45,13 +45,14 @@ interface TransactionRecord {
 }
 
 interface DataListReportProps {
-    data?: any; // Kept for compatibility/trigger, though we fetch our own data
+    data?: any; // Kept for compatibility
+    trigger?: any; // Trigger to start fetching (e.g., analysisData)
 }
 
 type SortDirection = 'asc' | 'desc' | null;
 type SortConfig = { key: string; direction: SortDirection };
 
-export function DataListReport({ data: _triggerData }: DataListReportProps) {
+export function DataListReport({ data: _triggerData, trigger }: DataListReportProps) {
     const filters = useFilterStore();
     const [dataList, setDataList] = useState<TransactionRecord[]>([]);
     const [isLoading, setIsLoading] = useState(false);
@@ -149,10 +150,12 @@ export function DataListReport({ data: _triggerData }: DataListReportProps) {
         }
     }, [filters]);
 
-    // Trigger fetch on mount or when _triggerData (analysis completion) changes
+    // Trigger fetch when trigger prop updates
     useEffect(() => {
-        fetchByType();
-    }, [fetchByType, _triggerData]);
+        if (trigger) {
+            fetchByType();
+        }
+    }, [fetchByType, trigger]);
 
 
     const handleFetchSubTable = async (record: TransactionRecord) => {
