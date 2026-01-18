@@ -198,7 +198,46 @@ export default function ReportsPage() {
                 margin: [10, 10] as [number, number],
                 filename: `VibeReport_${new Date().toISOString().slice(0, 10)}.pdf`,
                 image: { type: 'jpeg' as const, quality: 0.98 },
-                html2canvas: { scale: 2, useCORS: true, logging: true },
+                html2canvas: {
+                    scale: 2,
+                    useCORS: true,
+                    logging: true,
+                    onclone: (clonedDoc: Document) => {
+                        console.log("Sanitizing colors in cloned document...");
+                        const allElements = clonedDoc.querySelectorAll('*');
+
+                        // Helper to convert CSS color string to RGB using browser engine
+                        const canvas = clonedDoc.createElement('canvas');
+                        canvas.width = 1;
+                        canvas.height = 1;
+                        const ctx = canvas.getContext('2d');
+
+                        const toRgb = (color: string) => {
+                            if (!ctx || !color) return color;
+                            if (color.includes('oklab') || color.includes('lab') || color.includes('oklch')) {
+                                ctx.clearRect(0, 0, 1, 1);
+                                ctx.fillStyle = color;
+                                ctx.fillRect(0, 0, 1, 1);
+                                const [r, g, b, a] = ctx.getImageData(0, 0, 1, 1).data;
+                                return `rgba(${r}, ${g}, ${b}, ${a / 255})`;
+                            }
+                            return color;
+                        };
+
+                        allElements.forEach((el: any) => {
+                            const style = window.getComputedStyle(el);
+
+                            // Check and fix common color properties
+                            ['color', 'backgroundColor', 'borderColor', 'outlineColor'].forEach(prop => {
+                                const val = style[prop as any];
+                                if (val && (val.includes('oklab') || val.includes('lab') || val.includes('oklch'))) {
+                                    el.style[prop as any] = toRgb(val);
+                                }
+                            });
+                        });
+                        console.log("Color sanitization complete.");
+                    }
+                },
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const },
                 pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
             };

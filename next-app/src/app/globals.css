@@ -100,6 +100,7 @@
       transform: rotate(360deg);
     }
   }
+
   /* Force Hex Colors for html2canvas compatibility (Tailwind 4 default is oklch) */
   --color-zinc-50: #fafafa;
   --color-zinc-100: #f4f4f5;
@@ -112,6 +113,19 @@
   --color-zinc-800: #27272a;
   --color-zinc-900: #18181b;
   --color-zinc-950: #09090b;
+
+  /* Force Gray to match Zinc (Hex) to prevent oklab leakage */
+  --color-gray-50: #fafafa;
+  --color-gray-100: #f4f4f5;
+  --color-gray-200: #e4e4e7;
+  --color-gray-300: #d4d4d8;
+  --color-gray-400: #a1a1aa;
+  --color-gray-500: #71717a;
+  --color-gray-600: #52525b;
+  --color-gray-700: #3f3f46;
+  --color-gray-800: #27272a;
+  --color-gray-900: #18181b;
+  --color-gray-950: #09090b;
 
   --color-violet-50: #f5f3ff;
   --color-violet-100: #ede9fe;
