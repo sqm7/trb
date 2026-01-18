@@ -80,7 +80,9 @@ export default function PolicyTimelineReport({ data }: PolicyTimelineReportProps
         };
     }, [projectPeriods]);
 
-    const containerHeight = Math.max(300, 200 + projectPeriods.length * 60);
+    const PROJECT_ROW_HEIGHT = 50;
+    const FIRST_ROW_OFFSET = 120; // Leave space for top axis and finance policies
+    const containerHeight = Math.max(450, FIRST_ROW_OFFSET + projectPeriods.length * PROJECT_ROW_HEIGHT + 100);
 
     // Helper: Position calculation (0% - 100%)
     const getPosition = (dateStr: string) => {
@@ -156,7 +158,7 @@ export default function PolicyTimelineReport({ data }: PolicyTimelineReportProps
                 <div className="relative w-full overflow-x-auto pb-12 pt-8 hide-scrollbar">
                     {/* Timeline Container - Dynamic width based on zoom */}
                     <div
-                        className="relative pr-20 pl-4 border-b border-zinc-800 transition-all duration-300 ease-out"
+                        className="relative pr-20 ml-24 border-b border-zinc-800 transition-all duration-300 ease-out"
                         style={{
                             minWidth: `${1200 * zoomLevel}px`,
                             height: `${containerHeight}px`
@@ -178,12 +180,8 @@ export default function PolicyTimelineReport({ data }: PolicyTimelineReportProps
 
                         {/* Project Duration Tracks */}
                         {projectPeriods.map((period, index) => {
-                            // Calculate dynamic top position to stack tracks
-                            // Start from 30%, add spacing.
-                            // If we have many tracks, we need to ensure they don't overlap policies excessively, 
-                            // but policies are z-indexed above/below.
-                            // Let's place them in the middle area.
-                            const topPercent = 30 + (index * 12);
+                            // Calculate dynamic top position (Pixels)
+                            const topPx = FIRST_ROW_OFFSET + (index * PROJECT_ROW_HEIGHT);
 
                             // Colors for distinction (cycling)
                             const colors = [
@@ -199,26 +197,25 @@ export default function PolicyTimelineReport({ data }: PolicyTimelineReportProps
                                 <div
                                     key={period.name}
                                     className={cn(
-                                        "absolute h-10 border-y backdrop-blur-sm z-10 flex items-center justify-center group transition-all hover:bg-white/5",
+                                        "absolute h-8 border-y backdrop-blur-sm z-10 flex items-center justify-center group transition-all hover:bg-white/5",
                                         `bg-gradient-to-r ${colorClass}`
                                     )}
                                     style={{
                                         left: `${getPosition(period.startStr)}%`,
                                         width: `${Math.max(0.5, getPosition(period.endStr) - getPosition(period.startStr))}%`,
-                                        top: `${topPercent}%`
+                                        top: `${topPx}px`
                                     }}
                                 >
-                                    <div className="absolute -top-5 left-0 text-xs font-bold whitespace-nowrap px-1 bg-black/50 rounded backdrop-blur-sm border border-white/10">
-                                        {period.name}
+                                    {/* Name on the Left */}
+                                    <div className="absolute right-full mr-2 flex items-center h-full top-0">
+                                        <span className="text-[10px] font-bold text-zinc-400 whitespace-nowrap bg-black/40 px-1.5 py-0.5 rounded border border-white/5">
+                                            {period.name}
+                                        </span>
                                     </div>
-                                    <div className="absolute -top-12 text-[10px] whitespace-nowrap opacity-0 group-hover:opacity-70 transition-opacity bg-black/80 px-2 py-1 rounded border border-zinc-700">
-                                        銷售開始: {period.startStr}
-                                    </div>
-                                    <span className="text-[10px] font-bold px-2 truncate cursor-default opacity-80">
-                                        交易區間 ({period.count}筆)
-                                    </span>
-                                    <div className="absolute -bottom-12 text-[10px] whitespace-nowrap opacity-0 group-hover:opacity-70 transition-opacity bg-black/80 px-2 py-1 rounded border border-zinc-700">
-                                        最後交易: {period.endStr}
+
+                                    {/* Tooltips */}
+                                    <div className="absolute -top-8 text-[10px] whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity bg-black/90 px-2 py-1 rounded border border-zinc-700 z-20 pointer-events-none">
+                                        {period.startStr} ~ {period.endStr} ({period.count}筆)
                                     </div>
                                 </div>
                             );
