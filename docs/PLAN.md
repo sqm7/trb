@@ -309,4 +309,5 @@ refactor: 重構
 - [x] Refactor: Update Analysis Components (Ranking, PriceBand, etc.) to support `visibleSections` prop
 - [x] UI: Create `ReportsPage` specific Selection Sidebar
 - [x] Logic: Implement PDF Generation using `html2pdf.js`
-- [ ] Verification: Test PDF download with various selections (User Testing)
+- [x] Verification: Test PDF download with various selections (User Testing)
+- [x] Deployment: Sync to Test Environment (`trb`)

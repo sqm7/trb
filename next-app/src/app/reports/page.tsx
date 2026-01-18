@@ -176,25 +176,35 @@ export default function ReportsPage() {
     const handleDownloadPDF = async () => {
         setIsGenerating(true);
         try {
-            // Dynamically import html2pdf to avoid SSR issues
-            const html2pdf = (await import('html2pdf.js')).default;
+            console.log("Starting PDF generation...");
+
+            // Dynamically import html2pdf
+            const html2pdfModule = await import('html2pdf.js');
+            const html2pdf = html2pdfModule.default || html2pdfModule;
+
+            console.log("html2pdf loaded:", html2pdf);
 
             const element = document.getElementById('report-preview-container');
-            if (!element) return;
+            if (!element) {
+                console.error("Element #report-preview-container not found!");
+                alert("錯誤：找不到報表內容元素 (report-preview-container)");
+                return;
+            }
 
             const opt = {
                 margin: [10, 10] as [number, number],
                 filename: `VibeReport_${new Date().toISOString().slice(0, 10)}.pdf`,
                 image: { type: 'jpeg' as const, quality: 0.98 },
-                html2canvas: { scale: 2, useCORS: true, logging: false },
+                html2canvas: { scale: 2, useCORS: true, logging: true }, // Enable logging
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const },
                 pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
             };
 
             await html2pdf().set(opt).from(element).save();
-        } catch (err) {
+            console.log("PDF generated successfully");
+        } catch (err: any) {
             console.error("PDF Generation failed:", err);
-            alert("PDF 生成失敗，請稍後再試。");
+            alert(`PDF 生成失敗: ${err.message || err}`);
         } finally {
             setIsGenerating(false);
         }
