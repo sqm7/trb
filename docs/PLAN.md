@@ -266,3 +266,15 @@ refactor: 重構
     - [x] Expanded state (On Hover/Toggle, w-64)
     - [x] Update AppLayout padding
 - [x] Create Reports Placeholder Page (`/app/reports/page.tsx`)
+
+### [2026-01-18] Settings Member Area
+- [x] Implement Member Profile Section in /settings
+- [x] Display User Info (Email, ID)
+- [x] Add Logout Functionality
+- [x] Show Monthly Report Quota (3/month)
+
+### [2026-01-18] Forgot Password Flow
+- [x] Add Forgot Password Mode to Login UI
+- [x] Implement Supabase Reset Password Logic
+- [x] UI for Check Email Confirmation
+- [x] Deploy to Production (`kthd`)

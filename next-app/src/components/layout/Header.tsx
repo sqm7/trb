@@ -33,12 +33,7 @@ export function Header() {
 
                 {/* Right: Actions */}
                 <div className="flex items-center gap-2">
-                    <Link
-                        href="/login"
-                        className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-9 px-3 text-zinc-400 hover:text-white"
-                    >
-                        Login
-                    </Link>
+
                     <Link
                         href="/admin/uploader"
                         className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-9 px-3 text-zinc-400 hover:text-white"
