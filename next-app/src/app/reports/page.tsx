@@ -24,13 +24,13 @@ export default function ReportsPage() {
                 {/* Text Content */}
                 <div className="text-center space-y-4 max-w-md px-4">
                     <h1 className="text-3xl font-bold text-white tracking-tight">
-                        分析報告中心
+                        客製化報表生成
                         <span className="block text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-violet-400 text-lg mt-1 font-medium">
-                            Premium Reports
+                            Report Generator
                         </span>
                     </h1>
                     <p className="text-zinc-400 leading-relaxed">
-                        我們正在為您準備更深入的市場洞察報告。包含區域競品對比、價格走勢預測等進階功能。
+                        未來您將能在此將儀表板的精選數據，一鍵生成為專業的 PDF 分析報告，方便您分享與簡報。
                     </p>
                 </div>
 
