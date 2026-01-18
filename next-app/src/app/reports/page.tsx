@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useMemo, useEffect } from "react";
+import Script from 'next/script';
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useAnalysisData } from "@/hooks/useAnalysisData";
 import { useFilterStore } from "@/store/useFilterStore";
@@ -176,26 +177,28 @@ export default function ReportsPage() {
     const handleDownloadPDF = async () => {
         setIsGenerating(true);
         try {
-            console.log("Starting PDF generation...");
+            console.log("Starting PDF generation via CDN...");
 
-            // Dynamically import html2pdf
-            const html2pdfModule = await import('html2pdf.js');
-            const html2pdf = html2pdfModule.default || html2pdfModule;
+            // Check if html2pdf is loaded from CDN
+            // @ts-ignore
+            const html2pdf = window.html2pdf;
 
-            console.log("html2pdf loaded:", html2pdf);
+            console.log("html2pdf object:", html2pdf);
+
+            if (!html2pdf) {
+                throw new Error("html2pdf library not loaded from CDN");
+            }
 
             const element = document.getElementById('report-preview-container');
             if (!element) {
-                console.error("Element #report-preview-container not found!");
-                alert("錯誤：找不到報表內容元素 (report-preview-container)");
-                return;
+                throw new Error("Element #report-preview-container not found!");
             }
 
             const opt = {
                 margin: [10, 10] as [number, number],
                 filename: `VibeReport_${new Date().toISOString().slice(0, 10)}.pdf`,
                 image: { type: 'jpeg' as const, quality: 0.98 },
-                html2canvas: { scale: 2, useCORS: true, logging: true }, // Enable logging
+                html2canvas: { scale: 2, useCORS: true, logging: true },
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const },
                 pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
             };
@@ -204,7 +207,7 @@ export default function ReportsPage() {
             console.log("PDF generated successfully");
         } catch (err: any) {
             console.error("PDF Generation failed:", err);
-            alert(`PDF 生成失敗: ${err.message || err}`);
+            alert(`PDF 生成失敗: ${err.message || err}\n請截圖此畫面給工程師。`);
         } finally {
             setIsGenerating(false);
         }
@@ -212,6 +215,11 @@ export default function ReportsPage() {
 
     return (
         <AppLayout>
+            <Script
+                src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"
+                strategy="lazyOnload"
+                onLoad={() => console.log('html2pdf loaded')}
+            />
             <div className="flex h-[calc(100vh-theme(spacing.20))] gap-6">
 
                 {/* Sidebar: Configuration */}
