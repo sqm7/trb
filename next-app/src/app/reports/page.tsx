@@ -189,10 +189,60 @@ export default function ReportsPage() {
                 throw new Error("html2pdf library not loaded from CDN");
             }
 
-            const element = document.getElementById('report-preview-container');
-            if (!element) {
+            // Nuclear Option: Pre-sanitize the DOM by inlining all computed styles as RGB
+            // This bypasses html2canvas looking up CSS variables that might be oklch/lab
+            const originalElement = document.getElementById('report-preview-container');
+            if (!originalElement) {
                 throw new Error("Element #report-preview-container not found!");
             }
+
+            // Create a clone to work on
+            const container = document.createElement('div');
+            container.style.position = 'absolute';
+            container.style.left = '-9999px';
+            container.style.top = '0';
+            document.body.appendChild(container);
+
+            const clone = originalElement.cloneNode(true) as HTMLElement;
+            container.appendChild(clone);
+
+            // Helper to process elements
+            const sanitizeElement = (source: Element, target: Element) => {
+                const computed = window.getComputedStyle(source);
+
+                // Force RGB for common color properties
+                const colorProps = ['color', 'backgroundColor', 'borderColor', 'borderTopColor', 'borderBottomColor', 'borderLeftColor', 'borderRightColor', 'outlineColor', 'fill', 'stroke'];
+
+                // We must use the computed style from the SOURCE element (which is visible)
+                // and apply it to the TARGET element (the clone)
+                const targetStyle = (target as HTMLElement).style;
+
+                if (targetStyle) {
+                    colorProps.forEach(prop => {
+                        const val = computed[prop as any];
+                        // If it looks like a color, and possibly has oklab/lab (or just essentially any color), 
+                        // we trust the browser's getComputedStyle to return RGB/RGBA for property access
+                        // Chrome/Safari usually return rgb(...) for computed standard props
+                        if (val) {
+                            targetStyle[prop as any] = val;
+                        }
+                    });
+                }
+
+                // Recursion
+                const sourceChildren = source.children;
+                const targetChildren = target.children;
+                for (let i = 0; i < sourceChildren.length; i++) {
+                    if (targetChildren[i]) {
+                        sanitizeElement(sourceChildren[i], targetChildren[i]);
+                    }
+                }
+            };
+
+            // Run sanitization
+            console.log("Starting deep DOM sanitization...");
+            sanitizeElement(originalElement, clone);
+            console.log("Deep DOM sanitization complete.");
 
             const opt = {
                 margin: [10, 10] as [number, number],
@@ -201,48 +251,16 @@ export default function ReportsPage() {
                 html2canvas: {
                     scale: 2,
                     useCORS: true,
-                    logging: true,
-                    onclone: (clonedDoc: Document) => {
-                        console.log("Sanitizing colors in cloned document...");
-                        const allElements = clonedDoc.querySelectorAll('*');
-
-                        // Helper to convert CSS color string to RGB using browser engine
-                        const canvas = clonedDoc.createElement('canvas');
-                        canvas.width = 1;
-                        canvas.height = 1;
-                        const ctx = canvas.getContext('2d');
-
-                        const toRgb = (color: string) => {
-                            if (!ctx || !color) return color;
-                            if (color.includes('oklab') || color.includes('lab') || color.includes('oklch')) {
-                                ctx.clearRect(0, 0, 1, 1);
-                                ctx.fillStyle = color;
-                                ctx.fillRect(0, 0, 1, 1);
-                                const [r, g, b, a] = ctx.getImageData(0, 0, 1, 1).data;
-                                return `rgba(${r}, ${g}, ${b}, ${a / 255})`;
-                            }
-                            return color;
-                        };
-
-                        allElements.forEach((el: any) => {
-                            const style = window.getComputedStyle(el);
-
-                            // Check and fix common color properties
-                            ['color', 'backgroundColor', 'borderColor', 'outlineColor'].forEach(prop => {
-                                const val = style[prop as any];
-                                if (val && (val.includes('oklab') || val.includes('lab') || val.includes('oklch'))) {
-                                    el.style[prop as any] = toRgb(val);
-                                }
-                            });
-                        });
-                        console.log("Color sanitization complete.");
-                    }
+                    logging: true
                 },
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const },
                 pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
             };
 
-            await html2pdf().set(opt).from(element).save();
+            await html2pdf().set(opt).from(clone).save();
+
+            // Cleanup
+            document.body.removeChild(container);
             console.log("PDF generated successfully");
         } catch (err: any) {
             console.error("PDF Generation failed:", err);
