@@ -259,3 +259,10 @@ refactor: 重構
 - [x] Fix Custom Domain Support (`www.sqmtalk.com`)
     - [x] Create `deploy_next_prod.sh` (CNAME injection, empty Base Path)
     - [x] Resolve path conflicts between GitHub Pages default (`/kthd`) and Custom Domain Root (`/`)
+
+### [2026-01-18] Sidebar & Reports UI Fixes
+- [x] Implement Collapsible Sidebar
+    - [x] Minimized state (Icons only, w-20)
+    - [x] Expanded state (On Hover/Toggle, w-64)
+    - [x] Update AppLayout padding
+- [x] Create Reports Placeholder Page (`/app/reports/page.tsx`)
