@@ -232,5 +232,23 @@ refactor: 重構
 - [x] **Filtering Fix**: Respect `excludeCommercial` in Heatmap
 - [x] **Unit Normalization**: Port AdaptiveUnitResolver to frontend for smart unit naming
 
+### [Current Task] Login Sidebar Integration (2026-01-18)
+- [x] **Route Refactoring**
+    - [x] Create `/app/dashboard/page.tsx` and migrate Dashboard content
+    - [x] Update `/app/page.tsx` to implement Login UI
+    - [x] Remove `/app/login/page.tsx`
+- [x] **Sidebar Integration**
+    - [x] Update Sidebar links (Dashboard -> `/dashboard`, Login -> `/`)
+    - [x] Ensure AppLayout wraps the Login page correctly
+- [x] **Auth UI Refinement**
+    - [x] Remove static "Login" link from Header
+    - [x] Implement dynamic Sidebar state (Login vs User Profile)
+- [x] **Policy Data Update**
+    - [x] Update `src/lib/data/policies.ts` with the new detailed content (2012-2025).
+    - [x] Add new fields if necessary (Context, Background, Affected Audience).
 
-
+- [x] **Policy Timeline Enhancements**
+    - [x] Implement Zoom In/Out controls for the timeline to resolve overlapping issues.
+    - [x] Add "Expand" button to the Policy Detail view to show full content (including unchanged parts).
+    - [x] Populate `details` field in `policies.ts` with comprehensive regulation points.
+    - [x] Support multi-project visualization in Policy Timeline (stacked tracks).
