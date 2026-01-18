@@ -123,9 +123,19 @@ export default function SettingsPage() {
                                         </span>
                                     </div>
                                     <h3 className="text-2xl font-bold text-white">標準會員</h3>
-                                    <p className="text-zinc-500 text-sm mt-2">
-                                        您可以免費使用所有的基本分析報表功能。
-                                    </p>
+
+                                    <div className="mt-4 space-y-2">
+                                        <div className="flex justify-between text-sm">
+                                            <span className="text-zinc-400">本月報表生成額度</span>
+                                            <span className="text-white font-mono">3 / 3</span>
+                                        </div>
+                                        <div className="h-2 w-full bg-zinc-800 rounded-full overflow-hidden">
+                                            <div className="h-full bg-cyan-500 w-full shadow-[0_0_10px_rgba(6,182,212,0.5)]"></div>
+                                        </div>
+                                        <p className="text-xs text-zinc-500 pt-1">
+                                            額度將於每月 1 號重置。
+                                        </p>
+                                    </div>
                                 </div>
 
                                 <div className="pt-4 border-t border-white/5">
