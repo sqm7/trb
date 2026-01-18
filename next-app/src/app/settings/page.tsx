@@ -1,9 +1,11 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { AppLayout } from "@/components/layout/AppLayout";
-import { Monitor, Moon, Sun, Layout, Check, Shield, Bell, User } from "lucide-react";
+import { Monitor, Moon, Sun, Layout, Check, Shield, Bell, User, LogOut, CreditCard, Mail, Fingerprint } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/lib/supabase";
 
 // Theme Options
 const THEMES = [
@@ -34,6 +36,29 @@ const THEMES = [
 
 export default function SettingsPage() {
     const [activeTheme, setActiveTheme] = useState('cyberpunk');
+    const [user, setUser] = useState<any>(null);
+    const [loading, setLoading] = useState(true);
+    const router = useRouter();
+
+    useEffect(() => {
+        const getUser = async () => {
+            const { data: { session } } = await supabase.auth.getSession();
+            setUser(session?.user ?? null);
+            setLoading(false);
+        };
+        getUser();
+
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+            setUser(session?.user ?? null);
+        });
+
+        return () => subscription.unsubscribe();
+    }, []);
+
+    const handleLogout = async () => {
+        await supabase.auth.signOut();
+        router.push('/');
+    };
 
     return (
         <AppLayout>
@@ -42,8 +67,89 @@ export default function SettingsPage() {
                 {/* Header */}
                 <div className="space-y-2">
                     <h1 className="text-3xl font-bold text-white tracking-tight">系統設定</h1>
-                    <p className="text-zinc-400">管理您的介面外觀與分析偏好。</p>
+                    <p className="text-zinc-400">管理您的會員資訊、介面外觀與分析偏好。</p>
                 </div>
+
+                {/* Section: Member Zone */}
+                <section className="space-y-6">
+                    <div className="flex items-center gap-2 mb-4">
+                        <User className="h-5 w-5 text-cyan-400" />
+                        <h2 className="text-xl font-semibold text-zinc-200">會員專區</h2>
+                    </div>
+
+                    {!loading && user ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {/* User Profile Card */}
+                            <div className="bg-zinc-900/50 border border-white/10 rounded-2xl p-6 space-y-6 relative overflow-hidden group">
+                                <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                                    <Fingerprint className="h-24 w-24 text-cyan-500" />
+                                </div>
+
+                                <div className="flex items-start gap-4 relative z-10">
+                                    <div className="h-16 w-16 rounded-full bg-gradient-to-br from-cyan-500 to-violet-600 flex items-center justify-center text-2xl font-bold text-white shadow-lg shadow-cyan-900/20">
+                                        {user.email?.[0].toUpperCase()}
+                                    </div>
+                                    <div className="space-y-1">
+                                        <h3 className="text-lg font-bold text-white">Vibe Member</h3>
+                                        <div className="flex items-center gap-2 text-zinc-400 text-sm">
+                                            <Mail className="h-3.5 w-3.5" />
+                                            {user.email}
+                                        </div>
+                                        <div className="flex items-center gap-2 text-zinc-500 text-xs font-mono mt-1">
+                                            <span className="bg-zinc-800 px-1.5 py-0.5 rounded text-zinc-400">UID</span>
+                                            {user.id.slice(0, 8)}...{user.id.slice(-4)}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="pt-2">
+                                    <button
+                                        onClick={handleLogout}
+                                        className="w-full flex items-center justify-center gap-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 rounded-xl px-4 py-2.5 transition-all text-sm font-medium"
+                                    >
+                                        <LogOut className="h-4 w-4" />
+                                        登出帳號
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Subscription Status Card */}
+                            <div className="bg-zinc-900/50 border border-white/10 rounded-2xl p-6 space-y-4 flex flex-col justify-between">
+                                <div>
+                                    <div className="flex items-center justify-between mb-2">
+                                        <span className="text-zinc-400 text-sm font-medium">目前方案</span>
+                                        <span className="bg-cyan-500/20 text-cyan-300 text-xs px-2 py-1 rounded-full border border-cyan-500/30">
+                                            Free Tier
+                                        </span>
+                                    </div>
+                                    <h3 className="text-2xl font-bold text-white">標準會員</h3>
+                                    <p className="text-zinc-500 text-sm mt-2">
+                                        您可以免費使用所有的基本分析報表功能。
+                                    </p>
+                                </div>
+
+                                <div className="pt-4 border-t border-white/5">
+                                    <button className="w-full flex items-center justify-center gap-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-xl px-4 py-2.5 transition-all text-sm font-medium cursor-not-allowed opacity-70">
+                                        <CreditCard className="h-4 w-4" />
+                                        升級 Pro 方案 (Coming Soon)
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="bg-zinc-900/30 border border-zinc-800 rounded-2xl p-8 text-center space-y-4">
+                            <p className="text-zinc-400">請先登入以查看會員資訊。</p>
+                            <button
+                                onClick={() => router.push('/')}
+                                className="bg-violet-600 hover:bg-violet-500 text-white px-6 py-2 rounded-lg font-medium transition-colors"
+                            >
+                                前往登入
+                            </button>
+                        </div>
+                    )}
+                </section>
+
+                <div className="h-px bg-white/5" />
 
                 {/* Section: Appearance */}
                 <section className="space-y-6">
