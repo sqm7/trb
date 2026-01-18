@@ -296,5 +296,10 @@ refactor: 重構
 - [x] Verify UI layout and functionality
 - [x] Implement "Click Outside to Close" for Batch Update Modal
 - [x] Implement "Click Outside to Close" for Batch Update Modal
+- [x] Implement "Click Outside to Close" for Batch Update Modal
 - [x] Verify/Enhance "Close (X)" Button visibility
 - [x] Deploy updates to Test Environment (`trb`)
+
+### [2026-01-18] Mobile Sidebar Fix
+- [x] Hide Desktop Sidebar on Mobile (`hidden lg:flex`)
+- [x] Verify Mobile Menu functionality (already exists in Header)

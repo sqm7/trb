@@ -56,7 +56,7 @@ export function Sidebar() {
     };
 
     return (
-        <aside className="fixed left-0 top-0 z-50 flex h-screen w-20 flex-col border-r border-white/5 bg-zinc-950 transition-all duration-300 ease-in-out hover:w-64 group shadow-2xl shadow-black/50 overflow-hidden">
+        <aside className="hidden lg:flex fixed left-0 top-0 z-50 h-screen w-20 flex-col border-r border-white/5 bg-zinc-950 transition-all duration-300 ease-in-out hover:w-64 group shadow-2xl shadow-black/50 overflow-hidden">
             {/* Brand */}
             <div className="flex h-16 items-center px-6 border-b border-white/5 overflow-hidden whitespace-nowrap">
                 <div className="flex items-center gap-3 font-bold text-xl tracking-tight text-white">
