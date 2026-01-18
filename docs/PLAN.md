@@ -45,7 +45,7 @@
 - [x] 功能增強（建案組成按鈕、車位互動、資料列表排序）
 - [x] 進階功能增強（單價分析切換、熱力圖控制項、銷售速度維度）
 - [ ] PDF 導出功能遷移
-- [ ] 部署測試 Next.js 版本
+- [x] 部署測試 Next.js 版本
 
 ### [Phase 5] Login & Uploader Migration
 - [x] 遷移登入頁面 (`login.html` -> `/app/login`)
@@ -252,3 +252,10 @@ refactor: 重構
     - [x] Add "Expand" button to the Policy Detail view to show full content (including unchanged parts).
     - [x] Populate `details` field in `policies.ts` with comprehensive regulation points.
     - [x] Support multi-project visualization in Policy Timeline (stacked tracks).
+
+### [2026-01-18] Production Deployment & Custom Domain
+- [x] Deploy Next.js to Production Repo (`kthd`)
+- [x] Implement Dynamic Base Path Configuration (`next.config.ts`)
+- [x] Fix Custom Domain Support (`www.sqmtalk.com`)
+    - [x] Create `deploy_next_prod.sh` (CNAME injection, empty Base Path)
+    - [x] Resolve path conflicts between GitHub Pages default (`/kthd`) and Custom Domain Root (`/`)

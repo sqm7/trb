@@ -365,30 +365,35 @@ src/
 ## 🚀 部署環境
 
 ### GitHub Pages 配置
+(Next.js App Router)
 
-| 環境 | 倉庫 | 網址 | 部署腳本 |
-|------|------|------|----------|
-| **測試版** | `sqm7/trb` | https://sqm7.github.io/trb | `deploy_next_trb.sh` |
-| **正式版** | `sqm7/kthd` | https://sqm7.github.io/kthd | `deploy_github.sh` |
+| 環境 | 倉庫 (Branch) | 網址 | Base Path | 部署腳本 |
+|------|--------------|------|-----------|----------|
+| **測試版** | `sqm7/trb` (`main`) | https://sqm7.github.io/trb | `/trb` | `deploy_next_trb.sh` |
+| **正式版** | `sqm7/kthd` (`main`) | https://www.sqmtalk.com | `""` (Root) | `deploy_next_prod.sh` |
 
-### Git 遠端配置
+> ⚠️ 舊版的原生 JS 正式版 (`deploy_github.sh`) 已停用。
 
-```bash
-origin → https://github.com/sqm7/kthd.git (正式版)
-trb    → https://github.com/sqm7/trb.git  (測試版)
-```
+### 自定義網域配置 (Custom Domain)
+
+正式版綁定 `www.sqmtalk.com`，需特別處理路徑：
+
+1.  **CNAME**: 部署腳本會自動將根目錄的 `CNAME` 複製到發布目錄。
+2.  **Base Path**: `next.config.ts` 透過環境變數動態調整：
+    - 測試版: `NEXT_PUBLIC_BASE_PATH='/trb'`
+    - 正式版: `NEXT_PUBLIC_BASE_PATH=''` (空字串，對應根目錄)
 
 ### 部署指令
 
 ```bash
-# 部署到測試版
+# 部署到測試版 (Builds to /trb)
 bash scripts/deploy_next_trb.sh
 
-# 部署到正式版  
-bash scripts/deploy_github.sh "commit message"
+# 部署到正式版 (Builds to Root for Custom Domain)
+bash scripts/deploy_next_prod.sh
 ```
 
-> ⚠️ **注意**: `deploy_next_trb.sh` 和 `deploy_github.sh` 包含 GitHub Token，已加入 `.gitignore`，不會上傳到 GitHub。
+> ⚠️ **注意**: 部署腳本包含 GitHub Token，已加入 `.gitignore`。
 
 ### 資料庫備份
 
