@@ -1,72 +1,106 @@
-import { useQueries, useQuery } from '@tanstack/react-query';
-import { api } from '@/lib/api';
-import { aggregateAnalysisData } from '@/lib/aggregator';
-import { AnalysisResult, FilterState } from '@/types';
-import { COUNTY_CODE_MAP } from '@/lib/constants';
-import { useMemo } from 'react';
 
-export function useMultiCityAnalysis(counties: string[], baseFilters: FilterState): {
-    data: AnalysisResult | null;
-    isLoading: boolean;
-    isError: boolean;
-    errors: unknown[];
-} {
-    // 1. Create query objects for each county
-    const queries = counties.map(countyName => {
-        const countyCode = COUNTY_CODE_MAP[countyName];
-        return {
-            queryKey: ['analysis', countyCode, baseFilters],
-            queryFn: async () => {
-                const filters = { ...baseFilters, countyCode };
-                // Handle district filtering logic here if needed (e.g., filtering districts relevant to this county)
-                return api.analyzeData(filters);
-            },
-            enabled: !!countyCode && counties.length > 0,
-            staleTime: 5 * 60 * 1000, // 5 minutes
-        };
-    });
+import { useState, useCallback } from "react";
+import { api } from "@/lib/api";
+import { useFilterStore } from "@/store/useFilterStore";
+import { COUNTY_CODE_MAP } from "@/lib/config";
+import { getDateRangeDates } from "@/lib/date-utils";
+import { aggregateAnalysisData } from "@/lib/aggregator";
 
-    // 2. Execute parallel queries
-    const results = useQueries({ queries });
+export function useAnalysisData() {
+    const filters = useFilterStore();
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const [analysisData, setAnalysisData] = useState<any>(null);
 
-    // 3. Aggregate results
-    const aggregatedData = useMemo(() => {
-        let total: AnalysisResult | null = null;
-        let isLoading = false;
-        let isError = false;
+    const handleAnalyze = useCallback(async () => {
+        setLoading(true);
+        setError(null);
+        setAnalysisData(null); // Clear previous data
 
-        results.forEach(result => {
-            if (result.isLoading) isLoading = true;
-            if (result.isError) isError = true;
-            if (result.data) {
-                total = aggregateAnalysisData(total, result.data);
+        try {
+            // Map county names to codes
+            const countyCodes = filters.counties.map(name => COUNTY_CODE_MAP[name] || name);
+
+            if (countyCodes.length === 0) {
+                setError("請至少選擇一個縣市");
+                setLoading(false);
+                return;
             }
-        });
 
-        return {
-            data: total,
-            isLoading,
-            isError,
-            errors: results.filter(r => r.isError).map(r => r.error)
-        };
-    }, [results]);
+            // Date handling
+            let { dateRange, startDate, endDate } = filters;
 
-    return aggregatedData;
-}
+            // Ensure dates are populated if using a preset range but dates are empty
+            if (dateRange !== 'custom' && (!startDate || !endDate)) {
+                const calculated = getDateRangeDates(dateRange);
+                if (calculated.startDate && calculated.endDate) {
+                    startDate = calculated.startDate;
+                    endDate = calculated.endDate;
+                }
+            }
 
-export function useProjectSuggestions(counties: string[], query: string) {
-    return useQuery({
-        queryKey: ['suggestions', counties, query],
-        queryFn: async () => {
-            // Parallel fetch logic similar to analysis if needed, or just fetch all
-            const promises = counties.map(c => {
-                const code = COUNTY_CODE_MAP[c];
-                return api.fetchProjectNameSuggestions(code, query);
+            // Prepare common payload base
+            const basePayload = {
+                districts: filters.districts,
+                transactionType: filters.transactionType,
+                type: filters.transactionType,
+                projectNames: filters.projectNames,
+                buildingType: filters.buildingType,
+                excludeCommercial: filters.excludeCommercial,
+                floorPremium: filters.floorPremium,
+                dateRange,
+                dateStart: startDate,
+                dateEnd: endDate
+            };
+
+            console.log("Analyzing with counties:", countyCodes);
+
+            // Fetch data for all counties in parallel
+            const promises = countyCodes.map(countyCode => {
+                const payload = { ...basePayload, countyCode, counties: [countyCode] };
+                return api.analyzeProjectRanking(payload as any)
+                    .catch(err => {
+                        console.error(`Failed to fetch data for ${countyCode}:`, err);
+                        return null;
+                    });
             });
+
             const results = await Promise.all(promises);
-            return results.flat();
-        },
-        enabled: counties.length > 0 && query.length > 0,
-        staleTime: 60 * 1000,
-    });
+
+            // Aggregate results
+            let totalResult: any = null;
+            let successCount = 0;
+
+            for (const result of results) {
+                // Validate result has expected structure (at least projectRanking/coreMetrics)
+                if (result && result.projectRanking && result.coreMetrics) {
+                    console.log("Merging result for county:", result.projectRanking?.[0]?.county);
+                    totalResult = aggregateAnalysisData(totalResult, result);
+                    successCount++;
+                }
+            }
+
+            console.log("Aggregation complete. Total Transaction Details:", totalResult?.transactionDetails?.length);
+
+            if (successCount === 0) {
+                if (filters.projectNames.length > 0) {
+                    throw new Error("這段時間 這個建案查詢不到資料");
+                }
+                throw new Error("無法取得任何縣市的分析數據");
+            } else if (successCount < countyCodes.length) {
+                // Partial success
+                const failedCount = countyCodes.length - successCount;
+                setError(`注意：有 ${failedCount} 個縣市的資料載入失敗，分析結果可能不完整。`);
+            }
+
+            setAnalysisData(totalResult);
+        } catch (err: any) {
+            console.error("Analysis failed:", err);
+            setError(err.message || "無法取得分析數據，請稍後再試。");
+        } finally {
+            setLoading(false);
+        }
+    }, [filters]);
+
+    return { loading, error, analysisData, handleAnalyze, setError, setLoading, setAnalysisData };
 }

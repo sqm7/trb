@@ -31,9 +31,10 @@ interface PriceBandReportProps {
         allRoomTypes?: string[];
         transactionDetails?: any[];
     } | null;
+    visibleSections?: string[];
 }
 
-export function PriceBandReport({ data }: PriceBandReportProps) {
+export function PriceBandReport({ data, visibleSections = ['chart', 'table', 'location-table', 'location-chart'] }: PriceBandReportProps) {
     // Local filter for room types visibility in this report
     const defaultTypes = ['套房', '1房', '2房', '3房', '4房', '毛胚'];
     const [selectedRoomTypes, setSelectedRoomTypes] = useState<string[]>(defaultTypes);
@@ -348,107 +349,113 @@ export function PriceBandReport({ data }: PriceBandReportProps) {
             </div>
 
             {/* 2. Chart */}
-            <ReportWrapper title="各房型總價帶分佈箱型圖" description="顯示各房型總價的中位數與四分位距">
-                <PriceBandChart data={tableData} />
-            </ReportWrapper>
+            {visibleSections.includes('chart') && (
+                <ReportWrapper title="各房型總價帶分佈箱型圖" description="顯示各房型總價的中位數與四分位距">
+                    <PriceBandChart data={tableData} />
+                </ReportWrapper>
+            )}
+
 
             {/* 3. Detailed Table */}
-            <ReportWrapper title="總價帶詳細數據" description={mergeBathrooms ? "各房型合併統計 (點擊「全部」可展開細節)" : "各房型詳細價格統計"}>
-                <div className="overflow-x-auto">
-                    <table className="w-full text-sm text-left">
-                        <thead className="bg-zinc-900/80 text-zinc-400 uppercase text-xs font-semibold">
-                            <tr>
-                                <th className="px-4 py-3">房型</th>
-                                <th className="px-4 py-3">衛浴</th>
-                                <th className="px-4 py-3">建案數</th>
-                                <th className="px-4 py-3">筆數</th>
-                                <th className="px-4 py-3">平均總價</th>
-                                <th className="px-4 py-3">最低總價</th>
-                                <th className="px-4 py-3">1/4位總價</th>
-                                <th className="px-4 py-3 text-violet-400">中位數總價</th>
-                                <th className="px-4 py-3">3/4位總價</th>
-                                <th className="px-4 py-3">最高總價</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-white/5">
-                            {tableData.map((item, idx) => {
-                                const isMergedRow = mergeBathrooms && item.bathrooms === null;
-                                const isExpanded = expandedRoomTypes.has(item.roomType);
-                                const subItems = (isMergedRow && isExpanded) ? getSubItems(item.roomType) : [];
+            {visibleSections.includes('table') && (
+                <ReportWrapper title="總價帶詳細數據" description={mergeBathrooms ? "各房型合併統計 (點擊「全部」可展開細節)" : "各房型詳細價格統計"}>
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-sm text-left">
+                            <thead className="bg-zinc-900/80 text-zinc-400 uppercase text-xs font-semibold">
+                                <tr>
+                                    <th className="px-4 py-3">房型</th>
+                                    <th className="px-4 py-3">衛浴</th>
+                                    <th className="px-4 py-3">建案數</th>
+                                    <th className="px-4 py-3">筆數</th>
+                                    <th className="px-4 py-3">平均總價</th>
+                                    <th className="px-4 py-3">最低總價</th>
+                                    <th className="px-4 py-3">1/4位總價</th>
+                                    <th className="px-4 py-3 text-violet-400">中位數總價</th>
+                                    <th className="px-4 py-3">3/4位總價</th>
+                                    <th className="px-4 py-3">最高總價</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-white/5">
+                                {tableData.map((item, idx) => {
+                                    const isMergedRow = mergeBathrooms && item.bathrooms === null;
+                                    const isExpanded = expandedRoomTypes.has(item.roomType);
+                                    const subItems = (isMergedRow && isExpanded) ? getSubItems(item.roomType) : [];
 
-                                return (
-                                    <React.Fragment key={idx}>
-                                        <tr className={cn("hover:bg-zinc-800/50 transition-colors", isExpanded && "bg-zinc-800/30")}>
-                                            <td className="px-4 py-3 font-medium text-white">{item.roomType}</td>
-                                            <td className="px-4 py-3 text-zinc-400">
-                                                {isMergedRow ? (
-                                                    <button
-                                                        onClick={() => toggleExpand(item.roomType)}
-                                                        className="flex items-center gap-1 text-xs px-2 py-0.5 rounded bg-zinc-700/50 hover:bg-zinc-600 hover:text-white transition-colors cursor-pointer"
-                                                    >
-                                                        <span>全部</span>
-                                                        <span className={cn("transform transition-transform text-[10px]", isExpanded ? "rotate-180" : "")}>
-                                                            ▼
-                                                        </span>
-                                                    </button>
-                                                ) : (
-                                                    item.bathrooms ?? '-'
-                                                )}
-                                            </td>
-                                            <td className="px-4 py-3">
-                                                {item.projectNames && item.projectNames.length > 0 ? (
-                                                    <button
-                                                        onClick={() => openProjectModal(item.roomType, item.bathrooms, item.projectNames || [])}
-                                                        className="px-2 py-1 text-xs font-medium rounded-full bg-violet-500/20 border border-violet-500/50 text-violet-300 hover:bg-violet-500/30 transition-colors cursor-pointer"
-                                                    >
-                                                        {item.projectNames.length} 個建案
-                                                    </button>
-                                                ) : (
-                                                    <span className="text-zinc-500">-</span>
-                                                )}
-                                            </td>
-                                            <td className="px-4 py-3 text-zinc-300">{item.count.toLocaleString()}</td>
-                                            <td className="px-4 py-3 font-mono text-zinc-300">{item.avgPrice.toLocaleString(undefined, { maximumFractionDigits: 0 })}</td>
-                                            <td className="px-4 py-3 font-mono text-zinc-500">{item.minPrice.toLocaleString()}</td>
-                                            <td className="px-4 py-3 font-mono text-zinc-500">{item.q1Price.toLocaleString()}</td>
-                                            <td className="px-4 py-3 font-mono text-violet-400 font-bold">{item.medianPrice.toLocaleString()}</td>
-                                            <td className="px-4 py-3 font-mono text-zinc-500">{item.q3Price.toLocaleString()}</td>
-                                            <td className="px-4 py-3 font-mono text-zinc-500">{item.maxPrice.toLocaleString()}</td>
-                                        </tr>
-                                        {/* Render Sub-rows if expanded */}
-                                        {subItems.map((sub, sIdx) => (
-                                            <tr key={`${idx}-sub-${sIdx}`} className="bg-zinc-900/50 hover:bg-zinc-900 border-l-2 border-l-violet-500/30">
-                                                <td className="px-4 py-2 font-medium text-zinc-500 text-xs pl-8">↳ {sub.roomType}</td>
-                                                <td className="px-4 py-2 text-zinc-400 text-xs">{sub.bathrooms} 衛</td>
-                                                <td className="px-4 py-2">
-                                                    {sub.projectNames && sub.projectNames.length > 0 ? (
+                                    return (
+                                        <React.Fragment key={idx}>
+                                            <tr className={cn("hover:bg-zinc-800/50 transition-colors", isExpanded && "bg-zinc-800/30")}>
+                                                <td className="px-4 py-3 font-medium text-white">{item.roomType}</td>
+                                                <td className="px-4 py-3 text-zinc-400">
+                                                    {isMergedRow ? (
                                                         <button
-                                                            onClick={() => openProjectModal(sub.roomType, sub.bathrooms, sub.projectNames || [])}
-                                                            className="text-xs text-zinc-500 hover:text-zinc-300 underline decoration-zinc-700"
+                                                            onClick={() => toggleExpand(item.roomType)}
+                                                            className="flex items-center gap-1 text-xs px-2 py-0.5 rounded bg-zinc-700/50 hover:bg-zinc-600 hover:text-white transition-colors cursor-pointer"
                                                         >
-                                                            {sub.projectNames.length} 建案
+                                                            <span>全部</span>
+                                                            <span className={cn("transform transition-transform text-[10px]", isExpanded ? "rotate-180" : "")}>
+                                                                ▼
+                                                            </span>
                                                         </button>
-                                                    ) : '-'}
+                                                    ) : (
+                                                        item.bathrooms ?? '-'
+                                                    )}
                                                 </td>
-                                                <td className="px-4 py-2 text-zinc-500 text-xs">{sub.count.toLocaleString()}</td>
-                                                <td className="px-4 py-2 font-mono text-zinc-500 text-xs">{sub.avgPrice.toLocaleString(undefined, { maximumFractionDigits: 0 })}</td>
-                                                <td className="px-4 py-2 font-mono text-zinc-600 text-xs">{sub.minPrice.toLocaleString()}</td>
-                                                <td className="px-4 py-2 font-mono text-zinc-600 text-xs">{sub.q1Price.toLocaleString()}</td>
-                                                <td className="px-4 py-2 font-mono text-zinc-500 text-xs font-medium">{sub.medianPrice.toLocaleString()}</td>
-                                                <td className="px-4 py-2 font-mono text-zinc-600 text-xs">{sub.q3Price.toLocaleString()}</td>
-                                                <td className="px-4 py-2 font-mono text-zinc-600 text-xs">{sub.maxPrice.toLocaleString()}</td>
+                                                <td className="px-4 py-3">
+                                                    {item.projectNames && item.projectNames.length > 0 ? (
+                                                        <button
+                                                            onClick={() => openProjectModal(item.roomType, item.bathrooms, item.projectNames || [])}
+                                                            className="px-2 py-1 text-xs font-medium rounded-full bg-violet-500/20 border border-violet-500/50 text-violet-300 hover:bg-violet-500/30 transition-colors cursor-pointer"
+                                                        >
+                                                            {item.projectNames.length} 個建案
+                                                        </button>
+                                                    ) : (
+                                                        <span className="text-zinc-500">-</span>
+                                                    )}
+                                                </td>
+                                                <td className="px-4 py-3 text-zinc-300">{item.count.toLocaleString()}</td>
+                                                <td className="px-4 py-3 font-mono text-zinc-300">{item.avgPrice.toLocaleString(undefined, { maximumFractionDigits: 0 })}</td>
+                                                <td className="px-4 py-3 font-mono text-zinc-500">{item.minPrice.toLocaleString()}</td>
+                                                <td className="px-4 py-3 font-mono text-zinc-500">{item.q1Price.toLocaleString()}</td>
+                                                <td className="px-4 py-3 font-mono text-violet-400 font-bold">{item.medianPrice.toLocaleString()}</td>
+                                                <td className="px-4 py-3 font-mono text-zinc-500">{item.q3Price.toLocaleString()}</td>
+                                                <td className="px-4 py-3 font-mono text-zinc-500">{item.maxPrice.toLocaleString()}</td>
                                             </tr>
-                                        ))}
-                                    </React.Fragment>
-                                );
-                            })}
-                            {filteredData.length === 0 && (
-                                <tr><td colSpan={10} className="p-8 text-center text-zinc-500">請選擇房型顯示數據</td></tr>
-                            )}
-                        </tbody>
-                    </table>
-                </div>
-            </ReportWrapper>
+                                            {/* Render Sub-rows if expanded */}
+                                            {subItems.map((sub, sIdx) => (
+                                                <tr key={`${idx}-sub-${sIdx}`} className="bg-zinc-900/50 hover:bg-zinc-900 border-l-2 border-l-violet-500/30">
+                                                    <td className="px-4 py-2 font-medium text-zinc-500 text-xs pl-8">↳ {sub.roomType}</td>
+                                                    <td className="px-4 py-2 text-zinc-400 text-xs">{sub.bathrooms} 衛</td>
+                                                    <td className="px-4 py-2">
+                                                        {sub.projectNames && sub.projectNames.length > 0 ? (
+                                                            <button
+                                                                onClick={() => openProjectModal(sub.roomType, sub.bathrooms, sub.projectNames || [])}
+                                                                className="text-xs text-zinc-500 hover:text-zinc-300 underline decoration-zinc-700"
+                                                            >
+                                                                {sub.projectNames.length} 建案
+                                                            </button>
+                                                        ) : '-'}
+                                                    </td>
+                                                    <td className="px-4 py-2 text-zinc-500 text-xs">{sub.count.toLocaleString()}</td>
+                                                    <td className="px-4 py-2 font-mono text-zinc-500 text-xs">{sub.avgPrice.toLocaleString(undefined, { maximumFractionDigits: 0 })}</td>
+                                                    <td className="px-4 py-2 font-mono text-zinc-600 text-xs">{sub.minPrice.toLocaleString()}</td>
+                                                    <td className="px-4 py-2 font-mono text-zinc-600 text-xs">{sub.q1Price.toLocaleString()}</td>
+                                                    <td className="px-4 py-2 font-mono text-zinc-500 text-xs font-medium">{sub.medianPrice.toLocaleString()}</td>
+                                                    <td className="px-4 py-2 font-mono text-zinc-600 text-xs">{sub.q3Price.toLocaleString()}</td>
+                                                    <td className="px-4 py-2 font-mono text-zinc-600 text-xs">{sub.maxPrice.toLocaleString()}</td>
+                                                </tr>
+                                            ))}
+                                        </React.Fragment>
+                                    );
+                                })}
+                                {filteredData.length === 0 && (
+                                    <tr><td colSpan={10} className="p-8 text-center text-zinc-500">請選擇房型顯示數據</td></tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                </ReportWrapper>
+            )}
+
 
             {/* 4. Location Analysis Section */}
             {(crossTableData || transactionDetails) && (
@@ -500,78 +507,84 @@ export function PriceBandReport({ data }: PriceBandReportProps) {
                         </div>
                     )}
 
-                    <ReportWrapper title="區域房型成交分佈" description="各區域不同房型的成交數量熱力分佈">
-                        <div className="overflow-x-auto">
-                            {crossTableData ? (
-                                <table className="w-full text-sm text-left border-collapse">
-                                    <thead className="bg-zinc-900/80 text-zinc-400 font-semibold">
-                                        <tr>
-                                            <th className="px-3 py-2 sticky left-0 bg-zinc-900 z-10 border-r border-white/5">房型</th>
-                                            {crossTableData.locations.map(loc => (
-                                                <th key={loc} className="px-3 py-2 text-center min-w-[80px]">{loc}</th>
+                    {visibleSections.includes('location-table') && (
+                        <ReportWrapper title="區域房型成交分佈" description="各區域不同房型的成交數量熱力分佈">
+                            <div className="overflow-x-auto">
+                                {crossTableData ? (
+                                    <table className="w-full text-sm text-left border-collapse">
+                                        <thead className="bg-zinc-900/80 text-zinc-400 font-semibold">
+                                            <tr>
+                                                <th className="px-3 py-2 sticky left-0 bg-zinc-900 z-10 border-r border-white/5">房型</th>
+                                                {crossTableData.locations.map(loc => (
+                                                    <th key={loc} className="px-3 py-2 text-center min-w-[80px]">{loc}</th>
+                                                ))}
+                                                <th className="px-3 py-2 text-center border-l border-white/5 bg-zinc-900 font-bold text-white">總計</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-white/5">
+                                            {crossTableData.rows.map((row, rIdx) => (
+                                                <tr key={rIdx} className="hover:bg-zinc-800/30">
+                                                    <td className="px-3 py-2 font-medium text-zinc-300 sticky left-0 bg-zinc-950/90 border-r border-white/5">{row.roomType}</td>
+                                                    {row.cells.map((cellVal, cIdx) => {
+                                                        // Heatmap coloring logic
+                                                        const intensity = cellVal > 0 ? Math.min(cellVal / 20, 1) : 0;
+                                                        const bgStyle = cellVal > 0 ? { backgroundColor: `rgba(6, 182, 212, ${intensity * 0.3})` } : {};
+                                                        return (
+                                                            <td key={cIdx} className="px-3 py-2 text-center text-zinc-400" style={bgStyle}>
+                                                                {cellVal > 0 ? cellVal : '-'}
+                                                            </td>
+                                                        );
+                                                    })}
+                                                    <td className="px-3 py-2 text-center font-bold text-white border-l border-white/5 bg-zinc-900/50">
+                                                        {row.rowTotal}
+                                                    </td>
+                                                </tr>
                                             ))}
-                                            <th className="px-3 py-2 text-center border-l border-white/5 bg-zinc-900 font-bold text-white">總計</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-white/5">
-                                        {crossTableData.rows.map((row, rIdx) => (
-                                            <tr key={rIdx} className="hover:bg-zinc-800/30">
-                                                <td className="px-3 py-2 font-medium text-zinc-300 sticky left-0 bg-zinc-950/90 border-r border-white/5">{row.roomType}</td>
-                                                {row.cells.map((cellVal, cIdx) => {
-                                                    // Heatmap coloring logic
-                                                    const intensity = cellVal > 0 ? Math.min(cellVal / 20, 1) : 0;
-                                                    const bgStyle = cellVal > 0 ? { backgroundColor: `rgba(6, 182, 212, ${intensity * 0.3})` } : {};
-                                                    return (
-                                                        <td key={cIdx} className="px-3 py-2 text-center text-zinc-400" style={bgStyle}>
-                                                            {cellVal > 0 ? cellVal : '-'}
-                                                        </td>
-                                                    );
-                                                })}
-                                                <td className="px-3 py-2 text-center font-bold text-white border-l border-white/5 bg-zinc-900/50">
-                                                    {row.rowTotal}
+                                        </tbody>
+                                        <tfoot className="bg-zinc-900 font-bold border-t-2 border-zinc-700">
+                                            <tr>
+                                                <td className="px-3 py-2 sticky left-0 bg-zinc-900 border-r border-white/5 text-white">總計</td>
+                                                {crossTableData.locations.map(loc => (
+                                                    <td key={loc} className="px-3 py-2 text-center text-white">
+                                                        {crossTableData.locationTotals[loc]}
+                                                    </td>
+                                                ))}
+                                                <td className="px-3 py-2 text-center text-cyan-400 border-l border-white/5 bg-zinc-900">
+                                                    {crossTableData.grandTotal}
                                                 </td>
                                             </tr>
-                                        ))}
-                                    </tbody>
-                                    <tfoot className="bg-zinc-900 font-bold border-t-2 border-zinc-700">
-                                        <tr>
-                                            <td className="px-3 py-2 sticky left-0 bg-zinc-900 border-r border-white/5 text-white">總計</td>
-                                            {crossTableData.locations.map(loc => (
-                                                <td key={loc} className="px-3 py-2 text-center text-white">
-                                                    {crossTableData.locationTotals[loc]}
-                                                </td>
-                                            ))}
-                                            <td className="px-3 py-2 text-center text-cyan-400 border-l border-white/5 bg-zinc-900">
-                                                {crossTableData.grandTotal}
-                                            </td>
-                                        </tr>
-                                    </tfoot>
-                                </table>
-                            ) : (
-                                <div className="p-8 text-center text-zinc-500">無區域分佈數據</div>
-                            )}
-                        </div>
-                    </ReportWrapper>
+                                        </tfoot>
+                                    </table>
+                                ) : (
+                                    <div className="p-8 text-center text-zinc-500">無區域分佈數據</div>
+                                )}
+                            </div>
+                        </ReportWrapper>
+                    )}
 
-                    <ReportWrapper
-                        title="區域成交佔比圖表"
-                    >
-                        {crossTableData && (
-                            <PriceBandLocationChart
-                                roomTypes={selectedRoomTypes}
-                                locations={crossTableData.locations}
-                                crossTable={crossTableData.rows.reduce((acc, row) => {
-                                    const roomMap: Record<string, number> = {};
-                                    crossTableData.locations.forEach((loc, idx) => {
-                                        roomMap[loc] = row.cells[idx];
-                                    });
-                                    acc[row.roomType] = roomMap;
-                                    return acc;
-                                }, {} as Record<string, Record<string, number>>)}
-                                dimension={locationDimension}
-                            />
-                        )}
-                    </ReportWrapper>
+
+                    {visibleSections.includes('location-chart') && (
+                        <ReportWrapper
+                            title="區域成交佔比圖表"
+                        >
+                            {crossTableData && (
+                                <PriceBandLocationChart
+                                    roomTypes={selectedRoomTypes}
+                                    locations={crossTableData.locations}
+                                    crossTable={crossTableData.rows.reduce((acc, row) => {
+                                        const roomMap: Record<string, number> = {};
+                                        crossTableData.locations.forEach((loc, idx) => {
+                                            roomMap[loc] = row.cells[idx];
+                                        });
+                                        acc[row.roomType] = roomMap;
+                                        return acc;
+                                    }, {} as Record<string, Record<string, number>>)}
+                                    dimension={locationDimension}
+                                />
+                            )}
+                        </ReportWrapper>
+                    )}
+
                 </div>
             )}
 

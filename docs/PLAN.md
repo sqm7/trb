@@ -303,3 +303,10 @@ refactor: 重構
 ### [2026-01-18] Mobile Sidebar Fix
 - [x] Hide Desktop Sidebar on Mobile (`hidden lg:flex`)
 - [x] Verify Mobile Menu functionality (already exists in Header)
+
+### [2026-01-19] Report Generator (PDF Export)
+- [x] Refactor: Extract `useAnalysisData` hook from DashboardPage
+- [x] Refactor: Update Analysis Components (Ranking, PriceBand, etc.) to support `visibleSections` prop
+- [x] UI: Create `ReportsPage` specific Selection Sidebar
+- [x] Logic: Implement PDF Generation using `html2pdf.js`
+- [ ] Verification: Test PDF download with various selections (User Testing)

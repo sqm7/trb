@@ -1,5 +1,7 @@
 # 📋 SPEC.md - 平米內參需求真理源
 
+- **Report Generator**: Custom PDF report builder allowing users to select specific modules (charts, tables) from various analysis tabs (Ranking, Price Band, etc.) based on current dashboard filters.
+
 **版本**: 3.0.0  
 **最後更新**: 2026-01-15
 
