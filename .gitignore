@@ -33,3 +33,6 @@ dist/
 # Logs
 logs/
 *.log
+
+# Deployment Temps
+temp_deploy_trb/

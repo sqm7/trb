@@ -278,3 +278,23 @@ refactor: 重構
 - [x] Implement Supabase Reset Password Logic
 - [x] UI for Check Email Confirmation
 - [x] Deploy to Production (`kthd`)
+
+### [2026-01-18] Batch Data Modification (Legacy Restoration)
+- [x] Create Server Actions (`searchData`, `batchUpdateData`) in `src/app/admin/uploader/actions.ts`
+- [x] Implement UI in `src/app/admin/uploader/page.tsx`
+    - [x] Add "Batch Data Modification" card (Section 4)
+    - [x] Add Modal for search results
+    - [x] Integrate with Server Actions
+- [x] Implement `project_name_mappings` conditional logic (only record if `old_name` has `?`)
+- [x] Verify functionality
+- [x] Verify functionality
+- [x] Deploy to Test Environment (`trb`)
+
+### [2026-01-18] Batch Data Modification Improvements
+- [x] Add Search Controls (County, Type, Field, Keyword) inside the Batch Update Modal
+- [x] Ensure `handleSearch` works seamlessly within the modal
+- [x] Verify UI layout and functionality
+- [x] Implement "Click Outside to Close" for Batch Update Modal
+- [x] Implement "Click Outside to Close" for Batch Update Modal
+- [x] Verify/Enhance "Close (X)" Button visibility
+- [x] Deploy updates to Test Environment (`trb`)
