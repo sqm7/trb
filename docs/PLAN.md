@@ -311,3 +311,4 @@ refactor: 重構
 - [x] Logic: Implement PDF Generation using `html2pdf.js`
 - [x] Verification: Test PDF download with various selections (User Testing)
 - [x] Deployment: Sync to Test Environment (`trb`)
+- [x] Deployment: Sync to Production (`kthd`)

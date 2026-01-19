@@ -210,6 +210,25 @@ export default function ReportsPage() {
             const sanitizeElement = (source: Element, target: Element) => {
                 const computed = window.getComputedStyle(source);
 
+                // Helper to convert CSS color string to RGB using browser engine
+                const toRgb = (color: string) => {
+                    if (!color || color === 'transparent' || color === 'rgba(0, 0, 0, 0)') return color;
+                    // Only convert if it looks like a modern color format
+                    if (color.includes('oklab') || color.includes('lab') || color.includes('oklch') || color.includes('color(')) {
+                        const canvas = document.createElement('canvas');
+                        canvas.width = 1;
+                        canvas.height = 1;
+                        const ctx = canvas.getContext('2d');
+                        if (ctx) {
+                            ctx.fillStyle = color;
+                            ctx.fillRect(0, 0, 1, 1);
+                            const [r, g, b, a] = ctx.getImageData(0, 0, 1, 1).data;
+                            return `rgba(${r}, ${g}, ${b}, ${a / 255})`;
+                        }
+                    }
+                    return color;
+                };
+
                 // Force RGB for common color properties
                 const colorProps = ['color', 'backgroundColor', 'borderColor', 'borderTopColor', 'borderBottomColor', 'borderLeftColor', 'borderRightColor', 'outlineColor', 'fill', 'stroke'];
 
@@ -220,11 +239,9 @@ export default function ReportsPage() {
                 if (targetStyle) {
                     colorProps.forEach(prop => {
                         const val = computed[prop as any];
-                        // If it looks like a color, and possibly has oklab/lab (or just essentially any color), 
-                        // we trust the browser's getComputedStyle to return RGB/RGBA for property access
-                        // Chrome/Safari usually return rgb(...) for computed standard props
                         if (val) {
-                            targetStyle[prop as any] = val;
+                            // Convert to RGB if needed
+                            targetStyle[prop as any] = toRgb(val);
                         }
                     });
                 }
