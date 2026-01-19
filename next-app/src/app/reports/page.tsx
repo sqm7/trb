@@ -95,6 +95,7 @@ export default function ReportsPage() {
     const [selections, setSelections] = useState<Record<string, string[]>>({});
     const [isGenerating, setIsGenerating] = useState(false);
     const [expandedSections, setExpandedSections] = useState<string[]>(['ranking', 'price-band']);
+    const [mobileSettingsOpen, setMobileSettingsOpen] = useState(false);
 
     // Initialize selections (Select All by default?)
     useEffect(() => {
@@ -427,10 +428,31 @@ export default function ReportsPage() {
                 strategy="lazyOnload"
                 onLoad={() => console.log('html2pdf loaded')}
             />
-            <div className="flex h-[calc(100vh-theme(spacing.20))] gap-6">
 
-                {/* Sidebar: Configuration */}
-                <aside className="w-80 flex-shrink-0 bg-zinc-900/50 border border-white/5 rounded-xl overflow-hidden flex flex-col">
+            {/* Mobile Settings Toggle */}
+            <div className="lg:hidden flex items-center justify-between p-4 bg-zinc-900/80 border-b border-white/5">
+                <h2 className="font-semibold text-white flex items-center gap-2">
+                    <FileDown className="h-5 w-5 text-violet-400" />
+                    報表生成器
+                </h2>
+                <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setMobileSettingsOpen(!mobileSettingsOpen)}
+                    className="border-zinc-700"
+                >
+                    {mobileSettingsOpen ? '收起設定' : '報表設定'}
+                </Button>
+            </div>
+
+            <div className="flex flex-col lg:flex-row h-[calc(100vh-theme(spacing.20))] lg:gap-6">
+
+                {/* Sidebar: Configuration - Hidden on mobile unless toggled */}
+                <aside className={cn(
+                    "lg:w-80 flex-shrink-0 bg-zinc-900/50 border border-white/5 rounded-xl overflow-hidden flex flex-col",
+                    "lg:flex", // Always show on desktop
+                    mobileSettingsOpen ? "flex" : "hidden" // Toggle on mobile
+                )}>
                     <div className="p-4 border-b border-white/5 bg-zinc-900">
                         <h2 className="font-semibold text-white flex items-center gap-2">
                             <FileDown className="h-5 w-5 text-violet-400" />
@@ -524,21 +546,33 @@ export default function ReportsPage() {
                 </aside>
 
                 {/* Main: Preview */}
-                <main className="flex-1 bg-zinc-900/30 border border-white/5 rounded-xl overflow-hidden flex flex-col relative">
+                <main className="flex-1 bg-zinc-900/30 border border-white/5 rounded-xl overflow-hidden flex flex-col relative min-h-[400px]">
                     {/* Toolbar / Status */}
-                    <div className="h-12 border-b border-white/5 flex items-center justify-between px-4 bg-zinc-900/80">
-                        <span className="text-sm font-medium text-zinc-400">
+                    <div className="h-12 border-b border-white/5 flex items-center justify-between px-3 lg:px-4 bg-zinc-900/80">
+                        <span className="text-xs lg:text-sm font-medium text-zinc-400">
                             預覽模式 (Preview)
                         </span>
-                        {(!analysisData && !loading) && (
-                            <span className="text-xs text-amber-500">
-                                請先至儀表板進行分析，或確認篩選條件
-                            </span>
-                        )}
+                        <div className="flex items-center gap-2">
+                            {(!analysisData && !loading) && (
+                                <span className="text-xs text-amber-500 hidden sm:inline">
+                                    請先至儀表板進行分析
+                                </span>
+                            )}
+                            {/* Mobile Download Button */}
+                            <Button
+                                onClick={handleDownloadPDF}
+                                disabled={loading || !analysisData || isGenerating}
+                                size="sm"
+                                className="lg:hidden bg-violet-600 hover:bg-violet-700 text-xs"
+                            >
+                                <FileDown className="h-3 w-3 mr-1" />
+                                {isGenerating ? '生成中...' : '下載 PDF'}
+                            </Button>
+                        </div>
                     </div>
 
                     {/* Preview Content */}
-                    <div className="flex-1 overflow-y-auto p-8 custom-scrollbar relative bg-zinc-950">
+                    <div className="flex-1 overflow-y-auto p-4 lg:p-8 custom-scrollbar relative bg-zinc-950">
                         {loading && (
                             <div className="absolute inset-0 flex flex-col items-center justify-center bg-zinc-950/80 z-20">
                                 <Loader2 className="h-10 w-10 animate-spin text-violet-500 mb-4" />
