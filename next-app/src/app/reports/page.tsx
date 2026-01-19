@@ -261,7 +261,7 @@ export default function ReportsPage() {
             console.log("Creating styled clone...");
             const styledClone = deepCloneWithInlineStyles(element);
 
-            // Write to print window
+            // Write to print window with A4-optimized CSS
             printWindow.document.write(`
                 <!DOCTYPE html>
                 <html>
@@ -269,27 +269,137 @@ export default function ReportsPage() {
                     <meta charset="utf-8">
                     <title>平米內參 - 報表</title>
                     <style>
+                        /* A4 Page Setup */
                         @page {
-                            size: A4;
-                            margin: 10mm;
+                            size: A4 portrait;
+                            margin: 15mm 10mm;
                         }
-                        * { margin: 0; padding: 0; box-sizing: border-box; }
+                        
+                        /* Reset & Base */
+                        * { 
+                            margin: 0; 
+                            padding: 0; 
+                            box-sizing: border-box; 
+                        }
+                        
+                        html {
+                            font-size: 11px; /* Smaller base for A4 */
+                        }
+                        
                         body { 
                             background: #09090b; 
                             color: #fafafa;
-                            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                            padding: 20px;
+                            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans TC', sans-serif;
+                            padding: 0;
+                            width: 100%;
+                            max-width: 190mm; /* A4 minus margins */
+                            margin: 0 auto;
                         }
+                        
+                        /* Scale down content to fit A4 */
+                        #report-content {
+                            transform-origin: top left;
+                            width: 100%;
+                        }
+                        
+                        /* Typography adjustments for print */
+                        h1, h2, h3, h4, h5, h6 {
+                            page-break-after: avoid;
+                            font-size: 1.2em;
+                        }
+                        
+                        h1 { font-size: 1.5em; margin-bottom: 0.5em; }
+                        h2 { font-size: 1.3em; margin-bottom: 0.4em; }
+                        h3 { font-size: 1.1em; margin-bottom: 0.3em; }
+                        
+                        p, li, td, th {
+                            font-size: 0.95em;
+                            line-height: 1.4;
+                        }
+                        
+                        /* Table optimizations */
+                        table {
+                            width: 100% !important;
+                            border-collapse: collapse;
+                            font-size: 0.85em;
+                            page-break-inside: auto;
+                        }
+                        
+                        tr {
+                            page-break-inside: avoid;
+                            page-break-after: auto;
+                        }
+                        
+                        th, td {
+                            padding: 4px 6px !important;
+                            border: 1px solid rgba(255,255,255,0.1);
+                        }
+                        
+                        thead {
+                            display: table-header-group;
+                        }
+                        
+                        /* Section page breaks */
+                        .report-section {
+                            page-break-inside: avoid;
+                            margin-bottom: 15px;
+                        }
+                        
+                        /* Keep charts together */
+                        .chart-container, 
+                        [class*="chart"], 
+                        svg {
+                            page-break-inside: avoid;
+                            max-width: 100%;
+                            height: auto !important;
+                        }
+                        
+                        /* Cards and panels */
+                        [class*="card"],
+                        [class*="panel"],
+                        [class*="glass"] {
+                            page-break-inside: avoid;
+                            margin-bottom: 10px;
+                        }
+                        
+                        /* Force backgrounds to print */
                         @media print {
-                            body { background: #09090b !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+                            html, body {
+                                -webkit-print-color-adjust: exact !important;
+                                print-color-adjust: exact !important;
+                                color-adjust: exact !important;
+                            }
+                            
+                            body {
+                                background: #09090b !important;
+                            }
+                            
+                            /* Hide scrollbars */
+                            ::-webkit-scrollbar {
+                                display: none;
+                            }
+                            
+                            /* Ensure all content visible */
+                            * {
+                                overflow: visible !important;
+                            }
                         }
                     </style>
                 </head>
-                <body></body>
+                <body>
+                    <div id="report-content"></div>
+                </body>
                 </html>
             `);
             printWindow.document.close();
-            printWindow.document.body.appendChild(styledClone);
+
+            // Append to the report-content container for proper styling
+            const container = printWindow.document.getElementById('report-content');
+            if (container) {
+                container.appendChild(styledClone);
+            } else {
+                printWindow.document.body.appendChild(styledClone);
+            }
 
             // Wait a moment for styles to apply
             await new Promise(resolve => setTimeout(resolve, 1000));
