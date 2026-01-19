@@ -24,7 +24,7 @@ export const NAV_ITEMS = [
     { label: "總覽儀表板", href: "/dashboard", icon: LayoutDashboard },
     { label: "地圖模式", href: "/map", icon: Map },
     { label: "平面圖測量", href: "/tools/floor-plan", icon: Ruler },
-    { label: "分析報告", href: "/reports", icon: FileText },
+    { label: "生成報告", href: "/reports", icon: FileText },
     { label: "開發者日誌", href: "https://medium.com/@sqmtalk7", icon: BookOpen, isExternal: true },
     { label: "Threads", href: "https://www.threads.net/@sqm.talk", icon: AtSign, isExternal: true },
 ];
