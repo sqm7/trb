@@ -177,94 +177,123 @@ export default function ReportsPage() {
     const handleDownloadPDF = async () => {
         setIsGenerating(true);
         try {
-            console.log("Starting PDF generation via CDN...");
+            console.log("Starting PDF generation (Isolated Iframe Method)...");
 
-            // Check if html2pdf is loaded from CDN
             // @ts-ignore
             const html2pdf = window.html2pdf;
-
-            console.log("html2pdf object:", html2pdf);
-
             if (!html2pdf) {
                 throw new Error("html2pdf library not loaded from CDN");
             }
-
-            // Hyper-Nuclear Option: Manual Clone + Canvas RGB Conversion
-            // We do NOT trust html2canvas to handle the cloning or style reading.
 
             const originalElement = document.getElementById('report-preview-container');
             if (!originalElement) {
                 throw new Error("Element #report-preview-container not found!");
             }
 
-            // 1. Create a sandbox container for the clone
-            const container = document.createElement('div');
-            container.style.position = 'absolute';
-            container.style.left = '-9999px';
-            container.style.top = '0';
-            container.style.width = '210mm'; // Match A4 width
-            document.body.appendChild(container);
+            // === ISOLATED IFRAME APPROACH ===
+            // Create a completely isolated iframe to render the content without any external stylesheets
+            const iframe = document.createElement('iframe');
+            iframe.style.cssText = 'position:absolute;left:-9999px;top:0;width:210mm;height:297mm;border:none;';
+            document.body.appendChild(iframe);
 
-            // 2. Deep clone
-            const clone = originalElement.cloneNode(true) as HTMLElement;
-            container.appendChild(clone);
+            const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
+            if (!iframeDoc) {
+                throw new Error("Could not access iframe document");
+            }
 
-            // 3. Helper: Convert any color string to RGBA using Canvas
-            const toRgb = (color: string) => {
+            // Helper: Convert any color to RGBA using Canvas
+            const toRgba = (color: string): string => {
                 if (!color || color === 'transparent' || color === 'rgba(0, 0, 0, 0)') return color;
-
-                // If it's already safe, return it
                 if (color.startsWith('#') || color.startsWith('rgb')) return color;
 
-                // If it's modern/unknown, force conversion
-                const canvas = document.createElement('canvas');
-                canvas.width = 1;
-                canvas.height = 1;
-                const ctx = canvas.getContext('2d');
-                if (ctx) {
-                    ctx.fillStyle = color;
-                    ctx.fillRect(0, 0, 1, 1);
-                    const [r, g, b, a] = ctx.getImageData(0, 0, 1, 1).data;
-                    return `rgba(${r}, ${g}, ${b}, ${a / 255})`;
-                }
-                return color; // Fallback
-            };
-
-            // 4. Recursive Sanitizer
-            // We read computed styles from the *original* (source) because it renders correctly.
-            // We apply valid RGB values to the *clone* (target) as inline styles.
-            const sanitizeElement = (source: Element, target: Element) => {
-                const computed = window.getComputedStyle(source);
-                const targetStyle = (target as HTMLElement).style;
-
-                if (targetStyle) {
-                    const colorProps = ['color', 'backgroundColor', 'borderColor', 'borderTopColor', 'borderBottomColor', 'borderLeftColor', 'borderRightColor', 'outlineColor', 'fill', 'stroke'];
-
-                    colorProps.forEach(prop => {
-                        const val = computed[prop as any];
-                        if (val) {
-                            targetStyle[prop as any] = toRgb(val);
-                        }
-                    });
-
-                    // Also copy generic layout that html2canvas sometimes misses
-                    // targetStyle.display = computed.display;
-                    // targetStyle.visibility = computed.visibility;
-                }
-
-                const sourceChildren = source.children;
-                const targetChildren = target.children;
-                for (let i = 0; i < sourceChildren.length; i++) {
-                    if (targetChildren[i]) {
-                        sanitizeElement(sourceChildren[i], targetChildren[i]);
+                try {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = 1;
+                    canvas.height = 1;
+                    const ctx = canvas.getContext('2d');
+                    if (ctx) {
+                        ctx.fillStyle = color;
+                        ctx.fillRect(0, 0, 1, 1);
+                        const [r, g, b, a] = ctx.getImageData(0, 0, 1, 1).data;
+                        return `rgba(${r}, ${g}, ${b}, ${(a / 255).toFixed(2)})`;
                     }
+                } catch (e) {
+                    console.warn("Color conversion failed for:", color);
                 }
+                return color;
             };
 
-            console.log("Starting hyper-sanitization...");
-            sanitizeElement(originalElement, clone);
-            console.log("Sanitization complete.");
+            // Helper: Recursively clone element with FULL inline styles
+            const deepCloneWithInlineStyles = (el: Element): HTMLElement => {
+                const clone = document.createElement(el.tagName.toLowerCase());
 
+                // Copy all attributes
+                Array.from(el.attributes).forEach(attr => {
+                    if (attr.name !== 'style' && attr.name !== 'class') {
+                        clone.setAttribute(attr.name, attr.value);
+                    }
+                });
+
+                // Get ALL computed styles and apply them inline
+                const computed = window.getComputedStyle(el);
+                const colorProps = ['color', 'background-color', 'border-color', 'border-top-color',
+                    'border-bottom-color', 'border-left-color', 'border-right-color',
+                    'outline-color', 'fill', 'stroke'];
+
+                let styleString = '';
+                for (let i = 0; i < computed.length; i++) {
+                    const prop = computed[i];
+                    let value = computed.getPropertyValue(prop);
+
+                    // Convert colors to RGBA
+                    if (colorProps.includes(prop)) {
+                        value = toRgba(value);
+                    }
+
+                    styleString += `${prop}:${value};`;
+                }
+                clone.setAttribute('style', styleString);
+
+                // Handle text nodes and child elements
+                Array.from(el.childNodes).forEach(child => {
+                    if (child.nodeType === Node.TEXT_NODE) {
+                        clone.appendChild(document.createTextNode(child.textContent || ''));
+                    } else if (child.nodeType === Node.ELEMENT_NODE) {
+                        clone.appendChild(deepCloneWithInlineStyles(child as Element));
+                    }
+                });
+
+                return clone;
+            };
+
+            console.log("Starting deep clone with full style inlining...");
+            const styledClone = deepCloneWithInlineStyles(originalElement);
+            console.log("Clone complete.");
+
+            // Write minimal HTML to iframe (NO external stylesheets!)
+            iframeDoc.open();
+            iframeDoc.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <meta charset="utf-8">
+                    <style>
+                        * { margin: 0; padding: 0; box-sizing: border-box; }
+                        body { background: #09090b; }
+                    </style>
+                </head>
+                <body></body>
+                </html>
+            `);
+            iframeDoc.close();
+
+            // Append the styled clone to iframe body
+            iframeDoc.body.appendChild(styledClone);
+
+            // Wait for rendering
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+            console.log("Generating PDF from isolated iframe...");
             const opt = {
                 margin: [10, 10] as [number, number],
                 filename: `VibeReport_${new Date().toISOString().slice(0, 10)}.pdf`,
@@ -272,17 +301,20 @@ export default function ReportsPage() {
                 html2canvas: {
                     scale: 2,
                     useCORS: true,
-                    logging: true
+                    logging: true,
+                    windowWidth: 794, // A4 width in pixels at 96dpi
                 },
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const },
                 pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
             };
 
-            await html2pdf().set(opt).from(clone).save();
+            await html2pdf().set(opt).from(styledClone).save();
 
             // Cleanup
-            document.body.removeChild(container);
-            console.log("PDF generated successfully");
+            document.body.removeChild(iframe);
+            console.log("PDF generated successfully!");
+            alert("PDF 生成成功！");
+
         } catch (err: any) {
             console.error("PDF Generation failed:", err);
             alert(`PDF 生成失敗: ${err.message || err}\n請截圖此畫面給工程師。`);
