@@ -348,16 +348,17 @@ export function FilterBar({ onAnalyze, isLoading }: FilterBarProps) {
                         </label>
                     </div>
 
-                    <Button variant="outline" className="hidden xl:flex bg-green-900/20 border-green-500/30 text-green-400 hover:bg-green-900/40 hover:text-green-300">
-                        <FileDown className="mr-2 h-4 w-4" />
-                        輸出報表
-                    </Button>
-
                     <Button
                         variant="default"
                         className="bg-violet-600 hover:bg-violet-500 text-white min-w-[120px] hidden md:flex"
                         disabled={counties.length === 0 || isLoading}
-                        onClick={onAnalyze}
+                        onClick={() => {
+                            // Set flag to show NEW badge on sidebar
+                            localStorage.setItem('reportReady', 'true');
+                            // Dispatch custom event for sidebar to react
+                            window.dispatchEvent(new Event('reportReady'));
+                            onAnalyze?.();
+                        }}
                     >
                         {isLoading ? <span className="animate-spin mr-2">⟳</span> : <LineChart className="mr-2 h-4 w-4" />}
                         {isLoading ? '分析中...' : '分析報表'}

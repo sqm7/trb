@@ -32,6 +32,7 @@ export const NAV_ITEMS = [
 export function Sidebar() {
     const pathname = usePathname();
     const [user, setUser] = React.useState<any>(null);
+    const [showNewBadge, setShowNewBadge] = React.useState(false);
     const router = useRouter();
 
     React.useEffect(() => {
@@ -49,6 +50,29 @@ export function Sidebar() {
 
         return () => subscription.unsubscribe();
     }, []);
+
+    // Listen for reportReady event to show NEW badge
+    React.useEffect(() => {
+        // Check localStorage on mount
+        if (localStorage.getItem('reportReady') === 'true') {
+            setShowNewBadge(true);
+        }
+
+        const handleReportReady = () => {
+            setShowNewBadge(true);
+        };
+
+        window.addEventListener('reportReady', handleReportReady);
+        return () => window.removeEventListener('reportReady', handleReportReady);
+    }, []);
+
+    // Clear badge when navigating to reports page
+    React.useEffect(() => {
+        if (pathname === '/reports') {
+            setShowNewBadge(false);
+            localStorage.removeItem('reportReady');
+        }
+    }, [pathname]);
 
     const handleLogout = async () => {
         await supabase.auth.signOut();
@@ -79,6 +103,7 @@ export function Sidebar() {
                         const isActive = pathname === item.href;
                         // @ts-ignore
                         const isExternal = item.isExternal;
+                        const isReportsItem = item.href === '/reports';
 
                         return (
                             <Link
@@ -87,15 +112,28 @@ export function Sidebar() {
                                 target={isExternal ? "_blank" : undefined}
                                 rel={isExternal ? "noopener noreferrer" : undefined}
                                 className={cn(
-                                    "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-all duration-200 min-h-[40px]", // height fixed
+                                    "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-all duration-200 min-h-[40px] relative", // height fixed
                                     isActive
                                         ? "bg-violet-500/10 text-violet-400 font-semibold"
                                         : "text-zinc-400 hover:bg-zinc-900 hover:text-zinc-100"
                                 )}
                             >
-                                <item.icon className={cn("h-5 w-5 flex-shrink-0", isActive ? "text-violet-400" : "text-zinc-500")} />
-                                <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap translate-x-[-10px] group-hover:translate-x-0">
+                                <div className="relative flex-shrink-0">
+                                    <item.icon className={cn("h-5 w-5", isActive ? "text-violet-400" : "text-zinc-500")} />
+                                    {isReportsItem && showNewBadge && (
+                                        <span className="absolute -top-1 -right-1 flex h-3 w-3">
+                                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                                            <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+                                        </span>
+                                    )}
+                                </div>
+                                <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap translate-x-[-10px] group-hover:translate-x-0 flex items-center gap-2">
                                     {item.label}
+                                    {isReportsItem && showNewBadge && (
+                                        <span className="text-[10px] font-bold bg-green-500 text-white px-1.5 py-0.5 rounded-full animate-pulse">
+                                            NEW
+                                        </span>
+                                    )}
                                 </span>
                             </Link>
                         );
