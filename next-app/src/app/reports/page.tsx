@@ -189,64 +189,69 @@ export default function ReportsPage() {
                 throw new Error("html2pdf library not loaded from CDN");
             }
 
-            // Nuclear Option: Pre-sanitize the DOM by inlining all computed styles as RGB
-            // This bypasses html2canvas looking up CSS variables that might be oklch/lab
+            // Hyper-Nuclear Option: Manual Clone + Canvas RGB Conversion
+            // We do NOT trust html2canvas to handle the cloning or style reading.
+
             const originalElement = document.getElementById('report-preview-container');
             if (!originalElement) {
                 throw new Error("Element #report-preview-container not found!");
             }
 
-            // Create a clone to work on
+            // 1. Create a sandbox container for the clone
             const container = document.createElement('div');
             container.style.position = 'absolute';
             container.style.left = '-9999px';
             container.style.top = '0';
+            container.style.width = '210mm'; // Match A4 width
             document.body.appendChild(container);
 
+            // 2. Deep clone
             const clone = originalElement.cloneNode(true) as HTMLElement;
             container.appendChild(clone);
 
-            // Helper to process elements
+            // 3. Helper: Convert any color string to RGBA using Canvas
+            const toRgb = (color: string) => {
+                if (!color || color === 'transparent' || color === 'rgba(0, 0, 0, 0)') return color;
+
+                // If it's already safe, return it
+                if (color.startsWith('#') || color.startsWith('rgb')) return color;
+
+                // If it's modern/unknown, force conversion
+                const canvas = document.createElement('canvas');
+                canvas.width = 1;
+                canvas.height = 1;
+                const ctx = canvas.getContext('2d');
+                if (ctx) {
+                    ctx.fillStyle = color;
+                    ctx.fillRect(0, 0, 1, 1);
+                    const [r, g, b, a] = ctx.getImageData(0, 0, 1, 1).data;
+                    return `rgba(${r}, ${g}, ${b}, ${a / 255})`;
+                }
+                return color; // Fallback
+            };
+
+            // 4. Recursive Sanitizer
+            // We read computed styles from the *original* (source) because it renders correctly.
+            // We apply valid RGB values to the *clone* (target) as inline styles.
             const sanitizeElement = (source: Element, target: Element) => {
                 const computed = window.getComputedStyle(source);
-
-                // Helper to convert CSS color string to RGB using browser engine
-                const toRgb = (color: string) => {
-                    if (!color || color === 'transparent' || color === 'rgba(0, 0, 0, 0)') return color;
-                    // Only convert if it looks like a modern color format
-                    if (color.includes('oklab') || color.includes('lab') || color.includes('oklch') || color.includes('color(')) {
-                        const canvas = document.createElement('canvas');
-                        canvas.width = 1;
-                        canvas.height = 1;
-                        const ctx = canvas.getContext('2d');
-                        if (ctx) {
-                            ctx.fillStyle = color;
-                            ctx.fillRect(0, 0, 1, 1);
-                            const [r, g, b, a] = ctx.getImageData(0, 0, 1, 1).data;
-                            return `rgba(${r}, ${g}, ${b}, ${a / 255})`;
-                        }
-                    }
-                    return color;
-                };
-
-                // Force RGB for common color properties
-                const colorProps = ['color', 'backgroundColor', 'borderColor', 'borderTopColor', 'borderBottomColor', 'borderLeftColor', 'borderRightColor', 'outlineColor', 'fill', 'stroke'];
-
-                // We must use the computed style from the SOURCE element (which is visible)
-                // and apply it to the TARGET element (the clone)
                 const targetStyle = (target as HTMLElement).style;
 
                 if (targetStyle) {
+                    const colorProps = ['color', 'backgroundColor', 'borderColor', 'borderTopColor', 'borderBottomColor', 'borderLeftColor', 'borderRightColor', 'outlineColor', 'fill', 'stroke'];
+
                     colorProps.forEach(prop => {
                         const val = computed[prop as any];
                         if (val) {
-                            // Convert to RGB if needed
                             targetStyle[prop as any] = toRgb(val);
                         }
                     });
+
+                    // Also copy generic layout that html2canvas sometimes misses
+                    // targetStyle.display = computed.display;
+                    // targetStyle.visibility = computed.visibility;
                 }
 
-                // Recursion
                 const sourceChildren = source.children;
                 const targetChildren = target.children;
                 for (let i = 0; i < sourceChildren.length; i++) {
@@ -256,10 +261,9 @@ export default function ReportsPage() {
                 }
             };
 
-            // Run sanitization
-            console.log("Starting deep DOM sanitization...");
+            console.log("Starting hyper-sanitization...");
             sanitizeElement(originalElement, clone);
-            console.log("Deep DOM sanitization complete.");
+            console.log("Sanitization complete.");
 
             const opt = {
                 margin: [10, 10] as [number, number],
