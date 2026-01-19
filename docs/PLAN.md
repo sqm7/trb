@@ -312,3 +312,11 @@ refactor: 重構
 - [x] Verification: Test PDF download with various selections (User Testing)
 - [x] Deployment: Sync to Test Environment (`trb`)
 - [x] Deployment: Sync to Production (`kthd`)
+- [x] Fix: Replace html2pdf with native browser Print-to-PDF (bypass oklab color issue)
+
+### [2026-01-19] UI Improvements
+- [x] Rename sidebar "分析報告" → "生成報告"
+- [x] Remove "輸出報表" button from FilterBar
+- [x] Add animated "NEW" badge to sidebar when "分析報表" button is clicked
+- [x] Badge auto-clears when user navigates to /reports page
+- [x] Deployment: Sync to Test Environment (`trb`)
