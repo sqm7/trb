@@ -59,11 +59,7 @@ export function PriceBandChart({ data }: PriceBandChartProps) {
                 toolbar: { show: true },
                 foreColor: '#e5e7eb'
             },
-            title: {
-                text: '各房型總價帶分佈箱型圖',
-                align: 'center',
-                style: { fontSize: '16px', color: '#e5e7eb' }
-            },
+            // Removed title since ReportWrapper already provides it
             plotOptions: {
                 boxPlot: {
                     colors: {

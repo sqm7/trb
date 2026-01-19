@@ -314,8 +314,8 @@ export function PriceBandReport({ data, visibleSections = ['chart', 'table', 'lo
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
 
             {/* 1. Filter Toggles */}
-            <div className="flex flex-wrap items-center justify-between gap-4">
-                <div className="flex flex-wrap gap-2">
+            <div className="flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center justify-between gap-3 sm:gap-4">
+                <div className="flex flex-wrap gap-1.5 sm:gap-2">
                     {allAvailableTypes.map(type => (
                         <button
                             key={type}

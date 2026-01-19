@@ -65,9 +65,9 @@ function FloorRangeCalculator({ transactions, project }: { transactions: any[], 
     };
 
     return (
-        <div className="flex flex-wrap items-center gap-4 bg-zinc-900/30 p-4 rounded-lg border border-white/5">
-            <div className="flex items-center gap-2">
-                <span className="text-sm text-zinc-400 font-semibold">區間均價試算:</span>
+        <div className="flex flex-col sm:flex-row flex-wrap items-start sm:items-center gap-3 sm:gap-4 bg-zinc-900/30 p-4 rounded-lg border border-white/5">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 w-full sm:w-auto">
+                <span className="text-sm text-zinc-400 font-semibold whitespace-nowrap">區間均價試算:</span>
                 <div className="flex items-center gap-2">
                     <Input
                         type="number"
@@ -187,14 +187,14 @@ export function HeatmapReport({ data }: HeatmapReportProps) {
     return (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
             {/* Controls Panel */}
-            <div className="flex flex-wrap items-center gap-4 bg-zinc-900/30 p-4 rounded-lg border border-white/5">
+            <div className="flex flex-col lg:flex-row flex-wrap items-start lg:items-center gap-4 bg-zinc-900/30 p-4 rounded-lg border border-white/5">
                 {/* Project Selector */}
-                <div className="flex items-center gap-2">
-                    <span className="text-sm text-zinc-400">選擇建案:</span>
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 w-full lg:w-auto">
+                    <span className="text-sm text-zinc-400 whitespace-nowrap">選擇建案:</span>
                     <Select
                         value={selectedProject}
                         onChange={(e) => setSelectedProject(e.target.value)}
-                        className="w-[280px] bg-zinc-950/50"
+                        className="w-full sm:w-[280px] bg-zinc-950/50"
                     >
                         {projectNames.map(name => (
                             <option key={name} value={name}>
@@ -204,36 +204,39 @@ export function HeatmapReport({ data }: HeatmapReportProps) {
                     </Select>
                 </div>
 
-                <div className="flex items-center gap-3">
-                    <span className="text-sm text-zinc-400">樓層價差:</span>
-                    <input
-                        type="range"
-                        min={0}
-                        max={10}
-                        step={0.05}
-                        value={floorPremium}
-                        onChange={(e) => setFloorPremium(Number(e.target.value))}
-                        className="w-28 accent-violet-500"
-                    />
-                    <Input
-                        type="number"
-                        min={0}
-                        max={10}
-                        step={0.01}
-                        value={floorPremium}
-                        onChange={(e) => setFloorPremium(Math.max(0, Number(e.target.value)))}
-                        className="w-20 h-8 bg-zinc-950/50 text-right pr-2"
-                    />
-                    <span className="text-sm font-mono text-violet-400 w-12">萬/坪</span>
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 w-full lg:w-auto">
+                    <span className="text-sm text-zinc-400 whitespace-nowrap">樓層價差:</span>
+                    <div className="flex items-center gap-2 w-full sm:w-auto">
+                        <input
+                            type="range"
+                            min={0}
+                            max={10}
+                            step={0.05}
+                            value={floorPremium}
+                            onChange={(e) => setFloorPremium(Number(e.target.value))}
+                            className="flex-1 sm:w-32 h-2 accent-violet-500 cursor-pointer"
+                            style={{ minHeight: '24px' }}
+                        />
+                        <Input
+                            type="number"
+                            min={0}
+                            max={10}
+                            step={0.01}
+                            value={floorPremium}
+                            onChange={(e) => setFloorPremium(Math.max(0, Number(e.target.value)))}
+                            className="w-20 h-8 bg-zinc-950/50 text-right pr-2"
+                        />
+                        <span className="text-sm font-mono text-violet-400 whitespace-nowrap">萬/坪</span>
+                    </div>
                 </div>
 
                 {/* Action Buttons */}
-                <div className="flex items-center gap-2 ml-auto">
+                <div className="flex items-center gap-2 w-full lg:w-auto lg:ml-auto">
                     <Button
                         variant="outline"
                         size="sm"
                         onClick={handleReanalyze}
-                        className="border-violet-500/30 text-violet-400 hover:bg-violet-500/10"
+                        className="flex-1 lg:flex-none border-violet-500/30 text-violet-400 hover:bg-violet-500/10"
                     >
                         <RefreshCcw className="mr-2 h-4 w-4" />
                         重新分析
@@ -242,7 +245,7 @@ export function HeatmapReport({ data }: HeatmapReportProps) {
                         variant="outline"
                         size="sm"
                         onClick={handleShare}
-                        className="border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/10"
+                        className="flex-1 lg:flex-none border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/10"
                     >
                         <Share2 className="mr-2 h-4 w-4" />
                         {showShareModal ? '已複製!' : '分享連結'}

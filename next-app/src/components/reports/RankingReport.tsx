@@ -96,7 +96,7 @@ export function RankingReport({ data, visibleSections = ['metrics', 'chart', 'ta
 
             {/* 1. Core Metrics */}
             {visibleSections.includes('metrics') && (
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
                     <MetricCard
                         title="市場去化總銷售金額"
                         value={coreMetrics.totalSaleAmount.toLocaleString()}
