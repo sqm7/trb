@@ -317,8 +317,26 @@ export default function LoginPage() {
                       </button>
                     </form>
 
-                    <div className="mt-6 text-center">
-                      <p className="text-xs text-zinc-500">
+                    <div className="mt-6 pt-6 border-t border-white/5 text-center">
+                      <div className="relative mb-4">
+                        <div className="absolute inset-0 flex items-center">
+                          <span className="w-full border-t border-zinc-800"></span>
+                        </div>
+                        <div className="relative flex justify-center text-xs uppercase">
+                          <span className="bg-zinc-900 px-2 text-zinc-500">Or continue as</span>
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => router.push('/dashboard')}
+                        className="w-full py-3 px-4 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white rounded-xl border border-zinc-700 hover:border-zinc-600 transition-all text-sm font-medium flex items-center justify-center gap-2 group"
+                      >
+                        <Zap className="w-4 h-4 text-yellow-500 group-hover:text-yellow-400" />
+                        訪客模式 (Guest Mode)
+                      </button>
+
+                      <p className="text-xs text-zinc-500 mt-4">
                         {mode === 'forgot_pass' ? (
                           <button
                             onClick={() => { setMode('login'); setMessage(null); }}

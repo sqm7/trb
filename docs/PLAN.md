@@ -254,7 +254,7 @@ refactor: 重構
     - [x] Support multi-project visualization in Policy Timeline (stacked tracks).
 
 ### [2026-01-18] Production Deployment & Custom Domain
-- [x] Deploy Next.js to Production Repo (`kthd`)
+- [x] Deploy Next.js to Production Repo (`kthd`) - [x] Validated with Bubble Chart v2
 - [x] Implement Dynamic Base Path Configuration (`next.config.ts`)
 - [x] Fix Custom Domain Support (`www.sqmtalk.com`)
     - [x] Create `deploy_next_prod.sh` (CNAME injection, empty Base Path)
@@ -320,3 +320,19 @@ refactor: 重構
 - [x] Add animated "NEW" badge to sidebar when "分析報表" button is clicked
 - [x] Badge auto-clears when user navigates to /reports page
 - [x] Deployment: Sync to Test Environment (`trb`)
+
+### [Current Task] Enhance Bubble Chart Display (Completed 2026-01-19)
+- [x] **Step 1**: Implement Mode Toggle (Coordinate / Natural) in `BubbleChart.tsx`.
+- [x] **Step 2**: Enhance "Natural Mode" with packed/organic layout.
+- [x] **Step 3**: Upgrade visuals (gradients, glassmorphism, animations).
+- [x] **Step 4**: Verify toggle interaction and responsive behavior.
+- [x] **Step 5**: Fix Tooltip Clipping (Implement Portal/Z-index fix).
+- [x] **Step 6**: Refine Natural Layout (Organic offsets).
+- [x] **Step 7**: Implement Physics/Force Layout for true "Zero Gravity" cluster.
+- [x] **Step 8**: Implement Drag & Drop Interaction for bubbles.
+- [x] **Step 9**: Tune Physics (Spread Init, Reduce Jitter/Spin, Smooth Dampening).
+
+### [Current Task] Implement Guest Mode
+- [x] Add "Guest Login" button to Login Page
+- [x] Verify redirection to Dashboard without auth
+
