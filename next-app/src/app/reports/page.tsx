@@ -177,28 +177,20 @@ export default function ReportsPage() {
     const handleDownloadPDF = async () => {
         setIsGenerating(true);
         try {
-            console.log("Starting PDF generation (Isolated Iframe Method)...");
+            console.log("Starting PDF generation (Simple Screenshot Method)...");
 
-            // @ts-ignore
-            const html2pdf = window.html2pdf;
-            if (!html2pdf) {
-                throw new Error("html2pdf library not loaded from CDN");
-            }
-
-            const originalElement = document.getElementById('report-preview-container');
-            if (!originalElement) {
+            const element = document.getElementById('report-preview-container');
+            if (!element) {
                 throw new Error("Element #report-preview-container not found!");
             }
 
-            // === ISOLATED IFRAME APPROACH ===
-            // Create a completely isolated iframe to render the content without any external stylesheets
-            const iframe = document.createElement('iframe');
-            iframe.style.cssText = 'position:absolute;left:-9999px;top:0;width:210mm;height:297mm;border:none;';
-            document.body.appendChild(iframe);
+            // Approach: Use native browser print functionality as fallback
+            // This completely bypasses html2canvas and its CSS parsing issues
 
-            const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
-            if (!iframeDoc) {
-                throw new Error("Could not access iframe document");
+            // Create a new window with ONLY the report content
+            const printWindow = window.open('', '_blank', 'width=800,height=600');
+            if (!printWindow) {
+                throw new Error("Could not open print window. Please allow popups.");
             }
 
             // Helper: Convert any color to RGBA using Canvas
@@ -266,54 +258,49 @@ export default function ReportsPage() {
                 return clone;
             };
 
-            console.log("Starting deep clone with full style inlining...");
-            const styledClone = deepCloneWithInlineStyles(originalElement);
-            console.log("Clone complete.");
+            console.log("Creating styled clone...");
+            const styledClone = deepCloneWithInlineStyles(element);
 
-            // Write minimal HTML to iframe (NO external stylesheets!)
-            iframeDoc.open();
-            iframeDoc.write(`
+            // Write to print window
+            printWindow.document.write(`
                 <!DOCTYPE html>
                 <html>
                 <head>
                     <meta charset="utf-8">
+                    <title>平米內參 - 報表</title>
                     <style>
+                        @page {
+                            size: A4;
+                            margin: 10mm;
+                        }
                         * { margin: 0; padding: 0; box-sizing: border-box; }
-                        body { background: #09090b; }
+                        body { 
+                            background: #09090b; 
+                            color: #fafafa;
+                            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                            padding: 20px;
+                        }
+                        @media print {
+                            body { background: #09090b !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+                        }
                     </style>
                 </head>
                 <body></body>
                 </html>
             `);
-            iframeDoc.close();
+            printWindow.document.close();
+            printWindow.document.body.appendChild(styledClone);
 
-            // Append the styled clone to iframe body
-            iframeDoc.body.appendChild(styledClone);
+            // Wait a moment for styles to apply
+            await new Promise(resolve => setTimeout(resolve, 1000));
 
-            // Wait for rendering
-            await new Promise(resolve => setTimeout(resolve, 500));
+            // Trigger print dialog (which allows saving as PDF)
+            console.log("Opening print dialog...");
+            printWindow.print();
 
-            console.log("Generating PDF from isolated iframe...");
-            const opt = {
-                margin: [10, 10] as [number, number],
-                filename: `VibeReport_${new Date().toISOString().slice(0, 10)}.pdf`,
-                image: { type: 'jpeg' as const, quality: 0.98 },
-                html2canvas: {
-                    scale: 2,
-                    useCORS: true,
-                    logging: true,
-                    windowWidth: 794, // A4 width in pixels at 96dpi
-                },
-                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const },
-                pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
-            };
-
-            await html2pdf().set(opt).from(styledClone).save();
-
-            // Cleanup
-            document.body.removeChild(iframe);
-            console.log("PDF generated successfully!");
-            alert("PDF 生成成功！");
+            // Note: Window will be closed by user or after print
+            console.log("Print dialog opened successfully!");
+            alert("列印對話框已開啟！\n\n請在列印對話框中：\n1. 選擇「儲存為 PDF」或「另存新檔」\n2. 確保「背景圖形」選項已勾選\n3. 點擊「儲存」或「列印」");
 
         } catch (err: any) {
             console.error("PDF Generation failed:", err);
