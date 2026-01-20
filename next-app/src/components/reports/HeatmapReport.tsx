@@ -6,9 +6,9 @@ import { PricingHeatmap } from "@/components/charts/PricingHeatmap";
 import { Select } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { RefreshCcw, Share2, Code } from "lucide-react";
+import { Code, Wand2 } from "lucide-react";
 
-import { generateHeatmapData } from "@/lib/heatmap-utils";
+import { generateHeatmapData, calculateSuggestedFloorPremium } from "@/lib/heatmap-utils";
 import { useFilterStore } from "@/store/useFilterStore";
 
 interface HeatmapReportProps {
@@ -114,7 +114,7 @@ function FloorRangeCalculator({ transactions, project }: { transactions: any[], 
 export function HeatmapReport({ data }: HeatmapReportProps) {
     const [selectedProject, setSelectedProject] = useState<string>("");
     const [floorPremium, setFloorPremium] = useState<number>(0.3);
-    const [showShareModal, setShowShareModal] = useState(false);
+    const [initialWindowDays, setInitialWindowDays] = useState<number>(14);
 
     // Initialize selection
     useEffect(() => {
@@ -153,7 +153,7 @@ export function HeatmapReport({ data }: HeatmapReportProps) {
 
             if (projectTx.length > 0) {
                 try {
-                    return generateHeatmapData(projectTx, floorPremium);
+                    return generateHeatmapData(projectTx, floorPremium, initialWindowDays);
                 } catch (err) {
                     console.error("Heatmap generation error:", err);
                     // Fallback to pre-calculated if generation fails
@@ -167,21 +167,16 @@ export function HeatmapReport({ data }: HeatmapReportProps) {
         }
 
         return null;
-    }, [selectedProject, byProject, data.transactionDetails, floorPremium]);
+    }, [selectedProject, byProject, data.transactionDetails, floorPremium, initialWindowDays]);
 
-    const handleReanalyze = () => {
-        // Since we are using client-side generation now (in memo), changing floorPremium automatically "re-analyzes".
-        // We can just log or perhaps trigger a refresh animation.
-        console.log(`Re-analyzing ${selectedProject} with floor premium: ${floorPremium}%`);
-    };
+    const handleAutoSuggest = () => {
+        if (!data.transactionDetails || !selectedProject) return;
 
-    const handleShare = () => {
-        setShowShareModal(true);
-        // Copy share link logic
-        const shareUrl = `${window.location.origin}?project=${encodeURIComponent(selectedProject)}&floorPremium=${floorPremium}`;
-        navigator.clipboard.writeText(shareUrl).then(() => {
-            setTimeout(() => setShowShareModal(false), 2000);
-        });
+        let projectTx = data.transactionDetails.filter((tx: any) => tx['建案名稱'] === selectedProject);
+        // Apply logic to suggest
+        const suggested = calculateSuggestedFloorPremium(projectTx);
+        setFloorPremium(suggested);
+        console.log("Auto suggested premium:", suggested);
     };
 
     return (
@@ -227,30 +222,31 @@ export function HeatmapReport({ data }: HeatmapReportProps) {
                             className="w-20 h-8 bg-zinc-950/50 text-right pr-2"
                         />
                         <span className="text-sm font-mono text-violet-400 whitespace-nowrap">萬/坪</span>
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={handleAutoSuggest}
+                            className="h-8 w-8 text-yellow-400 hover:text-yellow-300 hover:bg-yellow-400/10 ml-1"
+                            title="自動試算建議價差"
+                        >
+                            <Wand2 className="h-4 w-4" />
+                        </Button>
+                    </div>
+
+                    <div className="flex items-center space-x-2">
+                        <span className="text-sm font-medium text-zinc-400">基準天數:</span>
+                        <Input
+                            type="number"
+                            min="1"
+                            max="365"
+                            value={initialWindowDays}
+                            onChange={(e) => setInitialWindowDays(Number(e.target.value) || 14)}
+                            className="w-16 h-8 bg-zinc-950/50 text-right pr-2"
+                        />
+                        <span className="text-sm font-mono text-violet-400 whitespace-nowrap">天</span>
                     </div>
                 </div>
 
-                {/* Action Buttons */}
-                <div className="flex items-center gap-2 w-full lg:w-auto lg:ml-auto">
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={handleReanalyze}
-                        className="flex-1 lg:flex-none border-violet-500/30 text-violet-400 hover:bg-violet-500/10"
-                    >
-                        <RefreshCcw className="mr-2 h-4 w-4" />
-                        重新分析
-                    </Button>
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={handleShare}
-                        className="flex-1 lg:flex-none border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/10"
-                    >
-                        <Share2 className="mr-2 h-4 w-4" />
-                        {showShareModal ? '已複製!' : '分享連結'}
-                    </Button>
-                </div>
             </div>
 
             {/* Floor Range Calculator */}
@@ -260,6 +256,8 @@ export function HeatmapReport({ data }: HeatmapReportProps) {
                     project={selectedProject}
                 />
             )}
+
+
 
             {/* Legend Section */}
             <div className="flex flex-wrap gap-4 p-4 bg-zinc-900/20 rounded-lg border border-white/5">

@@ -115,8 +115,7 @@ export function PricingHeatmap({ data, floorPremium = 0.3 }: HeatmapGridProps) {
                             {sortedUnits.map((unit: string) => (
                                 <th
                                     key={unit}
-                                    className="p-2 text-white font-medium border-l border-zinc-800/50"
-                                    style={{ backgroundColor: `${unitColorMap[unit] || '#4b5563'}80` }}
+                                    className="p-2 text-zinc-300 font-medium border-l border-zinc-800/50 bg-zinc-900/50"
                                 >
                                     {unit}
                                 </th>
@@ -171,8 +170,8 @@ export function PricingHeatmap({ data, floorPremium = 0.3 }: HeatmapGridProps) {
                                                                     </span>
                                                                 )}
                                                             </div>
-                                                            <div className="text-[10px] text-zinc-300/80 mt-0.5">
-                                                                {tx.transactionDate}
+                                                            <div className="text-[10px] text-zinc-300 mt-0.5 font-mono tracking-tight opacity-90">
+                                                                {tx.transactionDate || '-'}
                                                             </div>
                                                         </div>
                                                     );
@@ -226,7 +225,7 @@ export function PricingHeatmap({ data, floorPremium = 0.3 }: HeatmapGridProps) {
             {horizontalComparison && horizontalComparison.length > 0 && (
                 <div className="space-y-2">
                     <h3 className="text-lg font-semibold text-zinc-200">
-                        戶型水平價差與溢價貢獻 (基準樓層: F{data.refFloorForComparison || 'N/A'})
+                        戶型水平價差與溢價貢獻
                     </h3>
                     <div className="overflow-x-auto rounded-lg border border-zinc-800">
                         <table className="w-full text-sm text-left text-zinc-300">

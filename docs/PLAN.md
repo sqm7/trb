@@ -361,3 +361,18 @@ refactor: 重構
 - [x] UI: Update Table Header to use side-by-side (horizontal) sorting icons for better intuition.
 - [x] UI: Add Chart Type Toggle (Bar / Tree) to `RankingReport` header actions to fix "jumping chart" confusion.
 - [x] Logic: Ensure Chart Type state respects user choice vs auto-detection.
+
+### [Current Task] Heatmap Logic & UI Refinement
+- [x] Logic: Switch Anchor Logic to **Per-Unit Type** (independent baseline for each stack).
+- [x] Logic: Correct "Floor Premium" to use **Fixed Value (萬/坪)** instead of Percentage.
+- [x] Logic: Refine Anchor Selection to prioritize **Earliest Transaction Date** (then lowest price).
+- [x] Logic: Advanced Anchor: normalized value within **Initial Window** (default 14 days).
+- [x] UI: Add "Auto Suggest" 🪄 button for Floor Premium.
+- [x] UI: Expose "Initial Window Days" parameter.
+- [x] UI/UX: Polish Heatmap styles (neutral headers) and remove unused buttons.
+- [x] Bug: Fix Heatmap missing transaction date (mapped to `交易日`).
+
+### [Current Task] Project Search UX Enhancement
+- [x] Backend: Function `query-names` supports empty query to return Top 20 popular projects.
+- [x] Frontend: `MultiSelect` supports `onFocus` to trigger empty search.
+- [x] Frontend: `FilterBar` enables fetching top projects when search is empty.

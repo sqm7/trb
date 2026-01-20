@@ -91,7 +91,8 @@ export function FilterBar({ onAnalyze, isLoading }: FilterBarProps) {
     const [searchError, setSearchError] = useState<string | null>(null);
 
     const fetchProjects = useCallback(async (query: string) => {
-        if (!query || query.length < 1 || counties.length === 0) {
+        // [Modified] Allow empty query (length 0) to fetch popular projects
+        if (counties.length === 0) {
             setProjectOptions([]);
             return;
         }
@@ -285,6 +286,11 @@ export function FilterBar({ onAnalyze, isLoading }: FilterBarProps) {
                         disabled={counties.length === 0}
                         onSearch={handleProjectSearch}
                         loading={isSearchingProjects}
+                        onFocus={() => {
+                            if (projectNames.length === 0 && projectOptions.length === 0) {
+                                fetchProjects('');
+                            }
+                        }}
                     />
                     {searchError && <span className="text-xs text-red-400 mt-1">{searchError}</span>}
                 </div>

@@ -23,6 +23,7 @@ interface MultiSelectProps {
     className?: string;
     onSearch?: (query: string) => void;
     loading?: boolean;
+    onFocus?: () => void;
 }
 
 const MultiSelect = forwardRef<HTMLDivElement, MultiSelectProps>(({
@@ -34,7 +35,8 @@ const MultiSelect = forwardRef<HTMLDivElement, MultiSelectProps>(({
     disabled = false,
     className,
     onSearch,
-    loading = false
+    loading = false,
+    onFocus
 }, ref) => {
     const [inputValue, setInputValue] = useState("");
     const [isOpen, setIsOpen] = useState(false);
@@ -126,7 +128,10 @@ const MultiSelect = forwardRef<HTMLDivElement, MultiSelectProps>(({
                     type="text"
                     value={inputValue}
                     onChange={(e) => setInputValue(e.target.value)}
-                    onFocus={() => setIsOpen(true)}
+                    onFocus={() => {
+                        setIsOpen(true);
+                        onFocus?.();
+                    }}
                     onKeyDown={handleKeyDown}
                     placeholder={value.length === 0 ? placeholder : ""}
                     className={cn(

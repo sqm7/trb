@@ -21,14 +21,29 @@ serve(async (req) => {
 
     const tableName = `${countyCode.toLowerCase()}_lvr_land_b`;
 
-    // 【修正#2】同時查詢建案名稱、行政區和交易日
+    // 判斷是否為「熱門建案查詢」模式 (無搜尋字串)
+    const isPopularMode = !searchQuery || searchQuery.trim() === '';
+
     let query = supabase
       .from(tableName)
       .select('建案名稱, 行政區, 交易日');
 
-    // 只有在 searchQuery 確實有內容時，才加入 ilike 篩選
-    if (searchQuery && searchQuery.trim() !== '' && searchQuery.trim() !== '%') {
-      query = query.ilike('建案名稱', `%${searchQuery}%`);
+    if (isPopularMode) {
+      // 模式 A: 熱門建案 (空搜尋)
+      // 策略: 抓取最近 2500 筆交易，統計出現頻率最高的建案
+      query = query.order('交易日', { ascending: false }).limit(2500);
+    } else {
+      // 模式 B: 關鍵字搜尋
+      if (searchQuery && searchQuery.trim() !== '%') {
+        const cleanQuery = searchQuery.trim();
+        // 支援多關鍵字 (例如: "中山 帝寶")
+        if (cleanQuery.includes(' ')) {
+          // 簡單處理：只要匹配任一即可，或者全部匹配 (視需求，這邊先做單一匹配)
+          query = query.ilike('建案名稱', `%${cleanQuery}%`);
+        } else {
+          query = query.ilike('建案名稱', `%${cleanQuery}%`);
+        }
+      }
     }
 
     if (districts && Array.isArray(districts) && districts.length > 0) {
@@ -42,42 +57,61 @@ serve(async (req) => {
       throw new Error(`查詢建案名稱時發生錯誤: ${error.message}`);
     }
 
-    // 【修正#3】使用 Map 來建立建案名稱對應資料 (行政區, 最早交易日)
-    // Map<name, { district: string, earliestDate: string }>
-    const projectMap = new Map<string, { district: string, earliestDate: string }>();
-    
+    // Map<name, { district, earliestDate, count }>
+    const projectMap = new Map<string, { district: string, earliestDate: string, count: number }>();
+
     data.forEach(item => {
       const name = item['建案名稱'];
       const district = item['行政區'] || '';
-      const date = item['交易日']; // 假設格式為 YYYY-MM-DD
+      const date = item['交易日'];
 
       if (name) {
         if (!projectMap.has(name)) {
-          projectMap.set(name, { district, earliestDate: date });
+          projectMap.set(name, { district, earliestDate: date, count: 1 });
         } else {
-          // 如果已存在，檢查日期是否更早
           const current = projectMap.get(name)!;
-          // 如果當前記錄的日期存在且比已儲存的日期更早 (字串比較對 ISO 日期有效)
+          current.count += 1; // 增加計數
+
+          // 更新最早日期
           if (date && (!current.earliestDate || date < current.earliestDate)) {
-             current.earliestDate = date;
-             // 如果原本沒行政區但這次有，也更新行政區
-             if (!current.district && district) current.district = district;
+            current.earliestDate = date;
+            if (!current.district && district) current.district = district;
           }
         }
       }
     });
 
+    // 處理結果轉陣列
+    let sortedResults = Array.from(projectMap.entries()).map(([name, info]) => ({
+      name,
+      district: info.district,
+      earliestDate: info.earliestDate,
+      count: info.count
+    }));
+
+    // 如果是熱門模式，依據「交易筆數」排序 (取前 20 名)
+    // 如果是搜尋模式，依據「建案名稱」排序 ? 或者也是依據熱門度 ? 
+    // 通常搜尋也希望熱門的在前面
+    sortedResults.sort((a, b) => b.count - a.count);
+
+    if (isPopularMode) {
+      sortedResults = sortedResults.slice(0, 20);
+    } else {
+      // 搜尋模式下，如果筆數太多，也可以截斷，避免傳輸過大
+      sortedResults = sortedResults.slice(0, 100);
+    }
+
     let result;
     if (detailed) {
       // 新模式：回傳物件陣列 [{ name, district, earliestDate }]
-      result = Array.from(projectMap.entries()).map(([name, info]) => ({
-        name,
-        district: info.district,
-        earliestDate: info.earliestDate
+      result = sortedResults.map(item => ({
+        name: item.name,
+        district: item.district,
+        earliestDate: item.earliestDate
       }));
     } else {
       // 兼容模式(預設)：只回傳字串陣列 ["name1", "name2"]
-      result = Array.from(projectMap.keys());
+      result = sortedResults.map(item => item.name);
     }
 
     return new Response(
