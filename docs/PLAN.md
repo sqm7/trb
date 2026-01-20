@@ -148,6 +148,11 @@ bash scripts/deploy_github.sh "commit message"
 - [x] **Feature**: Continuous Multi-select (Keep Open)
 - [x] **Feature**: 'Clear All' Button
 
+### [2026-01-20] Policy Timeline & Sidebar Enhancements (Deployed to Prod)
+- [x] **Policy Timeline**: Localized Project Search & Reduced Layout Height
+- [x] **Sidebar**: Redesign (Remove Logo, Add Subtitle, Responsive Title Stack)
+- [x] **Parking Analysis**: Fix Dropdown Z-index & Search UX (Clear All)
+
 
 
 ### 後端部署 (Supabase Edge Function)
