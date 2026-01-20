@@ -157,6 +157,7 @@ bash scripts/deploy_github.sh "commit message"
 - [x] **UI Polish**: New App Icon (Favicon) - Cyberpunk Style
 - [x] **Landing Page**: Update Branding Text (Vibe Coding -> sqmtalk.com)
 - [x] **Landing Page**: Add Contact Email (sqmtalk7@gmail.com) to Footer
+- [x] **Global Layout**: Add Footer (Copyright + Contact) to Dashboard & All Pages
 
 
 
