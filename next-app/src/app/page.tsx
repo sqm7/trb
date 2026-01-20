@@ -363,7 +363,7 @@ export default function LoginPage() {
             </div>
 
             <p className="text-center text-zinc-500 text-xs mt-8">
-              &copy; 2026 平米內參 Vibe Coding. All rights reserved.
+              &copy; 2026 平米內參 sqmtalk.com. All rights reserved.
             </p>
           </div>
 
@@ -508,7 +508,7 @@ export default function LoginPage() {
             {/* Footer dots */}
           </div>
           <p className="text-zinc-600 text-sm font-medium">
-            &copy; 2026 平米內參 Vibe Coding Intelligence. All rights reserved.
+            &copy; 2026 平米內參 sqmtalk.com. All rights reserved.
           </p>
         </footer>
       </div>

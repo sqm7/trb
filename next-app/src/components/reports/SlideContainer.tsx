@@ -34,7 +34,7 @@ export function SlideContainer({ children, title, subTitle, pageNumber, classNam
                                 {subTitle && <p className="text-zinc-400 mt-1 text-sm font-light tracking-wide">{subTitle}</p>}
                             </div>
                             {/* Logo or Brand Element */}
-                            <div className="text-xs font-mono text-violet-500/50">VIBE CODING V3</div>
+                            <div className="text-xs font-mono text-violet-500/50">sqmtalk.com</div>
                         </div>
                     </header>
                 )}
