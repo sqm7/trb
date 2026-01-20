@@ -3,8 +3,9 @@
 import React, { useState, useMemo, useCallback } from "react";
 import { ReportWrapper } from "./ReportWrapper";
 import { ParkingRatioChart } from "@/components/charts/ParkingRatioChart";
+import { ParkingScatterChart } from "@/components/charts/ParkingScatterChart";
 import { cn } from "@/lib/utils";
-import { Check, Search, Calendar } from "lucide-react";
+import { Check, Search, Calendar, HelpCircle } from "lucide-react";
 import { Modal } from "@/components/ui/Modal";
 
 interface FloorData {
@@ -27,6 +28,155 @@ interface FloorData {
         '備註'?: string;
         [key: string]: any;
     }>;
+}
+
+function ParkingAreaCharts({ chartData, hasData, summaryStats }: {
+    chartData: any[],
+    hasData: boolean,
+    summaryStats: { count: number, avgArea: number, medianArea: number }
+}) {
+    const [chartMode, setChartMode] = useState<'scale' | 'value'>('scale');
+    const [tooltipInfo, setTooltipInfo] = useState<{ visible: boolean, text: string, x: number, y: number } | null>(null);
+    const tooltipTimer = React.useRef<NodeJS.Timeout | null>(null);
+
+    const handleMouseEnter = (e: React.MouseEvent, text: string) => {
+        const rect = e.currentTarget.getBoundingClientRect();
+        const x = rect.left + rect.width / 2;
+        const y = rect.top - 10;
+
+        // Clear existing timer
+        if (tooltipTimer.current) clearTimeout(tooltipTimer.current);
+
+        // Set new timer for 1 second delay
+        tooltipTimer.current = setTimeout(() => {
+            setTooltipInfo({ visible: true, text, x, y });
+        }, 800); // 0.8s feels like "1 sec" to users usually
+    };
+
+    const handleMouseLeave = () => {
+        if (tooltipTimer.current) clearTimeout(tooltipTimer.current);
+        setTooltipInfo(null);
+    };
+
+    if (!hasData) return <p className="text-zinc-500 text-center py-4">無坡道平面車位坪數資料</p>;
+
+    // Prepare data based on mode
+    const data = chartMode === 'scale'
+        ? chartData.map(d => ({ id: d.id, label: d.id, x: d.count, y: d.avgArea }))
+        : chartData.map(d => ({ id: d.id, label: d.id, x: d.avgPrice, y: d.avgArea }));
+
+    return (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 relative">
+            {/* Tooltip Portal */}
+            {tooltipInfo && (
+                <div
+                    className="fixed z-50 px-3 py-2 bg-zinc-900 border border-white/10 rounded-lg shadow-xl text-xs text-zinc-300 pointer-events-none transform -translate-x-1/2 -translate-y-full animate-in fade-in zoom-in-95"
+                    style={{ left: tooltipInfo.x, top: tooltipInfo.y }}
+                >
+                    {tooltipInfo.text}
+                    <div className="absolute left-1/2 bottom-0 w-2 h-2 bg-zinc-900 border-r border-b border-white/10 text-zinc-900 transform rotate-45 -translate-x-1/2 -mb-1"></div>
+                </div>
+            )}
+
+            {/* Left Column: Summary Statistics */}
+            <div className="lg:col-span-1 space-y-4">
+                <div className="flex flex-col h-full justify-center space-y-4">
+                    <h4 className="text-sm font-medium text-zinc-400 pl-1 border-l-2 border-cyan-500">總體統計數據</h4>
+                    <div className="bg-zinc-900/30 rounded-xl border border-white/5 p-4">
+                        <table className="w-full text-sm">
+                            <tbody className="divide-y divide-white/5">
+                                <tr>
+                                    <td className="py-3 text-zinc-500">數據範圍</td>
+                                    <td className="py-3 text-right font-mono text-white">
+                                        <span className="text-cyan-400">{chartData.length}</span> 建案
+                                        <span className="mx-1 text-zinc-600">/</span>
+                                        <span className="text-zinc-300">{summaryStats.count.toLocaleString()}</span> 車位
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td className="py-3 text-zinc-500">平均坪數</td>
+                                    <td className="py-3 text-right font-mono text-cyan-400 text-lg font-bold">
+                                        {summaryStats.avgArea.toFixed(2)} <span className="text-xs font-normal text-zinc-500">坪</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td className="py-3 text-zinc-500">坪數中位數</td>
+                                    <td className="py-3 text-right font-mono text-zinc-300 text-lg font-bold">
+                                        {summaryStats.medianArea.toFixed(2)} <span className="text-xs font-normal text-zinc-500">坪</span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            {/* Right Column: Chart + Controls */}
+            <div className="lg:col-span-2 space-y-4">
+                <div className="flex flex-wrap justify-between items-center gap-2">
+                    <div>
+                        <h4 className="text-sm font-medium text-zinc-400 pl-1 border-l-2 border-violet-500">分佈散佈圖</h4>
+                        <div className="mt-1 text-xs text-zinc-500 font-mono">
+                            {chartMode === 'scale' ? (
+                                <span><span className="text-cyan-400">X軸</span>: 建案車位總數 <span className="text-zinc-600">|</span> <span className="text-cyan-400">Y軸</span>: 平均車位坪數</span>
+                            ) : (
+                                <span><span className="text-cyan-400">X軸</span>: 平均車位價格 <span className="text-zinc-600">|</span> <span className="text-cyan-400">Y軸</span>: 平均車位坪數</span>
+                            )}
+                        </div>
+                    </div>
+                    <div className="flex gap-2 items-center">
+                        <div className="relative group">
+                            <button className="p-1.5 text-zinc-500 hover:text-cyan-400 transition-colors">
+                                <HelpCircle size={14} />
+                            </button>
+                            {/* CSS-only Tooltip for simple hover or Javascript based if complex */}
+                            <div className="absolute right-0 top-full mt-2 w-64 p-3 bg-zinc-900 border border-white/10 rounded-lg shadow-xl z-50 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                                <div className="text-xs text-zinc-300 leading-relaxed">
+                                    {chartMode === 'scale'
+                                        ? "分析各建案「規劃車位總數」與「平均車位坪數」的關係。可觀察大社區是否傾向規劃較大或較小的車位。"
+                                        : "分析各建案「平均車位價格」與「平均車位坪數」的關係。可觀察車位價格是否隨著坪數增加而顯著提升。"}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="w-px h-4 bg-white/10 mx-1"></div>
+
+                        <button
+                            onClick={() => setChartMode('scale')}
+                            className={cn(
+                                "px-3 py-1.5 text-xs font-medium rounded-md border transition-all duration-200",
+                                chartMode === 'scale'
+                                    ? "bg-cyan-500/10 text-cyan-400 border-cyan-500/50 shadow-[0_0_10px_rgba(34,211,238,0.1)]"
+                                    : "bg-zinc-900/50 border-white/10 text-zinc-500 hover:text-zinc-300 hover:bg-white/5"
+                            )}
+                        >
+                            規模分析
+                        </button>
+                        <button
+                            onClick={() => setChartMode('value')}
+                            className={cn(
+                                "px-3 py-1.5 text-xs font-medium rounded-md border transition-all duration-200",
+                                chartMode === 'value'
+                                    ? "bg-cyan-500/10 text-cyan-400 border-cyan-500/50 shadow-[0_0_10px_rgba(34,211,238,0.1)]"
+                                    : "bg-zinc-900/50 border-white/10 text-zinc-500 hover:text-zinc-300 hover:bg-white/5"
+                            )}
+                        >
+                            價值分析
+                        </button>
+                    </div>
+                </div>
+
+                <ParkingScatterChart
+                    data={data}
+                    xLabel={chartMode === 'scale' ? "建案車位總數" : "平均車位價格"}
+                    yLabel="平均車位坪數"
+                    xUnit={chartMode === 'scale' ? "位" : "萬"}
+                    yUnit="坪"
+                    title={chartMode === 'scale' ? "建案規模 vs 車位坪數分佈" : "車位價值 vs 坪數分佈"}
+                />
+            </div>
+        </div>
+    );
 }
 
 
@@ -283,53 +433,66 @@ export function ParkingAnalysisReport({ data }: ParkingAnalysisReportProps) {
             </div>
 
             {/* 3. Ramp Plane Area Stats */}
-            <ReportWrapper title="坡道平面車位坪數統計" description="坡道平面車位的面積分佈">
+            <ReportWrapper title="坡道平面車位坪數散佈分析" description="建案車位數與坪數分佈">
                 {(() => {
-                    // Calculate area stats
-                    let allAreas: number[] = [];
+                    // 1. Process Data by Project
+                    const projectStats = new Map<string, { count: number, totalArea: number, totalPrice: number }>();
+                    let hasData = false;
+
                     filteredFloorData.forEach(floorData => {
                         if (floorData.rawRecords) {
                             floorData.rawRecords.forEach((record: any) => {
-                                const area = record.parkingArea || record['車位面積(坪)'];
-                                if (typeof area === 'number' && area > 0) {
-                                    allAreas.push(area);
+                                const projectName = record['建案名稱'];
+                                const area = record.parkingArea || record['車位面積(坪)'] || ((record['車位移轉總面積平方公尺'] || 0) * 0.3025);
+                                const price = (record.parkingPrice || (record['車位價格(萬)'] || 0)); // Wan
+
+                                if (projectName && area > 0) {
+                                    if (!projectStats.has(projectName)) {
+                                        projectStats.set(projectName, { count: 0, totalArea: 0, totalPrice: 0 });
+                                    }
+                                    const stats = projectStats.get(projectName)!;
+                                    stats.count += 1;
+                                    stats.totalArea += area;
+                                    stats.totalPrice += price;
+                                    hasData = true;
                                 }
                             });
                         }
                     });
 
-                    if (allAreas.length > 0) {
-                        allAreas.sort((a, b) => a - b);
-                        const avgArea = allAreas.reduce((sum, a) => sum + a, 0) / allAreas.length;
-                        const medianArea = allAreas[Math.floor(allAreas.length / 2)];
+                    // 2. Prepare Chart Data Points
+                    const chartData = Array.from(projectStats.entries()).map(([name, stats]) => ({
+                        id: name,
+                        label: name,
+                        avgArea: parseFloat((stats.totalArea / stats.count).toFixed(2)),
+                        count: stats.count,
+                        avgPrice: parseFloat((stats.totalPrice / stats.count).toFixed(2))
+                    }));
 
-                        return (
-                            <table className="w-full text-sm">
-                                <thead className="bg-zinc-900/50 text-zinc-500">
-                                    <tr>
-                                        <th className="p-2 text-left">統計項目</th>
-                                        <th className="p-2 text-right">數值</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-white/5">
-                                    <tr className="hover:bg-zinc-800/50">
-                                        <td className="p-2">統計車位數</td>
-                                        <td className="p-2 text-right font-mono text-zinc-300">{allAreas.length.toLocaleString()} 位</td>
-                                    </tr>
-                                    <tr className="hover:bg-zinc-800/50">
-                                        <td className="p-2">平均坪數</td>
-                                        <td className="p-2 text-right font-mono text-cyan-400">{avgArea.toFixed(2)} 坪</td>
-                                    </tr>
-                                    <tr className="hover:bg-zinc-800/50">
-                                        <td className="p-2">坪數中位數</td>
-                                        <td className="p-2 text-right font-mono text-zinc-300">{medianArea.toFixed(2)} 坪</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        );
-                    } else {
-                        return <p className="text-zinc-500 text-center py-4">無坡道平面車位坪數資料</p>;
-                    }
+                    // 3. Calculate Global Stats (Restored)
+                    let totalCount = 0;
+                    let allAvgAreas: number[] = [];
+
+                    chartData.forEach(d => {
+                        totalCount += d.count;
+                        allAvgAreas.push(d.avgArea);
+                    });
+
+                    allAvgAreas.sort((a, b) => a - b);
+                    const globalAvgArea = allAvgAreas.length > 0 ? allAvgAreas.reduce((a, b) => a + b, 0) / allAvgAreas.length : 0;
+                    const globalMedianArea = allAvgAreas.length > 0 ? allAvgAreas[Math.floor(allAvgAreas.length / 2)] : 0;
+
+                    return (
+                        <ParkingAreaCharts
+                            chartData={chartData}
+                            hasData={hasData}
+                            summaryStats={{
+                                count: totalCount,
+                                avgArea: globalAvgArea,
+                                medianArea: globalMedianArea
+                            }}
+                        />
+                    );
                 })()}
             </ReportWrapper>
 

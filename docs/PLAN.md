@@ -394,3 +394,14 @@ refactor: 重構
 - [x] **Data Logic Fix**: Update `ParkingAnalysisReport.tsx` to use `rawRecords` from `rampPlanePriceByFloor` as the source of truth for the details modal.
 - [x] **UI Logic Fix**: Disable or adjust "Show All Ramp Plane" logic when using trusted backend data to prevent confusion.
 
+### [Current Task] Implement Parking Area Scatter Plot
+- [x] Create `ParkingScatterChart` component (Recharts/Custom)
+- [x] Implement Scale Analysis Mode (Count vs Area)
+- [x] Implement Value Analysis Mode (Price vs Area)
+- [x] Integrate into `ParkingAnalysisReport`
+- [x] Integrate into `ParkingAnalysisReport`
+- [x] Deploy to Test Environment (`trb`)
+- [x] **Refinement**: Restore summary stats & add explanatory tooltips
+- [x] **Refinement**: Optimize layout to side-by-side (Table | Chart)
+- [x] **Refinement**: Add Axis descriptions & Help icon (?)
+
