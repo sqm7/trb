@@ -152,6 +152,8 @@ bash scripts/deploy_github.sh "commit message"
 - [x] **Policy Timeline**: Localized Project Search & Reduced Layout Height
 - [x] **Sidebar**: Redesign (Remove Logo, Add Subtitle, Responsive Title Stack)
 - [x] **Parking Analysis**: Fix Dropdown Z-index & Search UX (Clear All)
+- [x] **Parking Analysis**: Reorder 3D Floor Stack (B1 Top, Unknown Bottom)
+- [x] **Bubble Chart**: Unified Control Toolbar (Integrated into Chart Header)
 
 
 
