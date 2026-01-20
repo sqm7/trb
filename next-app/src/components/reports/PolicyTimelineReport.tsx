@@ -7,7 +7,7 @@ import { REAL_ESTATE_POLICIES, PolicyEvent } from '@/lib/data/policies';
 import { cn } from '@/lib/utils';
 import { Calendar, TrendingUp, Gavel, Landmark, Info, ZoomIn, ZoomOut, ChevronDown, ChevronUp } from 'lucide-react';
 
-import { useFilterStore } from '@/store/useFilterStore';
+import { ProjectSearchMultiselect } from "@/components/ui/ProjectSearchMultiselect";
 
 interface Transaction {
     "交易日": string;
@@ -19,7 +19,17 @@ interface PolicyTimelineReportProps {
 }
 
 export default function PolicyTimelineReport({ data }: PolicyTimelineReportProps) {
-    const filters = useFilterStore();
+    // 0. Extract Unique Projects for Search
+    const uniqueProjects = useMemo(() => {
+        if (!data) return [];
+        const names = new Set<string>();
+        data.forEach(d => {
+            if (d["建案名稱"]) names.add(d["建案名稱"]);
+        });
+        return Array.from(names).map(n => ({ value: n, label: n }));
+    }, [data]);
+
+    const [selectedProjects, setSelectedProjects] = useState<string[]>([]);
     const [selectedEvent, setSelectedEvent] = useState<PolicyEvent | null>(null);
     const [zoomLevel, setZoomLevel] = useState(1);
     const [isDetailsExpanded, setIsDetailsExpanded] = useState(false);
@@ -27,7 +37,7 @@ export default function PolicyTimelineReport({ data }: PolicyTimelineReportProps
     // 1. Group Data by Project Name and Calculate Periods
     const projectPeriods = useMemo(() => {
         // user requirement: only show project tracks if user specifically filtered by project name
-        if (filters.projectNames.length === 0) return [];
+        if (selectedProjects.length === 0) return [];
 
         if (!data || data.length === 0) return [];
 
@@ -37,6 +47,9 @@ export default function PolicyTimelineReport({ data }: PolicyTimelineReportProps
             const name = d["建案名稱"];
             // Skip if name is empty
             if (!name) return;
+
+            // Only process selected projects
+            if (!selectedProjects.includes(name)) return;
 
             const time = new Date(d["交易日"]).getTime();
             if (!isNaN(time)) {
@@ -59,9 +72,9 @@ export default function PolicyTimelineReport({ data }: PolicyTimelineReportProps
             };
         }).sort((a, b) => a.start.getTime() - b.start.getTime());
 
-        // Limit to top 10
+        // Limit to top 10 (though UI restricts selection to 6 usually, 10 is safe limit)
         return periods.slice(0, 10);
-    }, [data]);
+    }, [data, selectedProjects]);
 
     // 2. Date Range for Timeline (Auto-zoom + Padding)
     const timelineRange = useMemo(() => {
@@ -80,9 +93,9 @@ export default function PolicyTimelineReport({ data }: PolicyTimelineReportProps
         };
     }, [projectPeriods]);
 
-    const PROJECT_ROW_HEIGHT = 50;
-    const FIRST_ROW_OFFSET = 120; // Leave space for top axis and finance policies
-    const containerHeight = Math.max(450, FIRST_ROW_OFFSET + projectPeriods.length * PROJECT_ROW_HEIGHT + 100);
+    const PROJECT_ROW_HEIGHT = 40; // Reduced from 50
+    const FIRST_ROW_OFFSET = 100; // Reduced from 120
+    const containerHeight = Math.max(350, FIRST_ROW_OFFSET + projectPeriods.length * PROJECT_ROW_HEIGHT + 80); // Reduced min height
 
     // Helper: Position calculation (0% - 100%)
     const getPosition = (dateStr: string) => {
@@ -126,9 +139,20 @@ export default function PolicyTimelineReport({ data }: PolicyTimelineReportProps
                 </CardDescription>
             </CardHeader>
             <CardContent>
-                {/* Controls & Legend */}
-                <div className="flex items-center justify-between mb-4 px-2">
-                    <div className="flex items-center gap-4">
+                {/* Search & Controls */}
+                <div className="flex flex-col md:flex-row items-start md:items-end justify-between mb-6 px-2 gap-4">
+                    {/* Project Search */}
+                    <div className="w-full md:w-1/2 lg:w-1/3">
+                        <ProjectSearchMultiselect
+                            projects={uniqueProjects}
+                            onChange={setSelectedProjects}
+                            title="選擇建案 (顯示銷售區間)"
+                            placeholder="搜尋建案以顯示在時間軸..."
+                            max={6}
+                        />
+                    </div>
+
+                    <div className="flex items-center justify-between w-full md:w-auto gap-4">
                         <div className="flex items-center gap-2 bg-black/20 rounded-lg p-1 border border-white/5">
                             <button
                                 onClick={() => setZoomLevel(prev => Math.max(0.5, prev - 0.25))}
