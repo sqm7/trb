@@ -87,6 +87,35 @@ const useGravitySimulation = (
             };
         });
 
+        // 4. Pre-warm Physics (Run synchronously to disperse overlaps immediately)
+        // This prevents the "exploding" look and starts in a settled state
+        const preWarmIterations = 120;
+        for (let k = 0; k < preWarmIterations; k++) {
+            for (let i = 0; i < initialNodes.length; i++) {
+                for (let j = i + 1; j < initialNodes.length; j++) {
+                    const n1 = initialNodes[i];
+                    const n2 = initialNodes[j];
+                    const dx = n2.x - n1.x;
+                    const dy = n2.y - n1.y;
+                    const distSq = dx * dx + dy * dy;
+                    const radSum = n1.radius + n2.radius + 5; // Padding same as main loop
+
+                    if (distSq < radSum * radSum && distSq > 0) {
+                        const dist = Math.sqrt(distSq);
+                        const overlap = radSum - dist;
+                        const nx = dx / dist;
+                        const ny = dy / dist;
+                        const separation = overlap * 0.5;
+
+                        n1.x -= nx * separation;
+                        n1.y -= ny * separation;
+                        n2.x += nx * separation;
+                        n2.y += ny * separation;
+                    }
+                }
+            }
+        }
+
         setNodes(initialNodes);
     }, [buckets, width, height, metric, maxValue]);
 
@@ -225,7 +254,7 @@ const useGravitySimulation = (
         return () => {
             if (animationRef.current !== null) cancelAnimationFrame(animationRef.current);
         };
-    }, [isPlaying, width, height]);
+    }, [isPlaying, width, height, nodes.length]);
 
     const onMouseDown = (e: React.MouseEvent, id: string, nodeX: number, nodeY: number) => {
         e.preventDefault(); // Prevent text selection

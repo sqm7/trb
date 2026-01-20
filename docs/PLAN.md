@@ -332,6 +332,8 @@ refactor: 重構
 - [x] **Step 7**: Implement Physics/Force Layout for true "Zero Gravity" cluster.
 - [x] **Step 8**: Implement Drag & Drop Interaction for bubbles.
 - [x] **Step 9**: Tune Physics (Spread Init, Reduce Jitter/Spin, Smooth Dampening).
+- [x] **Review**: Fixed Initial State (Overlapping Issue) with Physics Pre-warming.
+- [x] **Bug Fix**: Initial Drag Issue (Fixed useEffect dependency).
 
 ### [Current Task] Implement Guest Mode
 - [x] Add "Guest Login" button to Login Page
