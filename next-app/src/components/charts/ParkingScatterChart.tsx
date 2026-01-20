@@ -24,6 +24,7 @@ interface ParkingScatterChartProps {
 
 export function ParkingScatterChart({ data, xLabel, yLabel, xUnit = "", yUnit = "", title, highlightIds = [] }: ParkingScatterChartProps) {
     const [hoveredPoint, setHoveredPoint] = useState<DataPoint | null>(null);
+    const [lockedPoint, setLockedPoint] = useState<DataPoint | null>(null);
     const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
 
     // 1. Calculate Scales
@@ -55,57 +56,128 @@ export function ParkingScatterChart({ data, xLabel, yLabel, xUnit = "", yUnit = 
         return { left: `${xPercent}%`, top: `${yPercent}%` };
     };
 
-    const handleMouseEnter = (e: React.MouseEvent, point: DataPoint) => {
-        setHoveredPoint(point);
-    };
-
     const hasHighlights = highlightIds.length > 0;
 
+    const handleMouseEnter = (e: React.MouseEvent, point: DataPoint) => {
+        // If locked, ignore hover updates
+        if (lockedPoint) return;
+
+        // If filtering is active (hasHighlights), only allow highlighted points
+        if (hasHighlights && !highlightIds.includes(point.id)) return;
+
+        setHoveredPoint(point);
+        updateTooltipPos(e);
+    };
+
+    const handleMouseMove = (e: React.MouseEvent) => {
+        // Update position if we have a visible tooltip (hovered or locked)
+        // But for locked point, we might want it to stay fixed? 
+        // User said: "window should fixed" when clicked. So we ONLY update pos on hover, NOT on lock.
+        if (lockedPoint) return;
+        if (hoveredPoint) {
+            updateTooltipPos(e);
+        }
+    };
+
+    const updateTooltipPos = (e: React.MouseEvent) => {
+        // Get mouse position relative to container
+        const rect = e.currentTarget.closest('.relative.bg-zinc-900\\/30')?.getBoundingClientRect();
+        if (rect) {
+            setTooltipPos({
+                x: e.clientX - rect.left,
+                y: e.clientY - rect.top
+            });
+        }
+    };
+
+    const handlePointClick = (e: React.MouseEvent, point: DataPoint) => {
+        e.stopPropagation(); // Prevent background click
+
+        // If filtering is active, prevent clicking non-highlighted points? 
+        // User said "window should only show yellow ones", implies interaction too.
+        if (hasHighlights && !highlightIds.includes(point.id)) return;
+
+        if (lockedPoint?.id === point.id) {
+            setLockedPoint(null); // Unlock if clicked again
+            setHoveredPoint(point); // Revert to hover
+        } else {
+            setLockedPoint(point);
+            setHoveredPoint(null); // Clear hover so lock takes precedence
+            updateTooltipPos(e); // Update pos to click location
+        }
+    };
+
+    const handleBackgroundClick = () => {
+        setLockedPoint(null);
+        setHoveredPoint(null);
+    };
+
+    // Determine what to show
+    const activePoint = lockedPoint || hoveredPoint;
+
+    // 2. Sort Data for Visual Layering (Highlighted Last)
+    const sortedData = useMemo(() => {
+        if (!highlightIds.length) return data;
+        return [...data].sort((a, b) => {
+            const aHighlighted = highlightIds.includes(a.id) ? 1 : 0;
+            const bHighlighted = highlightIds.includes(b.id) ? 1 : 0;
+            return aHighlighted - bHighlighted; // 0 -> 1
+        });
+    }, [data, highlightIds]);
+
     return (
-        <div className="w-full h-[400px] relative bg-zinc-900/30 rounded-xl border border-white/5 p-4 select-none">
+        <div
+            className="w-full h-[400px] relative bg-zinc-900/30 rounded-xl border border-white/5 p-4 select-none cursor-crosshair"
+            onClick={handleBackgroundClick}
+            onMouseMove={handleMouseMove}
+        >
             {/* Title */}
-            {title && <h4 className="absolute top-4 left-4 text-sm font-medium text-zinc-400">{title}</h4>}
+            {title && <h4 className="absolute top-4 left-4 text-sm font-medium text-zinc-400 pointer-events-none">{title}</h4>}
 
             {/* Chart Area */}
-            <div className="absolute inset-x-12 inset-y-12">
+            <div className="absolute inset-x-12 inset-y-12 pointer-events-none">
                 {/* Grid Lines */}
-                <div className="absolute inset-0 flex flex-col justify-between pointer-events-none opacity-20">
+                <div className="absolute inset-0 flex flex-col justify-between opacity-20">
                     {[0, 0.25, 0.5, 0.75, 1].map((tick) => (
                         <div key={tick} className="w-full h-px border-t border-dashed border-zinc-500"></div>
                     ))}
                 </div>
-                <div className="absolute inset-0 flex justify-between pointer-events-none opacity-20">
+                <div className="absolute inset-0 flex justify-between opacity-20">
                     {[0, 0.25, 0.5, 0.75, 1].map((tick) => (
                         <div key={tick} className="h-full w-px border-l border-dashed border-zinc-500"></div>
                     ))}
                 </div>
+            </div>
 
-                {/* Data Points */}
-                {data.map((point) => {
+            {/* Data Points Layer - separate to allow pointer events */}
+            <div className="absolute inset-x-12 inset-y-12">
+                {sortedData.map((point) => {
                     const pos = getPosition(point.x, point.y);
                     const isHovered = hoveredPoint?.id === point.id;
+                    const isLocked = lockedPoint?.id === point.id;
                     const isHighlighted = hasHighlights && highlightIds.includes(point.id);
 
                     // Determine styling based on state
-                    let styles = "bg-cyan-500/60 hover:bg-cyan-400"; // Default
+                    let styles = "bg-cyan-500/60 hover:bg-cyan-400 z-10"; // Default
                     let scale = "";
-                    let zIndex = "z-10";
 
                     if (hasHighlights) {
                         if (isHighlighted) {
-                            styles = "bg-yellow-400 shadow-[0_0_10px_rgba(250,204,21,0.6)]";
-                            zIndex = "z-20";
+                            styles = "bg-yellow-400 shadow-[0_0_10px_rgba(250,204,21,0.6)] z-20";
                             scale = "scale-125";
                         } else {
-                            styles = "bg-zinc-700/30"; // Muted
-                            zIndex = "z-0";
+                            styles = "bg-zinc-700/30 z-0"; // Muted
                         }
                     }
 
-                    if (isHovered) {
-                        styles = "bg-cyan-400 shadow-[0_0_15px_rgba(34,211,238,0.8)] ring-2 ring-white";
+                    if (isHovered || isLocked) {
+                        styles = "bg-cyan-400 shadow-[0_0_15px_rgba(34,211,238,0.8)] ring-2 ring-white z-30";
                         scale = "scale-150";
-                        zIndex = "z-30";
+
+                        // If it's a highlighted point, keep the yellow theme but boost it
+                        if (hasHighlights && isHighlighted) {
+                            styles = "bg-yellow-400 shadow-[0_0_15px_rgba(250,204,21,0.8)] ring-2 ring-white z-30";
+                        }
                     }
 
                     return (
@@ -116,9 +188,10 @@ export function ParkingScatterChart({ data, xLabel, yLabel, xUnit = "", yUnit = 
                                 styles,
                                 scale
                             )}
-                            style={{ left: pos.left, top: pos.top, zIndex }}
+                            style={{ left: pos.left, top: pos.top }} // zIndex removed from inline style
                             onMouseEnter={(e) => handleMouseEnter(e, point)}
-                            onMouseLeave={() => setHoveredPoint(null)}
+                            onMouseLeave={() => !lockedPoint && setHoveredPoint(null)}
+                            onClick={(e) => handlePointClick(e, point)}
                         />
                     );
                 })}
@@ -126,34 +199,41 @@ export function ParkingScatterChart({ data, xLabel, yLabel, xUnit = "", yUnit = 
 
             {/* Axes Labels */}
             {/* Y Axis */}
-            <div className="absolute left-0 top-12 bottom-12 w-10 flex flex-col justify-between text-[10px] text-zinc-500 text-right pr-2">
+            <div className="absolute left-0 top-12 bottom-12 w-10 flex flex-col justify-between text-[10px] text-zinc-500 text-right pr-2 pointer-events-none">
                 <span>{Math.round(yMax)}{yUnit}</span>
                 <span>{Math.round(yMin)}{yUnit}</span>
             </div>
 
             {/* X Axis */}
-            <div className="absolute left-12 right-12 bottom-4 h-6 flex justify-between text-[10px] text-zinc-500 pt-1">
+            <div className="absolute left-12 right-12 bottom-4 h-6 flex justify-between text-[10px] text-zinc-500 pt-1 pointer-events-none">
                 <span>{Math.round(xMin)}{xUnit}</span>
                 <span>{Math.round(xMax)}{xUnit}</span>
             </div>
 
             {/* Axes Titles */}
-            <div className="absolute bottom-1 left-1/2 -translate-x-1/2 text-xs text-zinc-400 font-bold">{xLabel}</div>
-            <div className="absolute left-1 top-1/2 -translate-y-1/2 -rotate-90 text-xs text-zinc-400 font-bold">{yLabel}</div>
+            <div className="absolute bottom-1 left-1/2 -translate-x-1/2 text-xs text-zinc-400 font-bold pointer-events-none">{xLabel}</div>
+            <div className="absolute left-1 top-1/2 -translate-y-1/2 -rotate-90 text-xs text-zinc-400 font-bold pointer-events-none">{yLabel}</div>
 
             {/* Tooltip (Floating) */}
-            {hoveredPoint && (
-                <div className="absolute z-30 pointer-events-none" style={getPosition(hoveredPoint.x, hoveredPoint.y)}>
-                    <div className="relative bottom-4 left-1/2 -translate-x-1/2 bg-zinc-950/90 border border-cyan-500/30 rounded-lg p-3 shadow-xl backdrop-blur-md w-48 animate-in zoom-in-95 fade-in duration-200">
-                        <div className="text-sm font-bold text-white mb-1">{hoveredPoint.label}</div>
+            {activePoint && (
+                <div
+                    className="absolute z-50 pointer-events-none"
+                    style={{
+                        left: tooltipPos.x,
+                        top: tooltipPos.y,
+                        transform: 'translate(10px, 10px)' // Offset to bottom-right
+                    }}
+                >
+                    <div className="bg-zinc-950/90 border border-cyan-500/30 rounded-lg p-3 shadow-xl backdrop-blur-md w-48 animate-in zoom-in-95 fade-in duration-200">
+                        <div className="text-sm font-bold text-white mb-1">{activePoint.label}</div>
                         <div className="space-y-1 text-xs text-zinc-400">
                             <div className="flex justify-between">
                                 <span>{xLabel}:</span>
-                                <span className="text-cyan-400 font-mono">{hoveredPoint.x.toLocaleString()} {xUnit}</span>
+                                <span className="text-cyan-400 font-mono">{activePoint.x.toLocaleString()} {xUnit}</span>
                             </div>
                             <div className="flex justify-between">
                                 <span>{yLabel}:</span>
-                                <span className="text-cyan-400 font-mono">{hoveredPoint.y.toLocaleString()} {yUnit}</span>
+                                <span className="text-cyan-400 font-mono">{activePoint.y.toLocaleString()} {yUnit}</span>
                             </div>
                         </div>
                     </div>

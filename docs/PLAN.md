@@ -140,6 +140,16 @@ bash scripts/deploy_trb.sh "commit message"
 bash scripts/deploy_github.sh "commit message"
 ```
 
+### [2026-01-20] Parking Analysis Enhancements (Deployed to trb)
+- [x] **Features**: Search Show-All, Tooltip Locking, Conditional Hover
+- [x] **Command**: `bash scripts/deploy_next_trb.sh "feat: Enhance Parking Analysis Interaction"`
+
+### [2026-01-20] Project Search UX (Deployed to trb)
+- [x] **Feature**: Continuous Multi-select (Keep Open)
+- [x] **Feature**: 'Clear All' Button
+
+
+
 ### 後端部署 (Supabase Edge Function)
 ```bash
 cd supabase
@@ -406,4 +416,11 @@ refactor: 重構
 - [x] **Refinement**: Add Axis descriptions & Help icon (?)
 - [x] **New Feature**: Summary Table Layout Optimization (Move Up)
 - [x] **New Feature**: Project Search & Highlight (Multi-select, Max 6)
+
+### [Current Task] Enhance Parking Chart Interactions
+- [x] **Search**: Show all projects on input click (remove query dependency)
+- [x] **Scatter Plot**: Implement "Tooltip Locking" on click
+- [x] **Scatter Plot**: Implement "Tooltip Filtering" (Yellow dots only when filtered)
+- [x] **Scatter Plot**: Tooltip follows mouse cursor (Bottom-Right)
+
 
