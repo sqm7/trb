@@ -6,8 +6,9 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { useAnalysisData } from "@/hooks/useAnalysisData";
 import { useFilterStore } from "@/store/useFilterStore";
 import { Button } from "@/components/ui/button";
-import { Loader2, FileDown, CheckSquare, Square, ChevronRight, ChevronDown } from "lucide-react";
+import { Loader2, FileDown, FileType, CheckSquare, Square, ChevronRight, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { downloadReportPPTX } from "@/lib/pptx-generator";
 
 // Report Components
 import { RankingReport } from "@/components/reports/RankingReport";
@@ -92,6 +93,7 @@ export default function ReportsPage() {
     // State for selections: Record<ReportId, ModuleId[]>
     const [selections, setSelections] = useState<Record<string, string[]>>({});
     const [isGenerating, setIsGenerating] = useState(false);
+    const [isGeneratingPPTX, setIsGeneratingPPTX] = useState(false);
     const [expandedSections, setExpandedSections] = useState<string[]>(['ranking', 'price-band']);
     const [mobileSettingsOpen, setMobileSettingsOpen] = useState(false);
 
@@ -170,6 +172,28 @@ export default function ReportsPage() {
                 return { data: analysisData.transactionDetails };
             default:
                 return null;
+        }
+    };
+
+    // ========== PPTX Download Handler ==========
+    const handleDownloadPPTX = async () => {
+        if (!analysisData) return;
+
+        setIsGeneratingPPTX(true);
+        try {
+            await downloadReportPPTX(analysisData, {
+                title: '房市分析報告',
+                counties: filters.counties,
+                districts: filters.districts,
+                dateRange: filters.dateRange,
+                startDate: filters.startDate,
+                endDate: filters.endDate,
+            });
+        } catch (err) {
+            console.error("PPTX generation failed:", err);
+            alert("PPTX 生成失敗，請稍後再試。");
+        } finally {
+            setIsGeneratingPPTX(false);
         }
     };
 
@@ -446,11 +470,32 @@ export default function ReportsPage() {
                         })}
                     </div>
 
-                    <div className="p-4 border-t border-white/5 bg-zinc-900 text-center">
+                    <div className="p-4 border-t border-white/5 bg-zinc-900 space-y-2">
+                        {/* PPTX Download Button (Primary) */}
+                        <Button
+                            onClick={handleDownloadPPTX}
+                            disabled={loading || !analysisData || isGeneratingPPTX}
+                            className="w-full bg-violet-600 hover:bg-violet-700"
+                        >
+                            {isGeneratingPPTX ? (
+                                <>
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    生成中...
+                                </>
+                            ) : (
+                                <>
+                                    <FileType className="mr-2 h-4 w-4" />
+                                    下載 PPTX 報表
+                                </>
+                            )}
+                        </Button>
+
+                        {/* PDF Download Button (Secondary) */}
                         <Button
                             onClick={handleDownloadPDF}
                             disabled={loading || !analysisData || isGenerating}
-                            className="w-full bg-violet-600 hover:bg-violet-700"
+                            variant="outline"
+                            className="w-full border-zinc-700 hover:bg-zinc-800"
                         >
                             {isGenerating ? (
                                 <>
@@ -481,164 +526,33 @@ export default function ReportsPage() {
                                 </span>
                             )}
                             <Button
-                                onClick={handleDownloadPDF}
-                                disabled={loading || !analysisData || isGenerating}
+                                onClick={handleDownloadPPTX}
+                                disabled={loading || !analysisData || isGeneratingPPTX}
                                 size="sm"
                                 className="lg:hidden bg-violet-600 hover:bg-violet-700 text-xs"
                             >
-                                <FileDown className="h-3 w-3 mr-1" />
-                                {isGenerating ? '生成中...' : '下載 PDF'}
+                                <FileType className="h-3 w-3 mr-1" />
+                                {isGeneratingPPTX ? '生成中...' : '下載 PPTX'}
                             </Button>
                         </div>
                     </div>
 
                     <div className="flex-1 overflow-y-auto p-4 lg:p-10 custom-scrollbar relative bg-zinc-950/95">
 
-                        {loading && (
-                            <div className="absolute inset-0 flex flex-col items-center justify-center bg-zinc-950/80 z-20">
-                                <Loader2 className="h-10 w-10 animate-spin text-violet-500 mb-4" />
-                                <p className="text-zinc-400">正在生成報表數據...</p>
+                        {/* Coming Soon - Feature Under Development */}
+                        <div className="flex flex-col items-center justify-center h-full text-center">
+                            <div className="p-8 rounded-2xl border border-amber-500/20 bg-amber-500/5 max-w-lg">
+                                <div className="text-6xl mb-6">🚧</div>
+                                <h2 className="text-2xl font-bold text-white mb-3">功能開發中</h2>
+                                <p className="text-zinc-400 mb-6">
+                                    報表生成功能正在積極開發中，敬請期待！
+                                </p>
+                                <div className="flex flex-wrap gap-2 justify-center text-sm">
+                                    <span className="px-3 py-1 rounded-full bg-violet-500/20 text-violet-300">PPTX 匯出</span>
+                                    <span className="px-3 py-1 rounded-full bg-cyan-500/20 text-cyan-300">PDF 報告</span>
+                                    <span className="px-3 py-1 rounded-full bg-green-500/20 text-green-300">圖表視覺化</span>
+                                </div>
                             </div>
-                        )}
-
-                        {!analysisData && !loading && (
-                            <div className="flex flex-col items-center justify-center h-full text-zinc-500">
-                                <p>無分析數據</p>
-                                <Button variant="link" className="text-violet-400" onClick={handleAnalyze}>
-                                    嘗試重新載入
-                                </Button>
-                            </div>
-                        )}
-
-                        {/* Wrapper for PDF Capture */}
-                        <div id="report-preview-container" className="flex flex-col gap-8 items-center pb-20">
-
-                            {/* Slide 1: Cover Page */}
-                            {analysisData && (
-                                <SlideContainer
-                                    className="w-full max-w-[1280px] slide-item"
-                                    title="房市分析報告"
-                                    subTitle={`${filters.counties.join('、')} ${filters.districts.join('、')}`}
-                                    pageNumber={++pageCount}
-                                >
-                                    <div className="flex flex-col items-center justify-center h-full text-center space-y-6">
-                                        <div className="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-tr from-violet-400 to-indigo-600">
-                                            VIBE CODING
-                                        </div>
-                                        <div className="text-xl text-zinc-400 font-light tracking-[0.2em]">
-                                            REAL ESTATE INSIGHTS
-                                        </div>
-                                        <div className="mt-12 p-6 border border-white/10 rounded-xl bg-white/5 backdrop-blur-sm">
-                                            <div className="grid grid-cols-2 gap-x-12 gap-y-4 text-left">
-                                                <div>
-                                                    <span className="text-xs text-zinc-500 block">分析範圍</span>
-                                                    <span className="text-lg text-white">{filters.counties.join('、') || '全區域'}</span>
-                                                </div>
-                                                <div>
-                                                    <span className="text-xs text-zinc-500 block">分析期間</span>
-                                                    <span className="text-lg text-white">{filters.startDate || '不限'} ~ {filters.endDate || '不限'}</span>
-                                                </div>
-                                                <div>
-                                                    <span className="text-xs text-zinc-500 block">交易類型</span>
-                                                    <span className="text-lg text-white">{filters.transactionType === 'preload' ? '預售屋' : '成屋'}</span>
-                                                </div>
-                                                <div>
-                                                    <span className="text-xs text-zinc-500 block">生成日期</span>
-                                                    <span className="text-lg text-white">{new Date().toLocaleDateString()}</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </SlideContainer>
-                            )}
-
-                            {/* Content Slides */}
-                            {analysisData && REPORT_CONFIG.map(section => {
-                                const selectedModules = selections[section.id] || [];
-                                if (selectedModules.length === 0) return null;
-
-                                const ReportComponent = section.component;
-                                const props = getReportProps(section.id);
-                                if (!props) return null;
-
-                                const slides = [];
-
-                                // 1. Metrics Slide
-                                if (selectedModules.includes('metrics')) {
-                                    slides.push(
-                                        <SlideContainer
-                                            key={`${section.id}-metrics`}
-                                            className="w-full max-w-[1280px] slide-item"
-                                            title={`${section.label} - 核心指標`}
-                                            pageNumber={++pageCount}
-                                        >
-                                            <div className="h-full overflow-hidden p-2">
-                                                {/* @ts-ignore */}
-                                                <ReportComponent {...props} visibleSections={['metrics']} pptMode={true} />
-                                            </div>
-                                        </SlideContainer>
-                                    );
-                                }
-
-                                // 2. Chart Slide
-                                if (selectedModules.includes('chart')) {
-                                    slides.push(
-                                        <SlideContainer
-                                            key={`${section.id}-chart`}
-                                            className="w-full max-w-[1280px] slide-item"
-                                            title={`${section.label} - 分析圖表`}
-                                            pageNumber={++pageCount}
-                                        >
-                                            <div className="h-full overflow-hidden p-2">
-                                                {/* @ts-ignore */}
-                                                <ReportComponent {...props} visibleSections={['chart']} pptMode={true} />
-                                            </div>
-                                        </SlideContainer>
-                                    );
-                                }
-
-                                // 3. Table Slide (Scale-to-Fit - Single Slide, All Data)
-                                if (selectedModules.includes('table')) {
-                                    slides.push(
-                                        <SlideContainer
-                                            key={`${section.id}-table`}
-                                            className="w-full max-w-[1280px] slide-item"
-                                            title={`${section.label} - 詳細數據`}
-                                            pageNumber={++pageCount}
-                                        >
-                                            <div className="h-full overflow-hidden p-0">
-                                                {/* @ts-ignore */}
-                                                <ReportComponent
-                                                    {...props}
-                                                    visibleSections={['table']}
-                                                    pptMode={true}
-                                                />
-                                            </div>
-                                        </SlideContainer>
-                                    );
-                                }
-
-                                // Fallback for other modules (like 'heatmap') if they are not metrics/chart/table
-                                // We check if there are selected modules that are NOT metrics/chart/table
-                                const otherModules = selectedModules.filter(m => !['metrics', 'chart', 'table'].includes(m));
-                                if (otherModules.length > 0) {
-                                    slides.push(
-                                        <SlideContainer
-                                            key={`${section.id}-others`}
-                                            className="w-full max-w-[1280px] slide-item"
-                                            title={`${section.label} - 其他分析`}
-                                            pageNumber={++pageCount}
-                                        >
-                                            <div className="h-full overflow-hidden p-2">
-                                                {/* @ts-ignore */}
-                                                <ReportComponent {...props} visibleSections={otherModules} pptMode={true} />
-                                            </div>
-                                        </SlideContainer>
-                                    );
-                                }
-
-                                return slides;
-                            })}
                         </div>
 
                     </div>
