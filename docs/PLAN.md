@@ -154,6 +154,7 @@ bash scripts/deploy_github.sh "commit message"
 - [x] **Parking Analysis**: Fix Dropdown Z-index & Search UX (Clear All)
 - [x] **Parking Analysis**: Reorder 3D Floor Stack (B1 Top, Unknown Bottom)
 - [x] **Bubble Chart**: Unified Control Toolbar (Integrated into Chart Header)
+- [x] **UI Polish**: New App Icon (Favicon) - Cyberpunk Style
 
 
 
