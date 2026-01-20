@@ -390,3 +390,7 @@ refactor: 重構
 - [x] **Feature**: Implemented Parking Detail Modal showing records per floor.
 - [x] **Feature**: Added "Show All Ramp Plane" toggle for loose matching in modal.
 
+### [Current Task] Fix Parking Display Issue (2026-01-20)
+- [x] **Data Logic Fix**: Update `ParkingAnalysisReport.tsx` to use `rawRecords` from `rampPlanePriceByFloor` as the source of truth for the details modal.
+- [x] **UI Logic Fix**: Disable or adjust "Show All Ramp Plane" logic when using trusted backend data to prevent confusion.
+

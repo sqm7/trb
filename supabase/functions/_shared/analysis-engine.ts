@@ -515,6 +515,13 @@ export function calculateParkingAnalysis(mainData: any[], parkDataMap: Map<strin
                     transactionId: transaction['編號'],
                     parkingPrice: park['車位價格(萬)'] || park['車位價格'] || 0,
                     parkingArea: park['車位面積(坪)'] || 0,
+                    // Enrich with details for frontend modal
+                    '建案名稱': transaction['建案名稱'],
+                    '交易日': transaction['交易日'],
+                    '車位總價元': (park['車位價格(萬)'] || park['車位價格'] || 0) * 10000,
+                    '車位移轉總面積平方公尺': (park['車位面積(坪)'] || 0) / 0.3025,
+                    '車位所在樓層': park['車位樓層'],
+                    '備註': transaction['備註']
                 });
 
                 // 3. 價格統計 (僅限有效價格)
@@ -535,6 +542,13 @@ export function calculateParkingAnalysis(mainData: any[], parkDataMap: Map<strin
                     transactionId: transaction['編號'],
                     parkingPrice: 0,
                     parkingArea: 0,
+                    // Enrich with details for frontend modal
+                    '建案名稱': transaction['建案名稱'],
+                    '交易日': transaction['交易日'],
+                    '車位總價元': 0,
+                    '車位移轉總面積平方公尺': 0,
+                    '車位所在樓層': '-',
+                    '備註': transaction['備註']
                 });
             }
         }

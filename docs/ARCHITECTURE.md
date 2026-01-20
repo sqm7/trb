@@ -118,6 +118,7 @@ src/
 ### ParkingAnalysisReport.tsx - 車位分析
 
 *   **Unknown Floor Support**: 支援顯示 `Unknown` 樓層的數據（灰色標示），解決資料缺漏造成的統計不符問題。
+*   **Trusted Data Source**: 詳細列表優先使用後端聚合的 `rawRecords`，解決前端篩選無法匹配子表數據的問題。
 
 ---
 
