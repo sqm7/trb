@@ -111,63 +111,7 @@ export function UnitPriceAnalysisReport({ data, visibleSections = ['stats', 'com
             {/* 3. Bubble Chart Controls & Chart */}
             {visibleSections.includes('chart') && (
                 <div className="space-y-4">
-                    <h3 className="text-xl font-bold text-white pl-2 border-l-4 border-violet-500">單價分佈分析</h3>
-
-                    {/* Controls Toolbar */}
-                    <div className="p-4 bg-zinc-900/30 border border-white/5 rounded-lg flex flex-wrap gap-4 items-center">
-                        <div className="flex items-center gap-2">
-                            <span className="text-zinc-400 text-sm">單價範圍:</span>
-                            <Input
-                                type="number"
-                                value={minPrice}
-                                onChange={e => setMinPrice(Number(e.target.value))}
-                                className="w-20 h-8 text-xs bg-zinc-950/50"
-                            />
-                            <span className="text-zinc-500">-</span>
-                            <Input
-                                type="number"
-                                value={maxPrice}
-                                onChange={e => setMaxPrice(Number(e.target.value))}
-                                className="w-20 h-8 text-xs bg-zinc-950/50"
-                            />
-                        </div>
-
-                        <div className="flex items-center gap-2">
-                            <span className="text-zinc-400 text-sm">級距:</span>
-                            <Input
-                                type="number"
-                                value={interval}
-                                onChange={e => setInterval(Number(e.target.value))}
-                                className="w-16 h-8 text-xs bg-zinc-950/50"
-                            />
-                        </div>
-
-                        <div className="flex items-center gap-2">
-                            <span className="text-zinc-400 text-sm">氣泡大小依據:</span>
-                            <div className="flex bg-zinc-950/50 rounded-md p-1 border border-white/5">
-                                <button
-                                    onClick={() => setSizeMetric('count')}
-                                    className={cn(
-                                        "px-3 py-1 text-xs rounded transition-colors",
-                                        sizeMetric === 'count' ? "bg-violet-500 text-white" : "text-zinc-400 hover:text-white"
-                                    )}
-                                >
-                                    成交筆數
-                                </button>
-                                <button
-                                    onClick={() => setSizeMetric('area')}
-                                    className={cn(
-                                        "px-3 py-1 text-xs rounded transition-colors",
-                                        sizeMetric === 'area' ? "bg-violet-500 text-white" : "text-zinc-400 hover:text-white"
-                                    )}
-                                >
-                                    總銷坪數
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Bubble Chart */}
+                    {/* Bubble Chart with Integrated Controls */}
                     <ReportWrapper title="單價分佈泡泡圖" description="分析各單價區間的成交熱度與分佈密集區">
                         <BubbleChart
                             data={transactionDetails}
@@ -175,6 +119,10 @@ export function UnitPriceAnalysisReport({ data, visibleSections = ['stats', 'com
                             maxPrice={maxPrice}
                             interval={interval}
                             sizeMetric={sizeMetric}
+                            onMinPriceChange={setMinPrice}
+                            onMaxPriceChange={setMaxPrice}
+                            onIntervalChange={setInterval}
+                            onSizeMetricChange={setSizeMetric}
                         />
                     </ReportWrapper>
                 </div>

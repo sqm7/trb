@@ -3,6 +3,7 @@
 import React, { useMemo, useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { cn } from "@/lib/utils";
+import { Input } from "@/components/ui/input";
 
 interface TransactionDetail {
     "房屋單價(萬)": number;
@@ -16,6 +17,10 @@ interface BubbleChartProps {
     maxPrice: number;
     interval: number;
     sizeMetric: "count" | "area";
+    onMinPriceChange: (val: number) => void;
+    onMaxPriceChange: (val: number) => void;
+    onIntervalChange: (val: number) => void;
+    onSizeMetricChange: (val: "count" | "area") => void;
 }
 
 type DisplayMode = "coordinate" | "natural";
@@ -299,7 +304,17 @@ const TooltipPortal = ({ children, x, y, visible }: { children: React.ReactNode,
     );
 };
 
-export function BubbleChart({ data, minPrice, maxPrice, interval, sizeMetric }: BubbleChartProps) {
+export function BubbleChart({
+    data,
+    minPrice,
+    maxPrice,
+    interval,
+    sizeMetric,
+    onMinPriceChange,
+    onMaxPriceChange,
+    onIntervalChange,
+    onSizeMetricChange
+}: BubbleChartProps) {
     const [displayMode, setDisplayMode] = useState<DisplayMode>("natural");
     const [hoveredBucket, setHoveredBucket] = useState<number | null>(null);
     const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
@@ -441,17 +456,69 @@ export function BubbleChart({ data, minPrice, maxPrice, interval, sizeMetric }: 
             </TooltipPortal>
 
             {/* Header Control Bar */}
-            <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                    <div className="h-1.5 w-1.5 rounded-full bg-violet-400 animate-pulse"></div>
-                    <span className="text-xs font-medium text-zinc-400 uppercase tracking-wider">Analysis Mode</span>
+            <div className="flex flex-col xl:flex-row items-start xl:items-center justify-between gap-4 p-4 bg-zinc-900/30 border border-white/5 rounded-xl">
+                {/* Left: Data Controls */}
+                <div className="flex flex-wrap items-center gap-4">
+                    {/* Range */}
+                    <div className="flex items-center gap-2">
+                        <span className="text-zinc-400 text-xs">單價範圍</span>
+                        <div className="flex items-center gap-1">
+                            <Input
+                                type="number"
+                                value={minPrice}
+                                onChange={e => onMinPriceChange(Number(e.target.value))}
+                                className="w-16 h-7 text-xs bg-zinc-950/50 border-white/10 px-2"
+                            />
+                            <span className="text-zinc-600">-</span>
+                            <Input
+                                type="number"
+                                value={maxPrice}
+                                onChange={e => onMaxPriceChange(Number(e.target.value))}
+                                className="w-16 h-7 text-xs bg-zinc-950/50 border-white/10 px-2"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Interval */}
+                    <div className="flex items-center gap-2">
+                        <span className="text-zinc-400 text-xs">級距</span>
+                        <Input
+                            type="number"
+                            value={interval}
+                            onChange={e => onIntervalChange(Number(e.target.value))}
+                            className="w-14 h-7 text-xs bg-zinc-950/50 border-white/10 px-2"
+                        />
+                    </div>
+
+                    {/* Metric Toggle */}
+                    <div className="flex bg-zinc-950/50 rounded-md p-0.5 border border-white/10">
+                        <button
+                            onClick={() => onSizeMetricChange('count')}
+                            className={cn(
+                                "px-2.5 py-1 text-[10px] rounded transition-colors",
+                                sizeMetric === 'count' ? "bg-violet-500 text-white shadow-sm" : "text-zinc-400 hover:text-white"
+                            )}
+                        >
+                            成交筆數
+                        </button>
+                        <button
+                            onClick={() => onSizeMetricChange('area')}
+                            className={cn(
+                                "px-2.5 py-1 text-[10px] rounded transition-colors",
+                                sizeMetric === 'area' ? "bg-violet-500 text-white shadow-sm" : "text-zinc-400 hover:text-white"
+                            )}
+                        >
+                            總銷坪數
+                        </button>
+                    </div>
                 </div>
 
-                <div className="bg-zinc-950/50 p-1 rounded-lg border border-white/5 flex gap-1">
+                {/* Right: Mode Toggle */}
+                <div className="bg-zinc-950/50 p-1 rounded-lg border border-white/5 flex gap-1 self-end xl:self-auto">
                     <button
                         onClick={() => setDisplayMode('natural')}
                         className={cn(
-                            "px-4 py-1.5 text-xs font-medium rounded-md transition-all duration-300",
+                            "px-3 py-1.5 text-xs font-medium rounded-md transition-all duration-300",
                             displayMode === 'natural'
                                 ? "bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-lg shadow-violet-500/20"
                                 : "text-zinc-500 hover:text-zinc-300"
@@ -459,7 +526,7 @@ export function BubbleChart({ data, minPrice, maxPrice, interval, sizeMetric }: 
                     >
                         <span className="flex items-center gap-1.5">
                             <span className="relative flex h-2 w-2">
-                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-violet-400 opacity-75"></span>
+                                <span className={cn("absolute inline-flex h-full w-full rounded-full bg-violet-400 opacity-75", displayMode === 'natural' && "animate-ping")}></span>
                                 <span className="relative inline-flex rounded-full h-2 w-2 bg-violet-500"></span>
                             </span>
                             無重力模式
@@ -468,7 +535,7 @@ export function BubbleChart({ data, minPrice, maxPrice, interval, sizeMetric }: 
                     <button
                         onClick={() => setDisplayMode('coordinate')}
                         className={cn(
-                            "px-4 py-1.5 text-xs font-medium rounded-md transition-all duration-300",
+                            "px-3 py-1.5 text-xs font-medium rounded-md transition-all duration-300",
                             displayMode === 'coordinate'
                                 ? "bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-lg shadow-violet-500/20"
                                 : "text-zinc-500 hover:text-zinc-300"

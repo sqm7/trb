@@ -514,7 +514,7 @@ export function ParkingAnalysisReport({ data }: ParkingAnalysisReportProps) {
             <ReportWrapper title="坡道平面車位 - 樓層價差分析" description="勾選樓層以動態更新統計數據">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                     {/* 3D Visual Stack */}
-                    <div className="flex flex-col-reverse gap-2 items-center justify-center p-8 bg-zinc-900/30 rounded-xl relative">
+                    <div className="flex flex-col gap-2 items-center justify-center p-8 bg-zinc-900/30 rounded-xl relative">
                         {filteredFloorData.map((floor, idx) => {
                             const isSelected = selectedFloors.includes(floor.floor);
                             const isHovered = hoveredFloor === floor.floor;
