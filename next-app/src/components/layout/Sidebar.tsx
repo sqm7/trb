@@ -83,9 +83,10 @@ export function Sidebar() {
         <aside className="hidden lg:flex fixed left-0 top-0 z-50 h-screen w-20 flex-col border-r border-white/5 bg-zinc-950 transition-all duration-300 ease-in-out hover:w-64 group shadow-2xl shadow-black/50 overflow-hidden">
             {/* Brand */}
             <div className="flex h-16 flex-col items-center justify-center px-4 border-b border-white/5 overflow-hidden whitespace-nowrap transition-all duration-300">
-                <span className="font-bold text-white transition-all duration-300 group-hover:text-xl text-xs tracking-widest group-hover:tracking-normal">
-                    平米內參
-                </span>
+                <div className="flex flex-col group-hover:flex-row items-center justify-center transition-all duration-300 font-bold text-white group-hover:text-xl text-[10px] leading-tight group-hover:leading-normal group-hover:gap-0">
+                    <span className="group-hover:tracking-normal tracking-widest">平米</span>
+                    <span className="group-hover:tracking-normal tracking-widest">內參</span>
+                </div>
                 <span className="font-mono text-zinc-500 transition-all duration-300 group-hover:text-xs group-hover:text-zinc-400 opacity-0 group-hover:opacity-100 h-0 group-hover:h-auto -translate-y-2 group-hover:translate-y-0 text-[10px]">
                     sqmtalk.com
                 </span>
