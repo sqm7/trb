@@ -82,15 +82,13 @@ export function Sidebar() {
     return (
         <aside className="hidden lg:flex fixed left-0 top-0 z-50 h-screen w-20 flex-col border-r border-white/5 bg-zinc-950 transition-all duration-300 ease-in-out hover:w-64 group shadow-2xl shadow-black/50 overflow-hidden">
             {/* Brand */}
-            <div className="flex h-16 items-center px-6 border-b border-white/5 overflow-hidden whitespace-nowrap">
-                <div className="flex items-center gap-3 font-bold text-xl tracking-tight text-white">
-                    <div className="flex-shrink-0 flex h-8 w-8 items-center justify-center rounded-lg bg-violet-600 text-white shadow-lg shadow-violet-500/30">
-                        <Building className="h-5 w-5" />
-                    </div>
-                    <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 delay-100">
-                        平米內參
-                    </span>
-                </div>
+            <div className="flex h-16 flex-col items-center justify-center px-4 border-b border-white/5 overflow-hidden whitespace-nowrap transition-all duration-300">
+                <span className="font-bold text-white transition-all duration-300 group-hover:text-xl text-xs tracking-widest group-hover:tracking-normal">
+                    平米內參
+                </span>
+                <span className="font-mono text-zinc-500 transition-all duration-300 group-hover:text-xs group-hover:text-zinc-400 opacity-0 group-hover:opacity-100 h-0 group-hover:h-auto -translate-y-2 group-hover:translate-y-0 text-[10px]">
+                    sqmtalk.com
+                </span>
             </div>
 
             {/* Nav */}
