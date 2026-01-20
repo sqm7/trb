@@ -166,12 +166,23 @@ export function RankingReport({
             )
         }
 
-        // 3. Table Slide Layout (Paged)
+        // 3. Table Slide Layout (Scale-to-Fit - ALL DATA on ONE slide)
         if (visibleSections.includes('table')) {
+            // Dynamic scaling: the more rows, the smaller the scale
+            const rowCount = sortedData.length;
+            const BASE_ROWS = 10;
+            const scaleFactor = rowCount <= BASE_ROWS ? 1 : Math.max(0.4, BASE_ROWS / rowCount);
+
             return (
-                <div className="h-full flex flex-col pt-2">
+                <div
+                    className="h-full w-full overflow-hidden flex items-start justify-center"
+                    style={{
+                        transform: `scale(${scaleFactor})`,
+                        transformOrigin: 'top center',
+                    }}
+                >
                     <table className="w-full text-left border-collapse">
-                        <thead className="border-b-2 border-white/20 text-zinc-400 uppercase text-lg font-bold tracking-wider">
+                        <thead className="border-b-2 border-white/20 text-zinc-400 uppercase text-sm font-bold tracking-wider">
                             <tr>
                                 <th className="px-6 py-4 text-center w-[8%]">排名</th>
                                 <th className="px-6 py-4 w-[25%]">建案名稱</th>
@@ -182,24 +193,19 @@ export function RankingReport({
                                 <th className="px-6 py-4 text-right">佔比</th>
                             </tr>
                         </thead>
-                        <tbody className="text-xl text-zinc-100">
-                            {pagedData.map((proj, idx) => (
-                                <tr key={idx} className="border-b border-white/5 hover:bg-white/5 transition-colors">
-                                    <td className="px-6 py-5 text-center font-mono text-zinc-500">{(effectivePage - 1) * effectivePageSize + idx + 1}</td>
-                                    <td className="px-6 py-5 font-bold tracking-wide">
-                                        <div className="flex flex-col">
-                                            <span className="text-white">{proj.projectName}</span>
-                                            <div className="flex gap-2 mt-2">
-                                                {proj.county && <span className="text-xs bg-zinc-800 text-zinc-300 px-2 py-1 rounded border border-white/10">{proj.county}</span>}
-                                                {proj.district && <span className="text-xs bg-zinc-800 text-zinc-300 px-2 py-1 rounded border border-white/10">{proj.district}</span>}
-                                            </div>
-                                        </div>
+                        <tbody className="text-sm text-zinc-100">
+                            {sortedData.map((proj, idx) => (
+                                <tr key={idx} className="border-b border-white/5">
+                                    <td className="px-3 py-1.5 text-center font-mono text-zinc-500">{idx + 1}</td>
+                                    <td className="px-3 py-1.5 font-medium">
+                                        <span className="text-white">{proj.projectName}</span>
+                                        {proj.district && <span className="text-[10px] text-zinc-500 ml-2">{proj.district}</span>}
                                     </td>
-                                    <td className="px-6 py-5 text-right font-mono tracking-wider">{proj.saleAmountSum.toLocaleString()}</td>
-                                    <td className="px-6 py-5 text-right font-mono text-cyan-300 font-bold">{proj.averagePrice.toFixed(1)}</td>
-                                    <td className="px-6 py-5 text-right font-mono text-zinc-400">{proj.houseAreaSum.toLocaleString()}</td>
-                                    <td className="px-6 py-5 text-center font-mono text-zinc-400">{proj.transactionCount.toLocaleString()}</td>
-                                    <td className="px-6 py-5 text-right font-mono text-zinc-500">{proj.marketShare.toFixed(1)}%</td>
+                                    <td className="px-3 py-1.5 text-right font-mono">{proj.saleAmountSum.toLocaleString()}</td>
+                                    <td className="px-3 py-1.5 text-right font-mono text-cyan-300">{proj.averagePrice.toFixed(1)}</td>
+                                    <td className="px-3 py-1.5 text-right font-mono text-zinc-400">{proj.houseAreaSum.toLocaleString()}</td>
+                                    <td className="px-3 py-1.5 text-center font-mono text-zinc-400">{proj.transactionCount}</td>
+                                    <td className="px-3 py-1.5 text-right font-mono text-zinc-500">{proj.marketShare.toFixed(1)}%</td>
                                 </tr>
                             ))}
                         </tbody>

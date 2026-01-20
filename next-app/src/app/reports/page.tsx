@@ -597,43 +597,25 @@ export default function ReportsPage() {
                                     );
                                 }
 
-                                // 3. Table Slides (Paged)
+                                // 3. Table Slide (Scale-to-Fit - Single Slide, All Data)
                                 if (selectedModules.includes('table')) {
-                                    const ITEMS_PER_SLIDE = 6;
-                                    // Determine total items safely
-                                    let totalItems = 0;
-                                    if (section.id === 'ranking' && props.data?.projectRanking) {
-                                        totalItems = props.data.projectRanking.length;
-                                    } else if (section.id === 'priceBand' && props.data?.heatmapData) {
-                                        // TODO: Add support for PriceBand table pagination if needed. For now default to 1 page or handle later.
-                                        // PriceBandReport structure is complex, might need similar refactor.
-                                        // For now, let's assume 1 page for non-Ranking reports or keep simple.
-                                        totalItems = ITEMS_PER_SLIDE; // Fallback to single page for now
-                                    }
-
-                                    const numSlides = Math.max(1, Math.ceil(totalItems / ITEMS_PER_SLIDE));
-
-                                    for (let i = 1; i <= numSlides; i++) {
-                                        slides.push(
-                                            <SlideContainer
-                                                key={`${section.id}-table-${i}`}
-                                                className="w-full max-w-[1280px] slide-item"
-                                                title={`${section.label} - 詳細數據 (${i}/${numSlides})`}
-                                                pageNumber={++pageCount}
-                                            >
-                                                <div className="h-full overflow-hidden p-0">
-                                                    {/* @ts-ignore */}
-                                                    <ReportComponent
-                                                        {...props}
-                                                        visibleSections={['table']}
-                                                        pptMode={true}
-                                                        pptPage={i}
-                                                        pptItemsPerPage={ITEMS_PER_SLIDE}
-                                                    />
-                                                </div>
-                                            </SlideContainer>
-                                        );
-                                    }
+                                    slides.push(
+                                        <SlideContainer
+                                            key={`${section.id}-table`}
+                                            className="w-full max-w-[1280px] slide-item"
+                                            title={`${section.label} - 詳細數據`}
+                                            pageNumber={++pageCount}
+                                        >
+                                            <div className="h-full overflow-hidden p-0">
+                                                {/* @ts-ignore */}
+                                                <ReportComponent
+                                                    {...props}
+                                                    visibleSections={['table']}
+                                                    pptMode={true}
+                                                />
+                                            </div>
+                                        </SlideContainer>
+                                    );
                                 }
 
                                 // Fallback for other modules (like 'heatmap') if they are not metrics/chart/table
