@@ -199,13 +199,12 @@ export function SalesVelocityReport({ data }: SalesVelocityReportProps) {
             {/* 1. Sales Velocity Chart */}
             <ReportWrapper
                 title="房型銷售速度與趨勢分析"
-                action={
+                headerAction={
                     <div className="flex gap-2">
                         <Select value={velocityView} onChange={(e) => setVelocityView(e.target.value as any)} className="w-[100px] h-8 text-xs bg-zinc-950/50">
                             <option value="weekly">每週</option>
                             <option value="monthly">每月</option>
                             <option value="quarterly">每季</option>
-                            <option value="yearly">每年</option>
                         </Select>
                         <Select value={velocityMetric} onChange={(e) => setVelocityMetric(e.target.value as any)} className="w-[100px] h-8 text-xs bg-zinc-950/50">
                             <option value="count">交易筆數</option>
@@ -239,7 +238,7 @@ export function SalesVelocityReport({ data }: SalesVelocityReportProps) {
             <ReportWrapper
                 title="房型面積分佈熱力圖"
                 description="分析不同坪數區間的產品供給與去化分佈"
-                action={
+                headerAction={
                     <div className="flex gap-2 items-center text-zinc-400 text-xs">
                         <span>範圍:</span>
                         <Input

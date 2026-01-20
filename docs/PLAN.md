@@ -322,6 +322,7 @@ refactor: 重構
 - [x] Deployment: Sync to Test Environment (`trb`)
 
 ### [Current Task] Enhance Bubble Chart Display (Completed 2026-01-19)
+- [x] **Step 10**: Compact Initial Spiral Layout (Reduce spread).
 - [x] **Step 1**: Implement Mode Toggle (Coordinate / Natural) in `BubbleChart.tsx`.
 - [x] **Step 2**: Enhance "Natural Mode" with packed/organic layout.
 - [x] **Step 3**: Upgrade visuals (gradients, glassmorphism, animations).
@@ -336,3 +337,25 @@ refactor: 重構
 - [x] Add "Guest Login" button to Login Page
 - [x] Verify redirection to Dashboard without auth
 
+### [Current Task] Enhance Ranking Report Interaction
+- [x] **Step 1**: Make Metric Cards Clickable in `RankingReport.tsx`.
+- [x] **Step 2**: Implement Project Ranking Chart (Bar Chart) logic.
+- [x] **Step 3**: styling Bar Chart with premium gradients.
+
+### [Current Task] Refine Ranking Chart Visuals
+- [x] **Step 1**: Fix Y-Axis Labels (Use explicit categories instead of x/y pairs).
+- [x] **Step 2**: Simplify Colors (Remove distributed colors, use single premium color).
+
+### [Current Task] Vertical, Scrollable Ranking Chart
+- [x] **Step 1**: Update `RankingReport` to add "Top N" controls (10, 30, 50, All) and pass `limit` to chart.
+- [x] **Step 2**: Update `RankingChart` to:
+    -   Switch to Vertical Bars (`horizontal: false`).
+    -   Accept `limit` prop and slice data accordingly.
+    -   Implement **Horizontal Scrolling** by calculating dynamic width based on data length.
+
+
+
+### [Current Task] Redesign Ranking List Icons & Chart Controls
+- [x] UI: Update Table Header to use side-by-side (horizontal) sorting icons for better intuition.
+- [x] UI: Add Chart Type Toggle (Bar / Tree) to `RankingReport` header actions to fix "jumping chart" confusion.
+- [x] Logic: Ensure Chart Type state respects user choice vs auto-detection.

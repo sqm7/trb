@@ -51,17 +51,18 @@ const useGravitySimulation = (
 
         const centerX = width / 2;
         const centerY = height / 2;
-        const spacing = 15; // Spiral spacing parameter
+        const spacing = 10; // Reduce base spacing
 
-        // 1. Create Nodes
+        // 1. Create Nodes (unchanged)
         let initialNodes = buckets.map((b, i) => {
             const value = metric === 'count' ? b.count : b.totalArea;
-            // Base radius calculation
-            const radius = maxValue > 0 ? 40 + (value / maxValue) * 100 : 40;
+            // Base radius calculation - Slightly reduce scaling factor for tighter packing if needed, 
+            // but for now let's just adjust position
+            const radius = maxValue > 0 ? 30 + (value / maxValue) * 80 : 30; // Slightly smaller base/max size
             return {
                 id: b.label,
                 value,
-                radius: radius / 2,
+                radius: radius / 2, // effective visual radius
                 x: 0,
                 y: 0,
                 vx: 0,
@@ -73,10 +74,12 @@ const useGravitySimulation = (
         // 2. Sort by Value (Smallest First) for Center placement
         initialNodes.sort((a, b) => a.value - b.value);
 
-        // 3. Assign Spiral Positions
+        // 3. Assign Spiral Positions (Packed Tighter)
         initialNodes = initialNodes.map((node, i) => {
-            const angle = i * 2.39996; // Golden angle (approx 137.5 degrees) in radians
-            const dist = spacing * Math.sqrt(i) * 5;
+            const angle = i * 2.39996; // 137.5 deg
+            // Dist formula: c * sqrt(n)
+            // Reduced multiplier substantially to pack them closer
+            const dist = spacing * Math.sqrt(i) * 2.5;
             return {
                 ...node,
                 x: centerX + Math.cos(angle) * dist,

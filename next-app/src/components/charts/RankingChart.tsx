@@ -12,10 +12,14 @@ interface ProjectRankingItem {
 interface RankingChartProps {
     data: ProjectRankingItem[];
     sortKey: string;
+    limit?: number;
+    chartType?: 'auto' | 'bar' | 'treemap';
 }
 
-export function RankingChart({ data, sortKey }: RankingChartProps) {
-    const chartType = useMemo(() => {
+export function RankingChart({ data, sortKey, limit = 30, chartType = 'auto' }: RankingChartProps) {
+    const activeChartType = useMemo(() => {
+        if (chartType && chartType !== 'auto') return chartType;
+
         const barChartKeys = [
             "averagePrice",
             "minPrice",
@@ -24,7 +28,7 @@ export function RankingChart({ data, sortKey }: RankingChartProps) {
             "avgParkingPrice",
         ];
         return barChartKeys.includes(sortKey) ? "bar" : "treemap";
-    }, [sortKey]);
+    }, [sortKey, chartType]);
 
     const chartConfig = useMemo(() => {
         const keyDetails: Record<string, { title: string; unit: string; yLabel?: string }> = {
@@ -49,19 +53,17 @@ export function RankingChart({ data, sortKey }: RankingChartProps) {
     const series = useMemo(() => {
         if (!data || data.length === 0) return [];
 
-        if (chartType === "bar") {
+        if (activeChartType === "bar") {
             // Filter and sort for Bar Chart
+            // Sync with Table: Sort Descending (Largest First) and take Top N
             const sortedData = [...data]
                 .filter(p => p[sortKey] > 0)
-                .sort((a, b) => a[sortKey] - b[sortKey])
-                .slice(-30);
+                .sort((a, b) => b[sortKey] - a[sortKey]) // Descending
+                .slice(0, limit);
 
             return [{
                 name: chartConfig.unit,
-                data: sortedData.map(p => ({
-                    x: p.projectName,
-                    y: parseFloat((p[sortKey] || 0).toFixed(2))
-                }))
+                data: sortedData.map(p => parseFloat((p[sortKey] || 0).toFixed(2)))
             }];
         } else {
             // Treemap
@@ -74,68 +76,112 @@ export function RankingChart({ data, sortKey }: RankingChartProps) {
                 }))
             }];
         }
-    }, [data, sortKey, chartType, chartConfig]);
+    }, [data, sortKey, activeChartType, chartConfig, limit]);
 
     const options: ApexOptions = useMemo(() => {
+        // Shared options
         const baseOptions: ApexOptions = {
             title: {
                 text: chartConfig.title,
                 align: "center",
                 style: { fontSize: "16px", fontWeight: 600, color: "#e5e7eb" },
             },
-            tooltip: {
-                theme: "dark",
-                y: {
-                    formatter: (val: number) => `${val.toLocaleString()} ${chartConfig.unit}`
-                }
-            }
+            // Tooltip will be defined per chart type to ensure access to correct categories
         };
 
-        if (chartType === "bar") {
-            const dataLength = series[0]?.data.length || 0;
-            const calculatedHeight = Math.max(400, dataLength * 32);
+        if (activeChartType === "bar") {
+            const sortedData = [...data]
+                .filter(p => p[sortKey] > 0)
+                .sort((a, b) => b[sortKey] - a[sortKey]) // Descending
+                .slice(0, limit);
+
+            const categories = sortedData.map(p => p.projectName);
 
             return {
                 ...baseOptions,
                 chart: {
                     type: 'bar',
-                    height: calculatedHeight,
                     toolbar: { show: true },
                     animations: { enabled: false }
                 },
+                tooltip: {
+                    theme: "dark",
+                    y: {
+                        formatter: (val: number) => `${val.toLocaleString()} ${chartConfig.unit}`,
+                        title: {
+                            formatter: (seriesName: string, opts?: any) => {
+                                const label = categories[opts?.dataPointIndex];
+                                return label ? `${label}:` : `${seriesName}:`;
+                            }
+                        }
+                    },
+                    x: {
+                        show: true,
+                        formatter: (val: any, opts?: any) => {
+                            // Use dataPointIndex to lookup category to guarantee correct name
+                            // val might be index if ApexCharts decides so in some modes
+                            const label = categories[opts?.dataPointIndex];
+                            return label || val;
+                        }
+                    }
+                },
                 plotOptions: {
                     bar: {
-                        horizontal: true,
-                        barHeight: "70%",
-                        borderRadius: 6,
-                        distributed: true,
+                        horizontal: false, // Vertical Column Chart
+                        columnWidth: "60%",
+                        borderRadius: 4,
+                        distributed: false,
                     },
                 },
+                colors: ["#8b5cf6"], // Single premium violet
+                fill: {
+                    type: "gradient",
+                    gradient: {
+                        shade: 'dark',
+                        type: "vertical", // Vertical gradient for columns
+                        shadeIntensity: 0.5,
+                        gradientToColors: ["#a78bfa"],
+                        inverseColors: true,
+                        opacityFrom: 1,
+                        opacityTo: 1,
+                        stops: [0, 100]
+                    }
+                },
                 dataLabels: {
-                    enabled: true,
-                    textAnchor: "start",
-                    offsetX: 0,
-                    formatter: (val: number) => val.toLocaleString(),
-                    style: { colors: ["#fff"] }
+                    enabled: false, // Hide data labels for cleaner look in dense column charts
                 },
                 xaxis: {
-                    // categories handles by x in series data
-                    labels: { style: { colors: "#9ca3af" } }
+                    categories: categories,
+                    labels: {
+                        style: { colors: "#9ca3af" },
+                        rotate: -45, // Rotate labels for better readability
+                        trim: true,
+                        maxHeight: 100
+                    }
                 },
                 yaxis: {
+                    title: {
+                        text: chartConfig.unit,
+                        style: { color: "#6b7280" }
+                    },
                     labels: {
-                        maxWidth: 200,
                         style: { colors: "#e5e7eb", fontSize: "12px", fontWeight: 500 }
                     }
                 },
                 legend: { show: false }
             };
         } else {
-            // Treemap options
+            // Treemap options (Unchanged logic, just ensure fits return type)
             const totalValue = data.reduce((sum, p) => sum + (p[sortKey] || 0), 0);
 
             return {
                 ...baseOptions,
+                tooltip: {
+                    theme: "dark",
+                    y: {
+                        formatter: (val: number) => `${val.toLocaleString()} ${chartConfig.unit}`
+                    }
+                },
                 chart: {
                     type: 'treemap',
                     height: 450,
@@ -147,51 +193,54 @@ export function RankingChart({ data, sortKey }: RankingChartProps) {
                         enableShades: false,
                         colorScale: {
                             ranges: [
-                                { from: 0, to: totalValue * 0.1, color: '#06b6d4' }, // cyan
-                                { from: totalValue * 0.1, to: totalValue * 0.3, color: '#3b82f6' }, // blue
-                                { from: totalValue * 0.3, to: totalValue * 0.6, color: '#8b5cf6' }, // violet
-                                { from: totalValue * 0.6, to: Infinity, color: '#d946ef' } // fuchsia
+                                { from: 0, to: totalValue * 0.1, color: '#06b6d4' },
+                                { from: totalValue * 0.1, to: totalValue * 0.3, color: '#3b82f6' },
+                                { from: totalValue * 0.3, to: totalValue * 0.6, color: '#8b5cf6' },
+                                { from: totalValue * 0.6, to: Infinity, color: '#d946ef' }
                             ]
                         }
                     }
                 },
                 dataLabels: {
                     enabled: true,
-                    style: {
-                        fontSize: '11px',
-                        fontWeight: 500,
-                        colors: ['#fff']
-                    },
-                    formatter: function (text: string, op: any) {
-                        // Show project name in each treemap cell
-                        return text;
-                    },
+                    style: { fontSize: '11px', fontWeight: 500, colors: ['#fff'] },
+                    formatter: (text: string) => text,
                     offsetY: -2
                 },
-                tooltip: {
-                    ...baseOptions.tooltip,
-                    y: {
-                        formatter: (value: number) => {
-                            const percentage = totalValue > 0 ? ((value / totalValue) * 100).toFixed(2) : 0;
-                            return `${value.toLocaleString()} ${chartConfig.unit} (${percentage}%)`;
-                        }
-                    }
-                }
             };
         }
-    }, [chartType, series, chartConfig, data, sortKey]);
+    }, [activeChartType, series, chartConfig, data, sortKey, limit]);
 
     if (!data || data.length === 0) {
         return <div className="text-zinc-500 text-center p-8">無排名資料可顯示</div>;
     }
 
+    // Dynamic Width Calculation for Scrolling
+    const dataCount = (activeChartType === 'bar' && series[0]?.data) ? series[0].data.length : 0;
+
+    // Logic: 
+    // If dataCount is small (e.g. < 20), use 100% width to fill the container naturally.
+    // If dataCount is large, ensure each bar has at least minWidthPerBar (e.g. 40px) to prevent squeezing, enabling scroll.
+    const minWidthPerBar = 40;
+    const calculatedMinTotalWidth = dataCount * minWidthPerBar;
+
+    // We use a style that sets width to 100%, but min-width to the calculated value.
+    // This allows it to expand to 100% if the container is larger (Top 10), but force scroll if container is smaller than content.
+    const containerStyle = activeChartType === 'bar'
+        ? { width: '100%', minWidth: `${calculatedMinTotalWidth}px` }
+        : { width: '100%' };
+
     return (
-        <ChartWrapper
-            type={chartType === 'bar' ? 'bar' : 'treemap'}
-            series={series}
-            options={options}
-            height={chartType === 'bar' ? (options.chart?.height || 400) : 450}
-            className="w-full"
-        />
+        <div className={`w-full ${activeChartType === 'bar' ? 'overflow-x-auto pb-4' : ''}`}>
+            <div style={containerStyle}>
+                <ChartWrapper
+                    type={activeChartType === 'bar' ? 'bar' : 'treemap'}
+                    series={series}
+                    options={options}
+                    height={450}
+                    className="w-full"
+                />
+            </div>
+        </div>
     );
 }
