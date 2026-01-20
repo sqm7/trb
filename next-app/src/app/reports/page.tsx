@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import Script from 'next/script';
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useAnalysisData } from "@/hooks/useAnalysisData";
@@ -17,9 +17,7 @@ import { HeatmapReport } from "@/components/reports/HeatmapReport";
 import { SalesVelocityReport } from "@/components/reports/SalesVelocityReport";
 import { ParkingAnalysisReport } from "@/components/reports/ParkingAnalysisReport";
 import PolicyTimelineReport from "@/components/reports/PolicyTimelineReport";
-
-// PDF Lib (Dynamic import would be better but let's try direct first, ensuring client-side check)
-// import html2pdf from "html2pdf.js"; 
+import { SlideContainer } from "@/components/reports/SlideContainer";
 
 const REPORT_CONFIG = [
     {
@@ -109,7 +107,7 @@ export default function ReportsPage() {
         if (!analysisData && filters.counties.length > 0) {
             handleAnalyze();
         }
-    }, []); // Run once on mount
+    }, [analysisData, filters.counties, handleAnalyze]); // Correct dependencies
 
     const toggleSection = (sectionId: string) => {
         setExpandedSections(prev =>
@@ -178,18 +176,16 @@ export default function ReportsPage() {
     const handleDownloadPDF = async () => {
         setIsGenerating(true);
         try {
-            console.log("Starting PDF generation (Simple Screenshot Method)...");
+            console.log("Starting PDF generation (Slide Deck Mode)...");
 
             const element = document.getElementById('report-preview-container');
             if (!element) {
                 throw new Error("Element #report-preview-container not found!");
             }
 
-            // Approach: Use native browser print functionality as fallback
-            // This completely bypasses html2canvas and its CSS parsing issues
-
             // Create a new window with ONLY the report content
-            const printWindow = window.open('', '_blank', 'width=800,height=600');
+            // Using 16:9 ratio window mainly for preview feel, print dialog will handle page size
+            const printWindow = window.open('', '_blank', 'width=1280,height=720');
             if (!printWindow) {
                 throw new Error("Could not open print window. Please allow popups.");
             }
@@ -227,6 +223,11 @@ export default function ReportsPage() {
                     }
                 });
 
+                // Preserve classes for print styling hooks
+                if (el.hasAttribute('class')) {
+                    clone.setAttribute('class', el.getAttribute('class') || '');
+                }
+
                 // Get ALL computed styles and apply them inline
                 const computed = window.getComputedStyle(el);
                 const colorProps = ['color', 'background-color', 'border-color', 'border-top-color',
@@ -245,6 +246,12 @@ export default function ReportsPage() {
 
                     styleString += `${prop}:${value};`;
                 }
+
+                // FORCE Print Breaks for Slides
+                if (el.classList.contains('slide-item')) {
+                    styleString += "page-break-after: always !important; break-after: page !important; margin-bottom: 0 !important; height: 100vh !important;";
+                }
+
                 clone.setAttribute('style', styleString);
 
                 // Handle text nodes and child elements
@@ -260,20 +267,22 @@ export default function ReportsPage() {
             };
 
             console.log("Creating styled clone...");
+            // Use cloneNode(true) and then iterate to apply styles might be faster but inline styles are robust.
+            // We use the deepCloneWithInlineStyles approach to capture computed styles effectively.
             const styledClone = deepCloneWithInlineStyles(element);
 
-            // Write to print window with A4-optimized CSS
+            // Write to print window with Landscape Page Setup
             printWindow.document.write(`
                 <!DOCTYPE html>
                 <html>
                 <head>
                     <meta charset="utf-8">
-                    <title>平米內參 - 報表</title>
+                    <title>平米內參 - 房市簡報</title>
                     <style>
-                        /* A4 Page Setup */
+                        /* A4 Landscape Page Setup */
                         @page {
-                            size: A4 portrait;
-                            margin: 15mm 10mm;
+                            size: A4 landscape;
+                            margin: 0; /* Minimal margin, let slides define padding */
                         }
                         
                         /* Reset & Base */
@@ -281,110 +290,29 @@ export default function ReportsPage() {
                             margin: 0; 
                             padding: 0; 
                             box-sizing: border-box; 
+                            -webkit-print-color-adjust: exact !important;
+                            print-color-adjust: exact !important;
                         }
                         
-                        html {
-                            font-size: 11px; /* Smaller base for A4 */
-                        }
-                        
-                        body { 
+                        html, body {
+                            width: 100%;
+                            height: 100%;
                             background: #09090b; 
-                            color: #fafafa;
-                            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans TC', sans-serif;
-                            padding: 0;
+                        }
+                        
+                        /* Ensure one slide per page */
+                        .slide-wrapper {
+                            page-break-after: always;
+                            page-break-inside: avoid;
                             width: 100%;
-                            max-width: 190mm; /* A4 minus margins */
-                            margin: 0 auto;
+                            height: 100%;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
                         }
-                        
-                        /* Scale down content to fit A4 */
-                        #report-content {
-                            transform-origin: top left;
-                            width: 100%;
-                        }
-                        
-                        /* Typography adjustments for print */
-                        h1, h2, h3, h4, h5, h6 {
-                            page-break-after: avoid;
-                            font-size: 1.2em;
-                        }
-                        
-                        h1 { font-size: 1.5em; margin-bottom: 0.5em; }
-                        h2 { font-size: 1.3em; margin-bottom: 0.4em; }
-                        h3 { font-size: 1.1em; margin-bottom: 0.3em; }
-                        
-                        p, li, td, th {
-                            font-size: 0.95em;
-                            line-height: 1.4;
-                        }
-                        
-                        /* Table optimizations */
-                        table {
-                            width: 100% !important;
-                            border-collapse: collapse;
-                            font-size: 0.85em;
-                            page-break-inside: auto;
-                        }
-                        
-                        tr {
-                            page-break-inside: avoid;
-                            page-break-after: auto;
-                        }
-                        
-                        th, td {
-                            padding: 4px 6px !important;
-                            border: 1px solid rgba(255,255,255,0.1);
-                        }
-                        
-                        thead {
-                            display: table-header-group;
-                        }
-                        
-                        /* Section page breaks */
-                        .report-section {
-                            page-break-inside: avoid;
-                            margin-bottom: 15px;
-                        }
-                        
-                        /* Keep charts together */
-                        .chart-container, 
-                        [class*="chart"], 
-                        svg {
-                            page-break-inside: avoid;
-                            max-width: 100%;
-                            height: auto !important;
-                        }
-                        
-                        /* Cards and panels */
-                        [class*="card"],
-                        [class*="panel"],
-                        [class*="glass"] {
-                            page-break-inside: avoid;
-                            margin-bottom: 10px;
-                        }
-                        
-                        /* Force backgrounds to print */
-                        @media print {
-                            html, body {
-                                -webkit-print-color-adjust: exact !important;
-                                print-color-adjust: exact !important;
-                                color-adjust: exact !important;
-                            }
-                            
-                            body {
-                                background: #09090b !important;
-                            }
-                            
-                            /* Hide scrollbars */
-                            ::-webkit-scrollbar {
-                                display: none;
-                            }
-                            
-                            /* Ensure all content visible */
-                            * {
-                                overflow: visible !important;
-                            }
-                        }
+
+                        /* Scale content to fit page if needed */
+                        /* But ideally we just let the aspect ratio container do its job */
                     </style>
                 </head>
                 <body>
@@ -394,24 +322,21 @@ export default function ReportsPage() {
             `);
             printWindow.document.close();
 
-            // Append to the report-content container for proper styling
+            // Append to the report-content container
             const container = printWindow.document.getElementById('report-content');
             if (container) {
+                // Wrap each child of styledClone in a page-break wrapper if strictly needed?
+                // Our SlideContainer has aspect-ratio. 
+                // Let's rely on the structure we built.
                 container.appendChild(styledClone);
-            } else {
-                printWindow.document.body.appendChild(styledClone);
             }
 
             // Wait a moment for styles to apply
             await new Promise(resolve => setTimeout(resolve, 1000));
 
-            // Trigger print dialog (which allows saving as PDF)
+            // Trigger print dialog
             console.log("Opening print dialog...");
             printWindow.print();
-
-            // Note: Window will be closed by user or after print
-            console.log("Print dialog opened successfully!");
-            alert("列印對話框已開啟！\n\n請在列印對話框中：\n1. 選擇「儲存為 PDF」或「另存新檔」\n2. 確保「背景圖形」選項已勾選\n3. 點擊「儲存」或「列印」");
 
         } catch (err: any) {
             console.error("PDF Generation failed:", err);
@@ -421,19 +346,21 @@ export default function ReportsPage() {
         }
     };
 
+    // Calculate numbering
+    let pageCount = 0;
+
     return (
         <AppLayout>
             <Script
                 src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"
                 strategy="lazyOnload"
-                onLoad={() => console.log('html2pdf loaded')}
             />
 
             {/* Mobile Settings Toggle */}
             <div className="lg:hidden flex items-center justify-between p-4 bg-zinc-900/80 border-b border-white/5">
                 <h2 className="font-semibold text-white flex items-center gap-2">
                     <FileDown className="h-5 w-5 text-violet-400" />
-                    報表生成器
+                    報表生成器 (PPT Mode)
                 </h2>
                 <Button
                     variant="outline"
@@ -447,11 +374,11 @@ export default function ReportsPage() {
 
             <div className="flex flex-col lg:flex-row h-[calc(100vh-theme(spacing.20))] lg:gap-6">
 
-                {/* Sidebar: Configuration - Hidden on mobile unless toggled */}
+                {/* Sidebar: Configuration */}
                 <aside className={cn(
                     "lg:w-80 flex-shrink-0 bg-zinc-900/50 border border-white/5 rounded-xl overflow-hidden flex flex-col",
-                    "lg:flex", // Always show on desktop
-                    mobileSettingsOpen ? "flex" : "hidden" // Toggle on mobile
+                    "lg:flex",
+                    mobileSettingsOpen ? "flex" : "hidden"
                 )}>
                     <div className="p-4 border-b border-white/5 bg-zinc-900">
                         <h2 className="font-semibold text-white flex items-center gap-2">
@@ -471,16 +398,13 @@ export default function ReportsPage() {
 
                             return (
                                 <div key={section.id} className="bg-zinc-950/50 rounded-lg border border-white/5 overflow-hidden">
-                                    {/* Section Header */}
                                     <div className="flex items-center gap-2 p-3 hover:bg-zinc-800/50 transition-colors">
                                         <button onClick={() => toggleSection(section.id)} className="p-1 hover:bg-zinc-700 rounded text-zinc-400">
                                             {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
                                         </button>
-
                                         <div className="flex-1 font-medium text-sm text-zinc-200 cursor-pointer" onClick={() => toggleSection(section.id)}>
                                             {section.label}
                                         </div>
-
                                         <button onClick={() => toggleSectionSelection(section.id)} className="text-zinc-400 hover:text-white">
                                             {isAllSelected ? (
                                                 <CheckSquare size={16} className="text-violet-500" />
@@ -496,8 +420,6 @@ export default function ReportsPage() {
                                             )}
                                         </button>
                                     </div>
-
-                                    {/* Modules List */}
                                     {isExpanded && (
                                         <div className="pl-9 pr-3 pb-3 space-y-1">
                                             {section.modules.map(module => {
@@ -545,12 +467,12 @@ export default function ReportsPage() {
                     </div>
                 </aside>
 
-                {/* Main: Preview */}
-                <main className="flex-1 bg-zinc-900/30 border border-white/5 rounded-xl overflow-hidden flex flex-col relative min-h-[400px]">
-                    {/* Toolbar / Status */}
+                {/* Main: Slide Preview */}
+                <main className="flex-1 bg-zinc-900/10 rounded-xl overflow-hidden flex flex-col relative min-h-[400px]">
+                    {/* Status Bar */}
                     <div className="h-12 border-b border-white/5 flex items-center justify-between px-3 lg:px-4 bg-zinc-900/80">
                         <span className="text-xs lg:text-sm font-medium text-zinc-400">
-                            預覽模式 (Preview)
+                            投影片預覽 (Slide Preview) - 16:9
                         </span>
                         <div className="flex items-center gap-2">
                             {(!analysisData && !loading) && (
@@ -558,7 +480,6 @@ export default function ReportsPage() {
                                     請先至儀表板進行分析
                                 </span>
                             )}
-                            {/* Mobile Download Button */}
                             <Button
                                 onClick={handleDownloadPDF}
                                 disabled={loading || !analysisData || isGenerating}
@@ -571,8 +492,8 @@ export default function ReportsPage() {
                         </div>
                     </div>
 
-                    {/* Preview Content */}
-                    <div className="flex-1 overflow-y-auto p-4 lg:p-8 custom-scrollbar relative bg-zinc-950">
+                    <div className="flex-1 overflow-y-auto p-4 lg:p-10 custom-scrollbar relative bg-zinc-950/95">
+
                         {loading && (
                             <div className="absolute inset-0 flex flex-col items-center justify-center bg-zinc-950/80 z-20">
                                 <Loader2 className="h-10 w-10 animate-spin text-violet-500 mb-4" />
@@ -589,64 +510,86 @@ export default function ReportsPage() {
                             </div>
                         )}
 
-                        {/* This container is what html2pdf captures */}
-                        <div id="report-preview-container" className="space-y-10 min-h-[1000px] max-w-4xl mx-auto bg-zinc-950 p-8 text-zinc-100">
+                        {/* Wrapper for PDF Capture */}
+                        <div id="report-preview-container" className="flex flex-col gap-8 items-center pb-20">
 
-                            {/* PDF Header */}
-                            <div className="border-b-2 border-violet-500 pb-4 mb-8">
-                                <h1 className="text-3xl font-bold flex items-center gap-2">
-                                    <span className="bg-violet-600 w-8 h-8 flex items-center justify-center rounded text-white text-lg">P</span>
-                                    平米內參 - 房市分析報告
-                                </h1>
-                                <div className="mt-4 flex flex-wrap gap-4 text-sm text-zinc-400">
-                                    <div className="flex items-center gap-1">
-                                        <span className="font-semibold text-zinc-300">區域:</span>
-                                        {filters.counties.join('、')} {filters.districts.length > 0 ? `(${filters.districts.join('、')})` : '(全區)'}
+                            {/* Slide 1: Cover Page */}
+                            {analysisData && (
+                                <SlideContainer
+                                    className="w-full max-w-[1280px] slide-item"
+                                    title="房市分析報告"
+                                    subTitle={`${filters.counties.join('、')} ${filters.districts.join('、')}`}
+                                    pageNumber={++pageCount}
+                                >
+                                    <div className="flex flex-col items-center justify-center h-full text-center space-y-6">
+                                        <div className="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-tr from-violet-400 to-indigo-600">
+                                            VIBE CODING
+                                        </div>
+                                        <div className="text-xl text-zinc-400 font-light tracking-[0.2em]">
+                                            REAL ESTATE INSIGHTS
+                                        </div>
+                                        <div className="mt-12 p-6 border border-white/10 rounded-xl bg-white/5 backdrop-blur-sm">
+                                            <div className="grid grid-cols-2 gap-x-12 gap-y-4 text-left">
+                                                <div>
+                                                    <span className="text-xs text-zinc-500 block">分析範圍</span>
+                                                    <span className="text-lg text-white">{filters.counties.join('、') || '全區域'}</span>
+                                                </div>
+                                                <div>
+                                                    <span className="text-xs text-zinc-500 block">分析期間</span>
+                                                    <span className="text-lg text-white">{filters.startDate || '不限'} ~ {filters.endDate || '不限'}</span>
+                                                </div>
+                                                <div>
+                                                    <span className="text-xs text-zinc-500 block">交易類型</span>
+                                                    <span className="text-lg text-white">{filters.transactionType === 'preload' ? '預售屋' : '成屋'}</span>
+                                                </div>
+                                                <div>
+                                                    <span className="text-xs text-zinc-500 block">生成日期</span>
+                                                    <span className="text-lg text-white">{new Date().toLocaleDateString()}</span>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div className="flex items-center gap-1">
-                                        <span className="font-semibold text-zinc-300">日期:</span>
-                                        {filters.startDate || '不限'} ~ {filters.endDate || '不限'}
-                                    </div>
-                                    <div className="flex items-center gap-1">
-                                        <span className="font-semibold text-zinc-300">類型:</span>
-                                        {filters.transactionType === 'preload' ? '預售屋' : '成屋'}
-                                    </div>
-                                </div>
-                            </div>
+                                </SlideContainer>
+                            )}
 
-                            {/* Report Sections */}
+                            {/* Content Slides */}
                             {analysisData && REPORT_CONFIG.map(section => {
                                 const selectedModules = selections[section.id] || [];
                                 if (selectedModules.length === 0) return null;
 
                                 const ReportComponent = section.component;
                                 const props = getReportProps(section.id);
-
                                 if (!props) return null;
 
-                                return (
-                                    <section key={section.id} className="break-inside-avoid mb-12">
-                                        <h2 className="text-2xl font-bold text-white mb-6 border-l-4 border-violet-500 pl-4">
-                                            {section.label}
-                                        </h2>
+                                // Increment page
+                                pageCount++;
 
-                                        {/* @ts-ignore dynamic props */}
-                                        <ReportComponent {...props} />
-                                    </section>
+                                return (
+                                    <SlideContainer
+                                        key={section.id}
+                                        className="w-full max-w-[1280px] slide-item"
+                                        title={section.label}
+                                        pageNumber={pageCount}
+                                    >
+                                        <div
+                                            className="h-full overflow-y-auto custom-scrollbar pr-2"
+                                            style={{
+                                                // Optional: scale content if it's too huge, but scroll is safer for now.
+                                                // transform: 'scale(0.9)', 
+                                                // transformOrigin: 'top left'
+                                            }}
+                                        >
+                                            {/* @ts-ignore */}
+                                            <ReportComponent {...props} />
+                                        </div>
+                                    </SlideContainer>
                                 );
                             })}
-
-                            {/* PDF Footer */}
-                            <div className="mt-20 pt-8 border-t border-zinc-800 text-center text-zinc-600 text-xs">
-                                <p>本報告由 平米內參 自動生成。數據來源：內政部實價登錄。</p>
-                                <p>© {new Date().getFullYear()} Vibe Coding. All rights reserved.</p>
-                            </div>
                         </div>
+
                     </div>
                 </main>
             </div>
         </AppLayout>
     );
 }
-
-

@@ -377,3 +377,9 @@ refactor: 重構
 - [x] Backend: Function `query-names` supports empty query to return Top 20 popular projects.
 - [x] Frontend: `MultiSelect` supports `onFocus` to trigger empty search.
 - [x] Frontend: `FilterBar` enables fetching top projects when search is empty.
+
+### [2026-01-19] Report Generator PPT Layout (16:9)
+- [x] UI: Create `SlideContainer` component (16:9 aspect ratio)
+- [x] UI: Refactor `ReportsPage` to render as slides
+- [x] PDF: Implement native browser print with `page-break-after` for slides
+- [x] Styling: Dark theme PPT style with cover page
