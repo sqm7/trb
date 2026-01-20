@@ -19,9 +19,10 @@ interface ParkingScatterChartProps {
     xUnit?: string;
     yUnit?: string;
     title?: string;
+    highlightIds?: string[];
 }
 
-export function ParkingScatterChart({ data, xLabel, yLabel, xUnit = "", yUnit = "", title }: ParkingScatterChartProps) {
+export function ParkingScatterChart({ data, xLabel, yLabel, xUnit = "", yUnit = "", title, highlightIds = [] }: ParkingScatterChartProps) {
     const [hoveredPoint, setHoveredPoint] = useState<DataPoint | null>(null);
     const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
 
@@ -55,12 +56,10 @@ export function ParkingScatterChart({ data, xLabel, yLabel, xUnit = "", yUnit = 
     };
 
     const handleMouseEnter = (e: React.MouseEvent, point: DataPoint) => {
-        const rect = e.currentTarget.getBoundingClientRect();
-        // Calculate relative position in container for simpler tooltip
-        // Or global if needed. Let's use relative to container or just simple offset.
-        // For scatter plots, usually fixed or floating nearby is fine.
         setHoveredPoint(point);
     };
+
+    const hasHighlights = highlightIds.length > 0;
 
     return (
         <div className="w-full h-[400px] relative bg-zinc-900/30 rounded-xl border border-white/5 p-4 select-none">
@@ -85,17 +84,39 @@ export function ParkingScatterChart({ data, xLabel, yLabel, xUnit = "", yUnit = 
                 {data.map((point) => {
                     const pos = getPosition(point.x, point.y);
                     const isHovered = hoveredPoint?.id === point.id;
-                    const isMuted = hoveredPoint && hoveredPoint.id !== point.id;
+                    const isHighlighted = hasHighlights && highlightIds.includes(point.id);
+
+                    // Determine styling based on state
+                    let styles = "bg-cyan-500/60 hover:bg-cyan-400"; // Default
+                    let scale = "";
+                    let zIndex = "z-10";
+
+                    if (hasHighlights) {
+                        if (isHighlighted) {
+                            styles = "bg-yellow-400 shadow-[0_0_10px_rgba(250,204,21,0.6)]";
+                            zIndex = "z-20";
+                            scale = "scale-125";
+                        } else {
+                            styles = "bg-zinc-700/30"; // Muted
+                            zIndex = "z-0";
+                        }
+                    }
+
+                    if (isHovered) {
+                        styles = "bg-cyan-400 shadow-[0_0_15px_rgba(34,211,238,0.8)] ring-2 ring-white";
+                        scale = "scale-150";
+                        zIndex = "z-30";
+                    }
 
                     return (
                         <div
                             key={point.id}
                             className={cn(
                                 "absolute w-3 h-3 rounded-full cursor-pointer transition-all duration-300 transform -translate-x-1/2 -translate-y-1/2",
-                                isHovered ? "scale-150 z-20 bg-cyan-400 shadow-[0_0_15px_rgba(34,211,238,0.6)]" : "bg-cyan-500/60 hover:bg-cyan-400",
-                                isMuted && "opacity-20 scale-75 blur-[1px]"
+                                styles,
+                                scale
                             )}
-                            style={{ left: pos.left, top: pos.top }}
+                            style={{ left: pos.left, top: pos.top, zIndex }}
                             onMouseEnter={(e) => handleMouseEnter(e, point)}
                             onMouseLeave={() => setHoveredPoint(null)}
                         />

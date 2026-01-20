@@ -38,6 +38,7 @@ function ParkingAreaCharts({ chartData, hasData, summaryStats }: {
     const [chartMode, setChartMode] = useState<'scale' | 'value'>('scale');
     const [tooltipInfo, setTooltipInfo] = useState<{ visible: boolean, text: string, x: number, y: number } | null>(null);
     const tooltipTimer = React.useRef<NodeJS.Timeout | null>(null);
+    const [selectedProjects, setSelectedProjects] = useState<string[]>([]);
 
     const handleMouseEnter = (e: React.MouseEvent, text: string) => {
         const rect = e.currentTarget.getBoundingClientRect();
@@ -78,9 +79,9 @@ function ParkingAreaCharts({ chartData, hasData, summaryStats }: {
                 </div>
             )}
 
-            {/* Left Column: Summary Statistics */}
-            <div className="lg:col-span-1 space-y-4">
-                <div className="flex flex-col h-full justify-center space-y-4">
+            {/* Left Column: Summary Statistics & Search */}
+            <div className="lg:col-span-1 space-y-6">
+                <div className="space-y-4">
                     <h4 className="text-sm font-medium text-zinc-400 pl-1 border-l-2 border-cyan-500">總體統計數據</h4>
                     <div className="bg-zinc-900/30 rounded-xl border border-white/5 p-4">
                         <table className="w-full text-sm">
@@ -109,6 +110,14 @@ function ParkingAreaCharts({ chartData, hasData, summaryStats }: {
                         </table>
                     </div>
                 </div>
+
+                {/* Project Search */}
+                <ProjectSearchMultiselect
+                    projects={chartData.map(d => ({ value: d.id, label: d.id }))}
+                    className="w-full"
+                    onChange={(selected) => setSelectedProjects(selected)}
+                    max={6}
+                />
             </div>
 
             {/* Right Column: Chart + Controls */}
@@ -173,7 +182,101 @@ function ParkingAreaCharts({ chartData, hasData, summaryStats }: {
                     xUnit={chartMode === 'scale' ? "位" : "萬"}
                     yUnit="坪"
                     title={chartMode === 'scale' ? "建案規模 vs 車位坪數分佈" : "車位價值 vs 坪數分佈"}
+                    highlightIds={selectedProjects}
                 />
+            </div>
+        </div>
+    );
+}
+
+function ProjectSearchMultiselect({ projects, className, onChange, max = 6 }: {
+    projects: { value: string, label: string }[],
+    className?: string,
+    onChange: (values: string[]) => void,
+    max?: number
+}) {
+    const [query, setQuery] = useState("");
+    const [selected, setSelected] = useState<string[]>([]);
+    const [isOpen, setIsOpen] = useState(false);
+    const wrapperRef = React.useRef<HTMLDivElement>(null);
+
+    React.useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
+                setIsOpen(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
+
+    const filtered = projects.filter(p =>
+        !selected.includes(p.value) &&
+        p.label.toLowerCase().includes(query.toLowerCase())
+    ).slice(0, 10);
+
+    const handleSelect = (value: string) => {
+        if (selected.length >= max) return;
+        const newSelected = [...selected, value];
+        setSelected(newSelected);
+        onChange(newSelected);
+        setQuery("");
+        setIsOpen(false);
+    };
+
+    const handleRemove = (value: string) => {
+        const newSelected = selected.filter(s => s !== value);
+        setSelected(newSelected);
+        onChange(newSelected);
+    };
+
+    return (
+        <div className={cn("space-y-2", className)} ref={wrapperRef}>
+            <h4 className="text-sm font-medium text-zinc-400 pl-1 border-l-2 border-yellow-500">建案亮點標示 <span className="text-xs font-normal text-zinc-600">(最多 {max} 個)</span></h4>
+
+            {/* Selected Tags */}
+            <div className="flex flex-wrap gap-2 min-h-[32px]">
+                {selected.length === 0 && <span className="text-xs text-zinc-600 italic py-1">尚未選擇建案...</span>}
+                {selected.map(val => (
+                    <div key={val} className="flex items-center gap-1 bg-yellow-500/10 text-yellow-500 px-2 py-1 rounded text-xs border border-yellow-500/30">
+                        <span>{val}</span>
+                        <button onClick={() => handleRemove(val)} className="hover:text-yellow-300">
+                            <Check size={12} className="rotate-45" /> {/* Use Check as X with rotation to save import or import X */}
+                        </button>
+                    </div>
+                ))}
+            </div>
+
+            {/* Search Input */}
+            <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
+                <input
+                    type="text"
+                    value={query}
+                    onChange={(e) => { setQuery(e.target.value); setIsOpen(true); }}
+                    onFocus={() => setIsOpen(true)}
+                    placeholder="搜尋並加入比較..."
+                    className="w-full bg-zinc-900/50 border border-white/10 rounded-lg pl-9 pr-4 py-2 text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:ring-1 focus:ring-cyan-500/50 transition-all"
+                    disabled={selected.length >= max}
+                />
+
+                {isOpen && query && (
+                    <div className="absolute top-full left-0 right-0 mt-1 bg-zinc-900 border border-white/10 rounded-lg shadow-xl z-50 max-h-60 overflow-y-auto">
+                        {filtered.length > 0 ? (
+                            filtered.map(p => (
+                                <button
+                                    key={p.value}
+                                    onClick={() => handleSelect(p.value)}
+                                    className="w-full text-left px-3 py-2 text-sm text-zinc-300 hover:bg-white/5 hover:text-white transition-colors"
+                                >
+                                    {p.label}
+                                </button>
+                            ))
+                        ) : (
+                            <div className="px-3 py-2 text-sm text-zinc-600">無相關建案</div>
+                        )}
+                    </div>
+                )}
             </div>
         </div>
     );

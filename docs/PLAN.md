@@ -404,4 +404,6 @@ refactor: 重構
 - [x] **Refinement**: Restore summary stats & add explanatory tooltips
 - [x] **Refinement**: Optimize layout to side-by-side (Table | Chart)
 - [x] **Refinement**: Add Axis descriptions & Help icon (?)
+- [x] **New Feature**: Summary Table Layout Optimization (Move Up)
+- [x] **New Feature**: Project Search & Highlight (Multi-select, Max 6)
 
