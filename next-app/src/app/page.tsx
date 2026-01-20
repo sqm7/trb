@@ -510,6 +510,9 @@ export default function LoginPage() {
           <p className="text-zinc-600 text-sm font-medium">
             &copy; 2026 平米內參 sqmtalk.com. All rights reserved.
           </p>
+          <a href="mailto:sqmtalk7@gmail.com" className="block mt-2 text-zinc-700 hover:text-cyan-500 text-xs transition-colors">
+            Contact: sqmtalk7@gmail.com
+          </a>
         </footer>
       </div>
     </AppLayout>
