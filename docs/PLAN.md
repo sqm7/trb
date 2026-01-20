@@ -384,3 +384,4 @@ refactor: 重構
 - [x] PDF: Implement native browser print with `page-break-after` for slides
 - [x] Styling: Dark theme PPT style with cover page
 - [x] Pagination: **Smart Pagination** implementation (No Scrollbars)
+- [x] Redesign: **Professional PPT Layout** (Full bleed, Large Type, No Card Wrappers)

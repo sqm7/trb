@@ -599,7 +599,7 @@ export default function ReportsPage() {
 
                                 // 3. Table Slides (Paged)
                                 if (selectedModules.includes('table')) {
-                                    const ITEMS_PER_SLIDE = 8;
+                                    const ITEMS_PER_SLIDE = 6;
                                     // Determine total items safely
                                     let totalItems = 0;
                                     if (section.id === 'ranking' && props.data?.projectRanking) {
@@ -621,7 +621,7 @@ export default function ReportsPage() {
                                                 title={`${section.label} - 詳細數據 (${i}/${numSlides})`}
                                                 pageNumber={++pageCount}
                                             >
-                                                <div className="h-full overflow-hidden p-2">
+                                                <div className="h-full overflow-hidden p-0">
                                                     {/* @ts-ignore */}
                                                     <ReportComponent
                                                         {...props}

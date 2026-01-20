@@ -106,7 +106,110 @@ export function RankingReport({
         });
     };
 
-    // ... (MetricCard component remains same)
+    const MetricCard = ({ title, value, unit, sortKey }: { title: string, value: string, unit: string, sortKey?: string }) => (
+        <div
+            onClick={() => sortKey && handleSort(sortKey)}
+            className={`bg-zinc-800/50 rounded-lg p-4 border border-white/5 flex flex-col items-center justify-center text-center transition-all duration-300 ${sortKey ? 'cursor-pointer hover:bg-zinc-800 hover:border-violet-500/30 hover:shadow-[0_0_20px_rgba(139,92,246,0.1)] group' : ''}`}
+        >
+            <div className={`text-zinc-400 text-sm mb-1 ${sortKey ? 'group-hover:text-violet-300' : ''}`}>{title}</div>
+            <div className="flex items-baseline gap-1">
+                <span className={`text-2xl font-bold text-white ${sortKey ? 'group-hover:text-white' : ''}`}>{value}</span>
+                <span className="text-xs text-zinc-500">{unit}</span>
+            </div>
+        </div>
+    );
+
+    // PPT Layout Renderer
+    if (pptMode) {
+        // 1. Metrics Slide Layout
+        if (visibleSections.includes('metrics')) {
+            return (
+                <div className="grid grid-cols-2 gap-8 h-full place-content-center p-8">
+                    <div className="space-y-8">
+                        <div className="bg-white/5 p-8 rounded-2xl border border-white/10 backdrop-blur-sm">
+                            <div className="text-zinc-400 text-lg mb-2">市場去化總銷售金額</div>
+                            <div className="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-white font-mono">
+                                {coreMetrics.totalSaleAmount.toLocaleString()}<span className="text-2xl text-zinc-500 ml-2">萬</span>
+                            </div>
+                        </div>
+                        <div className="bg-white/5 p-8 rounded-2xl border border-white/10 backdrop-blur-sm">
+                            <div className="text-zinc-400 text-lg mb-2">總銷去化房屋坪數</div>
+                            <div className="text-5xl font-bold text-white font-mono">
+                                {coreMetrics.totalHouseArea.toLocaleString(undefined, { maximumFractionDigits: 1 })}<span className="text-2xl text-zinc-500 ml-2">坪</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="space-y-8">
+                        <div className="bg-white/5 p-8 rounded-2xl border border-white/10 backdrop-blur-sm">
+                            <div className="text-zinc-400 text-lg mb-2">總平均單價</div>
+                            <div className="text-5xl font-bold text-cyan-400 font-mono">
+                                {coreMetrics.overallAveragePrice.toLocaleString(undefined, { maximumFractionDigits: 1 })}<span className="text-2xl text-zinc-500 ml-2">萬/坪</span>
+                            </div>
+                        </div>
+                        <div className="bg-white/5 p-8 rounded-2xl border border-white/10 backdrop-blur-sm">
+                            <div className="text-zinc-400 text-lg mb-2">總交易筆數</div>
+                            <div className="text-5xl font-bold text-white font-mono">
+                                {coreMetrics.transactionCount.toLocaleString()}<span className="text-2xl text-zinc-500 ml-2">筆</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )
+        }
+
+        // 2. Chart Slide Layout
+        if (visibleSections.includes('chart')) {
+            return (
+                <div className="h-full flex flex-col p-4">
+                    <RankingChart data={sortedData} sortKey={sortConfig.key} limit={chartLimit} chartType={chartType} />
+                </div>
+            )
+        }
+
+        // 3. Table Slide Layout (Paged)
+        if (visibleSections.includes('table')) {
+            return (
+                <div className="h-full flex flex-col pt-2">
+                    <table className="w-full text-left border-collapse">
+                        <thead className="border-b-2 border-white/20 text-zinc-400 uppercase text-lg font-bold tracking-wider">
+                            <tr>
+                                <th className="px-6 py-4 text-center w-[8%]">排名</th>
+                                <th className="px-6 py-4 w-[25%]">建案名稱</th>
+                                <th className="px-6 py-4 text-right">總價(萬)</th>
+                                <th className="px-6 py-4 text-right">單價(萬/坪)</th>
+                                <th className="px-6 py-4 text-right">坪數(坪)</th>
+                                <th className="px-6 py-4 text-center">筆數</th>
+                                <th className="px-6 py-4 text-right">佔比</th>
+                            </tr>
+                        </thead>
+                        <tbody className="text-xl text-zinc-100">
+                            {pagedData.map((proj, idx) => (
+                                <tr key={idx} className="border-b border-white/5 hover:bg-white/5 transition-colors">
+                                    <td className="px-6 py-5 text-center font-mono text-zinc-500">{(effectivePage - 1) * effectivePageSize + idx + 1}</td>
+                                    <td className="px-6 py-5 font-bold tracking-wide">
+                                        <div className="flex flex-col">
+                                            <span className="text-white">{proj.projectName}</span>
+                                            <div className="flex gap-2 mt-2">
+                                                {proj.county && <span className="text-xs bg-zinc-800 text-zinc-300 px-2 py-1 rounded border border-white/10">{proj.county}</span>}
+                                                {proj.district && <span className="text-xs bg-zinc-800 text-zinc-300 px-2 py-1 rounded border border-white/10">{proj.district}</span>}
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td className="px-6 py-5 text-right font-mono tracking-wider">{proj.saleAmountSum.toLocaleString()}</td>
+                                    <td className="px-6 py-5 text-right font-mono text-cyan-300 font-bold">{proj.averagePrice.toFixed(1)}</td>
+                                    <td className="px-6 py-5 text-right font-mono text-zinc-400">{proj.houseAreaSum.toLocaleString()}</td>
+                                    <td className="px-6 py-5 text-center font-mono text-zinc-400">{proj.transactionCount.toLocaleString()}</td>
+                                    <td className="px-6 py-5 text-right font-mono text-zinc-500">{proj.marketShare.toFixed(1)}%</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            );
+        }
+
+        return null;
+    }
 
     return (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
