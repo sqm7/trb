@@ -17,9 +17,19 @@ export function AppLayout({ children }: AppLayoutProps) {
                 <Header />
 
                 <main className="flex-1 p-4 md:p-6 lg:p-8 overflow-y-auto">
-                    <div className="container-custom py-6 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                    <div className="container-custom py-6 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 min-h-[calc(100vh-12rem)]">
                         {children}
                     </div>
+
+                    {/* Global Footer */}
+                    <footer className="py-8 text-center border-t border-white/5 mt-8">
+                        <p className="text-zinc-600 text-sm font-medium">
+                            &copy; 2026 平米內參 sqmtalk.com. All rights reserved.
+                        </p>
+                        <a href="mailto:sqmtalk7@gmail.com" className="block mt-2 text-zinc-700 hover:text-cyan-500 text-xs transition-colors">
+                            Contact: sqmtalk7@gmail.com
+                        </a>
+                    </footer>
                 </main>
             </div>
         </div>
