@@ -383,3 +383,10 @@ refactor: 重構
 - [x] UI: Refactor `ReportsPage` to render as slides
 - [x] PDF: Implement native browser print with `page-break-after` for slides
 - [x] Styling: Dark theme PPT style with cover page
+
+### [2026-01-20] Parking Report Fixes & Enhancements
+- [x] **Layout Fix**: Moved Parking Ratio Chart legend to below the table to prevent overlap.
+- [x] **Interaction**: Added "Drill-down" loop button to 3D Parking Floor Chart.
+- [x] **Feature**: Implemented Parking Detail Modal showing records per floor.
+- [x] **Feature**: Added "Show All Ramp Plane" toggle for loose matching in modal.
+

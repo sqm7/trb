@@ -167,7 +167,12 @@ export default function ReportsPage() {
             case 'velocity':
                 return { data: analysisData };
             case 'parking':
-                return { data: analysisData };
+                return {
+                    data: {
+                        parkingAnalysis: analysisData.parkingAnalysis,
+                        transactionDetails: analysisData.transactionDetails
+                    }
+                };
             case 'timeline':
                 return { data: analysisData.transactionDetails };
             default:

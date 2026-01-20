@@ -50,7 +50,7 @@ export function ParkingRatioChart({ data }: ParkingRatioChartProps) {
                 formatter: (val: number) => `${val.toFixed(1)}%`
             },
             legend: {
-                position: 'bottom'
+                show: false
             },
             tooltip: {
                 theme: 'dark',
@@ -58,7 +58,18 @@ export function ParkingRatioChart({ data }: ParkingRatioChartProps) {
                     formatter: (val: number) => `${val} 筆`
                 }
             },
-            stroke: { show: false }
+            stroke: { show: false },
+            responsive: [{
+                breakpoint: 480,
+                options: {
+                    chart: {
+                        width: 300
+                    },
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }]
         };
     }, []);
 

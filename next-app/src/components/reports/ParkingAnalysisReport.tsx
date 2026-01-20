@@ -4,7 +4,8 @@ import React, { useState, useMemo, useCallback } from "react";
 import { ReportWrapper } from "./ReportWrapper";
 import { ParkingRatioChart } from "@/components/charts/ParkingRatioChart";
 import { cn } from "@/lib/utils";
-import { Check } from "lucide-react";
+import { Check, Search, Calendar } from "lucide-react";
+import { Modal } from "@/components/ui/Modal";
 
 interface FloorData {
     floor: string;
@@ -23,7 +24,8 @@ interface ParkingAnalysisReportProps {
             parkingRatio: any;
             avgPriceByType: any[];
             rampPlanePriceByFloor: FloorData[];
-        }
+        },
+        transactionDetails?: any[]; // Full transaction records for drill-down
     } | null;
 }
 
@@ -60,6 +62,77 @@ export function ParkingAnalysisReport({ data }: ParkingAnalysisReportProps) {
     const [selectedFloors, setSelectedFloors] = useState<string[]>(['B1', 'B2', 'B3', 'B4']);
     // State: hovered floor for 3D interaction
     const [hoveredFloor, setHoveredFloor] = useState<string | null>(null);
+
+    // State: Modal for floor details
+    const [detailModalOpen, setDetailModalOpen] = useState(false);
+    const [selectedDetailFloor, setSelectedDetailFloor] = useState<string | null>(null);
+    const [floorDetailData, setFloorDetailData] = useState<any[]>([]);
+    const [showAllRampPlane, setShowAllRampPlane] = useState(false);
+    const [strictMatchCount, setStrictMatchCount] = useState(0);
+
+    const openFloorDetail = (floor: string) => {
+        setSelectedDetailFloor(floor);
+        setShowAllRampPlane(false); // Reset view mode
+
+        // Filter transaction details
+        const details = data?.transactionDetails || [];
+
+        // Match terms
+        const matchTerms: string[] = [floor];
+        if (floor === 'B1') matchTerms.push('地下一層', 'B1', 'b1');
+        if (floor === 'B2') matchTerms.push('地下二層', 'B2', 'b2');
+        if (floor === 'B3') matchTerms.push('地下三層', 'B3', 'b3');
+        if (floor === 'B4') matchTerms.push('地下四層', 'B4', 'b4');
+        if (floor === 'B5_below') matchTerms.push('地下五層', 'B5', 'b5');
+
+        // 1. Get ALL Ramp Plane records first
+        const allRampPlane = details.filter((item: any) => {
+            const parkingType = item['車位類別'] || '';
+            // Match '坡道平面' strictly
+            return parkingType.includes('坡道平面');
+        });
+
+        // 2. Strict filter from all Ramp Plane records
+        const strictMatches = allRampPlane.filter((item: any) => {
+            const parkingFloor = item['車位所在樓層'] || '';
+            const note = item['備註'] || '';
+            return matchTerms.some(term =>
+                (parkingFloor && parkingFloor.includes(term)) ||
+                (note && note.includes(term))
+            );
+        });
+
+        setStrictMatchCount(strictMatches.length);
+
+        // Prepare display data: attach isMatch flag
+        const annotatedData = allRampPlane.map((item: any) => {
+            const parkingFloor = item['車位所在樓層'] || '';
+            const note = item['備註'] || '';
+            const isMatch = matchTerms.some(term =>
+                (parkingFloor && parkingFloor.includes(term)) ||
+                (note && note.includes(term))
+            );
+            return { ...item, _isMatch: isMatch };
+        });
+
+        // Sort: Matches first, then date descending
+        annotatedData.sort((a: any, b: any) => {
+            if (a._isMatch && !b._isMatch) return -1;
+            if (!a._isMatch && b._isMatch) return 1;
+            const dateA = a['交易年月日'] || 0;
+            const dateB = b['交易年月日'] || 0;
+            return dateB - dateA;
+        });
+
+        setFloorDetailData(annotatedData);
+
+        // If no strict matches, auto-enable 'show all' so table isn't empty on open
+        if (strictMatches.length === 0) {
+            setShowAllRampPlane(true);
+        }
+
+        setDetailModalOpen(true);
+    };
 
     if (!data?.parkingAnalysis) return null;
 
@@ -99,33 +172,51 @@ export function ParkingAnalysisReport({ data }: ParkingAnalysisReportProps) {
     };
 
     return (
-        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 text-white">
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* 1. Parking Ratio */}
                 <ReportWrapper title="房車配比分析" description="建案有購置車位的比例">
-                    <div className="flex flex-col md:flex-row items-center gap-6">
+                    <div className="flex flex-col md:flex-row items-start gap-6">
                         <div className="w-full md:w-1/2">
                             <ParkingRatioChart data={parkingRatio} />
                         </div>
-                        <div className="w-full md:w-1/2 space-y-4">
+                        <div className="w-full md:w-1/2 flex flex-col gap-4">
                             <table className="w-full text-sm">
                                 <thead className="bg-zinc-900/50 text-zinc-500">
                                     <tr><th className="p-2 text-left">類型</th><th className="p-2 text-right">筆數</th><th className="p-2 text-right">佔比</th></tr>
                                 </thead>
                                 <tbody className="divide-y divide-white/5">
                                     <tr>
-                                        <td className="p-2">有搭車位</td>
+                                        <td className="p-2 flex items-center gap-2">
+                                            <span className="w-3 h-3 rounded-full bg-indigo-300"></span>
+                                            有搭車位
+                                        </td>
                                         <td className="p-2 text-right font-mono text-zinc-300">{parkingRatio?.withParking?.count.toLocaleString()}</td>
                                         <td className="p-2 text-right font-mono text-cyan-400">{parkingRatio?.withParking?.percentage.toFixed(2)}%</td>
                                     </tr>
                                     <tr>
-                                        <td className="p-2">無車位</td>
+                                        <td className="p-2 flex items-center gap-2">
+                                            <span className="w-3 h-3 rounded-full bg-gray-600"></span>
+                                            無車位
+                                        </td>
                                         <td className="p-2 text-right font-mono text-zinc-300">{parkingRatio?.withoutParking?.count.toLocaleString()}</td>
                                         <td className="p-2 text-right font-mono text-zinc-500">{parkingRatio?.withoutParking?.percentage.toFixed(2)}%</td>
                                     </tr>
                                 </tbody>
                             </table>
+
+                            {/* Custom Legend */}
+                            <div className="flex gap-6 justify-center md:justify-start px-2 text-sm text-zinc-400">
+                                <div className="flex items-center gap-2">
+                                    <span className="w-3 h-3 rounded-full bg-indigo-300"></span>
+                                    <span>有搭車位</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <span className="w-3 h-3 rounded-full bg-gray-600"></span>
+                                    <span>無車位</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </ReportWrapper>
@@ -158,7 +249,7 @@ export function ParkingAnalysisReport({ data }: ParkingAnalysisReportProps) {
             {/* 3. Ramp Plane Area Stats */}
             <ReportWrapper title="坡道平面車位坪數統計" description="坡道平面車位的面積分佈">
                 {(() => {
-                    // Calculate area stats from rampPlanePriceByFloor
+                    // Calculate area stats
                     let allAreas: number[] = [];
                     filteredFloorData.forEach(floorData => {
                         if (floorData.rawRecords) {
@@ -221,7 +312,7 @@ export function ParkingAnalysisReport({ data }: ParkingAnalysisReportProps) {
                                     onMouseEnter={() => setHoveredFloor(floor.floor)}
                                     onMouseLeave={() => setHoveredFloor(null)}
                                     className={cn(
-                                        "w-52 h-14 rounded-lg flex items-center justify-between px-4 shadow-lg transition-all duration-200 cursor-pointer",
+                                        "w-52 h-14 rounded-lg flex items-center justify-between px-4 shadow-lg transition-all duration-200 cursor-pointer group relative",
                                         isHovered && "ring-2 ring-white scale-105",
                                         !isSelected && "opacity-30"
                                     )}
@@ -239,7 +330,19 @@ export function ParkingAnalysisReport({ data }: ParkingAnalysisReportProps) {
                                         </span>
                                         <span className="font-bold text-white">{floor.floor}</span>
                                     </div>
-                                    <div className="text-right">
+                                    <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                openFloorDetail(floor.floor);
+                                            }}
+                                            className="p-1.5 bg-black/40 hover:bg-black/80 rounded-full text-white backdrop-blur-sm transition-colors ring-1 ring-white/20"
+                                            title={`查看 ${floor.floor} 建案明細`}
+                                        >
+                                            <Search size={14} />
+                                        </button>
+                                    </div>
+                                    <div className="text-right mt-1">
                                         <div className="font-mono text-white text-sm">{Math.round(floor.avgPrice).toLocaleString()} 萬</div>
                                         <div className="text-white/70 text-xs">{floor.count} 位</div>
                                     </div>
@@ -247,6 +350,89 @@ export function ParkingAnalysisReport({ data }: ParkingAnalysisReportProps) {
                             )
                         })}
                     </div>
+
+                    <Modal
+                        isOpen={detailModalOpen}
+                        onClose={() => setDetailModalOpen(false)}
+                        title={`${selectedDetailFloor} 車位交易明細`}
+                        maxWidth="max-w-5xl"
+                    >
+                        <div className="space-y-4">
+                            <div className="flex flex-wrap items-center justify-between gap-4 text-sm text-zinc-400">
+                                <div className="flex items-center gap-4">
+                                    <p>坡道平面共 <span className="text-white font-mono font-bold">{floorDetailData.length}</span> 筆</p>
+                                    {strictMatchCount > 0 && (
+                                        <p className="text-cyan-400">
+                                            <Check size={14} className="inline mr-1" />
+                                            精確匹配 {selectedDetailFloor}: {strictMatchCount} 筆
+                                        </p>
+                                    )}
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <label className="flex items-center gap-2 cursor-pointer select-none border border-zinc-700 rounded px-2 py-1 hover:bg-zinc-800">
+                                        <input
+                                            type="checkbox"
+                                            checked={showAllRampPlane}
+                                            onChange={(e) => setShowAllRampPlane(e.target.checked)}
+                                            className="custom-checkbox rounded bg-zinc-800 border-zinc-600 text-cyan-500"
+                                        />
+                                        <span>顯示未匹配樓層的坡道平面</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div className="overflow-x-auto rounded-lg border border-white/10 max-h-[60vh] custom-scrollbar">
+                                <table className="w-full text-sm text-left">
+                                    <thead className="bg-zinc-900/80 text-zinc-400 whitespace-nowrap sticky top-0 z-10 backdrop-blur-md">
+                                        <tr>
+                                            <th className="p-3">建案名稱</th>
+                                            <th className="p-3">交易日期</th>
+                                            <th className="p-3 text-right">車位總價</th>
+                                            <th className="p-3 text-right">車位面積</th>
+                                            <th className="p-3">車位樓層</th>
+                                            <th className="p-3">備註</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-white/5">
+                                        {floorDetailData.length > 0 ? (
+                                            floorDetailData
+                                                .filter(r => showAllRampPlane || r._isMatch)
+                                                .map((record, idx) => (
+                                                    <tr key={idx} className={cn(
+                                                        "hover:bg-zinc-800/50 transition-colors",
+                                                        (record._isMatch && !showAllRampPlane) ? "" : (record._isMatch ? "bg-cyan-500/5" : "opacity-60")
+                                                    )}>
+                                                        <td className="p-3 font-medium text-white">{record['建案名稱']}</td>
+                                                        <td className="p-3 text-zinc-400 flex items-center gap-1">
+                                                            <Calendar size={12} className="text-zinc-600" />
+                                                            {record['交易年月日']}
+                                                        </td>
+                                                        <td className="p-3 text-right font-mono text-cyan-400">
+                                                            {record['車位總價元'] ? (record['車位總價元'] / 10000).toLocaleString() : '-'} 萬
+                                                        </td>
+                                                        <td className="p-3 text-right font-mono text-zinc-300">
+                                                            {record['車位移轉總面積平方公尺'] ? (record['車位移轉總面積平方公尺'] * 0.3025).toFixed(2) : '-'} 坪
+                                                        </td>
+                                                        <td className="p-3 text-zinc-300">
+                                                            {record['車位所在樓層'] || '-'}
+                                                        </td>
+                                                        <td className="p-3 text-zinc-500 text-xs max-w-[200px] truncate" title={record['備註']}>
+                                                            {record['備註']}
+                                                        </td>
+                                                    </tr>
+                                                ))
+                                        ) : (
+                                            <tr>
+                                                <td colSpan={6} className="p-8 text-center text-zinc-500">
+                                                    查無相關交易資料。
+                                                </td>
+                                            </tr>
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </Modal>
 
                     {/* Table + Dynamic Stats */}
                     <div className="space-y-4">
