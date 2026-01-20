@@ -156,6 +156,7 @@ bash scripts/deploy_github.sh "commit message"
 - [x] **Bubble Chart**: Unified Control Toolbar (Integrated into Chart Header)
 - [x] **UI Polish**: New App Icon (Favicon) - Cyberpunk Style
 - [x] **Landing Page**: Update Branding Text (Vibe Coding -> sqmtalk.com)
+- [x] **Landing Page**: Add Contact Email (sqmtalk7@gmail.com) to Footer
 
 
 

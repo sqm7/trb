@@ -133,7 +133,7 @@ export default function LoginPage() {
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-500"></span>
                 </span>
-                Vibe Coding Intelligence
+                sqmtalk.com
               </div>
               <h1 className="text-5xl lg:text-6xl font-bold tracking-tight text-white drop-shadow-lg leading-[1.1]">
                 <span className="bg-clip-text text-transparent bg-gradient-to-r from-white via-zinc-200 to-zinc-400">平米內參</span>
