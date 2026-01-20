@@ -365,7 +365,8 @@ refactor: 重構
 ### [Current Task] Heatmap Logic & UI Refinement
 - [x] Logic: Switch Anchor Logic to **Per-Unit Type** (independent baseline for each stack).
 - [x] Logic: Correct "Floor Premium" to use **Fixed Value (萬/坪)** instead of Percentage.
-- [x] Logic: Refine Anchor Selection to prioritize **Earliest Transaction Date** (then lowest price).
+- [x] Logic: Refine Anchor Selection: Earliest Date + Window + Lowest Normalized Price.
+- [x] Logic: Strict Exclusion for Anchor: Exclude Employees/Offices/Shops/Rough-ins to avoid skewing baseline.
 - [x] Logic: Advanced Anchor: normalized value within **Initial Window** (default 14 days).
 - [x] UI: Add "Auto Suggest" 🪄 button for Floor Premium.
 - [x] UI: Expose "Initial Window Days" parameter.

@@ -147,10 +147,22 @@ export function generateHeatmapData(projectTransactions: any[], floorPremiumValu
         const mainPurpose = tx['主要用途'] || tx.mainPurpose || '';
         const buildingType = tx['建物型態'] || tx.buildingType || '';
         const note = tx['備註'] || tx.note || '';
-        const isSpecial = mainPurpose.includes('商業') || buildingType.includes('店') || note.includes('特殊') || note.includes('親友');
+        const isSpecial =
+            mainPurpose.includes('商業') ||
+            buildingType.includes('店') ||
+            mainPurpose.includes('辦公') ||
+            buildingType.includes('辦公') ||
+            buildingType.includes('事務所') ||
+            note.includes('特殊') ||
+            note.includes('親友') ||
+            note.includes('員工') ||
+            note.includes('關係人') ||
+            note.includes('毛胚'); // 排除非標準成屋交易
+
         const unitPrice = parseFloat(tx['房屋單價(萬)'] || tx.unitPrice || 0);
 
         if (!isSpecial && unitPrice > 0) {
+
             if (!txByUnit[unit]) txByUnit[unit] = [];
             txByUnit[unit].push(tx);
         }
@@ -368,7 +380,17 @@ export function calculateSuggestedFloorPremium(transactions: any[]): number {
         const mainPurpose = tx['主要用途'] || tx.mainPurpose || '';
         const buildingType = tx['建物型態'] || tx.buildingType || '';
         const note = tx['備註'] || tx.note || '';
-        const isSpecial = mainPurpose.includes('商業') || buildingType.includes('店') || note.includes('特殊') || note.includes('親友');
+        const isSpecial =
+            mainPurpose.includes('商業') ||
+            buildingType.includes('店') ||
+            mainPurpose.includes('辦公') ||
+            buildingType.includes('辦公') ||
+            buildingType.includes('事務所') ||
+            note.includes('特殊') ||
+            note.includes('親友') ||
+            note.includes('員工') ||
+            note.includes('關係人') ||
+            note.includes('毛胚');
 
         if (!isSpecial && parseFloat(tx['房屋單價(萬)']) > 0) {
             if (!unitGroups[unit]) unitGroups[unit] = [];
