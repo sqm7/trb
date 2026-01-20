@@ -561,29 +561,101 @@ export default function ReportsPage() {
                                 const props = getReportProps(section.id);
                                 if (!props) return null;
 
-                                // Increment page
-                                pageCount++;
+                                const slides = [];
 
-                                return (
-                                    <SlideContainer
-                                        key={section.id}
-                                        className="w-full max-w-[1280px] slide-item"
-                                        title={section.label}
-                                        pageNumber={pageCount}
-                                    >
-                                        <div
-                                            className="h-full overflow-y-auto custom-scrollbar pr-2"
-                                            style={{
-                                                // Optional: scale content if it's too huge, but scroll is safer for now.
-                                                // transform: 'scale(0.9)', 
-                                                // transformOrigin: 'top left'
-                                            }}
+                                // 1. Metrics Slide
+                                if (selectedModules.includes('metrics')) {
+                                    slides.push(
+                                        <SlideContainer
+                                            key={`${section.id}-metrics`}
+                                            className="w-full max-w-[1280px] slide-item"
+                                            title={`${section.label} - 核心指標`}
+                                            pageNumber={++pageCount}
                                         >
-                                            {/* @ts-ignore */}
-                                            <ReportComponent {...props} />
-                                        </div>
-                                    </SlideContainer>
-                                );
+                                            <div className="h-full overflow-hidden p-2">
+                                                {/* @ts-ignore */}
+                                                <ReportComponent {...props} visibleSections={['metrics']} pptMode={true} />
+                                            </div>
+                                        </SlideContainer>
+                                    );
+                                }
+
+                                // 2. Chart Slide
+                                if (selectedModules.includes('chart')) {
+                                    slides.push(
+                                        <SlideContainer
+                                            key={`${section.id}-chart`}
+                                            className="w-full max-w-[1280px] slide-item"
+                                            title={`${section.label} - 分析圖表`}
+                                            pageNumber={++pageCount}
+                                        >
+                                            <div className="h-full overflow-hidden p-2">
+                                                {/* @ts-ignore */}
+                                                <ReportComponent {...props} visibleSections={['chart']} pptMode={true} />
+                                            </div>
+                                        </SlideContainer>
+                                    );
+                                }
+
+                                // 3. Table Slides (Paged)
+                                if (selectedModules.includes('table')) {
+                                    const ITEMS_PER_SLIDE = 8;
+                                    // Determine total items safely
+                                    let totalItems = 0;
+                                    if (section.id === 'ranking' && props.data?.projectRanking) {
+                                        totalItems = props.data.projectRanking.length;
+                                    } else if (section.id === 'priceBand' && props.data?.heatmapData) {
+                                        // TODO: Add support for PriceBand table pagination if needed. For now default to 1 page or handle later.
+                                        // PriceBandReport structure is complex, might need similar refactor.
+                                        // For now, let's assume 1 page for non-Ranking reports or keep simple.
+                                        totalItems = ITEMS_PER_SLIDE; // Fallback to single page for now
+                                    }
+
+                                    const numSlides = Math.max(1, Math.ceil(totalItems / ITEMS_PER_SLIDE));
+
+                                    for (let i = 1; i <= numSlides; i++) {
+                                        slides.push(
+                                            <SlideContainer
+                                                key={`${section.id}-table-${i}`}
+                                                className="w-full max-w-[1280px] slide-item"
+                                                title={`${section.label} - 詳細數據 (${i}/${numSlides})`}
+                                                pageNumber={++pageCount}
+                                            >
+                                                <div className="h-full overflow-hidden p-2">
+                                                    {/* @ts-ignore */}
+                                                    <ReportComponent
+                                                        {...props}
+                                                        visibleSections={['table']}
+                                                        pptMode={true}
+                                                        pptPage={i}
+                                                        pptItemsPerPage={ITEMS_PER_SLIDE}
+                                                    />
+                                                </div>
+                                            </SlideContainer>
+                                        );
+                                    }
+                                }
+
+                                // Fallback for other modules (like 'heatmap') if they are not metrics/chart/table
+                                // We check if there are selected modules that are NOT metrics/chart/table
+                                const otherModules = selectedModules.filter(m => !['metrics', 'chart', 'table'].includes(m));
+                                if (otherModules.length > 0) {
+                                    slides.push(
+                                        <SlideContainer
+                                            key={`${section.id}-others`}
+                                            className="w-full max-w-[1280px] slide-item"
+                                            title={`${section.label} - 其他分析`}
+                                            pageNumber={++pageCount}
+                                        >
+                                            <div className="h-full overflow-hidden p-2">
+                                                {/* @ts-ignore */}
+                                                <ReportComponent {...props} visibleSections={otherModules} pptMode={true} />
+                                            </div>
+                                        </SlideContainer>
+                                    );
+                                }
+
+                                return slides;
                             })}
                         </div>
 
