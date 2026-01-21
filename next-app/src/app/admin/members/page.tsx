@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
-import { Users, ArrowLeft, Shield, ShieldOff, Search, Mail, Calendar, Crown } from 'lucide-react';
+import { Users, ArrowLeft, Shield, ShieldOff, Search, Mail, Calendar, Crown, Zap, Star, Edit2, X } from 'lucide-react';
 
 interface Member {
     id: string;
@@ -23,6 +23,7 @@ export default function AdminMembersPage() {
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [currentUserRole, setCurrentUserRole] = useState<string>('user');
+    const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
 
     useEffect(() => {
         if (!isAuthLoading && isAdmin) {
@@ -32,7 +33,6 @@ export default function AdminMembersPage() {
 
     const fetchMembers = async () => {
         try {
-            // Get all profiles with user info
             const { data, error } = await supabase
                 .from('profiles')
                 .select('id, role, full_name, created_at')
@@ -40,8 +40,6 @@ export default function AdminMembersPage() {
 
             if (error) throw error;
 
-            // Get auth.users info (email) - we'll need to fetch from a function or edge
-            // For now, use profiles data and show what we have
             const membersWithEmail = (data || []).map(profile => ({
                 ...profile,
                 email: profile.full_name || profile.id.substring(0, 8) + '...',
@@ -50,7 +48,6 @@ export default function AdminMembersPage() {
 
             setMembers(membersWithEmail);
 
-            // Get current user's role
             const currentProfile = (data || []).find(p => p.id === user?.id);
             if (currentProfile) {
                 setCurrentUserRole(currentProfile.role);
@@ -62,28 +59,17 @@ export default function AdminMembersPage() {
         }
     };
 
-    const toggleRole = async (memberId: string, currentRole: string) => {
-        // Super admin protection - cannot be modified by anyone
-        if (currentRole === 'super_admin') {
+    const handleUpdateRole = async (memberId: string, newRole: string) => {
+        const targetMember = members.find(m => m.id === memberId);
+        if (targetMember?.role === 'super_admin') {
             alert('超級管理員權限無法被修改');
             return;
         }
 
-        // Only super_admin can modify other admins
-        if (currentRole === 'admin' && currentUserRole !== 'super_admin') {
-            alert('只有超級管理員可以修改其他管理員的權限');
+        if ((newRole === 'admin' || targetMember?.role === 'admin') && currentUserRole !== 'super_admin') {
+            alert('只有超級管理員可以設置其他管理員');
             return;
         }
-
-        // Cannot modify yourself
-        if (memberId === user?.id) {
-            alert('您不能修改自己的權限');
-            return;
-        }
-
-        const newRole = currentRole === 'admin' ? 'user' : 'admin';
-
-        if (!confirm(`確定要將此會員設為 ${newRole === 'admin' ? '管理員' : '一般會員'} 嗎？`)) return;
 
         try {
             const { error } = await supabase
@@ -92,10 +78,47 @@ export default function AdminMembersPage() {
                 .eq('id', memberId);
 
             if (error) throw error;
+
+            setMenuOpenId(null);
             fetchMembers();
         } catch (error: any) {
             console.error('Error updating role:', error);
             alert('更新失敗：' + error.message);
+        }
+    };
+
+    const RoleBadge = ({ role }: { role: string }) => {
+        switch (role) {
+            case 'super_admin':
+                return (
+                    <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium bg-purple-500/10 text-purple-400 border border-purple-500/20 rounded-full">
+                        <Crown className="h-3 w-3" /> 超級管理員
+                    </span>
+                );
+            case 'admin':
+                return (
+                    <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-full">
+                        <Shield className="h-3 w-3" /> 管理員
+                    </span>
+                );
+            case 'pro_max':
+                return (
+                    <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium bg-gradient-to-r from-purple-500/10 to-amber-500/10 text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-amber-400 border border-purple-500/20 rounded-full">
+                        <Star className="h-3 w-3 text-amber-400" /> PRO MAX
+                    </span>
+                );
+            case 'pro':
+                return (
+                    <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 rounded-full">
+                        <Zap className="h-3 w-3" /> PRO
+                    </span>
+                );
+            default:
+                return (
+                    <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium bg-zinc-800 text-zinc-400 border border-zinc-700 rounded-full">
+                        一般會員
+                    </span>
+                );
         }
     };
 
@@ -113,7 +136,6 @@ export default function AdminMembersPage() {
         m.id.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
-    // Auth loading state
     if (isAuthLoading) {
         return (
             <div className="min-h-screen bg-[#1a1d29] flex items-center justify-center">
@@ -122,7 +144,6 @@ export default function AdminMembersPage() {
         );
     }
 
-    // Not admin
     if (!isAdmin) {
         return (
             <div className="min-h-screen bg-[#1a1d29] flex items-center justify-center">
@@ -212,21 +233,7 @@ export default function AdminMembersPage() {
                                             </div>
                                         </td>
                                         <td className="px-4 py-3">
-                                            {m.role === 'super_admin' ? (
-                                                <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium bg-purple-500/10 text-purple-400 border border-purple-500/20 rounded-full">
-                                                    <Crown className="h-3 w-3" />
-                                                    超級管理員
-                                                </span>
-                                            ) : m.role === 'admin' ? (
-                                                <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-full">
-                                                    <Shield className="h-3 w-3" />
-                                                    管理員
-                                                </span>
-                                            ) : (
-                                                <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium bg-zinc-800 text-zinc-400 border border-zinc-700 rounded-full">
-                                                    一般會員
-                                                </span>
-                                            )}
+                                            <RoleBadge role={m.role} />
                                         </td>
                                         <td className="px-4 py-3">
                                             <div className="flex items-center gap-1 text-xs text-zinc-500">
@@ -235,23 +242,59 @@ export default function AdminMembersPage() {
                                             </div>
                                         </td>
                                         <td className="px-4 py-3">
-                                            <div className="flex items-center justify-end">
-                                                {/* Hide button for super_admin targets, self, or if current user is not super_admin and target is admin */}
-                                                {m.role !== 'super_admin' && m.id !== user?.id && (currentUserRole === 'super_admin' || m.role === 'user') && (
-                                                    <button
-                                                        onClick={() => toggleRole(m.id, m.role)}
-                                                        className={`flex items-center gap-1 px-3 py-1.5 rounded text-xs font-medium transition-colors ${m.role === 'admin'
-                                                            ? 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'
-                                                            : 'bg-amber-500/10 text-amber-400 hover:bg-amber-500/20'
-                                                            }`}
-                                                        title={m.role === 'admin' ? '移除管理員權限' : '設為管理員'}
-                                                    >
-                                                        {m.role === 'admin' ? (
-                                                            <><ShieldOff className="h-3 w-3" /> 移除權限</>
-                                                        ) : (
-                                                            <><Shield className="h-3 w-3" /> 設為管理員</>
+                                            <div className="flex items-center justify-end relative">
+                                                {m.role !== 'super_admin' && m.id !== user?.id && (currentUserRole === 'super_admin' || m.role !== 'admin') && (
+                                                    <div className="relative">
+                                                        <button
+                                                            onClick={() => setMenuOpenId(menuOpenId === m.id ? null : m.id)}
+                                                            className="flex items-center gap-1 px-3 py-1.5 rounded text-xs font-medium bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-white transition-colors"
+                                                        >
+                                                            <Edit2 className="h-3 w-3" /> 編輯權限
+                                                        </button>
+
+                                                        {menuOpenId === m.id && (
+                                                            <>
+                                                                <div
+                                                                    className="fixed inset-0 z-10"
+                                                                    onClick={() => setMenuOpenId(null)}
+                                                                />
+                                                                <div className="absolute right-0 mt-2 w-48 bg-[#252836] border border-zinc-700 rounded-lg shadow-xl z-20 py-1">
+                                                                    <div className="px-3 py-2 text-xs font-bold text-zinc-500 border-b border-zinc-700/50 mb-1">
+                                                                        選擇角色
+                                                                    </div>
+                                                                    <button
+                                                                        onClick={() => handleUpdateRole(m.id, 'user')}
+                                                                        className={`w-full text-left px-4 py-2 text-sm hover:bg-zinc-700 flex items-center gap-2 ${m.role === 'user' ? 'text-amber-500' : 'text-zinc-300'}`}
+                                                                    >
+                                                                        <div className="h-2 w-2 rounded-full bg-zinc-500" /> 一般會員
+                                                                    </button>
+                                                                    <button
+                                                                        onClick={() => handleUpdateRole(m.id, 'pro')}
+                                                                        className={`w-full text-left px-4 py-2 text-sm hover:bg-zinc-700 flex items-center gap-2 ${m.role === 'pro' ? 'text-amber-500' : 'text-zinc-300'}`}
+                                                                    >
+                                                                        <div className="h-2 w-2 rounded-full bg-cyan-400" /> PRO
+                                                                    </button>
+                                                                    <button
+                                                                        onClick={() => handleUpdateRole(m.id, 'pro_max')}
+                                                                        className={`w-full text-left px-4 py-2 text-sm hover:bg-zinc-700 flex items-center gap-2 ${m.role === 'pro_max' ? 'text-amber-500' : 'text-zinc-300'}`}
+                                                                    >
+                                                                        <div className="h-2 w-2 rounded-full bg-purple-400" /> PRO MAX
+                                                                    </button>
+                                                                    {currentUserRole === 'super_admin' && (
+                                                                        <>
+                                                                            <div className="my-1 border-t border-zinc-700/50" />
+                                                                            <button
+                                                                                onClick={() => handleUpdateRole(m.id, 'admin')}
+                                                                                className={`w-full text-left px-4 py-2 text-sm hover:bg-zinc-700 flex items-center gap-2 ${m.role === 'admin' ? 'text-amber-500' : 'text-amber-400'}`}
+                                                                            >
+                                                                                <div className="h-2 w-2 rounded-full bg-amber-500" /> 管理員
+                                                                            </button>
+                                                                        </>
+                                                                    )}
+                                                                </div>
+                                                            </>
                                                         )}
-                                                    </button>
+                                                    </div>
                                                 )}
                                                 {m.role === 'super_admin' && (
                                                     <span className="text-xs text-zinc-600">受保護</span>
@@ -269,12 +312,20 @@ export default function AdminMembersPage() {
                 )}
 
                 {/* Stats */}
-                <div className="mt-6 flex gap-4">
-                    <div className="bg-zinc-900/50 border border-zinc-800 rounded-lg px-4 py-3">
+                <div className="mt-6 flex gap-4 overflow-x-auto pb-2">
+                    <div className="bg-zinc-900/50 border border-zinc-800 rounded-lg px-4 py-3 min-w-[120px]">
                         <p className="text-xs text-zinc-500">總會員數</p>
                         <p className="text-xl font-bold text-white">{members.length}</p>
                     </div>
-                    <div className="bg-zinc-900/50 border border-zinc-800 rounded-lg px-4 py-3">
+                    <div className="bg-zinc-900/50 border border-zinc-800 rounded-lg px-4 py-3 min-w-[120px]">
+                        <p className="text-xs text-zinc-500">PRO MAX</p>
+                        <p className="text-xl font-bold text-purple-400">{members.filter(m => m.role === 'pro_max').length}</p>
+                    </div>
+                    <div className="bg-zinc-900/50 border border-zinc-800 rounded-lg px-4 py-3 min-w-[120px]">
+                        <p className="text-xs text-zinc-500">PRO</p>
+                        <p className="text-xl font-bold text-cyan-400">{members.filter(m => m.role === 'pro').length}</p>
+                    </div>
+                    <div className="bg-zinc-900/50 border border-zinc-800 rounded-lg px-4 py-3 min-w-[120px]">
                         <p className="text-xs text-zinc-500">管理員</p>
                         <p className="text-xl font-bold text-amber-400">{members.filter(m => m.role === 'admin' || m.role === 'super_admin').length}</p>
                     </div>
