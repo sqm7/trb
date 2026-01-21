@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { AppLayout } from "@/components/layout/AppLayout";
-import { Monitor, Moon, Sun, Layout, Check, Shield, Bell, User, LogOut, CreditCard, Mail, Fingerprint, Edit2, X } from "lucide-react";
+import { Monitor, Moon, Sun, Layout, Check, Shield, Bell, User, LogOut, CreditCard, Mail, Fingerprint, Edit2, X, Link as LinkIcon, Lock, Key, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/lib/supabase";
 
@@ -45,6 +45,13 @@ export default function SettingsPage() {
     const [originalName, setOriginalName] = useState("Vibe Member");
     const [isEditingName, setIsEditingName] = useState(false);
     const [savingName, setSavingName] = useState(false);
+
+    // Account Binding State
+    const [isBinding, setIsBinding] = useState(false);
+    const [bindEmail, setBindEmail] = useState("");
+    const [bindPassword, setBindPassword] = useState("");
+    const [bindStatus, setBindStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+    const [bindError, setBindError] = useState("");
 
     const router = useRouter();
 
@@ -114,6 +121,34 @@ export default function SettingsPage() {
             alert("更新失敗，請稍後再試。");
         } finally {
             setSavingName(false);
+        }
+    };
+
+    const handleBindAccount = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setBindStatus('loading');
+        setBindError("");
+
+        try {
+            if (bindPassword.length < 6) {
+                throw new Error("密碼長度至少需 6 個字元");
+            }
+
+            // Update user with new email and password
+            const { data, error } = await supabase.auth.updateUser({
+                email: bindEmail,
+                password: bindPassword
+            });
+
+            if (error) throw error;
+
+            setBindStatus('success');
+            // Provide feedback: User usually needs to confirm email
+
+        } catch (err: any) {
+            console.error("Binding error:", err);
+            setBindStatus('error');
+            setBindError(err.message || "綁定失敗，請檢查電子郵件格式");
         }
     };
 
@@ -306,6 +341,106 @@ export default function SettingsPage() {
                             >
                                 前往登入
                             </button>
+                        </div>
+                    )}
+
+                    {/* Bind Account Section (Only for Line users with workaround emails) */}
+                    {!loading && user && user.email?.includes('line.workaround') && (
+                        <div className="bg-gradient-to-br from-indigo-900/30 to-violet-900/30 border border-indigo-500/20 rounded-2xl p-6 mt-6 relative overflow-hidden">
+                            {/* Background Pattern */}
+                            <div className="absolute top-0 right-0 p-8 opacity-5">
+                                <LinkIcon className="h-40 w-40 text-indigo-400" />
+                            </div>
+
+                            <div className="relative z-10">
+                                <div className="flex items-center gap-3 mb-4">
+                                    <div className="h-10 w-10 rounded-full bg-indigo-500/20 flex items-center justify-center border border-indigo-500/30">
+                                        <ShieldCheck className="h-5 w-5 text-indigo-400" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-lg font-bold text-white">綁定電子郵件帳號</h3>
+                                        <p className="text-sm text-zinc-400">綁定後，您可以使用 Email 與密碼登入，並確保帳號安全。</p>
+                                    </div>
+                                </div>
+
+                                {bindStatus === 'success' ? (
+                                    <div className="bg-green-500/10 border border-green-500/20 rounded-xl p-6 text-center space-y-3 animate-in fade-in zoom-in duration-300">
+                                        <div className="mx-auto h-12 w-12 bg-green-500/20 rounded-full flex items-center justify-center">
+                                            <Check className="h-6 w-6 text-green-500" />
+                                        </div>
+                                        <h3 className="text-lg font-bold text-white">確認信已發送！</h3>
+                                        <p className="text-zinc-300">
+                                            請前往 <span className="text-green-400 font-mono">{bindEmail}</span> 收取確認信。<br />
+                                            點擊信中連結確認後，綁定即完成。
+                                        </p>
+                                        <button
+                                            onClick={() => setBindStatus('idle')}
+                                            className="mt-4 text-sm text-green-400 hover:text-green-300 underline"
+                                        >
+                                            返回
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <form onSubmit={handleBindAccount} className="space-y-4 max-w-lg">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div className="space-y-1.5">
+                                                <label className="text-xs text-zinc-400 font-medium ml-1">電子信箱</label>
+                                                <div className="relative">
+                                                    <Mail className="absolute left-3 top-2.5 h-4 w-4 text-zinc-500" />
+                                                    <input
+                                                        type="email"
+                                                        required
+                                                        placeholder="name@example.com"
+                                                        value={bindEmail}
+                                                        onChange={(e) => setBindEmail(e.target.value)}
+                                                        className="w-full bg-zinc-900/80 border border-white/10 rounded-lg pl-9 pr-4 py-2 text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 placeholder:text-zinc-600"
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="space-y-1.5">
+                                                <label className="text-xs text-zinc-400 font-medium ml-1">設定密碼</label>
+                                                <div className="relative">
+                                                    <Key className="absolute left-3 top-2.5 h-4 w-4 text-zinc-500" />
+                                                    <input
+                                                        type="password"
+                                                        required
+                                                        placeholder="至少 6 位數"
+                                                        minLength={6}
+                                                        value={bindPassword}
+                                                        onChange={(e) => setBindPassword(e.target.value)}
+                                                        className="w-full bg-zinc-900/80 border border-white/10 rounded-lg pl-9 pr-4 py-2 text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 placeholder:text-zinc-600"
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {bindError && (
+                                            <div className="px-3 py-2 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm flex items-center gap-2">
+                                                <Shield className="h-4 w-4" />
+                                                {bindError}
+                                            </div>
+                                        )}
+
+                                        <div className="flex items-center gap-3 pt-2">
+                                            <button
+                                                type="submit"
+                                                disabled={bindStatus === 'loading'}
+                                                className="bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                            >
+                                                {bindStatus === 'loading' ? (
+                                                    <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                                ) : (
+                                                    <LinkIcon className="h-4 w-4" />
+                                                )}
+                                                立即綁定帳號
+                                            </button>
+                                            <p className="text-xs text-zinc-500">
+                                                綁定後不會影響原本的 LINE 登入功能。
+                                            </p>
+                                        </div>
+                                    </form>
+                                )}
+                            </div>
                         </div>
                     )}
                 </section>

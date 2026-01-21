@@ -205,8 +205,10 @@ refactor: 重構
 - [x] **Step 2**: Implement "Edit Name" functionality in Member Area.
 - [x] **Step 3**: Sync name updates to `public.profiles` and `auth.users`.
 
-### [Current Task] Migrate Legacy Tools
-- [x] **Map Tool Migration**
+### [Current Task] Implement Email Binding for LINE Users
+- [ ] **Step 1**: Detect temporary LINE emails in `SettingsPage`.
+- [ ] **Step 2**: Create UI for "Bind Email & Password" (Upgrade Account).
+- [ ] **Step 3**: Implement `supabase.auth.updateUser` logic for binding.
     - [x] Create `/app/map/page.tsx`
     - [x] Implement `LeafletMap.tsx` (using react-leaflet)
     - [x] Port functionalities: Address Search, Overpass API (Buildings), GeoJSON Upload
