@@ -178,6 +178,53 @@ export default function SettingsPage() {
         }
     };
 
+    const handleBindLine = async () => {
+        if (!user) return;
+        setBindStatus('loading');
+
+        try {
+            if (!process.env.NEXT_PUBLIC_LINE_LIFF_ID) throw new Error("LINE Liff ID not configured");
+
+            const liffModule = await import('@line/liff');
+            const liff = liffModule.default;
+            await liff.init({ liffId: process.env.NEXT_PUBLIC_LINE_LIFF_ID });
+
+            if (!liff.isLoggedIn()) {
+                // If not logged in to LINE, trigger login
+                // Important: we want to stay on this page to complete binding
+                liff.login({ redirectUri: window.location.href });
+                return; // Will redirect
+            }
+
+            const idToken = liff.getIDToken();
+            if (!idToken) throw new Error("Failed to get ID Token from LINE");
+
+            // Call Edge Function to Link
+            const { data, error } = await supabase.functions.invoke('line-auth', {
+                body: {
+                    idToken,
+                    linkToUserId: user.id
+                }
+            });
+
+            if (error) throw error;
+            if (data?.error) throw new Error(data.error);
+
+            alert("LINE 帳號綁定成功！");
+
+            // Refresh User
+            const { data: { session } } = await supabase.auth.getSession();
+            setUser(session?.user ?? null);
+            setBindStatus('idle');
+
+        } catch (error: any) {
+            console.error("Bind LINE Error:", error);
+            setBindStatus('error');
+            setBindError(error.message);
+            alert("綁定失敗: " + error.message);
+        }
+    };
+
     const handleLogout = async () => {
         try {
             // Attempt to logout from Line LIFF if initialized or logged in
@@ -373,7 +420,7 @@ export default function SettingsPage() {
                     {/* Show Connected Accounts (Including Unlink Option) */}
                     {!loading && user && (
                         <div className="space-y-4">
-                            {user.identities?.some((id: any) => id.provider === 'line') && (
+                            {(user.app_metadata?.provider === 'line' || user.user_metadata?.line_user_id || user.identities?.some((id: any) => id.provider === 'line')) ? (
                                 <div className="bg-zinc-900/30 border border-white/5 rounded-2xl p-4 flex items-center justify-between">
                                     <div className="flex items-center gap-3">
                                         <div className="h-10 w-10 bg-[#06C755]/10 rounded-full flex items-center justify-center border border-[#06C755]/20">
@@ -398,6 +445,31 @@ export default function SettingsPage() {
                                             主要登入方式
                                         </div>
                                     )}
+                                </div>
+                            ) : (
+                                // Not connected to LINE yet
+                                <div className="bg-zinc-900/30 border border-white/5 rounded-2xl p-4 flex items-center justify-between">
+                                    <div className="flex items-center gap-3">
+                                        <div className="h-10 w-10 bg-zinc-800 rounded-full flex items-center justify-center border border-zinc-700">
+                                            <span className="text-zinc-500 font-bold text-xs">LINE</span>
+                                        </div>
+                                        <div>
+                                            <h4 className="text-white font-medium">LINE 帳號連結</h4>
+                                            <p className="text-xs text-zinc-500">連結 LINE 帳號以使用快速登入</p>
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={handleBindLine}
+                                        disabled={bindStatus === 'loading'}
+                                        className="text-xs bg-[#06C755] hover:bg-[#05b34c] text-white px-4 py-2 rounded-lg flex items-center gap-1.5 transition-colors font-medium disabled:opacity-50"
+                                    >
+                                        {bindStatus === 'loading' ? (
+                                            <div className="h-3 w-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                        ) : (
+                                            <LinkIcon className="h-3 w-3" />
+                                        )}
+                                        綁定 LINE
+                                    </button>
                                 </div>
                             )}
                         </div>

@@ -25,17 +25,15 @@ serve(async (req) => {
 
     try {
         const body = await req.json().catch(() => ({}));
-        const { idToken } = body;
+        const { idToken, linkToUserId } = body; // Accept linkToUserId
 
-        console.log('[Line Auth] Request received');
+        console.log('[Line Auth] Request received. Link Mode:', !!linkToUserId);
 
         if (!idToken) {
             throw new Error('Missing idToken in body');
         }
 
         const channelId = Deno.env.get('LINE_CHANNEL_ID')
-        console.log('[Line Auth] Channel ID configured:', !!channelId);
-
         const jwtSecret = Deno.env.get('LINE_JWT_SECRET')
         if (!jwtSecret) {
             console.error('[Line Auth] Config Error: LINE_JWT_SECRET missing');
@@ -74,7 +72,45 @@ serve(async (req) => {
             Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
         )
 
-        // 2. Find or Create User
+        // 2. Account Linking Mode
+        if (linkToUserId) {
+            // Check if this LINE ID is already used by another account
+            const { data: { users }, error: listError } = await supabaseAdmin.auth.admin.listUsers()
+            const existingLineUser = users?.find(u => u.user_metadata?.line_user_id === lineUserId)
+
+            if (existingLineUser && existingLineUser.id !== linkToUserId) {
+                throw new Error('此 LINE 帳號已被其他 Vibe 設定連結，無法重複綁定。')
+            }
+
+            // Get the target user to verify they exist
+            const { data: { user: targetUser }, error: getUserError } = await supabaseAdmin.auth.admin.getUserById(linkToUserId)
+            if (getUserError || !targetUser) {
+                throw new Error('User to link not found.')
+            }
+
+            // Update user metadata
+            console.log(`[Line Auth] Linking LINE (${lineUserId}) to User (${linkToUserId})`);
+            const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(linkToUserId, {
+                user_metadata: {
+                    ...targetUser.user_metadata,
+                    line_user_id: lineUserId,
+                    // Optionally update avatar if missing
+                    ...(!targetUser.user_metadata?.avatar_url && picture ? { avatar_url: picture } : {})
+                }
+            })
+
+            if (updateError) throw updateError;
+
+            // Also support linking Identity if Supabase supports it cleanly, but metadata is safer for our hybrid approach.
+            // For now, metadata is sufficient for the UI to recognize the link.
+
+            return new Response(
+                JSON.stringify({ status: 'linked', lineUserId }),
+                { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            )
+        }
+
+        // 3. Normal Login Flow (Find or Create User)
         const userEmail = email || `${lineUserId}@line.workaround`
         let userId = null
 
@@ -112,7 +148,7 @@ serve(async (req) => {
             userId = newUser.user!.id
         }
 
-        // 3. Mint Supabase JWT
+        // 4. Mint Supabase JWT
         const key = await crypto.subtle.importKey(
             "raw",
             new TextEncoder().encode(jwtSecret),

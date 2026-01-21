@@ -205,10 +205,20 @@ refactor: 重構
 - [x] **Step 2**: Implement "Edit Name" functionality in Member Area.
 - [x] **Step 3**: Sync name updates to `public.profiles` and `auth.users`.
 
-### [Current Task] Implement Email Binding for LINE Users
+### [Completed Task] Implement Email Binding for LINE Users
 - [x] **Step 1**: Detect temporary LINE emails in `SettingsPage`.
 - [x] **Step 2**: Create UI for "Bind Email & Password" (Upgrade Account).
 - [x] **Step 3**: Implement `supabase.auth.updateUser` logic for binding.
+
+### [Completed Task] Enhance Account Binding UX
+- [x] **Step 1**: Add password confirmation and visibility toggle.
+- [x] **Step 2**: Implement account unlinking logic (enabled only after binding).
+
+### [Current Task] Implement Email to LINE Binding
+- [ ] **Step 1**: Add "Link LINE Account" button for Email users in `SettingsPage`.
+- [ ] **Step 2**: Implement binding logic (Initiate LINE Login with redirect).
+- [ ] **Step 3**: Handle callback to link identity (vs create new user).
+- [ ] **Step 4**: Verify linking status and UI updates.
     - [x] Create `/app/map/page.tsx`
     - [x] Implement `LeafletMap.tsx` (using react-leaflet)
     - [x] Port functionalities: Address Search, Overpass API (Buildings), GeoJSON Upload
