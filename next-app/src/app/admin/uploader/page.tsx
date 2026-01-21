@@ -352,7 +352,7 @@ export default function UploaderPage() {
                         <h1 className="text-3xl font-extrabold text-white tracking-tight">平米內參 <span className="text-amber-400">資料上傳工具</span></h1>
                         <p className="text-gray-400 mt-2 text-sm">高效能、智慧化的實價登錄資料批次處理系統 v2.0 (Next.js)</p>
                     </div>
-                    <button onClick={() => router.push('/')} className="text-gray-400 hover:text-white transition-colors flex items-center gap-2">
+                    <button onClick={() => router.push('/dashboard')} className="text-gray-400 hover:text-white transition-colors flex items-center gap-2">
                         <i className="fas fa-arrow-left" /> 返回儀表板
                     </button>
                 </div>
