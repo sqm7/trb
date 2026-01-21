@@ -14,6 +14,7 @@ import {
 import { useRouter } from 'next/navigation';
 import { counties, columnMappings } from '@/lib/uploader-config';
 import { searchData, batchUpdateData } from './admin-service';
+import { useAdminAuth } from '@/hooks/useAdminAuth';
 
 interface LogEntry {
     id: number;
@@ -24,6 +25,8 @@ interface LogEntry {
 
 export default function UploaderPage() {
     const router = useRouter();
+    const { user, isAdmin, isLoading: isAuthLoading } = useAdminAuth();
+
     const [logs, setLogs] = useState<LogEntry[]>([]);
     const [isUploading, setIsUploading] = useState(false);
     const [files, setFiles] = useState<FileInfo[]>([]);
@@ -53,18 +56,53 @@ export default function UploaderPage() {
     const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set());
     const [showModalSearch, setShowModalSearch] = useState(false);
 
-    // Initial Auth Check (Optional - relax requirement)
-    useEffect(() => {
-        const checkAuth = async () => {
-            await supabase.auth.getSession();
-            // If logged in, maybe pre-fill or just show connected status if we assume env vars?
-            // For now, we follow legacy: require manual input or use env vars as default if available
-            // We do NOT pre-fill the Service Role Key nor the URL for security/privacy reasons.
-            // Users must paste it manually to ensure it's not exposed in client-side code.
-            // if (process.env.NEXT_PUBLIC_SUPABASE_URL) setDbUrl(process.env.NEXT_PUBLIC_SUPABASE_URL);
-        };
-        checkAuth();
-    }, []);
+    // Admin Access Check - Show loading or access denied
+    if (isAuthLoading) {
+        return (
+            <div className="min-h-screen bg-[#1a1d29] flex items-center justify-center">
+                <div className="text-center space-y-4">
+                    <div className="h-8 w-8 border-2 border-cyan-500/30 border-t-cyan-500 rounded-full animate-spin mx-auto" />
+                    <p className="text-zinc-500 text-sm">驗證管理員權限...</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (!user) {
+        return (
+            <div className="min-h-screen bg-[#1a1d29] flex items-center justify-center">
+                <div className="text-center space-y-4 p-8">
+                    <div className="text-4xl">🔒</div>
+                    <h1 className="text-xl font-bold text-white">請先登入</h1>
+                    <p className="text-zinc-500">此頁面需要登入才能訪問</p>
+                    <button
+                        onClick={() => router.push('/')}
+                        className="bg-cyan-600 hover:bg-cyan-500 text-white px-6 py-2 rounded-lg transition-colors"
+                    >
+                        前往登入
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
+    if (!isAdmin) {
+        return (
+            <div className="min-h-screen bg-[#1a1d29] flex items-center justify-center">
+                <div className="text-center space-y-4 p-8">
+                    <div className="text-4xl">⛔</div>
+                    <h1 className="text-xl font-bold text-white">權限不足</h1>
+                    <p className="text-zinc-500">此頁面僅限管理員訪問</p>
+                    <button
+                        onClick={() => router.push('/dashboard')}
+                        className="bg-zinc-700 hover:bg-zinc-600 text-white px-6 py-2 rounded-lg transition-colors"
+                    >
+                        返回首頁
+                    </button>
+                </div>
+            </div>
+        );
+    }
 
     const addLog = (text: string, type: 'info' | 'success' | 'warning' | 'error') => {
         const time = new Date().toLocaleTimeString();
