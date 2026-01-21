@@ -16,7 +16,8 @@ import {
     BookOpen,
     AtSign,
     Ruler,
-    User
+    User,
+    ShieldCheck
 } from "lucide-react";
 
 export const NAV_ITEMS = [
@@ -32,6 +33,7 @@ export const NAV_ITEMS = [
 export function Sidebar() {
     const pathname = usePathname();
     const [user, setUser] = React.useState<any>(null);
+    const [isAdmin, setIsAdmin] = React.useState(false);
     const [showNewBadge, setShowNewBadge] = React.useState(false);
     const router = useRouter();
 
@@ -39,6 +41,11 @@ export function Sidebar() {
         // Get initial session
         supabase.auth.getSession().then(({ data: { session } }) => {
             setUser(session?.user ?? null);
+            // Check admin status
+            if (session?.user) {
+                supabase.from('profiles').select('role').eq('id', session.user.id).single()
+                    .then(({ data }) => setIsAdmin(data?.role === 'admin'));
+            }
         });
 
         // Listen for changes
@@ -46,6 +53,12 @@ export function Sidebar() {
             data: { subscription },
         } = supabase.auth.onAuthStateChange((_event, session) => {
             setUser(session?.user ?? null);
+            if (session?.user) {
+                supabase.from('profiles').select('role').eq('id', session.user.id).single()
+                    .then(({ data }) => setIsAdmin(data?.role === 'admin'));
+            } else {
+                setIsAdmin(false);
+            }
         });
 
         return () => subscription.unsubscribe();
@@ -160,6 +173,23 @@ export function Sidebar() {
                 <div className="my-6 border-t border-white/5 mx-3" />
 
                 <nav className="flex flex-col gap-1 space-y-1">
+                    {/* Admin Menu - Only visible to admins */}
+                    {isAdmin && (
+                        <Link
+                            href="/admin/uploader"
+                            className={cn(
+                                "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors min-h-[40px]",
+                                pathname?.startsWith('/admin')
+                                    ? "bg-amber-500/10 text-amber-400 font-semibold"
+                                    : "text-amber-400/70 hover:bg-zinc-900 hover:text-amber-300"
+                            )}
+                        >
+                            <ShieldCheck className="h-5 w-5 flex-shrink-0 text-amber-500" />
+                            <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
+                                管理者介面
+                            </span>
+                        </Link>
+                    )}
                     <Link
                         href="/settings"
                         className="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-zinc-400 hover:bg-zinc-900 hover:text-zinc-100 transition-colors min-h-[40px]"

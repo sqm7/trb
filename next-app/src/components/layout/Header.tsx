@@ -33,14 +33,6 @@ export function Header() {
 
                 {/* Right: Actions */}
                 <div className="flex items-center gap-2">
-
-                    <Link
-                        href="/admin/uploader"
-                        className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-9 px-3 text-zinc-400 hover:text-white"
-                    >
-                        Uploader
-                    </Link>
-                    <div className="h-4 w-[1px] bg-zinc-800 mx-2" />
                     <Button variant="ghost" size="icon" className="relative text-zinc-400 hover:text-white hover:bg-zinc-800">
                         <Bell className="h-5 w-5" />
                         <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-violet-500 ring-2 ring-zinc-950 block" />
