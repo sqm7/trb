@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { AppLayout } from "@/components/layout/AppLayout";
-import { Monitor, Moon, Sun, Layout, Check, Shield, Bell, User, LogOut, CreditCard, Mail, Fingerprint, Edit2, X, Link as LinkIcon, Lock, Key, ShieldCheck } from "lucide-react";
+import { Monitor, Moon, Sun, Layout, Check, Shield, Bell, User, LogOut, CreditCard, Mail, Fingerprint, Edit2, X, Link as LinkIcon, Lock, Key, ShieldCheck, Eye, EyeOff, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/lib/supabase";
 
@@ -50,6 +50,8 @@ export default function SettingsPage() {
     const [isBinding, setIsBinding] = useState(false);
     const [bindEmail, setBindEmail] = useState("");
     const [bindPassword, setBindPassword] = useState("");
+    const [bindConfirmPassword, setBindConfirmPassword] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
     const [bindStatus, setBindStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
     const [bindError, setBindError] = useState("");
 
@@ -133,6 +135,9 @@ export default function SettingsPage() {
             if (bindPassword.length < 6) {
                 throw new Error("密碼長度至少需 6 個字元");
             }
+            if (bindPassword !== bindConfirmPassword) {
+                throw new Error("兩次輸入的密碼不一致");
+            }
 
             // Update user with new email and password
             const { data, error } = await supabase.auth.updateUser({
@@ -143,12 +148,33 @@ export default function SettingsPage() {
             if (error) throw error;
 
             setBindStatus('success');
-            // Provide feedback: User usually needs to confirm email
 
         } catch (err: any) {
             console.error("Binding error:", err);
             setBindStatus('error');
             setBindError(err.message || "綁定失敗，請檢查電子郵件格式");
+        }
+    };
+
+    const handleUnlinkLine = async () => {
+        if (!confirm("確定要解除 LINE 連結嗎？解除後您將無法使用 LINE 登入。")) return;
+
+        try {
+            const lineIdentity = user?.identities?.find((id: any) => id.provider === 'line');
+            if (lineIdentity) {
+                const { error } = await supabase.auth.unlinkIdentity(lineIdentity.identity_id);
+                if (error) throw error;
+
+                // Refresh user
+                const { data: { session } } = await supabase.auth.getSession();
+                setUser(session?.user ?? null);
+                alert("已成功解除 LINE 連結");
+            } else {
+                alert("找不到 LINE 連結資訊");
+            }
+        } catch (error: any) {
+            console.error("Unlink error:", error);
+            alert("解除連結失敗: " + error.message);
         }
     };
 
@@ -344,9 +370,43 @@ export default function SettingsPage() {
                         </div>
                     )}
 
+                    {/* Show Connected Accounts (Including Unlink Option) */}
+                    {!loading && user && (
+                        <div className="space-y-4">
+                            {user.identities?.some((id: any) => id.provider === 'line') && (
+                                <div className="bg-zinc-900/30 border border-white/5 rounded-2xl p-4 flex items-center justify-between">
+                                    <div className="flex items-center gap-3">
+                                        <div className="h-10 w-10 bg-[#06C755]/10 rounded-full flex items-center justify-center border border-[#06C755]/20">
+                                            <span className="text-[#06C755] font-bold text-xs">LINE</span>
+                                        </div>
+                                        <div>
+                                            <h4 className="text-white font-medium">LINE 帳號連結</h4>
+                                            <p className="text-xs text-zinc-500">已連結您的 LINE 帳號</p>
+                                        </div>
+                                    </div>
+                                    {/* Only allow unlink if they have an email set (i.e. not line.workaround) */}
+                                    {!user.email?.includes('line.workaround') ? (
+                                        <button
+                                            onClick={handleUnlinkLine}
+                                            className="text-xs bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-colors"
+                                        >
+                                            <Trash2 className="h-3 w-3" />
+                                            解除連結
+                                        </button>
+                                    ) : (
+                                        <div className="text-xs text-zinc-500 bg-zinc-800 px-2 py-1 rounded">
+                                            主要登入方式
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+
                     {/* Bind Account Section (Only for Line users with workaround emails) */}
                     {!loading && user && user.email?.includes('line.workaround') && (
-                        <div className="bg-gradient-to-br from-indigo-900/30 to-violet-900/30 border border-indigo-500/20 rounded-2xl p-6 mt-6 relative overflow-hidden">
+                        <div className="bg-gradient-to-br from-indigo-900/30 to-violet-900/30 border border-indigo-500/20 rounded-2xl p-6 relative overflow-hidden">
                             {/* Background Pattern */}
                             <div className="absolute top-0 right-0 p-8 opacity-5">
                                 <LinkIcon className="h-40 w-40 text-indigo-400" />
@@ -397,19 +457,45 @@ export default function SettingsPage() {
                                                     />
                                                 </div>
                                             </div>
-                                            <div className="space-y-1.5">
-                                                <label className="text-xs text-zinc-400 font-medium ml-1">設定密碼</label>
-                                                <div className="relative">
-                                                    <Key className="absolute left-3 top-2.5 h-4 w-4 text-zinc-500" />
-                                                    <input
-                                                        type="password"
-                                                        required
-                                                        placeholder="至少 6 位數"
-                                                        minLength={6}
-                                                        value={bindPassword}
-                                                        onChange={(e) => setBindPassword(e.target.value)}
-                                                        className="w-full bg-zinc-900/80 border border-white/10 rounded-lg pl-9 pr-4 py-2 text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 placeholder:text-zinc-600"
-                                                    />
+                                            <div className="space-y-1.5 md:col-span-2">
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                    <div className="space-y-1.5">
+                                                        <label className="text-xs text-zinc-400 font-medium ml-1">設定密碼</label>
+                                                        <div className="relative">
+                                                            <Key className="absolute left-3 top-2.5 h-4 w-4 text-zinc-500" />
+                                                            <input
+                                                                type={showPassword ? "text" : "password"}
+                                                                required
+                                                                placeholder="至少 6 位數"
+                                                                minLength={6}
+                                                                value={bindPassword}
+                                                                onChange={(e) => setBindPassword(e.target.value)}
+                                                                className="w-full bg-zinc-900/80 border border-white/10 rounded-lg pl-9 pr-10 py-2 text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 placeholder:text-zinc-600"
+                                                            />
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => setShowPassword(!showPassword)}
+                                                                className="absolute right-3 top-2.5 text-zinc-500 hover:text-zinc-300"
+                                                            >
+                                                                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                    <div className="space-y-1.5">
+                                                        <label className="text-xs text-zinc-400 font-medium ml-1">確認密碼</label>
+                                                        <div className="relative">
+                                                            <Key className="absolute left-3 top-2.5 h-4 w-4 text-zinc-500" />
+                                                            <input
+                                                                type={showPassword ? "text" : "password"}
+                                                                required
+                                                                placeholder="再次輸入密碼"
+                                                                minLength={6}
+                                                                value={bindConfirmPassword}
+                                                                onChange={(e) => setBindConfirmPassword(e.target.value)}
+                                                                className="w-full bg-zinc-900/80 border border-white/10 rounded-lg pl-9 pr-4 py-2 text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 placeholder:text-zinc-600"
+                                                            />
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>

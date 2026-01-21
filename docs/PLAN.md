@@ -206,9 +206,9 @@ refactor: 重構
 - [x] **Step 3**: Sync name updates to `public.profiles` and `auth.users`.
 
 ### [Current Task] Implement Email Binding for LINE Users
-- [ ] **Step 1**: Detect temporary LINE emails in `SettingsPage`.
-- [ ] **Step 2**: Create UI for "Bind Email & Password" (Upgrade Account).
-- [ ] **Step 3**: Implement `supabase.auth.updateUser` logic for binding.
+- [x] **Step 1**: Detect temporary LINE emails in `SettingsPage`.
+- [x] **Step 2**: Create UI for "Bind Email & Password" (Upgrade Account).
+- [x] **Step 3**: Implement `supabase.auth.updateUser` logic for binding.
     - [x] Create `/app/map/page.tsx`
     - [x] Implement `LeafletMap.tsx` (using react-leaflet)
     - [x] Port functionalities: Address Search, Overpass API (Buildings), GeoJSON Upload
