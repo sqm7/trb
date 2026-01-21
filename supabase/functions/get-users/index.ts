@@ -59,7 +59,10 @@ serve(async (req) => {
             const profile = profiles?.find(p => p.id === u.id)
             const identityProviders = u.identities?.map(id => id.provider) || []
             const appMetaProviders = u.app_metadata?.providers || []
-            const allProviders = [...identityProviders, ...appMetaProviders].map(p => String(p).toLowerCase())
+            // Check for custom LINE auth indicator in user_metadata
+            const customLineProvider = (u.user_metadata?.line_user_id || u.user_metadata?.provider === 'line') ? ['line'] : []
+
+            const allProviders = [...identityProviders, ...appMetaProviders, ...customLineProvider].map(p => String(p).toLowerCase())
             const uniqueProviders = [...new Set(allProviders)]
 
             return {
