@@ -216,11 +216,13 @@ export default function SettingsPage() {
                                             )}
                                         </div>
 
-                                        {/* Email */}
-                                        <div className="flex items-center gap-2 text-zinc-400 text-sm">
-                                            <Mail className="h-3.5 w-3.5" />
-                                            {user.email}
-                                        </div>
+                                        {/* Email (Hide if it's a Line workaround email) */}
+                                        {!user.email?.includes('line.workaround') && (
+                                            <div className="flex items-center gap-2 text-zinc-400 text-sm">
+                                                <Mail className="h-3.5 w-3.5" />
+                                                {user.email}
+                                            </div>
+                                        )}
 
                                         {/* Login Method Badge */}
                                         <div className="flex items-center gap-2 mt-1.5">
