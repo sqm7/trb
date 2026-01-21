@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase';
 import Image from 'next/image';
 import { ArrowRight, Lock, Mail, User, Shield, TrendingUp, Building2, ChevronDown, Search, Zap } from 'lucide-react';
 import { AppLayout } from '@/components/layout/AppLayout';
+import { getLiffId } from '@/lib/liff-config';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -103,7 +104,7 @@ export default function LoginPage() {
     // Import LIFF dynamically to avoid SSR issues
     import('@line/liff').then((liffModule) => {
       const liff = liffModule.default;
-      const liffId = process.env.NEXT_PUBLIC_LINE_LIFF_ID || '2008934556-Ud86tczR';
+      const liffId = getLiffId();
 
       liff
         .init({ liffId })

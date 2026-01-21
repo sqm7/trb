@@ -6,6 +6,7 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { Monitor, Moon, Sun, Layout, Check, Shield, Bell, User, LogOut, CreditCard, Mail, Fingerprint, Edit2, X, Link as LinkIcon, Lock, Key, ShieldCheck, Eye, EyeOff, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/lib/supabase";
+import { getLiffId } from "@/lib/liff-config";
 
 // Theme Options
 const THEMES = [
@@ -183,11 +184,12 @@ export default function SettingsPage() {
         setBindStatus('loading');
 
         try {
-            if (!process.env.NEXT_PUBLIC_LINE_LIFF_ID) throw new Error("LINE Liff ID not configured");
+            const liffId = getLiffId();
+            if (!liffId) throw new Error("LINE Liff ID not configured");
 
             const liffModule = await import('@line/liff');
             const liff = liffModule.default;
-            await liff.init({ liffId: process.env.NEXT_PUBLIC_LINE_LIFF_ID });
+            await liff.init({ liffId });
 
             if (!liff.isLoggedIn()) {
                 // If not logged in to LINE, trigger login
@@ -228,11 +230,12 @@ export default function SettingsPage() {
     const handleLogout = async () => {
         try {
             // Attempt to logout from Line LIFF if initialized or logged in
-            if (process.env.NEXT_PUBLIC_LINE_LIFF_ID) {
+            const liffId = getLiffId();
+            if (liffId) {
                 try {
                     const liffModule = await import('@line/liff');
                     const liff = liffModule.default;
-                    await liff.init({ liffId: process.env.NEXT_PUBLIC_LINE_LIFF_ID });
+                    await liff.init({ liffId });
                     if (liff.isLoggedIn()) {
                         liff.logout();
                         console.log('LIFF logged out');
