@@ -50,7 +50,7 @@ export function Sidebar() {
             // Check admin status
             if (session?.user) {
                 supabase.from('profiles').select('role').eq('id', session.user.id).single()
-                    .then(({ data }) => setIsAdmin(data?.role === 'admin'));
+                    .then(({ data }) => setIsAdmin(data?.role === 'admin' || data?.role === 'super_admin'));
             }
         });
 
@@ -61,7 +61,7 @@ export function Sidebar() {
             setUser(session?.user ?? null);
             if (session?.user) {
                 supabase.from('profiles').select('role').eq('id', session.user.id).single()
-                    .then(({ data }) => setIsAdmin(data?.role === 'admin'));
+                    .then(({ data }) => setIsAdmin(data?.role === 'admin' || data?.role === 'super_admin'));
             } else {
                 setIsAdmin(false);
             }

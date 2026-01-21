@@ -63,7 +63,7 @@ export function useAdminAuth(): AdminAuthState {
 
                 setState({
                     user: session.user,
-                    isAdmin: profile?.role === 'admin',
+                    isAdmin: profile?.role === 'admin' || profile?.role === 'super_admin',
                     isLoading: false,
                     error: null,
                 });

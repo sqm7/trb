@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
-import { Users, ArrowLeft, Shield, ShieldOff, Search, Mail, Calendar } from 'lucide-react';
+import { Users, ArrowLeft, Shield, ShieldOff, Search, Mail, Calendar, Crown } from 'lucide-react';
 
 interface Member {
     id: string;
@@ -22,6 +22,7 @@ export default function AdminMembersPage() {
     const [members, setMembers] = useState<Member[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
+    const [currentUserRole, setCurrentUserRole] = useState<string>('user');
 
     useEffect(() => {
         if (!isAuthLoading && isAdmin) {
@@ -48,6 +49,12 @@ export default function AdminMembersPage() {
             }));
 
             setMembers(membersWithEmail);
+
+            // Get current user's role
+            const currentProfile = (data || []).find(p => p.id === user?.id);
+            if (currentProfile) {
+                setCurrentUserRole(currentProfile.role);
+            }
         } catch (error) {
             console.error('Error fetching members:', error);
         } finally {
@@ -56,12 +63,25 @@ export default function AdminMembersPage() {
     };
 
     const toggleRole = async (memberId: string, currentRole: string) => {
-        const newRole = currentRole === 'admin' ? 'user' : 'admin';
-
-        if (memberId === user?.id && currentRole === 'admin') {
-            alert('您不能取消自己的管理員權限');
+        // Super admin protection - cannot be modified by anyone
+        if (currentRole === 'super_admin') {
+            alert('超級管理員權限無法被修改');
             return;
         }
+
+        // Only super_admin can modify other admins
+        if (currentRole === 'admin' && currentUserRole !== 'super_admin') {
+            alert('只有超級管理員可以修改其他管理員的權限');
+            return;
+        }
+
+        // Cannot modify yourself
+        if (memberId === user?.id) {
+            alert('您不能修改自己的權限');
+            return;
+        }
+
+        const newRole = currentRole === 'admin' ? 'user' : 'admin';
 
         if (!confirm(`確定要將此會員設為 ${newRole === 'admin' ? '管理員' : '一般會員'} 嗎？`)) return;
 
@@ -192,7 +212,12 @@ export default function AdminMembersPage() {
                                             </div>
                                         </td>
                                         <td className="px-4 py-3">
-                                            {m.role === 'admin' ? (
+                                            {m.role === 'super_admin' ? (
+                                                <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium bg-purple-500/10 text-purple-400 border border-purple-500/20 rounded-full">
+                                                    <Crown className="h-3 w-3" />
+                                                    超級管理員
+                                                </span>
+                                            ) : m.role === 'admin' ? (
                                                 <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-full">
                                                     <Shield className="h-3 w-3" />
                                                     管理員
@@ -211,20 +236,29 @@ export default function AdminMembersPage() {
                                         </td>
                                         <td className="px-4 py-3">
                                             <div className="flex items-center justify-end">
-                                                <button
-                                                    onClick={() => toggleRole(m.id, m.role)}
-                                                    className={`flex items-center gap-1 px-3 py-1.5 rounded text-xs font-medium transition-colors ${m.role === 'admin'
-                                                        ? 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'
-                                                        : 'bg-amber-500/10 text-amber-400 hover:bg-amber-500/20'
-                                                        }`}
-                                                    title={m.role === 'admin' ? '移除管理員權限' : '設為管理員'}
-                                                >
-                                                    {m.role === 'admin' ? (
-                                                        <><ShieldOff className="h-3 w-3" /> 移除權限</>
-                                                    ) : (
-                                                        <><Shield className="h-3 w-3" /> 設為管理員</>
-                                                    )}
-                                                </button>
+                                                {/* Hide button for super_admin targets, self, or if current user is not super_admin and target is admin */}
+                                                {m.role !== 'super_admin' && m.id !== user?.id && (currentUserRole === 'super_admin' || m.role === 'user') && (
+                                                    <button
+                                                        onClick={() => toggleRole(m.id, m.role)}
+                                                        className={`flex items-center gap-1 px-3 py-1.5 rounded text-xs font-medium transition-colors ${m.role === 'admin'
+                                                            ? 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'
+                                                            : 'bg-amber-500/10 text-amber-400 hover:bg-amber-500/20'
+                                                            }`}
+                                                        title={m.role === 'admin' ? '移除管理員權限' : '設為管理員'}
+                                                    >
+                                                        {m.role === 'admin' ? (
+                                                            <><ShieldOff className="h-3 w-3" /> 移除權限</>
+                                                        ) : (
+                                                            <><Shield className="h-3 w-3" /> 設為管理員</>
+                                                        )}
+                                                    </button>
+                                                )}
+                                                {m.role === 'super_admin' && (
+                                                    <span className="text-xs text-zinc-600">受保護</span>
+                                                )}
+                                                {m.id === user?.id && (
+                                                    <span className="text-xs text-zinc-600">本人</span>
+                                                )}
                                             </div>
                                         </td>
                                     </tr>
@@ -242,7 +276,7 @@ export default function AdminMembersPage() {
                     </div>
                     <div className="bg-zinc-900/50 border border-zinc-800 rounded-lg px-4 py-3">
                         <p className="text-xs text-zinc-500">管理員</p>
-                        <p className="text-xl font-bold text-amber-400">{members.filter(m => m.role === 'admin').length}</p>
+                        <p className="text-xl font-bold text-amber-400">{members.filter(m => m.role === 'admin' || m.role === 'super_admin').length}</p>
                     </div>
                 </div>
             </div>
