@@ -197,7 +197,7 @@ export default function AdminAnnouncementsPage() {
                 {/* Header */}
                 <div className="flex justify-between items-center mb-8">
                     <div className="flex items-center gap-4">
-                        <button onClick={() => router.push('/admin/uploader')} className="text-zinc-400 hover:text-white">
+                        <button onClick={() => router.back()} className="text-zinc-400 hover:text-white">
                             <ArrowLeft className="h-5 w-5" />
                         </button>
                         <div className="p-3 bg-amber-500/10 rounded-xl border border-amber-500/20">

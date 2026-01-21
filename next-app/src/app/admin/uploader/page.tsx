@@ -61,7 +61,7 @@ export default function UploaderPage() {
         return (
             <div className="min-h-screen bg-[#1a1d29] flex items-center justify-center">
                 <div className="text-center space-y-4">
-                    <div className="h-8 w-8 border-2 border-cyan-500/30 border-t-cyan-500 rounded-full animate-spin mx-auto" />
+                    <div className="h-8 w-8 border-2 border-amber-500/30 border-t-amber-500 rounded-full animate-spin mx-auto" />
                     <p className="text-zinc-500 text-sm">驗證管理員權限...</p>
                 </div>
             </div>
@@ -77,7 +77,7 @@ export default function UploaderPage() {
                     <p className="text-zinc-500">此頁面需要登入才能訪問</p>
                     <button
                         onClick={() => router.push('/')}
-                        className="bg-cyan-600 hover:bg-cyan-500 text-white px-6 py-2 rounded-lg transition-colors"
+                        className="bg-amber-600 hover:bg-amber-500 text-white px-6 py-2 rounded-lg transition-colors"
                     >
                         前往登入
                     </button>
@@ -349,7 +349,7 @@ export default function UploaderPage() {
                 {/* Header */}
                 <div className="flex justify-between items-center bg-[#252836] p-6 rounded-xl border border-gray-700 shadow-lg">
                     <div>
-                        <h1 className="text-3xl font-extrabold text-white tracking-tight">平米內參 <span className="text-cyan-400">資料上傳工具</span></h1>
+                        <h1 className="text-3xl font-extrabold text-white tracking-tight">平米內參 <span className="text-amber-400">資料上傳工具</span></h1>
                         <p className="text-gray-400 mt-2 text-sm">高效能、智慧化的實價登錄資料批次處理系統 v2.0 (Next.js)</p>
                     </div>
                     <button onClick={() => router.push('/')} className="text-gray-400 hover:text-white transition-colors flex items-center gap-2">
@@ -363,7 +363,7 @@ export default function UploaderPage() {
                         {/* 1. Database Connection */}
                         <div className="bg-[#252836] p-6 rounded-xl border border-gray-700 shadow-lg">
                             <h2 className="text-xl font-bold text-white mb-4 flex items-center">
-                                <span className="bg-cyan-900 text-cyan-400 w-8 h-8 rounded-full flex items-center justify-center mr-3 text-sm">1</span>
+                                <span className="bg-amber-900 text-amber-400 w-8 h-8 rounded-full flex items-center justify-center mr-3 text-sm">1</span>
                                 資料庫連線
                             </h2>
                             <div className="space-y-4">
@@ -373,7 +373,7 @@ export default function UploaderPage() {
                                         type="text"
                                         value={dbUrl}
                                         onChange={(e) => setDbUrl(e.target.value)}
-                                        className="w-full bg-gray-800 border-gray-600 rounded-lg px-3 py-2 text-white focus:ring-cyan-500 focus:border-cyan-500 placeholder-gray-600"
+                                        className="w-full bg-gray-800 border-gray-600 rounded-lg px-3 py-2 text-white focus:ring-amber-500 focus:border-amber-500 placeholder-gray-600"
                                         placeholder="https://xyz.supabase.co"
                                     />
                                 </div>
@@ -383,7 +383,7 @@ export default function UploaderPage() {
                                         type="password"
                                         value={dbKey}
                                         onChange={(e) => setDbKey(e.target.value)}
-                                        className="w-full bg-gray-800 border-gray-600 rounded-lg px-3 py-2 text-white focus:ring-cyan-500 focus:border-cyan-500 placeholder-gray-600"
+                                        className="w-full bg-gray-800 border-gray-600 rounded-lg px-3 py-2 text-white focus:ring-amber-500 focus:border-amber-500 placeholder-gray-600"
                                         placeholder="eyJhhGciOiJIUzI1NiIsInR5cCI..."
                                     />
                                 </div>
@@ -402,7 +402,7 @@ export default function UploaderPage() {
                         {/* 2. Folder Selection */}
                         <div className="bg-[#252836] p-6 rounded-xl border border-gray-700 shadow-lg">
                             <h2 className="text-xl font-bold text-white mb-4 flex items-center">
-                                <span className="bg-cyan-900 text-cyan-400 w-8 h-8 rounded-full flex items-center justify-center mr-3 text-sm">2</span>
+                                <span className="bg-amber-900 text-amber-400 w-8 h-8 rounded-full flex items-center justify-center mr-3 text-sm">2</span>
                                 選擇資料來源
                             </h2>
                             <button
@@ -433,7 +433,7 @@ export default function UploaderPage() {
                         {/* 3. Upload Action */}
                         <div className="bg-[#252836] p-6 rounded-xl border border-gray-700 shadow-lg">
                             <h2 className="text-xl font-bold text-white mb-4 flex items-center">
-                                <span className="bg-cyan-900 text-cyan-400 w-8 h-8 rounded-full flex items-center justify-center mr-3 text-sm">3</span>
+                                <span className="bg-amber-900 text-amber-400 w-8 h-8 rounded-full flex items-center justify-center mr-3 text-sm">3</span>
                                 開始處理
                             </h2>
                             <div className="space-y-4">
@@ -442,7 +442,7 @@ export default function UploaderPage() {
                                     <div className="grid grid-cols-2 gap-2">
                                         {['all', 'a', 'b', 'c'].map(type => (
                                             <label key={type} className={`cursor-pointer border rounded-lg p-2 text-center transition-all ${uploadType === type
-                                                ? 'bg-cyan-900/30 border-cyan-500 text-cyan-400'
+                                                ? 'bg-amber-900/30 border-amber-500 text-amber-400'
                                                 : 'bg-gray-800 border-gray-700 text-gray-400 hover:border-gray-500'
                                                 }`}>
                                                 <input
@@ -462,7 +462,7 @@ export default function UploaderPage() {
                                 <button
                                     onClick={handleStartUpload}
                                     disabled={!isConnected || files.length === 0 || isUploading}
-                                    className="w-full bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold py-3 px-4 rounded-lg shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                    className="w-full bg-gradient-to-r from-amber-600 to-blue-600 hover:from-amber-500 hover:to-blue-500 text-white font-bold py-3 px-4 rounded-lg shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                                 >
                                     {isUploading ? <i className="fas fa-spinner fa-spin" /> : <i className="fas fa-rocket" />}
                                     {isUploading ? '處理中...' : '開始上傳'}
@@ -473,7 +473,7 @@ export default function UploaderPage() {
                         {/* 4. Batch Data Modification (Legacy Feature) */}
                         <div className="bg-[#252836] p-6 rounded-xl border border-gray-700 shadow-lg">
                             <h2 className="text-xl font-bold text-white mb-4 flex items-center">
-                                <span className="bg-cyan-900 text-cyan-400 w-8 h-8 rounded-full flex items-center justify-center mr-3 text-sm">4</span>
+                                <span className="bg-amber-900 text-amber-400 w-8 h-8 rounded-full flex items-center justify-center mr-3 text-sm">4</span>
                                 資料批次修改 (獨立功能)
                             </h2>
                             <div className="space-y-4">
@@ -482,7 +482,7 @@ export default function UploaderPage() {
                                     <select
                                         value={updateCounty}
                                         onChange={(e) => setUpdateCounty(e.target.value)}
-                                        className="w-full bg-gray-800 border-gray-600 rounded-lg px-3 py-2 text-white focus:ring-cyan-500 focus:border-cyan-500"
+                                        className="w-full bg-gray-800 border-gray-600 rounded-lg px-3 py-2 text-white focus:ring-amber-500 focus:border-amber-500"
                                     >
                                         {Object.entries(counties).map(([code, name]) => (
                                             <option key={code} value={code.toLowerCase()}>{name}</option>
@@ -494,7 +494,7 @@ export default function UploaderPage() {
                                     <div className="grid grid-cols-2 gap-2">
                                         {['a', 'b', 'c'].map(type => (
                                             <label key={type} className={`cursor-pointer border rounded-lg p-2 text-center transition-all ${updateType === type
-                                                ? 'bg-cyan-900/30 border-cyan-500 text-cyan-400'
+                                                ? 'bg-amber-900/30 border-amber-500 text-amber-400'
                                                 : 'bg-gray-800 border-gray-700 text-gray-400 hover:border-gray-500'
                                                 }`}>
                                                 <input
@@ -516,7 +516,7 @@ export default function UploaderPage() {
                                     <select
                                         value={updateSearchField}
                                         onChange={(e) => setUpdateSearchField(e.target.value)}
-                                        className="w-full bg-gray-800 border-gray-600 rounded-lg px-3 py-2 text-white focus:ring-cyan-500 focus:border-cyan-500"
+                                        className="w-full bg-gray-800 border-gray-600 rounded-lg px-3 py-2 text-white focus:ring-amber-500 focus:border-amber-500"
                                     >
                                         {Array.from(new Set(Object.values(columnMappings[updateType] || {})))
                                             .filter(f => !['編號', 'id'].includes(f))
@@ -534,7 +534,7 @@ export default function UploaderPage() {
                                         value={updateKeyword}
                                         onChange={(e) => setUpdateKeyword(e.target.value)}
                                         onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                                        className="w-full bg-gray-800 border-gray-600 rounded-lg px-3 py-2 text-white focus:ring-cyan-500 focus:border-cyan-500 placeholder-gray-600"
+                                        className="w-full bg-gray-800 border-gray-600 rounded-lg px-3 py-2 text-white focus:ring-amber-500 focus:border-amber-500 placeholder-gray-600"
                                         placeholder="輸入關鍵字..."
                                     />
                                 </div>
@@ -556,11 +556,11 @@ export default function UploaderPage() {
                         <div className="bg-[#252836] p-6 rounded-xl border border-gray-700 shadow-lg">
                             <h3 className="text-gray-300 font-bold mb-4 flex justify-between items-center">
                                 <span><i className="fas fa-tasks mr-2 text-purple-400" />執行進度</span>
-                                {isUploading && <span className="text-cyan-400">{progress}%</span>}
+                                {isUploading && <span className="text-amber-400">{progress}%</span>}
                             </h3>
                             <div className="w-full bg-gray-700 rounded-full h-4 mb-2 overflow-hidden">
                                 <div
-                                    className="bg-gradient-to-r from-cyan-500 to-purple-500 h-4 rounded-full transition-all duration-300 relative"
+                                    className="bg-gradient-to-r from-amber-500 to-purple-500 h-4 rounded-full transition-all duration-300 relative"
                                     style={{ width: `${progress}%` }}
                                 >
                                     {isUploading && <div className="absolute inset-0 bg-white/20 animate-pulse"></div>}
@@ -645,7 +645,7 @@ export default function UploaderPage() {
                                     type="checkbox"
                                     checked={selectedIds.size > 0 && selectedIds.size === searchResults.length}
                                     onChange={toggleSelectAll}
-                                    className="form-checkbox h-5 w-5 text-cyan-600 bg-gray-700 border-gray-600 rounded"
+                                    className="form-checkbox h-5 w-5 text-amber-600 bg-gray-700 border-gray-600 rounded"
                                 />
                                 <span>全選 ({selectedIds.size} 筆)</span>
                             </div>
@@ -658,7 +658,7 @@ export default function UploaderPage() {
                                     <select
                                         value={batchUpdateField}
                                         onChange={(e) => setBatchUpdateField(e.target.value)}
-                                        className="bg-gray-800 border-gray-600 rounded px-3 py-1.5 text-sm text-white focus:ring-cyan-500"
+                                        className="bg-gray-800 border-gray-600 rounded px-3 py-1.5 text-sm text-white focus:ring-amber-500"
                                     >
                                         {Array.from(new Set(Object.values(columnMappings[updateType] || {})))
                                             .filter(f => !['編號', 'id'].includes(f))
@@ -674,7 +674,7 @@ export default function UploaderPage() {
                                         type="text"
                                         value={batchUpdateValue}
                                         onChange={(e) => setBatchUpdateValue(e.target.value)}
-                                        className="bg-gray-800 border-gray-600 rounded px-3 py-1.5 text-sm text-white w-48 focus:ring-cyan-500"
+                                        className="bg-gray-800 border-gray-600 rounded px-3 py-1.5 text-sm text-white w-48 focus:ring-amber-500"
                                         placeholder="輸入新內容..."
                                     />
                                 </div>
@@ -712,12 +712,12 @@ export default function UploaderPage() {
                                                         type="checkbox"
                                                         checked={selectedIds.has(row['編號'])}
                                                         onChange={() => toggleSelection(row['編號'])}
-                                                        className="form-checkbox h-4 w-4 text-cyan-600 bg-gray-700 border-gray-600 rounded"
+                                                        className="form-checkbox h-4 w-4 text-amber-600 bg-gray-700 border-gray-600 rounded"
                                                     />
                                                 </td>
                                                 <td className="p-3 font-mono text-xs text-gray-400">{row['編號']}</td>
                                                 <td className="p-3">{row['行政區']}</td>
-                                                <td className="p-3 text-cyan-300">{row['建案名稱']}</td>
+                                                <td className="p-3 text-amber-300">{row['建案名稱']}</td>
                                                 <td className="p-3 text-gray-400 truncate max-w-[200px]">{row['其他門牌'] || row['地址'] || row['土地位置建物門牌']}</td>
                                                 <td className="p-3">
                                                     <button
@@ -791,7 +791,7 @@ export default function UploaderPage() {
                                 onClick={() => setShowModalSearch(!showModalSearch)}
                                 className="w-full text-center py-2 text-xs text-gray-500 hover:text-white hover:bg-gray-700/50 transition-colors flex items-center justify-center gap-2"
                             >
-                                <i className={`fas fa-search ${showModalSearch ? 'text-cyan-400' : ''}`} />
+                                <i className={`fas fa-search ${showModalSearch ? 'text-amber-400' : ''}`} />
                                 {showModalSearch ? '收合搜尋條件' : '再次搜尋 / 修改條件'}
                             </button>
 
@@ -802,7 +802,7 @@ export default function UploaderPage() {
                                         <select
                                             value={updateCounty}
                                             onChange={(e) => setUpdateCounty(e.target.value)}
-                                            className="w-full bg-gray-800 border-gray-600 rounded px-2 py-1.5 text-sm text-white focus:ring-cyan-500"
+                                            className="w-full bg-gray-800 border-gray-600 rounded px-2 py-1.5 text-sm text-white focus:ring-amber-500"
                                         >
                                             {Object.entries(counties).map(([code, name]) => (
                                                 <option key={code} value={code.toLowerCase()}>{name}</option>
@@ -817,7 +817,7 @@ export default function UploaderPage() {
                                                     key={type}
                                                     onClick={() => setUpdateType(type)}
                                                     className={`flex-1 text-xs py-1 rounded transition-colors ${updateType === type
-                                                        ? 'bg-cyan-900 text-cyan-400'
+                                                        ? 'bg-amber-900 text-amber-400'
                                                         : 'text-gray-400 hover:text-white'}`}
                                                 >
                                                     {type === 'a' ? '中古' : type === 'b' ? '預售' : '租賃'}
@@ -830,7 +830,7 @@ export default function UploaderPage() {
                                         <select
                                             value={updateSearchField}
                                             onChange={(e) => setUpdateSearchField(e.target.value)}
-                                            className="w-full bg-gray-800 border-gray-600 rounded px-2 py-1.5 text-sm text-white focus:ring-cyan-500"
+                                            className="w-full bg-gray-800 border-gray-600 rounded px-2 py-1.5 text-sm text-white focus:ring-amber-500"
                                         >
                                             {Array.from(new Set(Object.values(columnMappings[updateType] || {})))
                                                 .filter(f => !['編號', 'id'].includes(f))
@@ -848,7 +848,7 @@ export default function UploaderPage() {
                                             value={updateKeyword}
                                             onChange={(e) => setUpdateKeyword(e.target.value)}
                                             onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                                            className="w-full bg-gray-800 border-gray-600 rounded px-2 py-1.5 text-sm text-white focus:ring-cyan-500"
+                                            className="w-full bg-gray-800 border-gray-600 rounded px-2 py-1.5 text-sm text-white focus:ring-amber-500"
                                             placeholder="關鍵字..."
                                         />
                                     </div>
@@ -856,7 +856,7 @@ export default function UploaderPage() {
                                         <button
                                             onClick={handleSearch}
                                             disabled={isSearching}
-                                            className="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-1.5 px-4 rounded transition-colors text-sm h-[34px] flex items-center justify-center gap-2 disabled:opacity-50"
+                                            className="w-full bg-amber-600 hover:bg-amber-500 text-white font-bold py-1.5 px-4 rounded transition-colors text-sm h-[34px] flex items-center justify-center gap-2 disabled:opacity-50"
                                         >
                                             {isSearching ? <i className="fas fa-spinner fa-spin" /> : <i className="fas fa-search" />}
                                             搜尋
@@ -873,7 +873,7 @@ export default function UploaderPage() {
                                     type="checkbox"
                                     checked={selectedIds.size > 0 && selectedIds.size === searchResults.length}
                                     onChange={toggleSelectAll}
-                                    className="form-checkbox h-5 w-5 text-cyan-600 bg-gray-700 border-gray-600 rounded"
+                                    className="form-checkbox h-5 w-5 text-amber-600 bg-gray-700 border-gray-600 rounded"
                                 />
                                 <span>全選 ({selectedIds.size} 筆)</span>
                             </div>
@@ -886,7 +886,7 @@ export default function UploaderPage() {
                                     <select
                                         value={batchUpdateField}
                                         onChange={(e) => setBatchUpdateField(e.target.value)}
-                                        className="bg-gray-800 border-gray-600 rounded px-3 py-1.5 text-sm text-white focus:ring-cyan-500"
+                                        className="bg-gray-800 border-gray-600 rounded px-3 py-1.5 text-sm text-white focus:ring-amber-500"
                                     >
                                         {Array.from(new Set(Object.values(columnMappings[updateType] || {})))
                                             .filter(f => !['編號', 'id'].includes(f))
@@ -902,7 +902,7 @@ export default function UploaderPage() {
                                         type="text"
                                         value={batchUpdateValue}
                                         onChange={(e) => setBatchUpdateValue(e.target.value)}
-                                        className="bg-gray-800 border-gray-600 rounded px-3 py-1.5 text-sm text-white w-48 focus:ring-cyan-500"
+                                        className="bg-gray-800 border-gray-600 rounded px-3 py-1.5 text-sm text-white w-48 focus:ring-amber-500"
                                         placeholder="輸入新內容..."
                                     />
                                 </div>
@@ -940,12 +940,12 @@ export default function UploaderPage() {
                                                         type="checkbox"
                                                         checked={selectedIds.has(row['編號'])}
                                                         onChange={() => toggleSelection(row['編號'])}
-                                                        className="form-checkbox h-4 w-4 text-cyan-600 bg-gray-700 border-gray-600 rounded"
+                                                        className="form-checkbox h-4 w-4 text-amber-600 bg-gray-700 border-gray-600 rounded"
                                                     />
                                                 </td>
                                                 <td className="p-3 font-mono text-xs text-gray-400">{row['編號']}</td>
                                                 <td className="p-3">{row['行政區']}</td>
-                                                <td className="p-3 text-cyan-300">{row['建案名稱']}</td>
+                                                <td className="p-3 text-amber-300">{row['建案名稱']}</td>
                                                 <td className="p-3 text-gray-400 truncate max-w-[200px]">{row['其他門牌'] || row['地址'] || row['土地位置建物門牌']}</td>
                                                 <td className="p-3">
                                                     <button

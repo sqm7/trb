@@ -123,7 +123,7 @@ export default function AdminMembersPage() {
                 {/* Header */}
                 <div className="flex justify-between items-center mb-8">
                     <div className="flex items-center gap-4">
-                        <button onClick={() => router.push('/admin/uploader')} className="text-zinc-400 hover:text-white">
+                        <button onClick={() => router.back()} className="text-zinc-400 hover:text-white">
                             <ArrowLeft className="h-5 w-5" />
                         </button>
                         <div className="p-3 bg-amber-500/10 rounded-xl border border-amber-500/20">
@@ -214,8 +214,8 @@ export default function AdminMembersPage() {
                                                 <button
                                                     onClick={() => toggleRole(m.id, m.role)}
                                                     className={`flex items-center gap-1 px-3 py-1.5 rounded text-xs font-medium transition-colors ${m.role === 'admin'
-                                                            ? 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'
-                                                            : 'bg-amber-500/10 text-amber-400 hover:bg-amber-500/20'
+                                                        ? 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'
+                                                        : 'bg-amber-500/10 text-amber-400 hover:bg-amber-500/20'
                                                         }`}
                                                     title={m.role === 'admin' ? '移除管理員權限' : '設為管理員'}
                                                 >
