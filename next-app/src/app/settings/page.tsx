@@ -36,7 +36,6 @@ const THEMES = [
 ];
 
 export default function SettingsPage() {
-    // ... state ...
     const [activeTheme, setActiveTheme] = useState('cyberpunk');
     const [user, setUser] = useState<any>(null);
     const [loading, setLoading] = useState(true);
@@ -48,7 +47,6 @@ export default function SettingsPage() {
     const [savingName, setSavingName] = useState(false);
 
     // Account Binding State
-    const [isBinding, setIsBinding] = useState(false);
     const [bindEmail, setBindEmail] = useState("");
     const [bindPassword, setBindPassword] = useState("");
     const [bindConfirmPassword, setBindConfirmPassword] = useState("");
@@ -140,13 +138,19 @@ export default function SettingsPage() {
                 throw new Error("兩次輸入的密碼不一致");
             }
 
-            // Update user with new email and password
-            const { data, error } = await supabase.auth.updateUser({
-                email: bindEmail,
-                password: bindPassword
+            // Call Edge Function to Bind Email (Bypasses old email verification)
+            const { data, error } = await supabase.functions.invoke('bind-email', {
+                body: {
+                    email: bindEmail,
+                    password: bindPassword
+                }
             });
 
             if (error) throw error;
+            if (data?.error) throw new Error(data.error);
+
+            // Refresh session to reflect changes
+            await supabase.auth.refreshSession();
 
             setBindStatus('success');
 
@@ -346,11 +350,15 @@ export default function SettingsPage() {
                                             )}
 
                                             {/* Email Binding Badge */}
-                                            {!user.email?.includes('line.workaround') && (
-                                                <div className="flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-bold tracking-wide uppercase border bg-zinc-800 text-zinc-400 border-zinc-700">
-                                                    <span className="w-1.5 h-1.5 rounded-full bg-zinc-500"></span>
-                                                    Email 綁定
-                                                </div>
+                                            {!user.email?.includes('line.workaround') && !user.user_metadata?.provider?.includes('email') ? (
+                                                null
+                                            ) : (
+                                                !user.email?.includes('line.workaround') && (
+                                                    <div className="flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-bold tracking-wide uppercase border bg-zinc-800 text-zinc-400 border-zinc-700">
+                                                        <span className="w-1.5 h-1.5 rounded-full bg-zinc-500"></span>
+                                                        Email 綁定
+                                                    </div>
+                                                )
                                             )}
                                         </div>
 
@@ -475,7 +483,6 @@ export default function SettingsPage() {
                         </div>
                     )}
 
-
                     {/* Bind Account Section (Only for Line users with workaround emails) */}
                     {!loading && user && user.email?.includes('line.workaround') && (
                         <div className="bg-gradient-to-br from-indigo-900/30 to-violet-900/30 border border-indigo-500/20 rounded-2xl p-6 relative overflow-hidden">
@@ -500,16 +507,19 @@ export default function SettingsPage() {
                                         <div className="mx-auto h-12 w-12 bg-green-500/20 rounded-full flex items-center justify-center">
                                             <Check className="h-6 w-6 text-green-500" />
                                         </div>
-                                        <h3 className="text-lg font-bold text-white">確認信已發送！</h3>
+                                        <h3 className="text-lg font-bold text-white">綁定成功！</h3>
                                         <p className="text-zinc-300">
-                                            請前往 <span className="text-green-400 font-mono">{bindEmail}</span> 收取確認信。<br />
-                                            點擊信中連結確認後，綁定即完成。
+                                            您的帳號已成功綁定電子信箱 <span className="text-green-400 font-mono">{bindEmail}</span>。<br />
+                                            現在您可以使用 Email 與密碼登入。
                                         </p>
                                         <button
-                                            onClick={() => setBindStatus('idle')}
-                                            className="mt-4 text-sm text-green-400 hover:text-green-300 underline"
+                                            onClick={() => {
+                                                setBindStatus('idle');
+                                                window.location.reload(); // Reload to refresh user state
+                                            }}
+                                            className="mt-4 px-4 py-2 bg-green-600 hover:bg-green-500 text-white rounded-lg text-sm font-medium transition-colors"
                                         >
-                                            返回
+                                            完成
                                         </button>
                                     </div>
                                 ) : (
