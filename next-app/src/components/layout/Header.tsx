@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Search, Bell, Menu } from "lucide-react";
+import { Search, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
@@ -31,13 +31,6 @@ export function Header() {
                     </div>
                 </div>
 
-                {/* Right: Actions */}
-                <div className="flex items-center gap-2">
-                    <Button variant="ghost" size="icon" className="relative text-zinc-400 hover:text-white hover:bg-zinc-800">
-                        <Bell className="h-5 w-5" />
-                        <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-violet-500 ring-2 ring-zinc-950 block" />
-                    </Button>
-                </div>
             </div>
 
             {/* Mobile Menu Overlay */}

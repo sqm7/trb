@@ -17,7 +17,8 @@ import {
     AtSign,
     Ruler,
     User,
-    ShieldCheck
+    ShieldCheck,
+    Bell
 } from "lucide-react";
 
 export const NAV_ITEMS = [
@@ -190,6 +191,20 @@ export function Sidebar() {
                             </span>
                         </Link>
                     )}
+
+                    {/* Notifications */}
+                    <button
+                        className="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-zinc-400 hover:bg-zinc-900 hover:text-zinc-100 transition-colors min-h-[40px] relative w-full"
+                    >
+                        <div className="relative flex-shrink-0">
+                            <Bell className="h-5 w-5 text-zinc-500" />
+                            <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-violet-500 ring-2 ring-zinc-950" />
+                        </div>
+                        <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
+                            系統公告
+                        </span>
+                    </button>
+
                     <Link
                         href="/settings"
                         className="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-zinc-400 hover:bg-zinc-900 hover:text-zinc-100 transition-colors min-h-[40px]"
