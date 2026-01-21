@@ -4,15 +4,18 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
-import { Users, ArrowLeft, Shield, Search, Calendar, Crown, Zap, Star, Edit2, X } from 'lucide-react';
+import { api } from '@/lib/api';
+import { Users, ArrowLeft, Shield, Search, Calendar, Crown, Zap, Star, Edit2, X, Mail, MessageCircle, Clock, CheckCircle, Ban } from 'lucide-react';
 
 interface Member {
     id: string;
-    email: string;
+    email: string | undefined;
     role: string;
     full_name: string | null;
     created_at: string;
     last_sign_in_at: string | null;
+    providers: string[];
+    banned_until: string | null;
 }
 
 export default function AdminMembersPage() {
@@ -33,22 +36,10 @@ export default function AdminMembersPage() {
 
     const fetchMembers = async () => {
         try {
-            const { data, error } = await supabase
-                .from('profiles')
-                .select('id, role, full_name, created_at')
-                .order('created_at', { ascending: false });
+            const data = await api.getAdminUsers() as Member[];
+            setMembers(data);
 
-            if (error) throw error;
-
-            const membersWithEmail = (data || []).map(profile => ({
-                ...profile,
-                email: profile.full_name || profile.id.substring(0, 8) + '...',
-                last_sign_in_at: null,
-            }));
-
-            setMembers(membersWithEmail);
-
-            const currentProfile = (data || []).find(p => p.id === user?.id);
+            const currentProfile = data.find(p => p.id === user?.id);
             if (currentProfile) {
                 setCurrentUserRole(currentProfile.role);
             }
@@ -123,10 +114,21 @@ export default function AdminMembersPage() {
     };
 
     const formatDate = (dateString: string) => {
+        if (!dateString) return '-';
         return new Date(dateString).toLocaleDateString('zh-TW', {
             year: 'numeric',
             month: 'short',
             day: 'numeric',
+        });
+    };
+
+    const formatDateTime = (dateString: string | null) => {
+        if (!dateString) return '-';
+        return new Date(dateString).toLocaleString('zh-TW', {
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
         });
     };
 
@@ -206,10 +208,11 @@ export default function AdminMembersPage() {
                         <table className="w-full">
                             <thead className="bg-zinc-900/50">
                                 <tr>
-                                    <th className="px-4 py-3 text-left text-xs font-bold text-zinc-400">ID</th>
-                                    <th className="px-4 py-3 text-left text-xs font-bold text-zinc-400">名稱</th>
+                                    <th className="px-4 py-3 text-left text-xs font-bold text-zinc-400">ID / 名稱</th>
+                                    <th className="px-4 py-3 text-left text-xs font-bold text-zinc-400">綁定</th>
                                     <th className="px-4 py-3 text-left text-xs font-bold text-zinc-400">角色</th>
-                                    <th className="px-4 py-3 text-left text-xs font-bold text-zinc-400">註冊日期</th>
+                                    <th className="px-4 py-3 text-left text-xs font-bold text-zinc-400">最後登入</th>
+                                    <th className="px-4 py-3 text-center text-xs font-bold text-zinc-400">狀態</th>
                                     <th className="px-4 py-3 text-right text-xs font-bold text-zinc-400">操作</th>
                                 </tr>
                             </thead>
@@ -217,29 +220,54 @@ export default function AdminMembersPage() {
                                 {filteredMembers.map((m) => (
                                     <tr key={m.id} className="border-t border-zinc-800 hover:bg-zinc-800/30">
                                         <td className="px-4 py-3">
-                                            <span className="font-mono text-xs text-zinc-500">
-                                                {m.id.substring(0, 8)}...
-                                            </span>
-                                        </td>
-                                        <td className="px-4 py-3">
                                             <div className="flex items-center gap-3">
-                                                <div className="h-8 w-8 rounded-full bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center text-xs font-bold text-white">
+                                                <div className="h-8 w-8 rounded-full bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center text-xs font-bold text-white shrink-0">
                                                     {(m.full_name || m.email)?.[0]?.toUpperCase() || 'U'}
                                                 </div>
-                                                <div>
-                                                    <p className="text-sm font-medium text-white">{m.full_name || '未設定'}</p>
-                                                    <p className="text-xs text-zinc-500">{m.email}</p>
+                                                <div className="min-w-0">
+                                                    <p className="text-sm font-medium text-white truncate">{m.full_name || '未設定'}</p>
+                                                    <p className="text-xs text-zinc-500 truncate font-mono">{m.email}</p>
                                                 </div>
+                                            </div>
+                                        </td>
+                                        <td className="px-4 py-3">
+                                            <div className="flex items-center gap-2">
+                                                {m.providers.includes('line') && (
+                                                    <div className="p-1.5 bg-[#06C755]/10 rounded border border-[#06C755]/20" title="LINE 綁定">
+                                                        <MessageCircle className="h-3.5 w-3.5 text-[#06C755]" />
+                                                    </div>
+                                                )}
+                                                {m.providers.includes('email') && (
+                                                    <div className="p-1.5 bg-blue-500/10 rounded border border-blue-500/20" title="Email 綁定">
+                                                        <Mail className="h-3.5 w-3.5 text-blue-400" />
+                                                    </div>
+                                                )}
                                             </div>
                                         </td>
                                         <td className="px-4 py-3">
                                             <RoleBadge role={m.role} />
                                         </td>
                                         <td className="px-4 py-3">
-                                            <div className="flex items-center gap-1 text-xs text-zinc-500">
-                                                <Calendar className="h-3 w-3" />
-                                                {formatDate(m.created_at)}
+                                            <div className="flex flex-col gap-0.5">
+                                                <div className="flex items-center gap-1 text-xs text-zinc-300">
+                                                    <Clock className="h-3 w-3" />
+                                                    {formatDateTime(m.last_sign_in_at)}
+                                                </div>
+                                                <div className="text-[10px] text-zinc-600">
+                                                    註冊: {formatDate(m.created_at)}
+                                                </div>
                                             </div>
+                                        </td>
+                                        <td className="px-4 py-3 text-center">
+                                            {m.banned_until ? (
+                                                <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-medium bg-red-500/10 text-red-400 border border-red-500/20 rounded-full">
+                                                    <Ban className="h-3 w-3" /> 停用
+                                                </span>
+                                            ) : (
+                                                <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-full">
+                                                    <CheckCircle className="h-3 w-3" /> 正常
+                                                </span>
+                                            )}
                                         </td>
                                         <td className="px-4 py-3">
                                             <div className="flex items-center justify-end relative">
@@ -293,15 +321,15 @@ export default function AdminMembersPage() {
                                             key={role}
                                             onClick={() => handleUpdateRole(menuOpenId, role)}
                                             className={`w-full text-left px-4 py-3 rounded-lg flex items-center justify-between transition-all ${isActive
-                                                    ? 'bg-amber-500/10 border border-amber-500/50 shadow-sm'
-                                                    : 'bg-zinc-800/50 border border-transparent hover:bg-zinc-700 hover:border-zinc-600'
+                                                ? 'bg-amber-500/10 border border-amber-500/50 shadow-sm'
+                                                : 'bg-zinc-800/50 border border-transparent hover:bg-zinc-700 hover:border-zinc-600'
                                                 }`}
                                         >
                                             <div className="flex items-center gap-3">
                                                 <div className={`h-10 w-10 rounded-full flex items-center justify-center shadow-inner ${role === 'pro_max' ? 'bg-gradient-to-br from-purple-500 to-amber-500' :
-                                                        role === 'pro' ? 'bg-gradient-to-br from-cyan-400 to-blue-500' :
-                                                            role === 'admin' ? 'bg-gradient-to-br from-amber-400 to-orange-500' :
-                                                                'bg-zinc-700'
+                                                    role === 'pro' ? 'bg-gradient-to-br from-cyan-400 to-blue-500' :
+                                                        role === 'admin' ? 'bg-gradient-to-br from-amber-400 to-orange-500' :
+                                                            'bg-zinc-700'
                                                     }`}>
                                                     {role === 'pro_max' ? <Star className="h-5 w-5 text-white" /> :
                                                         role === 'pro' ? <Zap className="h-5 w-5 text-white" /> :

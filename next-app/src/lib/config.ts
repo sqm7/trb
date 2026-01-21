@@ -21,7 +21,8 @@ export const API_ENDPOINTS = {
     SUB_DATA: `${BASE_URL}/query-sub-data`,
     PROJECT_NAMES: `${BASE_URL}/query-names`,
     RANKING_ANALYSIS: `${BASE_URL}/analyze-project-ranking`,
-    GENERATE_SHARE_LINK: `${BASE_URL}/generate-share-link`
+    GENERATE_SHARE_LINK: `${BASE_URL}/generate-share-link`,
+    GET_USERS: `${BASE_URL}/get-users`
 };
 
 // District Data

@@ -9,6 +9,24 @@
 
 **🔥 進行中任務**: 框架遷移 (Vanilla JS → Next.js)
 
+### [Current Task] 會員管理資訊增強 (Member Management Enhancements)
+- [x] **Step 1: Backend Implementation (Pivoted to Edge Function)**
+    - [x] Create `supabase/functions/get-users/index.ts` (Static Export Compatible).
+    - [x] Implement admin verification and `auth.users` fetching.
+    - [x] Deploy Edge Function: `supabase functions deploy get-users`.
+- [x] **Step 2: Frontend Implementation**
+    - [x] Update `src/app/admin/members/page.tsx` to use `api.getAdminUsers`.
+    - [x] Render 'Account Binding' column (Line/Email icons).
+    - [x] Render 'Last Login' column with formatting.
+    - [x] Render 'Status' column (Active/Banned).
+- [x] **Step 3: Verification**
+    - [x] Verify Line/Email icons appear correctly.
+    - [x] Verify Last Login time matches usage.
+
+### 已完成任務
+- [x] **Deploy to Test**: Sync to test environment (trb)
+
+
 ✅ **已完成核心功能 (Vanilla JS Version)**
 - 銷控表分析
 - 多維單價分析

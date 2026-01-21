@@ -304,6 +304,7 @@ src/
 | `/functions/v1/query-sub-data` | POST | 查詢附表數據 |
 | `/functions/v1/analyze-project-ranking` | POST | 完整分析報告 |
 | `/functions/v1/generate-share-link` | POST | 生成分享連結 |
+| `/functions/v1/get-users` | POST | Admin 取得會員列表 (Secure) |
 | `/functions/v1/public-report` | GET | 公開報告查看 |
 
 ### 請求格式範例

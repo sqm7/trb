@@ -114,6 +114,22 @@ export async function generateShareLink(payload: any) {
     return response.json();
 }
 
+export async function getAdminUsers() {
+    const headers = await getAuthHeaders();
+
+    const response = await fetch(API_ENDPOINTS.GET_USERS, {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify({})
+    });
+
+    if (!response.ok) {
+        const err = await response.json().catch(() => ({ error: 'Failed to fetch users' }));
+        throw new Error(err.error || 'Fetch users failed');
+    }
+    return response.json();
+}
+
 export const api = {
     checkAuth,
     getUser,
@@ -123,5 +139,6 @@ export const api = {
     analyzeProjectRanking: analyzeData, // Alias
     fetchSubData,
     fetchProjectNameSuggestions,
-    generateShareLink
+    generateShareLink,
+    getAdminUsers
 };

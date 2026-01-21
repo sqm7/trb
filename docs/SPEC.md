@@ -295,3 +295,14 @@
     4. 授權：使用 Supabase Admin API 查找或建立使用者，並簽發 Session JWT。
     5. 回傳：前端接收 JWT 並透過 `supabase.auth.setSession` 建立登入狀態。
 
+### 13. 會員管理增強 (2026-01-21)
+- **顯示綁定資訊**：
+    - 在會員列表中新增「帳號綁定」欄位。
+    - 顯示 Line 圖示 (若 `app_metadata.provider === 'line'` 或 identities 包含 line)。
+    - 顯示 Email 圖示 (若 `app_metadata.provider === 'email'` 或 identities 包含 email)。
+- **顯示最後登入**：
+    - 新增「最後登入」欄位，顯示 `last_sign_in_at` 時間。
+- **顯示帳號狀態**：
+    - 新增「狀態」欄位，依據 `banned_until` 判斷顯示「正常」或「停用」。
+
+
