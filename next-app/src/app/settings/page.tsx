@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { AppLayout } from "@/components/layout/AppLayout";
-import { Monitor, Moon, Sun, Layout, Check, Shield, Bell, User, LogOut, CreditCard, Mail, Fingerprint } from "lucide-react";
+import { Monitor, Moon, Sun, Layout, Check, Shield, Bell, User, LogOut, CreditCard, Mail, Fingerprint, Edit2, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/lib/supabase";
 
@@ -12,52 +12,110 @@ const THEMES = [
     {
         id: 'cyberpunk',
         name: 'Cyberpunk',
-        description: '高對比暗色主題，專為夜間數據分析設計。',
         colors: ['#09090b', '#06b6d4', '#8b5cf6'],
+        description: '高對比暗色主題，專為夜間數據分析設計。',
         active: true
     },
     {
         id: 'light',
         name: 'Light Mode',
-        description: '適合日間瀏覽的明亮主題 (即將推出)。',
         colors: ['#ffffff', '#f4f4f5', '#18181b'],
+        description: '適合日間瀏覽的明亮主題 (即將推出)。',
         active: false,
         disabled: true
     },
     {
         id: 'print',
         name: 'Print Friendly',
-        description: '去除背景色，優化列印輸出的純白模式 (即將推出)。',
         colors: ['#ffffff', '#000000', '#cccccc'],
+        description: '去除背景色，優化列印輸出的純白模式 (即將推出)。',
         active: false,
         disabled: true
     }
 ];
-
-
 
 export default function SettingsPage() {
     // ... state ...
     const [activeTheme, setActiveTheme] = useState('cyberpunk');
     const [user, setUser] = useState<any>(null);
     const [loading, setLoading] = useState(true);
+
+    // Name Editing State
+    const [displayName, setDisplayName] = useState("Vibe Member");
+    const [originalName, setOriginalName] = useState("Vibe Member");
+    const [isEditingName, setIsEditingName] = useState(false);
+    const [savingName, setSavingName] = useState(false);
+
     const router = useRouter();
 
     useEffect(() => {
         const getUser = async () => {
             const { data: { session } } = await supabase.auth.getSession();
-            setUser(session?.user ?? null);
+            const currentUser = session?.user ?? null;
+            setUser(currentUser);
+
+            if (currentUser) {
+                // Fetch Profile Data
+                const { data: profile } = await supabase
+                    .from('profiles')
+                    .select('full_name')
+                    .eq('id', currentUser.id)
+                    .single();
+
+                if (profile?.full_name) {
+                    setDisplayName(profile.full_name);
+                    setOriginalName(profile.full_name);
+                } else {
+                    // Fallback to metadata
+                    const metaName = currentUser.user_metadata?.full_name || currentUser.user_metadata?.name || "Vibe Member";
+                    setDisplayName(metaName);
+                    setOriginalName(metaName);
+                }
+            }
             setLoading(false);
         };
         getUser();
 
         const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-            setUser(session?.user ?? null);
-            setLoading(false);
+            const currentUser = session?.user ?? null;
+            setUser(currentUser);
+            if (!currentUser) setLoading(false);
         });
 
         return () => subscription.unsubscribe();
     }, []);
+
+    const saveDisplayName = async () => {
+        if (!user) return;
+        if (!displayName.trim()) {
+            alert("名稱不能為空");
+            return;
+        }
+
+        setSavingName(true);
+        try {
+            // 1. Update Public Profile
+            const { error: profileError } = await supabase
+                .from('profiles')
+                .update({ full_name: displayName, updated_at: new Date().toISOString() })
+                .eq('id', user.id);
+
+            if (profileError) throw profileError;
+
+            // 2. Update Auth Metadata (Best Effort)
+            await supabase.auth.updateUser({
+                data: { full_name: displayName, name: displayName }
+            });
+
+            setOriginalName(displayName);
+            setIsEditingName(false);
+        } catch (error) {
+            console.error("Failed to update name:", error);
+            alert("更新失敗，請稍後再試。");
+        } finally {
+            setSavingName(false);
+        }
+    };
 
     const handleLogout = async () => {
         try {
@@ -114,11 +172,48 @@ export default function SettingsPage() {
                                 </div>
 
                                 <div className="flex items-start gap-4 relative z-10">
-                                    <div className="h-16 w-16 rounded-full bg-gradient-to-br from-cyan-500 to-violet-600 flex items-center justify-center text-2xl font-bold text-white shadow-lg shadow-cyan-900/20">
-                                        {user.email?.[0].toUpperCase()}
-                                    </div>
-                                    <div className="space-y-1">
-                                        <h3 className="text-lg font-bold text-white">Vibe Member</h3>
+                                    <div className="space-y-1 w-full">
+                                        <div className="flex items-center gap-2">
+                                            {isEditingName ? (
+                                                <div className="flex items-center gap-2">
+                                                    <input
+                                                        type="text"
+                                                        value={displayName}
+                                                        onChange={(e) => setDisplayName(e.target.value)}
+                                                        className="bg-zinc-800 border border-zinc-700 rounded px-2 py-1 text-white font-bold text-lg focus:outline-none focus:border-cyan-500 w-full min-w-[150px]"
+                                                        placeholder="輸入名稱"
+                                                    />
+                                                    <button
+                                                        onClick={saveDisplayName}
+                                                        disabled={savingName}
+                                                        className="p-1.5 bg-cyan-600 hover:bg-cyan-500 rounded text-white disabled:opacity-50"
+                                                    >
+                                                        <Check className="h-4 w-4" />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => {
+                                                            setIsEditingName(false);
+                                                            setDisplayName(originalName);
+                                                        }}
+                                                        className="p-1.5 bg-zinc-700 hover:bg-zinc-600 rounded text-zinc-300"
+                                                    >
+                                                        <X className="h-4 w-4" />
+                                                    </button>
+                                                </div>
+                                            ) : (
+                                                <div className="flex items-center gap-2 group/name">
+                                                    <h3 className="text-2xl font-bold text-white tracking-tight">
+                                                        {displayName}
+                                                    </h3>
+                                                    <button
+                                                        onClick={() => setIsEditingName(true)}
+                                                        className="opacity-0 group-hover/name:opacity-100 transition-opacity p-1 hover:bg-white/10 rounded text-zinc-400 hover:text-cyan-400"
+                                                    >
+                                                        <Edit2 className="h-4 w-4" />
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </div>
 
                                         {/* Email */}
                                         <div className="flex items-center gap-2 text-zinc-400 text-sm">

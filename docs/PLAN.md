@@ -200,8 +200,10 @@ refactor: 重構
 - [x] **Step 1**: Update `line-auth` Edge Function and Registration logic to sync (`provider`, `line_user_id`) to `public.profiles`.
 - [x] **Step 2**: Create SQL migration script to ensure `profiles` table has necessary columns.
 
-### [Completed Task] Display Login Provider in Settings
-- [x] **Step 1**: Update `SettingsPage` to retrieve and display specific login provider (Email vs Line).
+### [Completed Task] Update Settings Page UI
+- [x] **Step 1**: Remove the default 'U' avatar placeholder in Settings Page.
+- [x] **Step 2**: Implement "Edit Name" functionality in Member Area.
+- [x] **Step 3**: Sync name updates to `public.profiles` and `auth.users`.
 
 ### [Current Task] Migrate Legacy Tools
 - [x] **Map Tool Migration**
