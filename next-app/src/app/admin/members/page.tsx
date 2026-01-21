@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
-import { Users, ArrowLeft, Shield, ShieldOff, Search, Mail, Calendar, Crown, Zap, Star, Edit2, X } from 'lucide-react';
+import { Users, ArrowLeft, Shield, Search, Calendar, Crown, Zap, Star, Edit2, X } from 'lucide-react';
 
 interface Member {
     id: string;
@@ -243,58 +243,14 @@ export default function AdminMembersPage() {
                                         </td>
                                         <td className="px-4 py-3">
                                             <div className="flex items-center justify-end relative">
+                                                {/* Simpler Button Logic - triggers Modal via menuOpenId */}
                                                 {m.role !== 'super_admin' && m.id !== user?.id && (currentUserRole === 'super_admin' || m.role !== 'admin') && (
-                                                    <div className="relative">
-                                                        <button
-                                                            onClick={() => setMenuOpenId(menuOpenId === m.id ? null : m.id)}
-                                                            className="flex items-center gap-1 px-3 py-1.5 rounded text-xs font-medium bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-white transition-colors"
-                                                        >
-                                                            <Edit2 className="h-3 w-3" /> 編輯權限
-                                                        </button>
-
-                                                        {menuOpenId === m.id && (
-                                                            <>
-                                                                <div
-                                                                    className="fixed inset-0 z-10"
-                                                                    onClick={() => setMenuOpenId(null)}
-                                                                />
-                                                                <div className="absolute right-0 mt-2 w-48 bg-[#252836] border border-zinc-700 rounded-lg shadow-xl z-20 py-1">
-                                                                    <div className="px-3 py-2 text-xs font-bold text-zinc-500 border-b border-zinc-700/50 mb-1">
-                                                                        選擇角色
-                                                                    </div>
-                                                                    <button
-                                                                        onClick={() => handleUpdateRole(m.id, 'user')}
-                                                                        className={`w-full text-left px-4 py-2 text-sm hover:bg-zinc-700 flex items-center gap-2 ${m.role === 'user' ? 'text-amber-500' : 'text-zinc-300'}`}
-                                                                    >
-                                                                        <div className="h-2 w-2 rounded-full bg-zinc-500" /> 一般會員
-                                                                    </button>
-                                                                    <button
-                                                                        onClick={() => handleUpdateRole(m.id, 'pro')}
-                                                                        className={`w-full text-left px-4 py-2 text-sm hover:bg-zinc-700 flex items-center gap-2 ${m.role === 'pro' ? 'text-amber-500' : 'text-zinc-300'}`}
-                                                                    >
-                                                                        <div className="h-2 w-2 rounded-full bg-cyan-400" /> PRO
-                                                                    </button>
-                                                                    <button
-                                                                        onClick={() => handleUpdateRole(m.id, 'pro_max')}
-                                                                        className={`w-full text-left px-4 py-2 text-sm hover:bg-zinc-700 flex items-center gap-2 ${m.role === 'pro_max' ? 'text-amber-500' : 'text-zinc-300'}`}
-                                                                    >
-                                                                        <div className="h-2 w-2 rounded-full bg-purple-400" /> PRO MAX
-                                                                    </button>
-                                                                    {currentUserRole === 'super_admin' && (
-                                                                        <>
-                                                                            <div className="my-1 border-t border-zinc-700/50" />
-                                                                            <button
-                                                                                onClick={() => handleUpdateRole(m.id, 'admin')}
-                                                                                className={`w-full text-left px-4 py-2 text-sm hover:bg-zinc-700 flex items-center gap-2 ${m.role === 'admin' ? 'text-amber-500' : 'text-amber-400'}`}
-                                                                            >
-                                                                                <div className="h-2 w-2 rounded-full bg-amber-500" /> 管理員
-                                                                            </button>
-                                                                        </>
-                                                                    )}
-                                                                </div>
-                                                            </>
-                                                        )}
-                                                    </div>
+                                                    <button
+                                                        onClick={() => setMenuOpenId(m.id)}
+                                                        className="flex items-center gap-1 px-3 py-1.5 rounded text-xs font-medium bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-white transition-colors"
+                                                    >
+                                                        <Edit2 className="h-3 w-3" /> 編輯權限
+                                                    </button>
                                                 )}
                                                 {m.role === 'super_admin' && (
                                                     <span className="text-xs text-zinc-600">受保護</span>
@@ -308,6 +264,76 @@ export default function AdminMembersPage() {
                                 ))}
                             </tbody>
                         </table>
+                    </div>
+                )}
+
+                {/* Role Edit Modal */}
+                {menuOpenId && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setMenuOpenId(null)}>
+                        <div
+                            className="bg-[#252836] border border-zinc-700 rounded-xl shadow-2xl w-full max-w-sm overflow-hidden transform transition-all"
+                            onClick={e => e.stopPropagation()}
+                        >
+                            <div className="px-6 py-4 border-b border-zinc-700/50 flex justify-between items-center bg-zinc-900/50">
+                                <h3 className="text-lg font-bold text-white">設定會員權限</h3>
+                                <button onClick={() => setMenuOpenId(null)} className="text-zinc-500 hover:text-white">
+                                    <X className="h-5 w-5" />
+                                </button>
+                            </div>
+
+                            <div className="p-3 space-y-2">
+                                {['user', 'pro', 'pro_max', 'admin'].map((role) => {
+                                    if (role === 'admin' && currentUserRole !== 'super_admin') return null;
+
+                                    const currentMember = members.find(m => m.id === menuOpenId);
+                                    const isActive = currentMember?.role === role;
+
+                                    return (
+                                        <button
+                                            key={role}
+                                            onClick={() => handleUpdateRole(menuOpenId, role)}
+                                            className={`w-full text-left px-4 py-3 rounded-lg flex items-center justify-between transition-all ${isActive
+                                                    ? 'bg-amber-500/10 border border-amber-500/50 shadow-sm'
+                                                    : 'bg-zinc-800/50 border border-transparent hover:bg-zinc-700 hover:border-zinc-600'
+                                                }`}
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                <div className={`h-10 w-10 rounded-full flex items-center justify-center shadow-inner ${role === 'pro_max' ? 'bg-gradient-to-br from-purple-500 to-amber-500' :
+                                                        role === 'pro' ? 'bg-gradient-to-br from-cyan-400 to-blue-500' :
+                                                            role === 'admin' ? 'bg-gradient-to-br from-amber-400 to-orange-500' :
+                                                                'bg-zinc-700'
+                                                    }`}>
+                                                    {role === 'pro_max' ? <Star className="h-5 w-5 text-white" /> :
+                                                        role === 'pro' ? <Zap className="h-5 w-5 text-white" /> :
+                                                            role === 'admin' ? <Shield className="h-5 w-5 text-white" /> :
+                                                                <Users className="h-5 w-5 text-zinc-400" />}
+                                                </div>
+                                                <div>
+                                                    <p className={`font-bold text-base ${isActive ? 'text-amber-400' : 'text-white'}`}>
+                                                        {role === 'pro_max' ? 'PRO MAX' :
+                                                            role === 'pro' ? 'PRO' :
+                                                                role === 'admin' ? '管理員' :
+                                                                    '一般會員'}
+                                                    </p>
+                                                    <p className="text-xs text-zinc-500">
+                                                        {role === 'pro_max' ? '最高等級，完整功能' :
+                                                            role === 'pro' ? '進階會員，更多權限' :
+                                                                role === 'admin' ? '系統管理與維護' :
+                                                                    '基本瀏覽與查詢'}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            {isActive && (
+                                                <div className="h-3 w-3 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.6)]" />
+                                            )}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                            <div className="px-6 py-3 bg-zinc-900/30 text-center border-t border-zinc-700/30">
+                                <p className="text-xs text-zinc-500">點擊上方選項即會立即更新權限</p>
+                            </div>
+                        </div>
                     </div>
                 )}
 
