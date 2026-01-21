@@ -65,9 +65,18 @@ serve(async (req) => {
             const allProviders = [...identityProviders, ...appMetaProviders, ...customLineProvider].map(p => String(p).toLowerCase())
             const uniqueProviders = [...new Set(allProviders)]
 
+            // Try to resolve real email if primary is a workaround
+            let displayEmail = u.email
+            if (displayEmail?.includes('@line.workaround')) {
+                const emailIdentity = u.identities?.find(id => id.provider === 'email')
+                if (emailIdentity?.identity_data?.email) {
+                    displayEmail = emailIdentity.identity_data.email
+                }
+            }
+
             return {
                 id: u.id,
-                email: u.email,
+                email: displayEmail,
                 full_name: profile?.full_name || u.user_metadata?.full_name || null,
                 role: profile?.role || 'user',
                 created_at: u.created_at,

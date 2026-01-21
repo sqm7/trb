@@ -256,7 +256,7 @@ export default function AdminMembersPage() {
                                                         LINE 綁定
                                                     </span>
                                                 )}
-                                                {m.providers.some(p => p.toLowerCase() === 'email') && !m.email?.includes('@line.workaround') && (
+                                                {m.providers.some(p => p.toLowerCase() === 'email') && (
                                                     <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-500/10 text-blue-400 border border-blue-500/20 whitespace-nowrap">
                                                         Mail 綁定
                                                     </span>
