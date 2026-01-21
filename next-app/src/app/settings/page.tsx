@@ -34,7 +34,10 @@ const THEMES = [
     }
 ];
 
+
+
 export default function SettingsPage() {
+    // ... state ...
     const [activeTheme, setActiveTheme] = useState('cyberpunk');
     const [user, setUser] = useState<any>(null);
     const [loading, setLoading] = useState(true);
@@ -50,12 +53,37 @@ export default function SettingsPage() {
 
         const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
             setUser(session?.user ?? null);
+            setLoading(false);
         });
 
         return () => subscription.unsubscribe();
     }, []);
 
     const handleLogout = async () => {
+        try {
+            // Attempt to logout from Line LIFF if initialized or logged in
+            if (process.env.NEXT_PUBLIC_LINE_LIFF_ID) {
+                try {
+                    const liffModule = await import('@line/liff');
+                    const liff = liffModule.default;
+                    await liff.init({ liffId: process.env.NEXT_PUBLIC_LINE_LIFF_ID });
+                    if (liff.isLoggedIn()) {
+                        liff.logout();
+                        console.log('LIFF logged out');
+                    }
+                } catch (e) {
+                    console.log('LIFF logout ignored:', e);
+                }
+            }
+        } catch (error) {
+            console.error('Logout error:', error);
+        }
+
+        // Mark explicitly as logged out in LOCAL STORAGE to persist across redirects
+        if (typeof window !== 'undefined') {
+            localStorage.setItem('line-logout', 'true');
+        }
+
         await supabase.auth.signOut();
         router.push('/');
     };
@@ -91,10 +119,35 @@ export default function SettingsPage() {
                                     </div>
                                     <div className="space-y-1">
                                         <h3 className="text-lg font-bold text-white">Vibe Member</h3>
+
+                                        {/* Email */}
                                         <div className="flex items-center gap-2 text-zinc-400 text-sm">
                                             <Mail className="h-3.5 w-3.5" />
                                             {user.email}
                                         </div>
+
+                                        {/* Login Method Badge */}
+                                        <div className="flex items-center gap-2 mt-1.5">
+                                            <div className={cn(
+                                                "flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-bold tracking-wide uppercase border",
+                                                (user.app_metadata?.provider === 'line' || user.user_metadata?.line_user_id)
+                                                    ? "bg-[#06C755]/10 text-[#06C755] border-[#06C755]/20"
+                                                    : "bg-zinc-800 text-zinc-400 border-zinc-700"
+                                            )}>
+                                                {(user.app_metadata?.provider === 'line' || user.user_metadata?.line_user_id) ? (
+                                                    <>
+                                                        <span className="w-1.5 h-1.5 rounded-full bg-[#06C755]"></span>
+                                                        LINE Account
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <span className="w-1.5 h-1.5 rounded-full bg-zinc-500"></span>
+                                                        Email Account
+                                                    </>
+                                                )}
+                                            </div>
+                                        </div>
+
                                         <div className="flex items-center gap-2 text-zinc-500 text-xs font-mono mt-1">
                                             <span className="bg-zinc-800 px-1.5 py-0.5 rounded text-zinc-400">UID</span>
                                             {user.id.slice(0, 8)}...{user.id.slice(-4)}

@@ -255,6 +255,7 @@
 
 ### 未來規劃
 - Supabase Auth 整合
+- Line 登入整合 (New)
 - 付費會員分級
 - API 限流機制
 
@@ -284,4 +285,13 @@
     - **位置**：跟隨滑鼠右下角 (Bottom-Right of Cursor)，避免遮擋資料點。
     - **鎖定機制**：點擊資料點後 Tooltip 固定 (Lock)，再次點擊背景或其他點解除鎖定。
     - **過濾顯示**：當有「建案亮點標示」時，滑鼠滑過非選中點 (Grey Dots) **不顯示** Tooltip，僅顯示亮點建案 (Yellow Dots)。
+
+### 12. Line 登入整合 (2026-01-21)
+- **技術架構**：Client-side LIFF + Server-side Edge Function
+- **登入流程**：
+    1. 前端：初始化 LIFF SDK，呼叫 `liff.login()` 取得 `idToken`。
+    2. 後端：Edge Function (`line-auth`) 接收 `idToken`。
+    3. 驗證：呼叫 Line API 驗證 Token 合法性。
+    4. 授權：使用 Supabase Admin API 查找或建立使用者，並簽發 Session JWT。
+    5. 回傳：前端接收 JWT 並透過 `supabase.auth.setSession` 建立登入狀態。
 
