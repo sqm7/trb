@@ -18,7 +18,11 @@ import {
     Ruler,
     User,
     ShieldCheck,
-    Bell
+    Bell,
+    ChevronDown,
+    Upload,
+    Megaphone,
+    Users
 } from "lucide-react";
 
 export const NAV_ITEMS = [
@@ -36,6 +40,7 @@ export function Sidebar() {
     const [user, setUser] = React.useState<any>(null);
     const [isAdmin, setIsAdmin] = React.useState(false);
     const [showNewBadge, setShowNewBadge] = React.useState(false);
+    const [adminMenuOpen, setAdminMenuOpen] = React.useState(false);
     const router = useRouter();
 
     React.useEffect(() => {
@@ -176,25 +181,80 @@ export function Sidebar() {
                 <nav className="flex flex-col gap-1 space-y-1">
                     {/* Admin Menu - Only visible to admins */}
                     {isAdmin && (
-                        <Link
-                            href="/admin/uploader"
-                            className={cn(
-                                "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors min-h-[40px]",
-                                pathname?.startsWith('/admin')
-                                    ? "bg-amber-500/10 text-amber-400 font-semibold"
-                                    : "text-amber-400/70 hover:bg-zinc-900 hover:text-amber-300"
+                        <div className="space-y-1">
+                            {/* Admin Menu Toggle */}
+                            <button
+                                onClick={() => setAdminMenuOpen(!adminMenuOpen)}
+                                className={cn(
+                                    "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors min-h-[40px] w-full",
+                                    pathname?.startsWith('/admin')
+                                        ? "bg-amber-500/10 text-amber-400 font-semibold"
+                                        : "text-amber-400/70 hover:bg-zinc-900 hover:text-amber-300"
+                                )}
+                            >
+                                <ShieldCheck className="h-5 w-5 flex-shrink-0 text-amber-500" />
+                                <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap flex-1 text-left">
+                                    管理者介面
+                                </span>
+                                <ChevronDown className={cn(
+                                    "h-4 w-4 opacity-0 group-hover:opacity-100 transition-all duration-300",
+                                    adminMenuOpen && "rotate-180"
+                                )} />
+                            </button>
+
+                            {/* Admin Sub Menu */}
+                            {adminMenuOpen && (
+                                <div className="ml-4 pl-4 border-l border-amber-500/20 space-y-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                    <Link
+                                        href="/admin/uploader"
+                                        className={cn(
+                                            "flex items-center gap-2 rounded-md px-3 py-1.5 text-xs font-medium transition-colors",
+                                            pathname === '/admin/uploader'
+                                                ? "bg-amber-500/10 text-amber-300"
+                                                : "text-zinc-400 hover:text-amber-300"
+                                        )}
+                                    >
+                                        <Upload className="h-4 w-4" />
+                                        上傳資料工具
+                                    </Link>
+                                    <Link
+                                        href="/admin/announcements"
+                                        className={cn(
+                                            "flex items-center gap-2 rounded-md px-3 py-1.5 text-xs font-medium transition-colors",
+                                            pathname === '/admin/announcements'
+                                                ? "bg-amber-500/10 text-amber-300"
+                                                : "text-zinc-400 hover:text-amber-300"
+                                        )}
+                                    >
+                                        <Megaphone className="h-4 w-4" />
+                                        公告發布
+                                    </Link>
+                                    <Link
+                                        href="/admin/members"
+                                        className={cn(
+                                            "flex items-center gap-2 rounded-md px-3 py-1.5 text-xs font-medium transition-colors",
+                                            pathname === '/admin/members'
+                                                ? "bg-amber-500/10 text-amber-300"
+                                                : "text-zinc-400 hover:text-amber-300"
+                                        )}
+                                    >
+                                        <Users className="h-4 w-4" />
+                                        會員管理
+                                    </Link>
+                                </div>
                             )}
-                        >
-                            <ShieldCheck className="h-5 w-5 flex-shrink-0 text-amber-500" />
-                            <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
-                                管理者介面
-                            </span>
-                        </Link>
+                        </div>
                     )}
 
-                    {/* Notifications */}
-                    <button
-                        className="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-zinc-400 hover:bg-zinc-900 hover:text-zinc-100 transition-colors min-h-[40px] relative w-full"
+                    {/* Announcements */}
+                    <Link
+                        href="/announcements"
+                        className={cn(
+                            "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors min-h-[40px] relative",
+                            pathname === '/announcements'
+                                ? "bg-violet-500/10 text-violet-400 font-semibold"
+                                : "text-zinc-400 hover:bg-zinc-900 hover:text-zinc-100"
+                        )}
                     >
                         <div className="relative flex-shrink-0">
                             <Bell className="h-5 w-5 text-zinc-500" />
@@ -203,7 +263,7 @@ export function Sidebar() {
                         <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
                             系統公告
                         </span>
-                    </button>
+                    </Link>
 
                     <Link
                         href="/settings"
