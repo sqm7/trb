@@ -277,6 +277,20 @@ src/
 | `city` | 縣市名稱 |
 | `county_code` | 縣市代碼（可選） |
 | `created_at` | 創建時間 |
+| `created_at` | 創建時間 |
+| `updated_at` | 更新時間 |
+
+### 會員資料表 (profiles)
+
+| 欄位 | 說明 |
+|------|------|
+| `id` | 對應 auth.users (UUID) |
+| `email` | 電子信箱 |
+| `full_name` | 顯示名稱 |
+| `avatar_url` | 頭像連結 |
+| `provider` | 註冊來源 (line/email) |
+| `line_user_id` | Line User ID (選填) |
+| `created_at` | 創建時間 |
 | `updated_at` | 更新時間 |
 
 ---

@@ -190,6 +190,19 @@ refactor: 重構
 - [x] Add missing columns (`交易筆棟數`) and tooltip logic for `戶型`
 - [x] Verify data loading and pagination
 
+### [Completed Task] Line Login Integration (LIFF + Edge Function)
+- [x] **Step 0**: User Configuration (Line Login Channel & LIFF App)
+- [x] **Step 1**: Create `line-auth` Edge Function (Verify ID Token & Custom Sign-in)
+- [x] **Step 2**: Install `@line/liff` SDK & Implement Frontend Logic
+- [x] **Step 3**: Verify Login Flow & Session creation (Implemented & Deployed to Test)
+
+### [Current Task] Sync Registration Source to Public Profiles
+- [ ] **Step 1**: Update `line-auth` Edge Function and Registration logic to sync (`provider`, `line_user_id`) to `public.profiles`.
+- [ ] **Step 2**: Create SQL migration script to ensure `profiles` table has necessary columns.
+
+### [Completed Task] Display Login Provider in Settings
+- [x] **Step 1**: Update `SettingsPage` to retrieve and display specific login provider (Email vs Line).
+
 ### [Current Task] Migrate Legacy Tools
 - [x] **Map Tool Migration**
     - [x] Create `/app/map/page.tsx`
