@@ -232,12 +232,12 @@ export default function AdminMembersPage() {
                                         </td>
                                         <td className="px-4 py-3">
                                             <div className="flex items-center gap-2">
-                                                {m.providers.includes('line') && (
+                                                {m.providers.some(p => p.toLowerCase() === 'line') && (
                                                     <div className="p-1.5 bg-[#06C755]/10 rounded border border-[#06C755]/20" title="LINE 綁定">
                                                         <MessageCircle className="h-3.5 w-3.5 text-[#06C755]" />
                                                     </div>
                                                 )}
-                                                {m.providers.includes('email') && (
+                                                {m.providers.some(p => p.toLowerCase() === 'email') && (
                                                     <div className="p-1.5 bg-blue-500/10 rounded border border-blue-500/20" title="Email 綁定">
                                                         <Mail className="h-3.5 w-3.5 text-blue-400" />
                                                     </div>

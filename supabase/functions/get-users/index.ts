@@ -14,7 +14,7 @@ serve(async (req) => {
     try {
         const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
         const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY') ?? ''
-        const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+        const supabaseServiceKey = Deno.env.get('SERVICE_ROLE_KEY') ?? Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
 
         // 1. Verify Requesting User (Must be Admin)
         const authHeader = req.headers.get('Authorization')
@@ -57,8 +57,10 @@ serve(async (req) => {
         // 3. Merge Data
         const mergedUsers = users.map(u => {
             const profile = profiles?.find(p => p.id === u.id)
-            const providers = u.identities?.map(id => id.provider) || []
-            const uniqueProviders = [...new Set(providers)]
+            const identityProviders = u.identities?.map(id => id.provider) || []
+            const appMetaProviders = u.app_metadata?.providers || []
+            const allProviders = [...identityProviders, ...appMetaProviders].map(p => String(p).toLowerCase())
+            const uniqueProviders = [...new Set(allProviders)]
 
             return {
                 id: u.id,
