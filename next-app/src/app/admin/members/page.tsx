@@ -237,13 +237,15 @@ export default function AdminMembersPage() {
                                                 </div>
                                                 <div className="min-w-0">
                                                     <p className="text-sm font-medium text-white truncate">{m.full_name || '未設定'}</p>
-                                                    <p
-                                                        className={`text-xs text-zinc-500 font-mono cursor-pointer hover:text-zinc-300 transition-colors ${expandedEmails.has(m.id) ? 'break-all' : 'truncate max-w-[150px]'}`}
-                                                        onClick={() => toggleEmail(m.id)}
-                                                        title={m.email}
-                                                    >
-                                                        {m.email}
-                                                    </p>
+                                                    {!m.email?.includes('@line.workaround') && (
+                                                        <p
+                                                            className={`text-xs text-zinc-500 font-mono cursor-pointer hover:text-zinc-300 transition-colors ${expandedEmails.has(m.id) ? 'break-all' : 'truncate max-w-[150px]'}`}
+                                                            onClick={() => toggleEmail(m.id)}
+                                                            title={m.email}
+                                                        >
+                                                            {m.email}
+                                                        </p>
+                                                    )}
                                                 </div>
                                             </div>
                                         </td>
@@ -254,7 +256,7 @@ export default function AdminMembersPage() {
                                                         LINE 綁定
                                                     </span>
                                                 )}
-                                                {m.providers.some(p => p.toLowerCase() === 'email') && (
+                                                {m.providers.some(p => p.toLowerCase() === 'email') && !m.email?.includes('@line.workaround') && (
                                                     <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-500/10 text-blue-400 border border-blue-500/20 whitespace-nowrap">
                                                         Mail 綁定
                                                     </span>
