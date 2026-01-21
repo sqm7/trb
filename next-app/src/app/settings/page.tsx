@@ -332,26 +332,23 @@ export default function SettingsPage() {
                                             </div>
                                         )}
 
-                                        {/* Login Method Badge */}
-                                        <div className="flex items-center gap-2 mt-1.5">
-                                            <div className={cn(
-                                                "flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-bold tracking-wide uppercase border",
-                                                (user.app_metadata?.provider === 'line' || user.user_metadata?.line_user_id)
-                                                    ? "bg-[#06C755]/10 text-[#06C755] border-[#06C755]/20"
-                                                    : "bg-zinc-800 text-zinc-400 border-zinc-700"
-                                            )}>
-                                                {(user.app_metadata?.provider === 'line' || user.user_metadata?.line_user_id) ? (
-                                                    <>
-                                                        <span className="w-1.5 h-1.5 rounded-full bg-[#06C755]"></span>
-                                                        LINE Account
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <span className="w-1.5 h-1.5 rounded-full bg-zinc-500"></span>
-                                                        Email Account
-                                                    </>
-                                                )}
-                                            </div>
+                                        {/* Account Binding Badges */}
+                                        <div className="flex flex-wrap items-center gap-2 mt-1.5">
+                                            {/* LINE Binding Badge */}
+                                            {(user.app_metadata?.provider === 'line' || user.user_metadata?.line_user_id || user.identities?.some((id: any) => id.provider === 'line')) && (
+                                                <div className="flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-bold tracking-wide uppercase border bg-[#06C755]/10 text-[#06C755] border-[#06C755]/20">
+                                                    <span className="w-1.5 h-1.5 rounded-full bg-[#06C755]"></span>
+                                                    LINE 綁定
+                                                </div>
+                                            )}
+
+                                            {/* Email Binding Badge */}
+                                            {!user.email?.includes('line.workaround') && (
+                                                <div className="flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-bold tracking-wide uppercase border bg-zinc-800 text-zinc-400 border-zinc-700">
+                                                    <span className="w-1.5 h-1.5 rounded-full bg-zinc-500"></span>
+                                                    Email 綁定
+                                                </div>
+                                            )}
                                         </div>
 
                                         <div className="flex items-center gap-2 text-zinc-500 text-xs font-mono mt-1">

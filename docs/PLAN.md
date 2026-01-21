@@ -214,11 +214,11 @@ refactor: 重構
 - [x] **Step 1**: Add password confirmation and visibility toggle.
 - [x] **Step 2**: Implement account unlinking logic (enabled only after binding).
 
-### [Current Task] Implement Email to LINE Binding
-- [ ] **Step 1**: Add "Link LINE Account" button for Email users in `SettingsPage`.
-- [ ] **Step 2**: Implement binding logic (Initiate LINE Login with redirect).
-- [ ] **Step 3**: Handle callback to link identity (vs create new user).
-- [ ] **Step 4**: Verify linking status and UI updates.
+### [Completed Task] Implement Email to LINE Binding
+- [x] **Step 1**: Add "Link LINE Account" button for Email users in `SettingsPage`.
+- [x] **Step 2**: Implement binding logic (Initiate LINE Login with redirect).
+- [x] **Step 3**: Handle callback to link identity (vs create new user).
+- [x] **Step 4**: Verify linking status and UI updates.
     - [x] Create `/app/map/page.tsx`
     - [x] Implement `LeafletMap.tsx` (using react-leaflet)
     - [x] Port functionalities: Address Search, Overpass API (Buildings), GeoJSON Upload
