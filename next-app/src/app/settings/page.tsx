@@ -207,7 +207,8 @@ export default function SettingsPage() {
                                                     </h3>
                                                     <button
                                                         onClick={() => setIsEditingName(true)}
-                                                        className="opacity-0 group-hover/name:opacity-100 transition-opacity p-1 hover:bg-white/10 rounded text-zinc-400 hover:text-cyan-400"
+                                                        className="p-1.5 hover:bg-white/10 rounded-full text-zinc-500 hover:text-cyan-400 transition-colors"
+                                                        title="修改名稱"
                                                     >
                                                         <Edit2 className="h-4 w-4" />
                                                     </button>
