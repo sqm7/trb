@@ -27,6 +27,7 @@ export default function AdminMembersPage() {
     const [searchQuery, setSearchQuery] = useState('');
     const [currentUserRole, setCurrentUserRole] = useState<string>('user');
     const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
+    const [expandedEmails, setExpandedEmails] = useState<Set<string>>(new Set());
 
     useEffect(() => {
         if (!isAuthLoading && isAdmin) {
@@ -76,6 +77,16 @@ export default function AdminMembersPage() {
             console.error('Error updating role:', error);
             alert('更新失敗：' + error.message);
         }
+    };
+
+    const toggleEmail = (id: string) => {
+        const newSet = new Set(expandedEmails);
+        if (newSet.has(id)) {
+            newSet.delete(id);
+        } else {
+            newSet.add(id);
+        }
+        setExpandedEmails(newSet);
     };
 
     const RoleBadge = ({ role }: { role: string }) => {
@@ -226,7 +237,13 @@ export default function AdminMembersPage() {
                                                 </div>
                                                 <div className="min-w-0">
                                                     <p className="text-sm font-medium text-white truncate">{m.full_name || '未設定'}</p>
-                                                    <p className="text-xs text-zinc-500 truncate font-mono">{m.email}</p>
+                                                    <p
+                                                        className={`text-xs text-zinc-500 font-mono cursor-pointer hover:text-zinc-300 transition-colors ${expandedEmails.has(m.id) ? 'break-all' : 'truncate max-w-[150px]'}`}
+                                                        onClick={() => toggleEmail(m.id)}
+                                                        title={m.email}
+                                                    >
+                                                        {m.email}
+                                                    </p>
                                                 </div>
                                             </div>
                                         </td>
