@@ -63,7 +63,13 @@ serve(async (req) => {
             const customLineProvider = (u.user_metadata?.line_user_id || u.user_metadata?.provider === 'line') ? ['line'] : []
 
             const allProviders = [...identityProviders, ...appMetaProviders, ...customLineProvider].map(p => String(p).toLowerCase())
-            const uniqueProviders = [...new Set(allProviders)]
+            let uniqueProviders = [...new Set(allProviders)]
+
+            // If email is a placeholder (@line.workaround), remove 'email' from providers
+            // This indicates the user unbound their email
+            if (u.email?.includes('@line.workaround')) {
+                uniqueProviders = uniqueProviders.filter(p => p !== 'email')
+            }
 
             // Try to resolve real email if primary is a workaround
             let displayEmail = u.email
