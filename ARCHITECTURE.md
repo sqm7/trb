@@ -8,23 +8,20 @@
 ## 2. Directory Structure
 ```
 /
-├── next-app/           # Next.js Application
+├── next-app/           # Next.js Application (Active Frontend)
 │   ├── src/
 │   │   ├── app/        # App Router Pages
 │   │   ├── components/ # React Components
-│   │   ├── lib/        # Utilities & Config
 │   │   └── ...
-├── supabase/
-│   ├── functions/      # Deno Edge Functions
-│   │   ├── line-auth/  # Custom LINE Login & Linking
-│   │   ├── bind-email/ # Email Binding & Unbinding
-│   │   └── ...
-│   ├── migrations/     # Database Schema
-│   └── ...
+├── supabase/           # Supabase Configuration
+│   ├── functions/      # Deno Edge Functions (delete-user, line-auth, etc.)
+│   └── migrations/     # Database Schema
+├── scripts/            # Deployment & Utility Scripts
+├── skills/             # Agentic Skills
+├── _legacy_backup/     # Archive of old Vanilla JS/HTML files
 ├── SPEC.md             # Functional Specification
 ├── PLAN.md             # Execution Plan
-├── ARCHITECTURE.md     # This file
-└── .cursorrules        # Coding Standards
+└── ARCHITECTURE.md     # This file
 ```
 
 ## 3. Database Schema (Key Tables)

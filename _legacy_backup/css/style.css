@@ -1,0 +1,2945 @@
+:root {
+    --color-dark-bg: #1a1d29;
+    --color-dark-card: #252836;
+    --color-cyan-accent: #06b6d4;
+    --color-purple-accent: #8b5cf6;
+    --color-form-bg: #1f2937;
+    --color-border-default: #4b5563;
+    --color-text-light: #e5e7eb;
+    --color-text-dark: #9ca3af;
+    --color-text-red: #f87171;
+    --color-text-green: #4ade80;
+    --color-disabled-bg: #374151;
+    --color-multi-tag-bg: #4b5563;
+    --color-multi-tag-text: #d1d5db;
+    --color-tooltip-bg: #1a1d29;
+    --color-tooltip-border: #4b5563;
+    --color-special-remark-bg: rgba(139, 92, 246, 0.1);
+    --color-special-remark-hover-bg: rgba(139, 92, 246, 0.2);
+    --color-icon-parking: #a5b4fc;
+    --color-icon-special: #facc15;
+}
+
+body {
+    font-family: 'Inter', 'Noto Sans TC', sans-serif;
+    background: var(--color-dark-bg);
+    color: var(--color-text-light);
+}
+
+.glass-card {
+    background: rgba(37, 40, 54, 0.8);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* --- ▼▼▼ 請用這段新程式碼取代舊的 .form-input, .form-select... 那一行 ▼▼▼ --- */
+.form-input,
+.form-select,
+.form-multiselect {
+    background-color: var(--color-form-bg);
+    border: 1px solid var(--color-border-default);
+    color: var(--color-multi-tag-text);
+    height: 42px;
+    /* 統一樣式高度 */
+    border-radius: 0.375rem;
+    /* 6px */
+    padding: 0.5rem 0.75rem;
+    /* 8px 12px */
+}
+
+.form-select {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E");
+    background-position: right 0.5rem center;
+    background-repeat: no-repeat;
+    background-size: 1.5em 1.5em;
+    padding-right: 2.5rem;
+    /* 增加右側內邊距以容納箭頭 */
+}
+
+.form-multiselect {
+    padding: 0.25rem;
+    /* 微調多選框的內邊距 */
+}
+
+/* --- ▲▲▲ 替換結束 ▲▲▲ --- */
+.form-input:focus,
+.form-select:focus,
+.form-input:has(input:focus),
+.form-multiselect:focus-within {
+    border-color: var(--color-cyan-accent);
+    box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.5);
+    outline: none;
+}
+
+select:disabled,
+input:disabled,
+.form-multiselect.disabled {
+    background-color: var(--color-disabled-bg);
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th,
+td {
+    border-bottom: 1px solid var(--color-disabled-bg);
+    padding: 0.75rem 1rem;
+    text-align: left;
+    font-size: 0.875rem;
+}
+
+/* Table headers should not wrap - keep them on single line */
+thead th {
+    background-color: var(--color-dark-card);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    font-weight: 600;
+    color: var(--color-text-dark);
+    white-space: nowrap;
+}
+
+/* Better text wrapping for table data cells */
+td {
+    word-break: keep-all;
+    /* Prevent mid-word breaks for CJK text */
+    overflow-wrap: break-word;
+    /* Allow wrapping at word boundaries when needed */
+    line-break: strict;
+    /* Use strict line-breaking rules for CJK */
+    hyphens: none;
+    /* Disable auto-hyphenation */
+}
+
+/* === 分析報表表格欄位置中 (排除建案名稱欄位) === */
+.analysis-table th:not(:first-child):not(:nth-child(2)),
+.analysis-table td:not(:first-child):not(:nth-child(2)) {
+    text-align: center;
+}
+
+/* 通用報表表格 - 除第一欄外置中 */
+.report-table th:not(:first-child),
+.report-table td:not(:first-child) {
+    text-align: center;
+}
+
+/* 倍數視覺化進度條 - 置中對齊 */
+.multiplier-bar-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.multiplier-bar {
+    height: 8px;
+    border-radius: 4px;
+    background: linear-gradient(to right, var(--color-cyan-accent), var(--color-purple-accent));
+    min-width: 4px;
+    max-width: 80px;
+    transition: width 0.3s ease;
+}
+
+.multiplier-value {
+    font-weight: 600;
+    color: var(--color-text-light);
+    white-space: nowrap;
+}
+
+/* 總價帶分析表格 - 建案組成欄位寬度縮小 */
+.project-list-cell {
+    width: 100px !important;
+    min-width: 80px !important;
+    max-width: 120px !important;
+}
+
+/* 手機版指標卡片樣式優化 */
+@media (max-width: 640px) {
+    .metric-card {
+        padding: 0.75rem;
+    }
+
+    .metric-card-value {
+        font-size: 1.25rem;
+    }
+
+    .metric-card-unit {
+        font-size: 0.75rem;
+    }
+
+    .metric-card-title {
+        font-size: 0.7rem;
+    }
+}
+
+
+
+/* GLOBAL DARK SCROLLBAR STYLES - Apply to ALL elements */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-border-default) transparent;
+}
+
+*::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+*::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+    background-color: var(--color-border-default);
+    border-radius: 10px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+    background-color: #6b7280;
+}
+
+.loader {
+    border: 4px solid var(--color-disabled-bg);
+    border-top: 4px solid var(--color-cyan-accent);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+}
+
+.loader-sm {
+    border: 2px solid var(--color-disabled-bg);
+    border-top: 2px solid var(--color-cyan-accent);
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    backdrop-filter: blur(5px);
+    transition: opacity 0.3s ease;
+}
+
+.modal-container {
+    background: var(--color-dark-card);
+    padding: 2rem;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 1200px;
+    max-height: 85vh;
+    overflow-y: auto;
+    border: 1px solid var(--color-border-default);
+    transform: scale(0.95);
+    transition: transform 0.3s ease;
+}
+
+.modal-overlay:not(.hidden) .modal-container {
+    transform: scale(1);
+}
+
+.multi-tag {
+    display: inline-flex;
+    align-items: center;
+    background-color: var(--color-multi-tag-bg);
+    color: var(--color-multi-tag-text);
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    flex-shrink: 0;
+}
+
+.multi-tag-remove {
+    margin-left: 0.5rem;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.multi-tag-remove:hover {
+    color: var(--color-text-red);
+}
+
+.suggestions-container {
+    max-height: 360px;
+    overflow-y: auto;
+}
+
+.suggestion-item {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+}
+
+.suggestion-item:hover,
+.suggestion-item.active {
+    background-color: var(--color-disabled-bg);
+}
+
+/* === ▼▼▼ 現代化 Checkbox 樣式 ▼▼▼ === */
+/* 通用 checkbox 基礎樣式 */
+input[type="checkbox"] {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    width: 1.125rem;
+    height: 1.125rem;
+    border: 2px solid var(--color-border-default);
+    border-radius: 0.375rem;
+    background-color: rgba(31, 41, 55, 0.6);
+    cursor: pointer;
+    position: relative;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    flex-shrink: 0;
+}
+
+input[type="checkbox"]:hover {
+    border-color: var(--color-cyan-accent);
+    background-color: rgba(6, 182, 212, 0.1);
+    box-shadow: 0 0 8px rgba(6, 182, 212, 0.3);
+}
+
+input[type="checkbox"]:focus {
+    outline: none;
+    border-color: var(--color-cyan-accent);
+    box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.25);
+}
+
+input[type="checkbox"]:checked {
+    background: linear-gradient(135deg, var(--color-cyan-accent), var(--color-purple-accent));
+    border-color: transparent;
+    box-shadow: 0 0 12px rgba(6, 182, 212, 0.5),
+        0 0 4px rgba(139, 92, 246, 0.3);
+}
+
+input[type="checkbox"]:checked::after {
+    content: '';
+    position: absolute;
+    top: 45%;
+    left: 50%;
+    width: 5px;
+    height: 9px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: translate(-50%, -50%) rotate(45deg);
+    animation: checkmark-pop 0.2s ease-out;
+}
+
+@keyframes checkmark-pop {
+    0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) rotate(45deg) scale(0);
+    }
+
+    50% {
+        transform: translate(-50%, -50%) rotate(45deg) scale(1.2);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translate(-50%, -50%) rotate(45deg) scale(1);
+    }
+}
+
+/* Suggestion item checkbox */
+.suggestion-item input[type="checkbox"] {
+    margin-right: 0.75rem;
+}
+
+.suggestion-item input[type="checkbox"]:focus {
+    box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.25);
+}
+
+/* 表格內 checkbox - 稍微小一點 */
+.form-checkbox,
+.floor-checkbox,
+.project-checkbox {
+    width: 1rem !important;
+    height: 1rem !important;
+}
+
+.form-checkbox:checked::after,
+.floor-checkbox:checked::after,
+.project-checkbox:checked::after {
+    width: 4px;
+    height: 8px;
+}
+
+/* Checkbox label 組合樣式 */
+label:has(input[type="checkbox"]) {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+}
+
+/* === ▲▲▲ 現代化 Checkbox 樣式結束 ▲▲▲ === */
+
+.scrollable-cell {
+    max-width: 25ch;
+    overflow-x: auto;
+    white-space: nowrap;
+    padding-top: 4px;
+    padding-bottom: 4px;
+}
+
+.scrollable-filter-container {
+    padding-bottom: 8px;
+}
+
+.scrollable-cell::-webkit-scrollbar,
+.form-multiselect::-webkit-scrollbar,
+.scrollable-filter-container::-webkit-scrollbar {
+    height: 4px;
+}
+
+.scrollable-cell::-webkit-scrollbar-track,
+.form-multiselect::-webkit-scrollbar-track,
+.scrollable-filter-container::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.scrollable-cell::-webkit-scrollbar-thumb,
+.form-multiselect::-webkit-scrollbar-thumb,
+.scrollable-filter-container::-webkit-scrollbar-thumb {
+    background-color: var(--color-border-default);
+    border-radius: 20px;
+}
+
+/* === UNIFIED DARK SCROLLBAR for ALL overflow containers === */
+.overflow-x-auto,
+.overflow-y-auto,
+.modal-container,
+.velocity-table,
+#results-table,
+#ranking-table,
+#price-band-table,
+.table-container,
+#velocity-table-container,
+.sub-tab-nav,
+#tabs-container nav,
+.suggestions-container {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-border-default) transparent;
+}
+
+.overflow-x-auto::-webkit-scrollbar,
+.overflow-y-auto::-webkit-scrollbar,
+.modal-container::-webkit-scrollbar,
+.velocity-table::-webkit-scrollbar,
+#results-table::-webkit-scrollbar,
+#ranking-table::-webkit-scrollbar,
+#price-band-table::-webkit-scrollbar,
+.table-container::-webkit-scrollbar,
+#velocity-table-container::-webkit-scrollbar,
+.sub-tab-nav::-webkit-scrollbar,
+#tabs-container nav::-webkit-scrollbar,
+.suggestions-container::-webkit-scrollbar {
+    height: 6px;
+    width: 6px;
+}
+
+.overflow-x-auto::-webkit-scrollbar-track,
+.overflow-y-auto::-webkit-scrollbar-track,
+.modal-container::-webkit-scrollbar-track,
+.velocity-table::-webkit-scrollbar-track,
+#results-table::-webkit-scrollbar-track,
+#ranking-table::-webkit-scrollbar-track,
+#price-band-table::-webkit-scrollbar-track,
+.table-container::-webkit-scrollbar-track,
+#velocity-table-container::-webkit-scrollbar-track,
+.sub-tab-nav::-webkit-scrollbar-track,
+#tabs-container nav::-webkit-scrollbar-track,
+.suggestions-container::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.overflow-x-auto::-webkit-scrollbar-thumb,
+.overflow-y-auto::-webkit-scrollbar-thumb,
+.modal-container::-webkit-scrollbar-thumb,
+.velocity-table::-webkit-scrollbar-thumb,
+#results-table::-webkit-scrollbar-thumb,
+#ranking-table::-webkit-scrollbar-thumb,
+#price-band-table::-webkit-scrollbar-thumb,
+.table-container::-webkit-scrollbar-thumb,
+#velocity-table-container::-webkit-scrollbar-thumb,
+.sub-tab-nav::-webkit-scrollbar-thumb,
+#tabs-container nav::-webkit-scrollbar-thumb,
+.suggestions-container::-webkit-scrollbar-thumb {
+    background-color: var(--color-border-default);
+    border-radius: 10px;
+}
+
+.overflow-x-auto::-webkit-scrollbar-thumb:hover,
+.overflow-y-auto::-webkit-scrollbar-thumb:hover,
+.modal-container::-webkit-scrollbar-thumb:hover {
+    background-color: #6b7280;
+}
+
+.tab-button {
+    padding: 0.75rem 1.5rem;
+    font-weight: 500;
+    border-bottom: 3px solid transparent;
+    transition: all 0.3s ease;
+    color: var(--color-text-dark);
+}
+
+.tab-button.active {
+    color: var(--color-cyan-accent);
+    border-bottom-color: var(--color-cyan-accent);
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+.metric-card {
+    background-color: var(--color-form-bg);
+    padding: 1.5rem;
+    border-radius: 0.75rem;
+    border: 1px solid var(--color-disabled-bg);
+}
+
+.metric-card-title {
+    font-size: 0.875rem;
+    color: var(--color-text-dark);
+    margin-bottom: 0.5rem;
+}
+
+.metric-card-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--color-text-light);
+}
+
+.metric-card-unit {
+    font-size: 1rem;
+    color: #6b7280;
+    margin-left: 0.5rem;
+}
+
+.sortable-th {
+    cursor: pointer;
+    user-select: none;
+}
+
+.sortable-th:hover {
+    color: var(--color-text-light);
+}
+
+.sortable-th .sort-icon {
+    display: inline-block;
+    margin-left: 0.5rem;
+    color: #6b7280;
+    transition: all 0.2s;
+}
+
+.sortable-th.asc .sort-icon {
+    transform: rotate(180deg);
+    color: var(--color-cyan-accent);
+}
+
+.sortable-th.desc .sort-icon {
+    color: var(--color-cyan-accent);
+}
+
+.report-header {
+    display: none;
+}
+
+.report-section-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--color-text-light);
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--color-disabled-bg);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.avg-type-btn {
+    color: var(--color-text-dark);
+}
+
+.avg-type-btn.active {
+    background-color: var(--color-cyan-accent);
+    color: #ffffff;
+}
+
+.capsule-btn {
+    padding: 0.375rem 1rem;
+    border-radius: 9999px;
+    border: 1px solid var(--color-border-default);
+    background-color: transparent;
+    color: var(--color-multi-tag-text);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.875rem;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.capsule-btn.active,
+.capsule-btn:hover {
+    background-color: var(--color-cyan-accent);
+    border-color: var(--color-cyan-accent);
+    color: white;
+}
+
+.sub-tab-nav {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid var(--color-disabled-bg);
+    padding-bottom: 0.75rem;
+}
+
+.sub-tab-btn {
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    color: var(--color-text-dark);
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.sub-tab-btn.active,
+.sub-tab-btn:hover {
+    background-color: var(--color-dark-card);
+    color: var(--color-text-light);
+}
+
+.parking-icon {
+    color: var(--color-icon-parking);
+    margin-left: 4px;
+    font-size: 0.75rem;
+}
+
+.grid-cell-content {
+    line-height: 1.6;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.special-remark-row {
+    background-color: var(--color-special-remark-bg);
+}
+
+.special-remark-row:hover {
+    background-color: var(--color-special-remark-hover-bg) !important;
+}
+
+.special-remark-icon {
+    color: var(--color-icon-special);
+    margin-right: 4px;
+}
+
+.btn-loading {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.heatmap-cell {
+    transition: opacity 0.3s ease;
+}
+
+.heatmap-cell.dimmed {
+    opacity: 0.15;
+}
+
+.legend-item {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    border: 1px solid var(--color-border-default);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    user-select: none;
+}
+
+.legend-item.active,
+.legend-item:hover {
+    background-color: var(--color-cyan-accent);
+    border-color: var(--color-cyan-accent);
+    color: white;
+}
+
+.legend-item .icon-legend-symbol {
+    width: 1.5rem;
+    text-align: center;
+    margin-right: 0.5rem;
+}
+
+.legend-item .color-legend-swatch {
+    width: 1rem;
+    height: 1rem;
+    border-radius: 0.25rem;
+    margin-right: 0.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    flex-shrink: 0;
+}
+
+.summary-table {
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.summary-table th,
+.summary-table td {
+    padding: 0.75rem;
+}
+
+.summary-table th {
+    background-color: var(--color-form-bg);
+}
+
+.summary-table td {
+    background-color: var(--color-dark-card);
+}
+
+.summary-table tr:first-child th:first-child {
+    border-top-left-radius: 0.5rem;
+}
+
+.summary-table tr:first-child th:last-child {
+    border-top-right-radius: 0.5rem;
+}
+
+.summary-table tr:last-child td:first-child {
+    border-bottom-left-radius: 0.5rem;
+}
+
+.summary-table tr:last-child td:last-child {
+    border-bottom-right-radius: 0.5rem;
+}
+
+.summary-value-positive {
+    color: var(--color-text-red);
+}
+
+.summary-value-negative {
+    color: var(--color-text-green);
+}
+
+/* User status positioning - mobile first approach */
+.user-status-mobile {
+    text-align: center;
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+}
+
+@media (min-width: 768px) {
+    .user-status-mobile {
+        position: absolute;
+        top: 0;
+        right: 0;
+        margin-top: 0;
+        text-align: right;
+    }
+}
+
+.z-elevate-filters {
+    position: relative;
+    z-index: 30;
+}
+
+/* 面積級距數字輸入框 */
+.number-input-container {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid var(--color-border-default);
+    border-radius: 0.375rem;
+    /* 6px */
+    background-color: var(--color-form-bg);
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.number-input-container:focus-within {
+    border-color: var(--color-cyan-accent);
+    box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.5);
+}
+
+.number-input-field {
+    width: 60px;
+    height: 40px;
+    background-color: transparent;
+    color: var(--color-multi-tag-text);
+    text-align: center;
+    font-size: 0.875rem;
+    font-weight: 500;
+    border: none;
+    outline: none;
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
+
+.number-input-field::-webkit-outer-spin-button,
+.number-input-field::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.number-input-btn {
+    width: 32px;
+    height: 40px;
+    background-color: transparent;
+    color: var(--color-text-dark);
+    border: none;
+    cursor: pointer;
+    font-size: 1.25rem;
+    line-height: 40px;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.number-input-btn:hover {
+    background-color: var(--color-disabled-bg);
+    color: var(--color-text-light);
+}
+
+.number-input-btn:first-of-type {
+    border-right: 1px solid var(--color-border-default);
+    border-top-left-radius: 0.3rem;
+    border-bottom-left-radius: 0.3rem;
+}
+
+.number-input-btn:last-of-type {
+    border-left: 1px solid var(--color-border-default);
+    border-top-right-radius: 0.3rem;
+    border-bottom-right-radius: 0.3rem;
+}
+
+.number-input-btn:hover {
+    background-color: var(--color-disabled-bg);
+    color: var(--color-text-light);
+}
+
+/* 去化分析表格美化 */
+.velocity-table {
+    border-collapse: separate;
+    border-spacing: 0;
+    border: 1px solid var(--color-disabled-bg);
+    border-radius: 0.75rem;
+    overflow: hidden;
+}
+
+.velocity-table th,
+.velocity-table td {
+    padding: 0.75rem 1rem;
+    text-align: center;
+}
+
+.velocity-table thead {
+    background-color: var(--color-form-bg);
+}
+
+.velocity-table .velocity-header-group th {
+    padding-top: 0.75rem;
+    padding-bottom: 0.5rem;
+    font-size: 1rem;
+    color: var(--color-text-light);
+    border-bottom: 1px solid var(--color-disabled-bg);
+}
+
+.velocity-table .velocity-header-sub th {
+    padding-top: 0.5rem;
+    padding-bottom: 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--color-text-dark);
+    background-color: var(--color-dark-card);
+}
+
+.velocity-table tbody tr {
+    transition: background-color 0.2s ease;
+}
+
+.velocity-table tbody tr:hover {
+    background-color: var(--color-dark-card);
+    position: relative;
+    /* 讓 z-index 生效 */
+    z-index: 20;
+    /* 提升 hovered row 的層級 */
+}
+
+.velocity-table td {
+    border-top: 1px solid var(--color-disabled-bg);
+}
+
+.velocity-table .total-col {
+    font-weight: 600;
+}
+
+.velocity-table .sticky {
+    position: sticky;
+    z-index: 10;
+}
+
+.velocity-table .sticky.left-0 {
+    left: 0;
+}
+
+.velocity-table .velocity-header-group>th:not(:first-child),
+.velocity-table .velocity-header-sub>th:not(:first-child),
+.velocity-table tbody td:not(:first-child) {
+    border-left: 1px solid var(--color-disabled-bg);
+}
+
+.velocity-table .sticky {
+    border-right: 1px solid var(--color-disabled-bg);
+}
+
+.apexcharts-yaxis-label-right-align {
+    text-anchor: end;
+}
+
+.glass-card-deep {
+    background-color: rgba(17, 24, 39, 0.6);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.report-section-title.text-center {
+    text-align: center;
+}
+
+/* --- 總價帶分析報表樣式 --- */
+#price-band-details-container h3 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--color-text-light);
+    margin-bottom: 1rem;
+    border-bottom: 1px solid var(--color-border-default);
+    padding-bottom: 0.75rem;
+}
+
+#price-band-table {
+    table-layout: auto;
+    width: 100%;
+    min-width: 800px;
+    /* Force horizontal scroll on mobile */
+}
+
+#price-band-table th,
+#price-band-table td {
+    white-space: nowrap;
+    padding: 0.75rem 0.5rem;
+}
+
+#price-band-table th:first-child,
+#price-band-table td:first-child {
+    white-space: normal;
+    min-width: 100px;
+}
+
+.project-list-cell {
+    white-space: normal;
+    width: 180px;
+    min-width: 150px;
+    max-width: 220px;
+    vertical-align: top;
+}
+
+.project-name-list {
+    max-height: 90px;
+    overflow-y: auto;
+    font-size: 0.8rem;
+    padding-right: 5px;
+}
+
+/* ▼▼▼ 【最終修正】強制每個 span 獨佔一行 ▼▼▼ */
+.project-name-list span {
+    display: block;
+    /* 強制每個建案名稱都換行 */
+    line-height: 1.5;
+}
+
+/* ▲▲▲ 【修改結束】 ▲▲▲ */
+
+.project-name-list::-webkit-scrollbar {
+    width: 8px;
+    /* 加寬一點讓它更明顯 */
+    background-color: #252836;
+    /* 給予捲軸區域塊一個底色 */
+}
+
+.project-name-list::-webkit-scrollbar-track {
+    background: #252836;
+    /* 軌道顏色與底色一致 */
+}
+
+.project-name-list::-webkit-scrollbar-thumb {
+    background-color: var(--color-border-default);
+    /* 賦予滑塊一個固定的顏色 */
+    border-radius: 20px;
+    border: 2px solid #252836;
+    /* 增加邊框創造一點間距感 */
+}
+
+.project-name-list:hover::-webkit-scrollbar-thumb {
+    background-color: var(--color-border-default);
+}
+
+/* --- 新增：修正 velocity-table 中 tooltip 被裁切的問題 --- */
+.velocity-table td:first-child .has-tooltip::after {
+    left: 0;
+    transform: translateX(0) translateY(8px);
+}
+
+/* 【最終修正】
+  使用高權重選擇器，強制資料列表的表格寬度由內容決定，
+  以解決欄位文字變垂直的問題。
+*/
+#data-list-content #results-table {
+    min-width: max-content;
+}
+
+/* --- flatpickr Dark Theme Customization --- */
+.flatpickr-calendar {
+    background: var(--color-dark-card);
+    border: 1px solid var(--color-border-default);
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    width: 320px;
+}
+
+.flatpickr-months .flatpickr-month {
+    color: var(--color-text-light);
+    fill: var(--color-text-light);
+}
+
+.flatpickr-months .flatpickr-prev-month,
+.flatpickr-months .flatpickr-next-month {
+    color: var(--color-text-dark);
+    fill: var(--color-text-dark);
+    transition: color 0.2s;
+}
+
+.flatpickr-months .flatpickr-prev-month:hover,
+.flatpickr-months .flatpickr-next-month:hover {
+    color: var(--color-cyan-accent);
+    fill: var(--color-cyan-accent);
+}
+
+span.flatpickr-weekday {
+    color: var(--color-text-dark);
+    font-weight: 500;
+}
+
+.flatpickr-day {
+    color: var(--color-text-light);
+    border: 1px solid transparent;
+    transition: background-color 0.2s, border-color 0.2s;
+}
+
+.flatpickr-day:hover,
+.flatpickr-day:focus {
+    background: var(--color-form-bg);
+    border-color: var(--color-form-bg);
+}
+
+.flatpickr-day.today {
+    border-color: var(--color-cyan-accent);
+}
+
+.flatpickr-day.selected,
+.flatpickr-day.startRange,
+.flatpickr-day.endRange {
+    background: var(--color-cyan-accent);
+    color: #fff;
+    border-color: var(--color-cyan-accent);
+}
+
+.flatpickr-day.disabled,
+.flatpickr-day.disabled:hover {
+    background: none;
+    color: #4b5563;
+    cursor: not-allowed;
+}
+
+.numInputWrapper span:hover {
+    background: var(--color-disabled-bg);
+}
+
+.flatpickr-time input.flatpickr-hour,
+.flatpickr-time input.flatpickr-minute {
+    color: var(--color-text-light);
+}
+
+.flatpickr-current-month .flatpickr-monthDropdown-months {
+    background: var(--color-dark-card);
+    color: var(--color-text-light);
+}
+
+.flatpickr-current-month .flatpickr-monthDropdown-months .flatpickr-monthDropdown-month {
+    color: var(--color-text-light);
+}
+
+.flatpickr-current-month .flatpickr-monthDropdown-months .flatpickr-monthDropdown-month:hover {
+    background: var(--color-form-bg);
+}
+
+.flatpickr-current-month input.cur-year {
+    color: var(--color-text-light);
+}
+
+/* --- Tippy.js Dark Theme Customization --- */
+.tippy-box[data-theme~='dark-trb'] {
+    background-color: var(--color-tooltip-bg);
+    color: white;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    font-family: 'Noto Sans TC', sans-serif;
+    text-align: left;
+    border: 1px solid var(--color-tooltip-border);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.tippy-box[data-theme~='dark-trb'][data-placement^='top']>.tippy-arrow::before {
+    border-top-color: var(--color-tooltip-bg);
+}
+
+.tippy-box[data-theme~='dark-trb'][data-placement^='bottom']>.tippy-arrow::before {
+    border-bottom-color: var(--color-tooltip-bg);
+}
+
+.tippy-content {
+    white-space: pre-line;
+    padding: 8px 12px;
+}
+
+/* --- ▼▼▼ 【新增】資料列表的摘要/明細樣式 ▼▼▼ --- */
+#results-table {
+    table-layout: auto;
+    /* 改為 auto 以適應摘要內容 */
+    border-collapse: separate;
+    /* 為了圓角 */
+    border-spacing: 0;
+}
+
+#results-table thead th {
+    white-space: nowrap;
+    /* 確保表頭不換行 */
+}
+
+#results-table tbody.data-item-group {
+    border-bottom: 1px solid var(--color-disabled-bg);
+}
+
+#results-table tbody.data-item-group:last-child {
+    border-bottom: none;
+}
+
+.summary-row {
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.summary-row:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.summary-row td {
+    border-bottom: none;
+    /* 移除摘要列的底線 */
+    white-space: nowrap;
+}
+
+.details-row {
+    display: none;
+    /* 預設隱藏 */
+}
+
+.details-cell {
+    background-color: #111827;
+    padding: 1.5rem;
+}
+
+.details-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 0.75rem 2rem;
+}
+
+.details-grid>div {
+    display: flex;
+    flex-direction: column;
+}
+
+.details-grid .key {
+    font-weight: 600;
+    color: var(--color-text-dark);
+    font-size: 0.8rem;
+    margin-bottom: 0.2rem;
+}
+
+.details-grid .value {
+    color: var(--color-text-light);
+    word-break: break-all;
+}
+
+.details-toggle-btn,
+.details-btn {
+    padding: 0.3rem 1rem;
+    border: 1px solid var(--color-cyan-accent);
+    color: var(--color-cyan-accent);
+    background-color: transparent;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.8rem;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.details-toggle-btn:hover,
+.details-btn:hover {
+    background-color: rgba(6, 182, 212, 0.2);
+    color: #67e8f9;
+}
+
+.details-btn {
+    background-color: var(--color-purple-accent);
+    border-color: var(--color-purple-accent);
+    color: white;
+}
+
+.details-btn:hover {
+    background-color: #7c3aed;
+    border-color: #7c3aed;
+    color: white;
+}
+
+/* --- [修正版] 銷控表全螢幕彈窗樣式 --- */
+
+/* 1. 背景遮罩 (黑色半透明) */
+.custom-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.75);
+    /* 75% 黑色透明度 */
+    z-index: 9998;
+    /* 確保在最上層，但比彈窗低一層 */
+    backdrop-filter: blur(4px);
+    /* 背景模糊效果，增加質感 */
+    animation: fadeIn 0.2s ease-out;
+}
+
+/* 2. 中間彈出的視窗 (銷控表本體) */
+.fullscreen-modal-view {
+    position: fixed !important;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    /* 絕對置中 */
+    width: 95vw;
+    /* 寬度佔視窗 95% */
+    height: 90vh;
+    /* 高度佔視窗 90% */
+    z-index: 9999;
+    background-color: var(--color-dark-bg);
+    /* 使用深色背景 */
+    border: 1px solid var(--color-border-default);
+    border-radius: 12px;
+    /* 圓角 */
+    padding: 2rem;
+    overflow-y: auto;
+    /* 內容過長時視窗內捲動 */
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    /* 陰影 */
+    animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    /* 彈出動畫 */
+}
+
+/* 進出動畫定義 */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes popIn {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -48%) scale(0.95);
+    }
+
+    to {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+}
+
+/* ============================================
+   Mobile Responsiveness (375px - 640px)
+   ============================================ */
+@media (max-width: 640px) {
+
+    /* --- Body & Layout --- */
+    body {
+        padding: 1rem !important;
+    }
+
+    /* --- Header: Fix title/user info overlap --- */
+    header.mb-8 {
+        margin-bottom: 1rem;
+        position: static !important;
+    }
+
+    header h1 {
+        font-size: 1.75rem;
+    }
+
+    header h1 span {
+        font-size: 1.25rem;
+    }
+
+    /* Force user-status to be below title on mobile - override Tailwind md: classes */
+    #user-status-container,
+    div#user-status-container,
+    header #user-status-container,
+    .max-w-screen-2xl header #user-status-container {
+        position: static !important;
+        top: auto !important;
+        right: auto !important;
+        text-align: center !important;
+        margin-top: 0.5rem !important;
+        margin-bottom: 0.5rem !important;
+        font-size: 0.8rem;
+        display: block !important;
+        width: 100% !important;
+    }
+
+    /* --- Tabs: Force horizontal scroll instead of wrap --- */
+    #tabs-container {
+        margin-bottom: 1rem;
+    }
+
+    #tabs-container nav,
+    #tabs-container nav.flex,
+    #tabs-container .flex.flex-wrap {
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: 0.5rem;
+        gap: 0.25rem;
+        scrollbar-width: thin;
+    }
+
+    #tabs-container nav::-webkit-scrollbar {
+        height: 4px;
+    }
+
+    #tabs-container nav::-webkit-scrollbar-thumb {
+        background-color: var(--color-border-default);
+        border-radius: 4px;
+    }
+
+    .tab-button {
+        flex-shrink: 0 !important;
+        padding: 0.5rem 0.75rem;
+        font-size: 0.8rem;
+        white-space: nowrap !important;
+    }
+
+    /* --- Filter Form: Stack vertically --- */
+    #filter-form {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 1rem !important;
+    }
+
+    #filter-form>div {
+        width: 100% !important;
+    }
+
+    #project-filter-wrapper,
+    #district-filter-wrapper {
+        grid-column: span 1 !important;
+    }
+
+    /* --- Filter Buttons: Full width stacked --- */
+    #filter-form .flex.items-end.gap-4 {
+        flex-direction: column;
+    }
+
+    #filter-form .flex.items-center.gap-4 {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    #analyze-btn,
+    #search-btn {
+        width: 100% !important;
+        margin-bottom: 0.5rem;
+    }
+
+    /* --- Date inputs grid: Stack --- */
+    .grid.grid-cols-1.sm\\:grid-cols-3 {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 1rem !important;
+    }
+
+    /* --- Tables: Better mobile experience --- */
+    th,
+    td {
+        padding: 0.5rem 0.5rem;
+        font-size: 0.75rem;
+    }
+
+    .overflow-x-auto {
+        -webkit-overflow-scrolling: touch;
+        position: relative;
+    }
+
+    /* --- Metric Cards: Smaller on mobile --- */
+    .metric-card {
+        padding: 1rem;
+    }
+
+    .metric-card-value {
+        font-size: 1.5rem;
+    }
+
+    .metric-card-unit {
+        font-size: 0.875rem;
+    }
+
+    /* --- Glass Card: Less padding --- */
+    .glass-card {
+        padding: 1rem;
+    }
+
+    #filter-card {
+        padding: 1rem;
+    }
+
+    #results-container {
+        padding: 1rem;
+    }
+
+    /* --- Sub-tabs: Horizontal scroll --- */
+    .sub-tab-nav {
+        display: flex;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        gap: 0.25rem;
+    }
+
+    .sub-tab-btn {
+        flex-shrink: 0;
+        padding: 0.4rem 0.75rem;
+        font-size: 0.75rem;
+        white-space: nowrap;
+    }
+
+    /* --- Report Section Title: Smaller --- */
+    .report-section-title {
+        font-size: 1rem;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    /* --- Average Type Toggle: Smaller buttons --- */
+    #avg-type-toggle button,
+    #velocity-metric-toggle button,
+    #heatmap-metric-toggle button {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.7rem;
+    }
+
+    /* --- Capsule Buttons: Smaller --- */
+    .capsule-btn {
+        padding: 0.25rem 0.75rem;
+        font-size: 0.75rem;
+    }
+
+    /* --- Price Grid Controls: Stack vertically --- */
+    #price-grid-report-content .flex.items-end.gap-4,
+    #price-grid-report-content .flex.items-center.justify-between {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    #price-grid-report-content .flex.items-end.gap-4>div,
+    #price-grid-report-content .flex.items-end.gap-4>button {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+
+    #analyze-heatmap-btn,
+    #back-to-grid-btn {
+        width: 100%;
+    }
+
+    /* --- Heatmap inputs: Stack --- */
+    #velocity-report-content .flex.flex-wrap.items-end.gap-4 {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    #heatmap-min-area-input,
+    #heatmap-max-area-input {
+        width: 100% !important;
+    }
+
+    /* --- Data List Buttons: Adjust size --- */
+    .details-toggle-btn,
+    .details-btn {
+        padding: 0.35rem 0.6rem;
+        font-size: 0.7rem;
+    }
+
+    /* --- Modal: Full width on mobile --- */
+    .modal-container {
+        width: 95%;
+        max-width: 100%;
+        padding: 1rem;
+        max-height: 90vh;
+    }
+
+    /* --- Fullscreen modal: Adjust --- */
+    .fullscreen-modal-view {
+        width: 98vw;
+        height: 95vh;
+        padding: 1rem;
+    }
+
+    /* --- Hide Plotly modebar on mobile --- */
+    .modebar-container,
+    .modebar {
+        display: none !important;
+    }
+
+    /* --- Legend items: Smaller --- */
+    .legend-item {
+        padding: 0.2rem 0.5rem;
+        font-size: 0.75rem;
+    }
+
+    /* --- Footer: Stack items --- */
+    footer .flex.items-center {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    footer {
+        padding: 1.5rem 0;
+        margin-top: 2rem;
+    }
+
+    /* --- Exclude commercial toggle: Wrap properly --- */
+    #ranking-report-content .flex.flex-col.sm\\:flex-row {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    /* --- Grid layouts: Single column --- */
+    .grid.grid-cols-1.lg\\:grid-cols-3,
+    .grid.grid-cols-1.lg\\:grid-cols-2,
+    .grid.grid-cols-1.md\\:grid-cols-2 {
+        display: flex !important;
+        flex-direction: column !important;
+    }
+
+    /* --- Number input container: Full width --- */
+    .number-input-container {
+        width: 100%;
+    }
+
+    .number-input-field {
+        flex: 1;
+    }
+
+    /* --- Scrollable cells: Show scroll hint --- */
+    .scrollable-cell {
+        max-width: 20ch;
+    }
+
+    /* --- Project list cell: Narrower --- */
+    .project-list-cell {
+        width: 150px;
+        max-width: 150px;
+    }
+}
+
+/* Extra small screens (< 375px) */
+@media (max-width: 374px) {
+    body {
+        padding: 0.5rem !important;
+    }
+
+    header h1 {
+        font-size: 1.5rem;
+    }
+
+    header h1 span {
+        font-size: 1rem;
+    }
+
+    .tab-button {
+        padding: 0.4rem 0.5rem;
+        font-size: 0.7rem;
+    }
+
+    th,
+    td {
+        padding: 0.35rem;
+        font-size: 0.65rem;
+    }
+
+    .metric-card-value {
+        font-size: 1.25rem;
+    }
+}
+
+/* ===========================================
+   MOBILE TABLE FIX STYLES
+   =========================================== */
+
+/* 1. Pagination controls: prevent "共 XX 筆資料" from wrapping */
+#pagination-controls,
+#ranking-pagination-controls {
+    flex-wrap: nowrap;
+}
+
+#pagination-controls>div:first-child,
+#ranking-pagination-controls>div:first-child {
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+/* 2. Center all table data cells except project name columns */
+td {
+    text-align: center;
+}
+
+/* Keep project name / building name columns left-aligned */
+td:first-child,
+#ranking-table td:nth-child(2),
+#price-band-table td:nth-child(1),
+#price-band-table td:nth-child(3),
+.project-list-cell,
+.project-name-list {
+    text-align: left;
+}
+
+/* 3. Velocity table time column: prevent wrapping */
+.velocity-table td:first-child,
+.velocity-table .sticky.left-0 {
+    white-space: nowrap;
+}
+
+/* 4. Heatmap details table: better range display */
+#heatmap-details-content table td {
+    white-space: nowrap;
+}
+
+/* Range columns: use monospace font and proper alignment */
+#heatmap-details-content table td:nth-child(3),
+#heatmap-details-content table td:nth-child(5) {
+    font-family: 'Inter', monospace;
+    font-size: 0.75rem;
+    letter-spacing: -0.02em;
+}
+
+/* Mobile-specific adjustments for details table */
+@media (max-width: 640px) {
+    #heatmap-details-content table {
+        font-size: 0.7rem;
+    }
+
+    #heatmap-details-content table th,
+    #heatmap-details-content table td {
+        padding: 0.35rem 0.25rem;
+    }
+
+    /* Range columns on mobile - allow wrap but keep aligned */
+    #heatmap-details-content table td:nth-child(3),
+    #heatmap-details-content table td:nth-child(5) {
+        white-space: normal;
+        word-break: keep-all;
+        min-width: 70px;
+    }
+}
+
+/* 5. Parking table: ensure proper display */
+#ramp-plane-price-by-floor-table-container table {
+    width: 100%;
+    table-layout: auto;
+}
+
+#ramp-plane-price-by-floor-table-container th,
+#ramp-plane-price-by-floor-table-container td {
+    text-align: center;
+    white-space: nowrap;
+}
+
+#ramp-plane-price-by-floor-table-container td:nth-child(2) {
+    text-align: left;
+}
+
+#ramp-plane-price-by-floor-table-container td:not(:nth-child(2)) {
+    max-width: 80px;
+    white-space: normal;
+    font-size: 0.85rem;
+}
+
+/* 6. Form select: larger font on mobile */
+@media (max-width: 640px) {
+
+    .form-select,
+    .form-select option {
+        font-size: 1rem;
+    }
+
+    /* Pagination mobile layout - wrap properly */
+    #pagination-controls,
+    #ranking-pagination-controls {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .pagination-info {
+        width: 100%;
+        text-align: center;
+        margin-bottom: 0.25rem;
+    }
+
+    .pagination-buttons {
+        width: 100%;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .pagination-btn {
+        padding: 0.4rem 0.6rem;
+        font-size: 0.75rem;
+    }
+}
+
+/* 7. Price band table - sticky first column */
+#price-band-table {
+    position: relative;
+}
+
+#price-band-table th:first-child,
+#price-band-table td:first-child {
+    position: sticky;
+    left: 0;
+    z-index: 5;
+    background-color: var(--color-dark-card);
+    min-width: 50px;
+    max-width: 80px;
+}
+
+#price-band-table thead th:first-child {
+    background-color: var(--color-dark-card);
+    z-index: 15;
+}
+
+/* 8. Parking table container - fix overflow */
+#ramp-plane-price-by-floor-table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+#ramp-plane-price-by-floor-table-container table {
+    min-width: 600px;
+}
+
+/* ===========================================
+   STICKY COLUMNS FOR ALL TABLES
+   =========================================== */
+
+/* 9. Ranking Table - freeze 建案名稱 (2nd column) */
+#ranking-table {
+    position: relative;
+}
+
+#ranking-table th:nth-child(1),
+#ranking-table td:nth-child(1) {
+    position: sticky;
+    left: 0;
+    z-index: 5;
+    background-color: var(--color-dark-card);
+    min-width: 40px;
+}
+
+#ranking-table th:nth-child(2),
+#ranking-table td:nth-child(2) {
+    position: sticky;
+    left: 40px;
+    z-index: 5;
+    background-color: var(--color-dark-card);
+    min-width: 120px;
+    /* 移除 max-width 限制，讓行政區標籤可以顯示 */
+    white-space: normal;
+    word-break: keep-all;
+    overflow: visible;
+}
+
+#ranking-table thead th:nth-child(1),
+#ranking-table thead th:nth-child(2) {
+    z-index: 15;
+}
+
+/* 10. Price Band Table - fix row height */
+#price-band-table td {
+    padding: 0.5rem 0.4rem;
+    line-height: 1.3;
+}
+
+#price-band-table th:first-child,
+#price-band-table td:first-child {
+    min-width: 45px;
+    max-width: 70px;
+    padding: 0.4rem;
+}
+
+/* 11. Unit Price Analysis - freeze 建案名稱 (1st column) */
+#type-comparison-table-container table {
+    position: relative;
+}
+
+#type-comparison-table-container table th:first-child,
+#type-comparison-table-container table td:first-child {
+    position: sticky;
+    left: 0;
+    z-index: 5;
+    background-color: var(--color-dark-card);
+    min-width: 80px;
+    max-width: 150px;
+    white-space: normal;
+    word-break: keep-all;
+}
+
+#type-comparison-table-container table thead th:first-child {
+    z-index: 15;
+}
+
+/* 12. Velocity Table - freeze 時間 (already has sticky class, enhance it) */
+.velocity-table {
+    position: relative;
+}
+
+.velocity-table .sticky.left-0,
+.velocity-table td:first-child {
+    position: sticky !important;
+    left: 0 !important;
+    z-index: 10 !important;
+    background-color: var(--color-dark-card) !important;
+    min-width: 80px;
+}
+
+.velocity-table thead th:first-child {
+    position: sticky !important;
+    left: 0 !important;
+    z-index: 20 !important;
+    background-color: var(--color-dark-card) !important;
+}
+
+/* Velocity table header with rowspan needs special handling */
+.velocity-table thead th[rowspan] {
+    position: sticky !important;
+    left: 0 !important;
+    z-index: 25 !important;
+    background-color: var(--color-dark-card) !important;
+}
+
+/* 13. Data List Table - only freeze 操作 column, NOT 建案名稱 */
+#results-table {
+    position: relative;
+}
+
+/* Freeze 操作 column only */
+#results-table th:nth-child(1),
+#results-table td:nth-child(1) {
+    position: sticky;
+    left: 0;
+    z-index: 5;
+    background-color: var(--color-dark-card);
+    min-width: 70px;
+}
+
+#results-table thead th:nth-child(1) {
+    z-index: 15;
+}
+
+/* Ensure hover states work on sticky cells */
+tr:hover td {
+    background-color: var(--color-dark-card) !important;
+}
+
+/* ===========================================
+   PROJECT LIST BUTTON STYLES
+   =========================================== */
+
+.project-list-btn {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.7rem;
+    background-color: var(--color-border-default);
+    color: var(--color-text-default);
+    border-radius: 9999px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    white-space: nowrap;
+}
+
+.project-list-btn:hover {
+    background-color: var(--color-cyan-accent);
+    color: #000;
+}
+
+/* ===========================================
+   CHART TITLE FIX
+   =========================================== */
+
+/* Price band chart title - prevent overlap */
+#price-band-chart {
+    position: relative;
+    z-index: 1;
+}
+
+#price-band-chart .report-section-title,
+#price-band-chart h3 {
+    position: relative;
+    z-index: 10;
+    background-color: var(--color-dark-bg);
+    display: inline-block;
+    padding-right: 1rem;
+}
+
+/* Ensure chart canvas doesn't overlap title */
+#price-band-chart canvas {
+    position: relative;
+    z-index: 1;
+}
+
+/* ===========================================
+   3D 樓層視覺化樣式
+   =========================================== */
+
+.floor-analysis-grid {
+    display: grid;
+    grid-template-columns: 1fr 280px;
+    gap: 2rem;
+    align-items: start;
+}
+
+@media (max-width: 1024px) {
+    .floor-analysis-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.floor-table-wrapper {
+    overflow-x: auto;
+}
+
+.floor-color-dot {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+    margin-right: 8px;
+    vertical-align: middle;
+}
+
+.floor-table-row {
+    height: 120px;
+    /* Force significant vertical separation */
+}
+
+.floor-table-row.highlight {
+    background-color: var(--color-cyan-accent) !important;
+    color: #000;
+}
+
+.floor-table-row.highlight td {
+    color: #000;
+}
+
+/* ... existing code ... */
+
+/* 樓層方塊 - 菱形 */
+.floor-3d-layer {
+    width: 140px;
+    height: 140px;
+    background: linear-gradient(135deg, var(--floor-color), rgba(255, 255, 255, 0.2));
+    border: 1px solid rgba(255, 255, 255, 0.3);
+
+    /* Isometric Transform - Standard */
+    transform: rotateX(60deg) rotateZ(45deg);
+
+    margin-bottom: 0px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+
+    position: relative;
+    box-shadow:
+        -2px 2px 0 rgba(0, 0, 0, 0.1),
+        inset 0 0 10px rgba(0, 0, 0, 0.1);
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Hover Effect */
+.floor-3d-layer:hover,
+.floor-3d-layer.active {
+    /* 保持旋轉並提升 */
+    transform: rotateX(60deg) rotateZ(45deg) translateZ(10px);
+    box-shadow:
+        -5px 5px 15px rgba(6, 182, 212, 0.4),
+        inset 0 0 10px rgba(255, 255, 255, 0.4);
+    z-index: 1000 !important;
+    background: var(--floor-color);
+}
+
+/* ... existing code ... */
+
+.floor-3d-label {
+    position: absolute;
+    top: 50%;
+    left: 120%;
+    /* Right side */
+
+    /* Counter-transform to face screen: 
+       Parent: X60 Z45.
+       RotateZ -45, RotateX -60
+    */
+    transform: translate(0, -50%) rotateZ(-45deg) rotateX(-60deg);
+    transform-origin: left center;
+
+    margin-left: 20px;
+    font-weight: 800;
+    font-size: 1.5rem;
+    /* Larger font */
+    color: var(--color-text-primary);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+    pointer-events: none;
+    white-space: nowrap;
+
+    display: flex;
+    align-items: center;
+}
+
+/* 3D 建築容器 - Isometric View */
+.floor-3d-container {
+    perspective: none;
+    /*移除透視，使用等軸測圖 */
+    padding: 2rem;
+    background: rgba(31, 41, 55, 0.5);
+    border-radius: 12px;
+    border: 1px solid var(--color-border-default);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 300px;
+}
+
+.floor-3d-building {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    /* 負邊距堆疊 */
+    margin-top: -40px;
+}
+
+/* 地面層 - 調整為菱形 */
+.floor-3d-ground {
+    display: none;
+    /* 暫時隱藏，或重新設計 */
+}
+
+/* 樓層方塊 - 菱形 (扁平化以增加間距) */
+.floor-3d-layer {
+    width: 140px;
+    height: 140px;
+    background: linear-gradient(135deg, var(--floor-color), rgba(255, 255, 255, 0.2));
+    border: 1px solid rgba(255, 255, 255, 0.3);
+
+    /* Isometric Transform - Flattened */
+    transform: rotateX(75deg) rotateZ(45deg);
+
+    margin-bottom: 0px;
+    /* 緊密堆疊 */
+    cursor: pointer;
+    transition: all 0.3s ease;
+
+    position: relative;
+    box-shadow:
+        -1px 1px 0 rgba(0, 0, 0, 0.1),
+        inset 0 0 10px rgba(0, 0, 0, 0.1);
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Hover Effect - Lift up */
+.floor-3d-layer:hover,
+.floor-3d-layer.active {
+    /* 保持旋轉並提升 */
+    transform: rotateX(75deg) rotateZ(45deg) translateZ(10px);
+    box-shadow:
+        -5px 5px 10px rgba(6, 182, 212, 0.3),
+        inset 0 0 10px rgba(255, 255, 255, 0.4);
+    z-index: 1000 !important;
+    background: var(--floor-color);
+    /* Highlight color */
+}
+
+.floor-3d-layer.dimmed {
+    opacity: 0.3;
+    filter: grayscale(0.6);
+}
+
+/* 內容文字需反向旋轉以保持閱讀性，或呈現貼地效果
+   在此使用貼地效果，但稍微浮起 */
+.floor-3d-label {
+    position: absolute;
+    top: 50%;
+    left: 120%;
+    /* Move further right */
+
+    /* Counter-transform to face screen: 
+       Parent: X75 Z45.
+       We want text flat on screen.
+       We need to rotate Z -45, then X -75.
+    */
+    transform: translate(0, -50%) rotateZ(-45deg) rotateX(-75deg);
+    transform-origin: left center;
+
+    margin-left: 10px;
+    font-weight: 800;
+    font-size: 1.1rem;
+    color: var(--color-text-primary);
+    /* Use theme text color instead of white for better contrast if outside */
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+    pointer-events: none;
+    white-space: nowrap;
+
+    /* Add a connecting line maybe? */
+    display: flex;
+    align-items: center;
+}
+
+.floor-3d-label::before {
+    content: '';
+    display: inline-block;
+    width: 20px;
+    height: 1px;
+    background-color: var(--color-text-primary);
+    margin-right: 8px;
+    opacity: 0.6;
+}
+
+.floor-3d-stats {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.9);
+    pointer-events: none;
+    transform: rotateZ(-45deg);
+    margin-top: 5px;
+}
+
+.floor-3d-stats span {
+    font-weight: 600;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+/* ===========================================
+   新版 3D 樓層堆疊視覺化
+   =========================================== */
+.floor-3d-container-new {
+    padding: 1.5rem 1rem;
+    background: linear-gradient(180deg, rgba(15, 23, 42, 0.95) 0%, rgba(20, 30, 48, 0.9) 100%);
+    border-radius: 12px;
+    border: 1px solid var(--color-border-default);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    min-height: 350px;
+    overflow: visible;
+}
+
+.floor-3d-stack {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+    padding-top: 1rem;
+    transform-style: preserve-3d;
+}
+
+/* 基礎樓層方塊 */
+.floor-3d-layer-new {
+    width: 120px;
+    height: 70px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: -10px;
+    /* 緊密堆疊 */
+
+    /* 菱形變換 */
+    transform: rotateX(60deg) rotateZ(45deg);
+    transform-style: preserve-3d;
+
+    /* 預設樣式（非第一層）- 玻璃效果 */
+    background: linear-gradient(135deg,
+            rgba(71, 85, 105, 0.4) 0%,
+            rgba(100, 116, 139, 0.25) 50%,
+            rgba(71, 85, 105, 0.35) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow:
+        0 2px 4px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(3px);
+}
+
+/* 第一層（B1）特別樣式 - 大型青色高亮 */
+.floor-3d-layer-new.active-layer {
+    width: 160px;
+    height: 100px;
+    margin-top: 0;
+    margin-bottom: 15px;
+    background: linear-gradient(135deg,
+            #0891b2 0%,
+            #06b6d4 30%,
+            #22d3ee 60%,
+            #0891b2 100%);
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    box-shadow:
+        0 6px 20px rgba(6, 182, 212, 0.5),
+        0 3px 8px rgba(0, 0, 0, 0.4),
+        inset 0 2px 0 rgba(255, 255, 255, 0.35);
+    z-index: 100 !important;
+}
+
+/* 樓層內容容器 */
+.floor-layer-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    /* 反向旋轉讓文字面對螢幕 */
+    transform: rotateZ(-45deg) rotateX(-60deg);
+    text-align: center;
+    pointer-events: none;
+}
+
+/* 樓層名稱 */
+.floor-layer-name {
+    font-size: 1rem;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.8);
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+    letter-spacing: 0.02em;
+}
+
+/* 第一層的名稱更大 */
+.floor-3d-layer-new.active-layer .floor-layer-name {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #fff;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+/* 樓層統計資訊 */
+.floor-layer-stats {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1px;
+    opacity: 0.5;
+    transition: opacity 0.3s ease;
+}
+
+/* 第一層始終顯示統計 - 完全不透明 */
+.floor-3d-layer-new.active-layer .floor-layer-stats {
+    opacity: 1;
+}
+
+.floor-layer-count,
+.floor-layer-price {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.7);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.floor-3d-layer-new.active-layer .floor-layer-count,
+.floor-3d-layer-new.active-layer .floor-layer-price {
+    font-size: 0.9rem;
+    color: #fff;
+    font-weight: 700;
+}
+
+/* Hover 效果 - 高亮 */
+.floor-3d-layer-new:hover,
+.floor-3d-layer-new.hover-active {
+    transform: rotateX(60deg) rotateZ(45deg) translateZ(12px) scale(1.08);
+    background: linear-gradient(135deg,
+            #0891b2 0%,
+            #06b6d4 40%,
+            #22d3ee 100%);
+    border-color: rgba(255, 255, 255, 0.5);
+    box-shadow:
+        0 8px 25px rgba(6, 182, 212, 0.6),
+        0 4px 12px rgba(0, 0, 0, 0.4),
+        inset 0 2px 0 rgba(255, 255, 255, 0.4);
+    z-index: 200 !important;
+}
+
+.floor-3d-layer-new:hover .floor-layer-stats,
+.floor-3d-layer-new.hover-active .floor-layer-stats {
+    opacity: 1;
+}
+
+/* Hover 效果 - 淡化 */
+.floor-3d-layer-new.hover-dimmed {
+    opacity: 0.35;
+    filter: grayscale(0.6);
+    transform: rotateX(60deg) rotateZ(45deg) translateZ(-3px) scale(0.92);
+}
+
+/* 表格行縮小高度 */
+.floor-table-row {
+    height: auto;
+}
+
+/* --- Project Selection Labels --- */
+.project-district-label {
+    font-size: 0.7rem;
+    color: var(--color-text-dark);
+    /* darker than muted for visibility */
+    margin-left: 0.5rem;
+    padding: 0.125rem 0.5rem;
+    background-color: rgba(55, 65, 81, 0.5);
+    border-radius: 9999px;
+    flex-shrink: 0;
+    white-space: nowrap;
+    vertical-align: middle;
+}
+
+.project-county-label {
+    font-size: 0.7rem;
+    color: var(--color-purple-accent);
+    margin-left: 0.5rem;
+    padding: 0.125rem 0.5rem;
+    background-color: rgba(139, 92, 246, 0.15);
+    border-radius: 9999px;
+    flex-shrink: 0;
+    white-space: nowrap;
+    vertical-align: middle;
+}
+
+/* 排名表格中的建案名稱欄位 - 縣市標籤靠右 */
+.project-name-cell {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    width: 100%;
+}
+
+/* 排名表中建案名稱 + 行政區標籤 */
+.project-name-with-district {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 0.25rem;
+    flex-shrink: 1;
+    min-width: 0;
+}
+
+/* 建案名稱文字 */
+.project-name-text {
+    flex-shrink: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* 縣市 + 行政區標籤容器 */
+.project-tags {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    flex-shrink: 0;
+}
+
+/* 建案名稱可縮減，標籤不可 */
+.project-name-with-district>span:first-child {
+    flex-shrink: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.project-name-with-district .project-district-label {
+    flex-shrink: 0;
+    margin-left: auto;
+}
+
+.project-date-label {
+    font-size: 0.7rem;
+    color: #38bdf8;
+    margin-left: 0.25rem;
+    padding: 0.125rem 0.5rem;
+    background-color: rgba(6, 182, 212, 0.15);
+    border-radius: 9999px;
+    flex-shrink: 0;
+    white-space: nowrap;
+    border: 1px solid rgba(6, 182, 212, 0.3);
+}
+
+/* === 區域交叉表格樣式 === */
+.location-cross-table {
+    font-size: 0.875rem;
+}
+
+.location-cross-table th,
+.location-cross-table td {
+    padding: 0.5rem 0.75rem;
+    min-width: 60px;
+}
+
+.location-cross-table .sticky-col {
+    position: sticky;
+    left: 0;
+    background-color: var(--color-dark-card);
+    z-index: 5;
+}
+
+.location-cross-table thead .sticky-col {
+    z-index: 15;
+}
+
+.location-cross-table .total-col {
+    background-color: rgba(6, 182, 212, 0.1);
+    border-left: 2px solid var(--color-cyan-accent);
+}
+
+/* === 維度切換按鈕樣式 === */
+.dimension-btn {
+    color: var(--color-text-dark);
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.dimension-btn.active {
+    background-color: var(--color-cyan-accent);
+    color: white;
+    border-radius: 0.375rem;
+}
+
+.dimension-btn:hover:not(.active) {
+    color: var(--color-text-light);
+}
+
+/* ========================================
+   📱 行動版優化樣式 (2026-01-15)
+   ======================================== */
+
+@media (max-width: 640px) {
+
+    /* === 1. 全域觸控優化 === */
+    button,
+    .capsule-btn,
+    .tab-btn,
+    .sub-tab-btn,
+    .dimension-btn,
+    .avg-type-btn,
+    .bubble-metric-btn {
+        min-height: 44px;
+        /* Apple 推薦的最小觸控尺寸 */
+        min-width: 44px;
+    }
+
+    /* === 2. 表格容器橫滑優化 === */
+    .overflow-x-auto,
+    #ranking-table-container,
+    #price-band-table-container,
+    #type-comparison-table-container,
+    #price-band-location-table-container,
+    #heatmap-details-content,
+    #velocity-table-container,
+    #parking-ratio-table-container,
+    #ramp-plane-price-by-floor-table-container {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scroll-snap-type: x proximity;
+        scrollbar-width: thin;
+    }
+
+    /* 表格橫滑提示陰影 */
+    .overflow-x-auto::after {
+        content: '';
+        position: absolute;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        width: 30px;
+        background: linear-gradient(to left, var(--color-dark-bg) 0%, transparent 100%);
+        pointer-events: none;
+        opacity: 0.7;
+    }
+
+    /* === 3. 報告區塊間距調整 === */
+    .report-header {
+        padding: 0.75rem;
+        margin-bottom: 1rem;
+    }
+
+    .report-section-title {
+        font-size: 1rem !important;
+        margin-bottom: 0.5rem;
+    }
+
+    /* === 4. 圖表高度自適應 === */
+    #ranking-chart-container,
+    #price-band-chart-container,
+    #velocity-chart-container,
+    #unit-price-bubble-chart,
+    #price-band-location-chart,
+    #area-heatmap-container {
+        min-height: 300px !important;
+        height: auto !important;
+        /* 確保內容能撐開 */
+        max-height: none !important;
+        /* 移除限制，由 JS 設定的 height 決定 */
+        overflow: visible !important;
+        margin-bottom: 2rem !important;
+        /* 增加下方間距 */
+    }
+
+    /* 熱力圖特別處理 */
+    #area-heatmap-container {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* === 5. 篩選區塊堆疊佈局 === */
+    #filter-form {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 0.75rem !important;
+    }
+
+    #filter-form>div {
+        width: 100% !important;
+    }
+
+    /* 按鈕區域獨立處理 */
+    #filter-form .flex.items-end.gap-4 {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    #filter-form button {
+        width: 100%;
+        justify-content: center;
+        padding: 0.875rem 1rem;
+    }
+
+    /* === 6. 泡泡圖控制項行動版佈局 === */
+    #unit-price-report-content .flex.flex-wrap.items-end.gap-4 {
+        flex-direction: column;
+        align-items: stretch !important;
+    }
+
+    #unit-price-report-content .flex.flex-wrap.items-end.gap-4>div {
+        width: 100%;
+    }
+
+    #unit-price-report-content input[type="number"] {
+        width: 100% !important;
+    }
+
+    #bubble-size-toggle {
+        width: 100%;
+        display: flex;
+    }
+
+    #bubble-size-toggle button {
+        flex: 1;
+    }
+
+    #bubble-chart-refresh {
+        width: 100%;
+    }
+
+    /* === 7. 區域交叉表格行動版 === */
+    .location-cross-table {
+        font-size: 0.75rem;
+    }
+
+    .location-cross-table th,
+    .location-cross-table td {
+        padding: 0.375rem 0.5rem;
+        min-width: 50px;
+    }
+
+    #price-band-dimension-toggle {
+        flex-wrap: wrap;
+        gap: 0.25rem;
+    }
+
+    #price-band-dimension-toggle button {
+        flex: 1;
+        min-width: 80px;
+    }
+
+    /* === 8. 房型篩選膠囊按鈕 === */
+    #velocity-room-filter-container,
+    #price-band-room-filter-container {
+        overflow-x: auto;
+        flex-wrap: nowrap !important;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: 0.5rem;
+    }
+
+    .capsule-btn {
+        font-size: 0.75rem;
+        padding: 0.5rem 0.875rem;
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+
+    /* === 9. 子頁籤橫滑 === */
+    .sub-tab-nav {
+        overflow-x: auto;
+        flex-wrap: nowrap !important;
+        -webkit-overflow-scrolling: touch;
+        gap: 0.25rem;
+    }
+
+    .sub-tab-btn {
+        white-space: nowrap;
+        flex-shrink: 0;
+        font-size: 0.8rem;
+        padding: 0.625rem 1rem;
+    }
+
+    /* === 10. 核心指標卡片網格 === */
+    #core-metrics-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 0.5rem !important;
+    }
+
+    .metric-card {
+        padding: 0.625rem !important;
+    }
+
+    .metric-card-value {
+        font-size: 1.125rem !important;
+    }
+
+    .metric-card-title {
+        font-size: 0.65rem !important;
+        line-height: 1.2;
+    }
+
+    /* === 11. 模態框行動版 === */
+    #modal .bg-dark-card,
+    #modal>div>div {
+        width: 95vw !important;
+        max-width: 95vw !important;
+        margin: 1rem;
+        max-height: 85vh;
+        overflow-y: auto;
+    }
+
+    /* === 12. 資料列表行動版 === */
+    #results-table-container {
+        font-size: 0.75rem;
+    }
+
+    #results-table-container th,
+    #results-table-container td {
+        padding: 0.5rem 0.375rem;
+    }
+
+    /* 隱藏行動版不必要的欄位 */
+    #results-table-container th:nth-child(n+6),
+    #results-table-container td:nth-child(n+6) {
+        display: none;
+    }
+
+    /* === 13. 垂直水平分析 3D 樓層 === */
+    .floor-3d-stack {
+        transform: scale(0.7);
+        transform-origin: top center;
+    }
+
+    .floor-3d-layer {
+        width: 100px;
+        height: 100px;
+    }
+
+    /* === 14. 分頁控制項 === */
+    #pagination-controls,
+    #ranking-pagination-controls {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .pagination-btn {
+        min-height: 44px;
+        padding: 0.5rem 1rem;
+    }
+
+    /* === 15. 固定底部操作列 (可選) === */
+    .mobile-bottom-bar {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: var(--color-dark-card);
+        border-top: 1px solid var(--color-border-default);
+        padding: 0.75rem 1rem;
+        display: flex;
+        gap: 0.5rem;
+        z-index: 1000;
+        box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.3);
+    }
+
+    .mobile-bottom-bar button {
+        flex: 1;
+    }
+
+    /* === 16. 觸控回饋動畫 === */
+    button:active,
+    .capsule-btn:active,
+    .tab-btn:active {
+        transform: scale(0.97);
+        opacity: 0.9;
+    }
+
+    /* === 17. 長按防止選取文字 === */
+    button,
+    .capsule-btn,
+    .tab-btn {
+        -webkit-user-select: none;
+        user-select: none;
+        -webkit-touch-callout: none;
+    }
+}
+
+/* === 中型平板優化 (641px - 1024px) === */
+@media (min-width: 641px) and (max-width: 1024px) {
+
+    /* 兩欄佈局 */
+    #core-metrics-grid {
+        grid-template-columns: repeat(3, 1fr) !important;
+    }
+
+    /* 圖表高度 */
+    #ranking-chart-container,
+    #price-band-chart-container,
+    #velocity-chart-container,
+    #unit-price-bubble-chart {
+        min-height: 350px !important;
+    }
+
+    /* 篩選區塊 */
+    #filter-form {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+}
+
+/* === 橫向模式優化 === */
+@media (max-width: 896px) and (orientation: landscape) {
+    #filter-card {
+        max-height: 40vh;
+        overflow-y: auto;
+    }
+
+    #area-heatmap-container {
+        min-height: 250px !important;
+        max-height: 300px !important;
+    }
+}
+
+/* === iOS Safari 安全區域 === */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+    body {
+        padding-bottom: env(safe-area-inset-bottom);
+    }
+
+    .mobile-bottom-bar {
+        padding-bottom: calc(0.75rem + env(safe-area-inset-bottom));
+    }
+}
+
+/* === 觸控裝置懸停效果取消 === */
+@media (hover: none) and (pointer: coarse) {
+
+    button:hover,
+    .capsule-btn:hover,
+    .tab-btn:hover {
+        /* 移除懸停效果，避免 sticky hover 問題 */
+        background-color: inherit;
+    }
+
+    .capsule-btn.active:hover {
+        background-color: var(--color-cyan-accent);
+    }
+}
+
+/* ========================================
+   📱 行動版標籤優化 (2026-01-15 11:45)
+   ======================================== */
+
+/* --- 通用樣式 (Desktop 預設橫排) --- */
+.suggestion-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    gap: 0.5rem;
+    overflow: hidden;
+}
+
+.suggestion-name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex-shrink: 1;
+}
+
+.suggestion-tags {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    flex-shrink: 0;
+}
+
+.suggestion-item input[type="checkbox"] {
+    flex-shrink: 0;
+    margin-right: 0.5rem;
+}
+
+/* --- 行動版堆疊樣式 --- */
+@media (max-width: 768px) {
+
+    /* 強制建案名稱與標籤上下堆疊 */
+    .project-name-cell,
+    .suggestion-content,
+    div.project-name-cell,
+    div.suggestion-content {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        justify-content: flex-start !important;
+        gap: 0.5rem !important;
+        white-space: normal !important;
+    }
+
+    /* 確保在表格中也能正確換行 */
+    .project-name-cell {
+        min-width: 120px !important;
+        width: 100% !important;
+        padding: 0.25rem 0 !important;
+    }
+
+    /* 標籤容器樣式調整 */
+    .project-tags,
+    .suggestion-tags {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        width: 100% !important;
+        margin-top: 0.35rem !important;
+        gap: 0.35rem !important;
+    }
+
+    /* 調整名稱文字 */
+    .project-name-text,
+    .suggestion-name {
+        width: 100% !important;
+        white-space: normal !important;
+        word-break: break-all !important;
+        line-height: 1.5 !important;
+        display: block !important;
+        font-weight: 600 !important;
+    }
+
+    /* 調整標籤樣式 */
+    .project-tags span,
+    .suggestion-tags span,
+    .project-county-label,
+    .project-district-label,
+    .project-date-label {
+        margin-left: 0 !important;
+        margin-right: 0.35rem !important;
+        margin-bottom: 0.35rem !important;
+        font-size: 0.75rem !important;
+        display: inline-block !important;
+        flex-shrink: 0 !important;
+    }
+}

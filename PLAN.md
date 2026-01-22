@@ -47,10 +47,20 @@ User is unable to unbind LINE even after binding an email. We suspect a state sy
     - [x] Input: `target_user_id`.
     - [x] Security: Verify caller is `admin` or `super_admin`.
     - [x] Logic: Call `supabase.auth.admin.deleteUser(id)`. Verify `public.profiles` cleanup.
+    - [x] Logic: Call `supabase.auth.admin.deleteUser(id)`. Verify `public.profiles` cleanup.
 - [x] **[Ops]** Deploy `delete-user` function.
-- [/] **[Frontend]** Update `src/app/admin/members/page.tsx`.
+- [x] **[Frontend]** Update `src/app/admin/members/page.tsx`.
     - [x] Add "Delete" button to user row.
     - [x] Add confirmation modal (Double check before delete).
     - [x] Call `delete-user` function.
     - [x] Refresh list on success.
-- [ ] **[Verification]** Verify deletion removes user from list and database.
+- [x] **[Verification]** Verify deletion removes user from list and database.
+
+### File Structure Cleanup
+- [x] Move legacy vanilla JS/HTML files to `_legacy_backup`.
+- [x] Remove root-level clutter (images, css, js folders).
+- [x] Ensure `next-app` and `supabase` remain as core directories.
+
+### Step 9: Workspace Cleanup & Commit
+- [x] Remove duplicate documentation files (`PLAN 2.md` etc).
+- [x] Commit all changes.
