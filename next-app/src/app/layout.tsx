@@ -37,10 +37,11 @@ export const metadata: Metadata = {
     title: "平米內參 - 預售屋數據儀表板",
     description: "獨家預售屋銷控表與調價熱力圖分析。透過視覺化數據，精準掌握房市趨勢與建案真實價值。",
   },
-  // icons: {
-  //   icon: "/favicon.ico",
-  //   apple: "/apple-touch-icon.png",
-  // }, // Next.js automatically detects icon.png in app/ directory
+  icons: {
+    icon: "/icon.png",  // Explicitly reference the file in public/
+    shortcut: "/favicon.ico",
+    apple: "/apple-icon.png",
+  },
 };
 
 export default function RootLayout({

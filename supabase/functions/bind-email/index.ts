@@ -26,34 +26,70 @@ serve(async (req) => {
         if (authError || !user) throw new Error('Unauthorized')
 
         // 2. Parse body
-        const { email, password } = await req.json()
-        if (!email || !password) throw new Error('Email and password are required')
+        const { email, password, current_password } = await req.json()
+        if (!email) throw new Error('Email is required')
 
-        // 3. Admin Update
+        // 3. Verify Identity (Critical for admin operations)
+        // If user has 'line' provider, they might not have a password. 
+        // If they are changing a "Wrong Email", they might have set a password previously.
+        // If 'current_password' is provided, we MUST verify it.
+        if (current_password) {
+            const { error: signInError } = await supabaseClient.auth.signInWithPassword({
+                email: user.email!,
+                password: current_password
+            })
+            if (signInError) throw new Error('Incorrect current password')
+        }
+        // If no current_password provided, rely on the valid JWT (user is logged in).
+        // For extra security, frontend should require password if user has one.
+
+        // 4. Admin Client
         const supabaseAdmin = createClient(
             Deno.env.get('SUPABASE_URL') ?? '',
             Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
         )
 
-        // Check if email already exists (optional, but updateUserById returns nice error usually)
+        // 5. Check if this is a "Cancel" request (Email == Current Email)
+        if (email === user.email) {
+            console.log('[Bind Email] Detect Cancel Request. Dismissing pending warning.')
+            const { data: adminUserData } = await supabaseAdmin.auth.admin.getUserById(user.id)
+            const pendingEmail = adminUserData.user?.new_email
+
+            if (pendingEmail) {
+                const { error: dismissError } = await supabaseAdmin.auth.admin.updateUserById(user.id, {
+                    user_metadata: {
+                        ...user.user_metadata,
+                        dismissed_new_email: pendingEmail
+                    }
+                })
+                if (dismissError) throw dismissError
+            }
+
+            return new Response(
+                JSON.stringify({ message: 'Change cancelled (dismissed)' }),
+                { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            )
+        }
+
+        // 6. Normal Update (New Email)
+        // Check for password update
+        const updateAttributes: any = {
+            email: email,
+            email_confirm: true,
+            // Clear any previous dismissal so warnings show up for new requests
+            user_metadata: {
+                ...user.user_metadata,
+                dismissed_new_email: null,
+                last_email_update: new Date().toISOString()
+            }
+        }
+        if (password) updateAttributes.password = password
 
         console.log(`[Bind Email] Updating user ${user.id} to email ${email}`)
 
         const { data: updatedUser, error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
             user.id,
-            {
-                email: email,
-                password: password,
-                email_confirm: true, // Auto-confirm (skips old email verification)
-                user_metadata: {
-                    ...user.user_metadata,
-                    provider: 'email' // Should we mark them as email provider now? Or just let them be mixed.
-                    // Maybe don't change provider metadata just yet, or add it to providers list?
-                    // User metadata 'provider' is used in UI. 
-                    // If we assume they bind email, they become email/password capable.
-                    // Let's not touch metadata unless necessary.
-                }
-            }
+            updateAttributes
         )
 
         if (updateError) {
@@ -61,9 +97,21 @@ serve(async (req) => {
             throw updateError
         }
 
+        // 5. Sync to Profiles (Critical for UI consistency)
+        const { error: profileError } = await supabaseAdmin
+            .from('profiles')
+            .update({ email: email })
+            .eq('id', user.id)
+
+        if (profileError) {
+            console.error('[Bind Email] Profile Sync Error:', profileError)
+            // We don't throw here to avoid rolling back the auth change, 
+            // but we log it. In a perfect world, we might want a transaction.
+        }
+
         return new Response(
             JSON.stringify({
-                message: 'Binding successful',
+                message: 'Update successful',
                 user: updatedUser
             }),
             { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

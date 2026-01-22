@@ -54,6 +54,12 @@ export default function SettingsPage() {
     const [bindStatus, setBindStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
     const [bindError, setBindError] = useState("");
 
+    // Email Editing State
+    const [isEditingEmail, setIsEditingEmail] = useState(false);
+    const [newEmail, setNewEmail] = useState("");
+    const [emailPassword, setEmailPassword] = useState(""); // Password for re-authentication/verification
+
+
     const router = useRouter();
 
     useEffect(() => {
@@ -161,7 +167,93 @@ export default function SettingsPage() {
         }
     };
 
+    // Derived States for Binding Status
+    const isLineBound = !!(user?.app_metadata?.provider === 'line' || user?.user_metadata?.line_user_id || user?.identities?.some((id: any) => id.provider === 'line'));
+    const isEmailBound = !!(user?.email && !user.email.includes('line.workaround'));
+
+    const handleUpdateEmail = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setBindStatus('loading');
+        setBindError("");
+
+        try {
+            if (!emailPassword) throw new Error("請輸入密碼以確認身份");
+
+            // Verify password by attempting to sign in (Frontend Check)
+            const { error: signInError } = await supabase.auth.signInWithPassword({
+                email: user.email,
+                password: emailPassword
+            });
+
+            if (signInError) throw new Error("密碼錯誤，請重新輸入。");
+
+            // Use Edge Function to Force Update Email (Bypassing Old Email Verification)
+            // This is necessary because if the user keys in the wrong email initially, 
+            // they cannot receive the "Old Email Change Confirmation" link.
+            const { data, error } = await supabase.functions.invoke('bind-email', {
+                body: {
+                    email: newEmail,
+                    current_password: emailPassword
+                }
+            });
+
+            if (error) throw error;
+            if (data?.error) throw new Error(data.error);
+
+            // Force Refresh Session
+            await supabase.auth.refreshSession();
+            // Also explicitly get user to update local state immediately
+            const { data: { session } } = await supabase.auth.getSession();
+            setUser(session?.user ?? null);
+
+            alert(`信箱已成功更新為 ${newEmail}！`);
+            setIsEditingEmail(false);
+            setBindStatus('idle');
+            setNewEmail("");
+            setEmailPassword("");
+        } catch (error: any) {
+            console.error("Update Email Error:", error);
+            setBindStatus('error');
+            setBindError(error.message);
+        }
+    };
+
+    const handleUnbindEmail = async () => {
+        if (!isLineBound) {
+            alert("無法解除綁定：您必須至少保留一種登入方式 (LINE)。");
+            return;
+        }
+
+        if (!confirm("確定要解除 Email 綁定嗎？\n解除後您將無法使用 Email/密碼登入，僅能使用 LINE 登入。")) return;
+
+        try {
+            // Strategy: Unlink the 'email' identity.
+            // Note: This effectively removes the email login capability.
+            // Supabase `unlinkIdentity` requires the identity_id.
+
+            const emailIdentity = user?.identities?.find((id: any) => id.provider === 'email');
+            if (!emailIdentity) throw new Error("找不到 Email 綁定資訊");
+
+            const { error } = await supabase.auth.unlinkIdentity(emailIdentity.identity_id);
+            if (error) throw error;
+
+            alert("已成功解除 Email 綁定。");
+
+            // Refresh
+            const { data: { session } } = await supabase.auth.getSession();
+            setUser(session?.user ?? null);
+        } catch (error: any) {
+            console.error("Unbind Email Error:", error);
+            alert("解除 Email 綁定失敗: " + error.message);
+        }
+    };
+
     const handleUnlinkLine = async () => {
+        if (!isEmailBound) {
+            alert("無法解除綁定：您必須至少保留一種登入方式 (Email)。");
+            return;
+        }
+
         if (!confirm("確定要解除 LINE 連結嗎？解除後您將無法使用 LINE 登入。")) return;
 
         try {
@@ -196,29 +288,21 @@ export default function SettingsPage() {
             await liff.init({ liffId });
 
             if (!liff.isLoggedIn()) {
-                // If not logged in to LINE, trigger login
-                // Important: we want to stay on this page to complete binding
                 liff.login({ redirectUri: window.location.href });
-                return; // Will redirect
+                return;
             }
 
             const idToken = liff.getIDToken();
             if (!idToken) throw new Error("Failed to get ID Token from LINE");
 
-            // Call Edge Function to Link
             const { data, error } = await supabase.functions.invoke('line-auth', {
-                body: {
-                    idToken,
-                    linkToUserId: user.id
-                }
+                body: { idToken, linkToUserId: user.id }
             });
 
             if (error) throw error;
             if (data?.error) throw new Error(data.error);
 
             alert("LINE 帳號綁定成功！");
-
-            // Refresh User
             const { data: { session } } = await supabase.auth.getSession();
             setUser(session?.user ?? null);
             setBindStatus('idle');
@@ -425,189 +509,245 @@ export default function SettingsPage() {
                         </div>
                     )}
 
-                    {/* Show Connected Accounts (Including Unlink Option) */}
+                    {/* Unified Account Security Card */}
                     {!loading && user && (
-                        <div className="space-y-4">
-                            {(user.app_metadata?.provider === 'line' || user.user_metadata?.line_user_id || user.identities?.some((id: any) => id.provider === 'line')) ? (
-                                <div className="bg-zinc-900/30 border border-white/5 rounded-2xl p-4 flex items-center justify-between">
-                                    <div className="flex items-center gap-3">
-                                        <div className="h-10 w-10 bg-[#06C755]/10 rounded-full flex items-center justify-center border border-[#06C755]/20">
-                                            <span className="text-[#06C755] font-bold text-xs">LINE</span>
+                        <div className="bg-zinc-900/50 border border-white/10 rounded-2xl p-6 space-y-6">
+                            <div className="flex items-center gap-2 mb-4">
+                                <Shield className="h-5 w-5 text-indigo-400" />
+                                <h2 className="text-xl font-semibold text-zinc-200">帳號安全</h2>
+                            </div>
+
+                            <div className="space-y-4">
+                                {/* Email / Password Login Section */}
+                                <div className="bg-zinc-950/50 rounded-xl border border-white/5 p-4 transition-all hover:border-white/10">
+                                    <div className="flex items-start justify-between">
+                                        <div className="flex items-center gap-3">
+                                            <div className={cn("h-10 w-10 rounded-full flex items-center justify-center border", isEmailBound ? "bg-indigo-500/10 border-indigo-500/20" : "bg-zinc-800 border-zinc-700")}>
+                                                <Mail className={cn("h-5 w-5", isEmailBound ? "text-indigo-400" : "text-zinc-500")} />
+                                            </div>
+                                            <div>
+                                                <div className="flex items-center gap-2">
+                                                    <h4 className="text-white font-medium">電子信箱與密碼</h4>
+                                                    {isEmailBound ? (
+                                                        <span className="text-[10px] font-bold text-green-500 bg-green-500/10 px-1.5 py-0.5 rounded border border-green-500/20">已啟用</span>
+                                                    ) : (
+                                                        <span className="text-[10px] font-bold text-zinc-500 bg-zinc-800 px-1.5 py-0.5 rounded border border-zinc-700">未設定</span>
+                                                    )}
+                                                </div>
+                                                <p className="text-xs text-zinc-500 mt-0.5">
+                                                    {isEmailBound ? user.email : "設定後可使用 Email 與密碼登入"}
+                                                </p>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <h4 className="text-white font-medium">LINE 帳號連結</h4>
-                                            <p className="text-xs text-zinc-500">已連結您的 LINE 帳號</p>
+
+                                        <div className="flex items-center gap-2">
+                                            {isEmailBound ? (
+                                                <>
+                                                    <button
+                                                        onClick={() => {
+                                                            setIsEditingEmail(!isEditingEmail);
+                                                            setNewEmail("");
+                                                            setEmailPassword("");
+                                                        }}
+                                                        className="p-2 hover:bg-zinc-800 rounded-lg text-zinc-400 hover:text-white transition-colors"
+                                                        title="變更信箱"
+                                                    >
+                                                        <Edit2 className="h-4 w-4" />
+                                                    </button>
+                                                    <button
+                                                        onClick={handleUnbindEmail}
+                                                        disabled={!isLineBound}
+                                                        className="p-2 hover:bg-red-500/10 rounded-lg text-zinc-400 hover:text-red-400 transition-colors disabled:opacity-30 disabled:hover:bg-transparent disabled:cursor-not-allowed"
+                                                        title={!isLineBound ? "需保留至少一種登入方式" : "解除綁定"}
+                                                    >
+                                                        <LinkIcon className="h-4 w-4 rotate-45" />
+                                                    </button>
+                                                </>
+                                            ) : (
+                                                <button
+                                                    onClick={() => setIsEditingEmail(true)} // Reuse editing state for binding
+                                                    className="text-xs bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded-lg transition-colors font-medium"
+                                                >
+                                                    立即設定
+                                                </button>
+                                            )}
                                         </div>
                                     </div>
-                                    {/* Only allow unlink if they have an email set (i.e. not line.workaround) */}
-                                    {!user.email?.includes('line.workaround') ? (
-                                        <button
-                                            onClick={handleUnlinkLine}
-                                            className="text-xs bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-colors"
-                                        >
-                                            <Trash2 className="h-3 w-3" />
-                                            解除連結
-                                        </button>
-                                    ) : (
-                                        <div className="text-xs text-zinc-500 bg-zinc-800 px-2 py-1 rounded">
-                                            主要登入方式
+
+                                    {/* Pending Email Verification Warning */}
+                                    {isEmailBound && user.new_email && user.new_email !== user.email && user.new_email !== user.user_metadata?.dismissed_new_email && (
+                                        <div className="mt-3 flex items-start justify-between gap-2 text-yellow-500 bg-yellow-500/10 p-3 rounded-lg text-xs border border-yellow-500/20">
+                                            <div className="flex items-start gap-3">
+                                                <Bell className="h-4 w-4 mt-0.5 shrink-0" />
+                                                <div className="space-y-1">
+                                                    <p className="font-medium">變更申請待驗證</p>
+                                                    <p className="opacity-80">新信箱: <span className="font-mono">{user.new_email}</span></p>
+                                                    <p className="opacity-70">系統已發送驗證信，請前往信箱點擊確認。</p>
+                                                </div>
+                                            </div>
+                                            <button
+                                                onClick={async () => {
+                                                    if (!confirm("確定要取消此變更申請嗎？")) return;
+                                                    try {
+                                                        // Use bind-email to force reset/confirm the current email, which clears the pending new_email
+                                                        const { data, error } = await supabase.functions.invoke('bind-email', {
+                                                            body: {
+                                                                email: user.email
+                                                            }
+                                                        });
+
+                                                        if (error) throw error;
+                                                        if (data?.error) throw new Error(data.error);
+
+                                                        alert("已取消變更申請");
+                                                        await supabase.auth.refreshSession();
+                                                        const { data: { session } } = await supabase.auth.getSession();
+                                                        setUser(session?.user ?? null);
+                                                    } catch (e: any) {
+                                                        console.error("Cancel failed:", e);
+                                                        alert("取消失敗: " + e.message);
+                                                    }
+                                                }}
+                                                className="text-yellow-600 hover:text-yellow-400 bg-yellow-500/20 hover:bg-yellow-500/30 px-2 py-1 rounded transition-colors"
+                                            >
+                                                取消
+                                            </button>
+                                        </div>
+                                    )}
+
+                                    {/* Inline Editing Form (Bind or Change) */}
+                                    {isEditingEmail && (
+                                        <div className="mt-4 pt-4 border-t border-white/5 animate-in fade-in slide-in-from-top-2">
+                                            <form onSubmit={isEmailBound ? handleUpdateEmail : handleBindAccount} className="space-y-4">
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                    <div className="space-y-1.5">
+                                                        <label className="text-xs text-zinc-400">
+                                                            {isEmailBound ? "新電子信箱" : "電子信箱"}
+                                                        </label>
+                                                        <input
+                                                            type="email"
+                                                            required
+                                                            placeholder="name@example.com"
+                                                            value={isEmailBound ? newEmail : bindEmail}
+                                                            onChange={(e) => isEmailBound ? setNewEmail(e.target.value) : setBindEmail(e.target.value)}
+                                                            className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white focus:border-indigo-500 outline-none"
+                                                        />
+                                                    </div>
+
+                                                    {isEmailBound ? (
+                                                        <div className="space-y-1.5">
+                                                            <label className="text-xs text-zinc-400">目前密碼 (驗證身份)</label>
+                                                            <input
+                                                                type="password"
+                                                                required
+                                                                placeholder="輸入密碼"
+                                                                value={emailPassword}
+                                                                onChange={(e) => setEmailPassword(e.target.value)}
+                                                                className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white focus:border-indigo-500 outline-none"
+                                                            />
+                                                        </div>
+                                                    ) : (
+                                                        <>
+                                                            <div className="space-y-1.5">
+                                                                <label className="text-xs text-zinc-400">設定密碼</label>
+                                                                <input
+                                                                    type="password"
+                                                                    required
+                                                                    placeholder="至少 6 位數"
+                                                                    minLength={6}
+                                                                    value={bindPassword}
+                                                                    onChange={(e) => setBindPassword(e.target.value)}
+                                                                    className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white focus:border-indigo-500 outline-none"
+                                                                />
+                                                            </div>
+                                                            <div className="space-y-1.5">
+                                                                <label className="text-xs text-zinc-400">確認密碼</label>
+                                                                <input
+                                                                    type="password"
+                                                                    required
+                                                                    placeholder="再次輸入"
+                                                                    minLength={6}
+                                                                    value={bindConfirmPassword}
+                                                                    onChange={(e) => setBindConfirmPassword(e.target.value)}
+                                                                    className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white focus:border-indigo-500 outline-none"
+                                                                />
+                                                            </div>
+                                                        </>
+                                                    )}
+                                                </div>
+
+                                                {bindError && (
+                                                    <div className="text-red-400 text-xs bg-red-500/10 border border-red-500/20 p-3 rounded-lg flex items-start gap-2">
+                                                        <Shield className="h-4 w-4 shrink-0 mt-0.5" />
+                                                        <span>{bindError}</span>
+                                                    </div>
+                                                )}
+
+                                                <div className="flex justify-end gap-2">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setIsEditingEmail(false)}
+                                                        className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-sm rounded-lg transition-colors"
+                                                    >
+                                                        取消
+                                                    </button>
+                                                    <button
+                                                        type="submit"
+                                                        disabled={bindStatus === 'loading'}
+                                                        className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm rounded-lg transition-colors disabled:opacity-50"
+                                                    >
+                                                        {bindStatus === 'loading' ? '處理中...' : (isEmailBound ? '確認變更' : '建立帳號')}
+                                                    </button>
+                                                </div>
+                                            </form>
                                         </div>
                                     )}
                                 </div>
-                            ) : (
-                                // Not connected to LINE yet
-                                <div className="bg-zinc-900/30 border border-white/5 rounded-2xl p-4 flex items-center justify-between">
-                                    <div className="flex items-center gap-3">
-                                        <div className="h-10 w-10 bg-zinc-800 rounded-full flex items-center justify-center border border-zinc-700">
-                                            <span className="text-zinc-500 font-bold text-xs">LINE</span>
-                                        </div>
-                                        <div>
-                                            <h4 className="text-white font-medium">LINE 帳號連結</h4>
-                                            <p className="text-xs text-zinc-500">連結 LINE 帳號以使用快速登入</p>
-                                        </div>
-                                    </div>
-                                    <button
-                                        onClick={handleBindLine}
-                                        disabled={bindStatus === 'loading'}
-                                        className="text-xs bg-[#06C755] hover:bg-[#05b34c] text-white px-4 py-2 rounded-lg flex items-center gap-1.5 transition-colors font-medium disabled:opacity-50"
-                                    >
-                                        {bindStatus === 'loading' ? (
-                                            <div className="h-3 w-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                        ) : (
-                                            <LinkIcon className="h-3 w-3" />
-                                        )}
-                                        綁定 LINE
-                                    </button>
-                                </div>
-                            )}
-                        </div>
-                    )}
 
-                    {/* Bind Account Section (Only for Line users with workaround emails) */}
-                    {!loading && user && user.email?.includes('line.workaround') && (
-                        <div className="bg-gradient-to-br from-indigo-900/30 to-violet-900/30 border border-indigo-500/20 rounded-2xl p-6 relative overflow-hidden">
-                            {/* Background Pattern */}
-                            <div className="absolute top-0 right-0 p-8 opacity-5">
-                                <LinkIcon className="h-40 w-40 text-indigo-400" />
-                            </div>
+                                {/* LINE Login Section */}
+                                <div className="bg-zinc-950/50 rounded-xl border border-white/5 p-4 transition-all hover:border-white/10">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-3">
+                                            <div className={cn("h-10 w-10 rounded-full flex items-center justify-center border", isLineBound ? "bg-[#06C755]/10 border-[#06C755]/20" : "bg-zinc-800 border-zinc-700")}>
+                                                <span className={cn("font-bold text-[10px]", isLineBound ? "text-[#06C755]" : "text-zinc-500")}>LINE</span>
+                                            </div>
+                                            <div>
+                                                <div className="flex items-center gap-2">
+                                                    <h4 className="text-white font-medium">LINE 快速登入</h4>
+                                                    {isLineBound ? (
+                                                        <span className="text-[10px] font-bold text-green-500 bg-green-500/10 px-1.5 py-0.5 rounded border border-green-500/20">已連結</span>
+                                                    ) : (
+                                                        <span className="text-[10px] font-bold text-zinc-500 bg-zinc-800 px-1.5 py-0.5 rounded border border-zinc-700">未設定</span>
+                                                    )}
+                                                </div>
+                                                <p className="text-xs text-zinc-500 mt-0.5">
+                                                    {isLineBound ? "已連結 LINE 帳號" : "連結後可使用 LINE 一鍵登入"}
+                                                </p>
+                                            </div>
+                                        </div>
 
-                            <div className="relative z-10">
-                                <div className="flex items-center gap-3 mb-4">
-                                    <div className="h-10 w-10 rounded-full bg-indigo-500/20 flex items-center justify-center border border-indigo-500/30">
-                                        <ShieldCheck className="h-5 w-5 text-indigo-400" />
-                                    </div>
-                                    <div>
-                                        <h3 className="text-lg font-bold text-white">綁定電子郵件帳號</h3>
-                                        <p className="text-sm text-zinc-400">綁定後，您可以使用 Email 與密碼登入，並確保帳號安全。</p>
+                                        <div className="flex items-center gap-2">
+                                            {isLineBound ? (
+                                                <button
+                                                    onClick={handleUnlinkLine}
+                                                    disabled={!isEmailBound}
+                                                    className="p-2 hover:bg-red-500/10 rounded-lg text-zinc-400 hover:text-red-400 transition-colors disabled:opacity-30 disabled:hover:bg-transparent disabled:cursor-not-allowed"
+                                                    title={!isEmailBound ? "需保留至少一種登入方式" : "解除連結"}
+                                                >
+                                                    <LinkIcon className="h-4 w-4 rotate-45" />
+                                                </button>
+                                            ) : (
+                                                <button
+                                                    onClick={handleBindLine}
+                                                    disabled={bindStatus === 'loading'}
+                                                    className="text-xs bg-[#06C755] hover:bg-[#05b34c] text-white px-3 py-1.5 rounded-lg transition-colors font-bold"
+                                                >
+                                                    {bindStatus === 'loading' ? "..." : "連結 LINE"}
+                                                </button>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
-
-                                {bindStatus === 'success' ? (
-                                    <div className="bg-green-500/10 border border-green-500/20 rounded-xl p-6 text-center space-y-3 animate-in fade-in zoom-in duration-300">
-                                        <div className="mx-auto h-12 w-12 bg-green-500/20 rounded-full flex items-center justify-center">
-                                            <Check className="h-6 w-6 text-green-500" />
-                                        </div>
-                                        <h3 className="text-lg font-bold text-white">綁定成功！</h3>
-                                        <p className="text-zinc-300">
-                                            您的帳號已成功綁定電子信箱 <span className="text-green-400 font-mono">{bindEmail}</span>。<br />
-                                            現在您可以使用 Email 與密碼登入。
-                                        </p>
-                                        <button
-                                            onClick={() => {
-                                                setBindStatus('idle');
-                                                window.location.reload(); // Reload to refresh user state
-                                            }}
-                                            className="mt-4 px-4 py-2 bg-green-600 hover:bg-green-500 text-white rounded-lg text-sm font-medium transition-colors"
-                                        >
-                                            完成
-                                        </button>
-                                    </div>
-                                ) : (
-                                    <form onSubmit={handleBindAccount} className="space-y-4 max-w-lg">
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            <div className="space-y-1.5">
-                                                <label className="text-xs text-zinc-400 font-medium ml-1">電子信箱</label>
-                                                <div className="relative">
-                                                    <Mail className="absolute left-3 top-2.5 h-4 w-4 text-zinc-500" />
-                                                    <input
-                                                        type="email"
-                                                        required
-                                                        placeholder="name@example.com"
-                                                        value={bindEmail}
-                                                        onChange={(e) => setBindEmail(e.target.value)}
-                                                        className="w-full bg-zinc-900/80 border border-white/10 rounded-lg pl-9 pr-4 py-2 text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 placeholder:text-zinc-600"
-                                                    />
-                                                </div>
-                                            </div>
-                                            <div className="space-y-1.5 md:col-span-2">
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                    <div className="space-y-1.5">
-                                                        <label className="text-xs text-zinc-400 font-medium ml-1">設定密碼</label>
-                                                        <div className="relative">
-                                                            <Key className="absolute left-3 top-2.5 h-4 w-4 text-zinc-500" />
-                                                            <input
-                                                                type={showPassword ? "text" : "password"}
-                                                                required
-                                                                placeholder="至少 6 位數"
-                                                                minLength={6}
-                                                                value={bindPassword}
-                                                                onChange={(e) => setBindPassword(e.target.value)}
-                                                                className="w-full bg-zinc-900/80 border border-white/10 rounded-lg pl-9 pr-10 py-2 text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 placeholder:text-zinc-600"
-                                                            />
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => setShowPassword(!showPassword)}
-                                                                className="absolute right-3 top-2.5 text-zinc-500 hover:text-zinc-300"
-                                                            >
-                                                                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                    <div className="space-y-1.5">
-                                                        <label className="text-xs text-zinc-400 font-medium ml-1">確認密碼</label>
-                                                        <div className="relative">
-                                                            <Key className="absolute left-3 top-2.5 h-4 w-4 text-zinc-500" />
-                                                            <input
-                                                                type={showPassword ? "text" : "password"}
-                                                                required
-                                                                placeholder="再次輸入密碼"
-                                                                minLength={6}
-                                                                value={bindConfirmPassword}
-                                                                onChange={(e) => setBindConfirmPassword(e.target.value)}
-                                                                className="w-full bg-zinc-900/80 border border-white/10 rounded-lg pl-9 pr-4 py-2 text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 placeholder:text-zinc-600"
-                                                            />
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {bindError && (
-                                            <div className="px-3 py-2 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm flex items-center gap-2">
-                                                <Shield className="h-4 w-4" />
-                                                {bindError}
-                                            </div>
-                                        )}
-
-                                        <div className="flex items-center gap-3 pt-2">
-                                            <button
-                                                type="submit"
-                                                disabled={bindStatus === 'loading'}
-                                                className="bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                                            >
-                                                {bindStatus === 'loading' ? (
-                                                    <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                                ) : (
-                                                    <LinkIcon className="h-4 w-4" />
-                                                )}
-                                                立即綁定帳號
-                                            </button>
-                                            <p className="text-xs text-zinc-500">
-                                                綁定後不會影響原本的 LINE 登入功能。
-                                            </p>
-                                        </div>
-                                    </form>
-                                )}
                             </div>
                         </div>
                     )}

@@ -23,8 +23,29 @@
     - [x] Verify Line/Email icons appear correctly.
     - [x] Verify Last Login time matches usage.
 
+    - [x] Verify Last Login time matches usage.
+
+
+### [Current Task] 系統設定：帳號綁定管理 (System Settings Binding)
+- [x] **Step 1: Implementation Plan & Design**
+    - [x] Analyze requirements and update SPEC.md.
+    - [x] Create Implementation Plan.
+- [x] **Step 2: Frontend Implementation (`settings/page.tsx`)**
+    - [x] Refactor "Member Zone" to separate "Email Management" and "Line Management" cards for clarity.
+    - [x] Implement `isEmailBound` and `isLineBound` derived state logic.
+    - [x] **Email Unbind**: Add "Unbind" button logic (blocked if `!isLineBound`). Implement `unlinkIdentity` or fallback logic.
+    - [x] **Email Change**: Add "Edit" button logic. Implement `updateUser` logic.
+    - [x] **Line Unbind**: Enforce check (blocked if `!isEmailBound`).
+
+- [x] **Step 3: Verification**
+    - [x] Verify "At least one binding" constraint holds in all states.
+    - [x] **Fix Email Change**: Implemented Client-Side `auth/callback/page.tsx` compatible with Static Export.
+    - [x] **Enhance Auth Callback**: Added explicit redirect URL and success feedback.
+    - [x] Verify Email Change flow (Validated on trb & kthd).
+
 ### 已完成任務
 - [x] **Deploy to Test**: Sync to test environment (trb)
+- [x] **Deploy to Prod**: Sync to production environment (kthd)
 
 
 ✅ **已完成核心功能 (Vanilla JS Version)**
