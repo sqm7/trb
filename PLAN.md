@@ -1,6 +1,6 @@
 # Implementation Plan
 
-## [Current Task] Debug LINE Unbind Functionality
+## [Current Task] User Management - Delete Member
 
 User is unable to unbind LINE even after binding an email. We suspect a state synchronization issue or a logic gap in how the backend validates the "Email Bound" status.
 
@@ -43,13 +43,14 @@ User is unable to unbind LINE even after binding an email. We suspect a state sy
 - [x] Check if `public.profiles` has a `provider` column and update it if so. (Updated to target `provider`, `line_user_id`, `avatar_url`).
 
 ### User Management - Delete Member
-- [ ] **[Backend]** Create `delete-user` Edge Function.
-    - [ ] Input: `target_user_id`.
-    - [ ] Security: Verify caller is `admin` or `super_admin`.
-    - [ ] Logic: Call `supabase.auth.admin.deleteUser(id)`. Verify `public.profiles` cleanup.
-- [ ] **[Frontend]** Update `src/app/admin/members/page.tsx`.
-    - [ ] Add "Delete" button to user row.
-    - [ ] Add confirmation modal (Double check before delete).
-    - [ ] Call `delete-user` function.
-    - [ ] Refresh list on success.
+- [/] **[Backend]** Create `delete-user` Edge Function.
+    - [x] Input: `target_user_id`.
+    - [x] Security: Verify caller is `admin` or `super_admin`.
+    - [x] Logic: Call `supabase.auth.admin.deleteUser(id)`. Verify `public.profiles` cleanup.
+- [x] **[Ops]** Deploy `delete-user` function.
+- [/] **[Frontend]** Update `src/app/admin/members/page.tsx`.
+    - [x] Add "Delete" button to user row.
+    - [x] Add confirmation modal (Double check before delete).
+    - [x] Call `delete-user` function.
+    - [x] Refresh list on success.
 - [ ] **[Verification]** Verify deletion removes user from list and database.

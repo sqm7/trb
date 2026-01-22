@@ -171,6 +171,39 @@ export default function AdminMembersPage() {
         );
     }
 
+    const handleDeleteUser = async (targetUserId: string, targetUserName: string) => {
+        if (!confirm(`確定要永久刪除會員「${targetUserName}」嗎？\n此操作無法復原！所有資料將被清除。`)) {
+            return;
+        }
+
+        const enteredName = prompt(`請輸入會員名稱「${targetUserName}」以確認刪除：`);
+        if (enteredName !== targetUserName) {
+            alert('名稱不符，取消刪除');
+            return;
+        }
+
+        try {
+            // Call delete-user Edge Function
+            const { error: fnError } = await supabase.functions.invoke('delete-user', {
+                body: { targetUserId }
+            });
+
+            if (fnError) throw fnError;
+
+            alert('會員刪除成功');
+            fetchMembers(); // Refresh list
+        } catch (error: any) {
+            console.error('Error deleting user:', error);
+            // Parse error message if possible
+            let msg = error.message;
+            if (error.context?.json) {
+                const json = await error.context.json().catch(() => ({}));
+                msg = json.error || msg;
+            }
+            alert('刪除失敗：' + msg);
+        }
+    };
+
     return (
         <div className="min-h-screen bg-[#1a1d29] text-gray-100 p-8">
             <div className="max-w-5xl mx-auto">
@@ -289,16 +322,27 @@ export default function AdminMembersPage() {
                                             )}
                                         </td>
                                         <td className="px-4 py-3">
-                                            <div className="flex items-center justify-end relative">
-                                                {/* Simpler Button Logic - triggers Modal via menuOpenId */}
+                                            <div className="flex items-center justify-end relative gap-2">
+                                                {/* Edit Button */}
                                                 {m.role !== 'super_admin' && m.id !== user?.id && (currentUserRole === 'super_admin' || m.role !== 'admin') && (
                                                     <button
                                                         onClick={() => setMenuOpenId(m.id)}
                                                         className="flex items-center gap-1 px-3 py-1.5 rounded text-xs font-medium bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-white transition-colors"
                                                     >
-                                                        <Edit2 className="h-3 w-3" /> 編輯權限
+                                                        <Edit2 className="h-3 w-3" /> 編輯
                                                     </button>
                                                 )}
+
+                                                {/* Delete Button (New) */}
+                                                {m.role !== 'super_admin' && m.id !== user?.id && (currentUserRole === 'super_admin' || m.role !== 'admin') && (
+                                                    <button
+                                                        onClick={() => handleDeleteUser(m.id, m.full_name || m.email || '未命名')}
+                                                        className="flex items-center gap-1 px-3 py-1.5 rounded text-xs font-medium bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500 hover:text-white transition-all"
+                                                    >
+                                                        <X className="h-3 w-3" /> 刪除
+                                                    </button>
+                                                )}
+
                                                 {m.role === 'super_admin' && (
                                                     <span className="text-xs text-zinc-600">受保護</span>
                                                 )}
