@@ -117,6 +117,16 @@ export default function LoginPage() {
           // Handle redirect from Line Login
           if (liff.isLoggedIn() && !isLoggedOut) {
             const idToken = liff.getIDToken();
+            const decoded = liff.getDecodedIDToken();
+
+            // Validation: Check if token is expired (or close to expiring within 60s)
+            if (!idToken || (decoded && decoded.exp && (decoded.exp * 1000) < (Date.now() + 60000))) {
+              console.log('[LIFF] Token expired, forcing re-login...');
+              liff.logout();
+              liff.login({ redirectUri: window.location.href });
+              return;
+            }
+
             if (idToken) {
               handleLineServerLogin(idToken);
             }
@@ -203,8 +213,18 @@ export default function LoginPage() {
         if (!liff.isLoggedIn()) {
           liff.login({ redirectUri: window.location.href });
         } else {
-          // Already logged in
+          // Already logged in - but check token validity first
           const idToken = liff.getIDToken();
+          const decoded = liff.getDecodedIDToken();
+
+          // Force re-login if token is expired or expiring within 60s
+          if (!idToken || (decoded && decoded.exp && (decoded.exp * 1000) < (Date.now() + 60000))) {
+            console.log('[LIFF] Token expired on button click, forcing re-login...');
+            liff.logout();
+            liff.login({ redirectUri: window.location.href });
+            return;
+          }
+
           if (idToken) handleLineServerLogin(idToken);
         }
       });

@@ -26,7 +26,55 @@ serve(async (req) => {
         if (authError || !user) throw new Error('Unauthorized')
 
         // 2. Parse body
-        const { email, password, current_password } = await req.json()
+        const { email, password, current_password, action } = await req.json()
+
+        // Handle Unbind Action (Revert to LINE placeholder)
+        if (action === 'unbind') {
+            console.log(`[Bind Email] Unbinding email for user ${user.id}`)
+
+            // Verify LINE association
+            const lineUserId = user.user_metadata?.line_user_id ?? user.app_metadata?.provider === 'line' ? user.id : null;
+            if (!lineUserId) {
+                throw new Error('No LINE account linked. Cannot unbind email.')
+            }
+
+            const placeholderEmail = `${lineUserId}@line.workaround`
+
+            // Admin Update: Revert to placeholder and scramble password
+            const supabaseAdmin = createClient(
+                Deno.env.get('SUPABASE_URL') ?? '',
+                Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+            )
+
+            const { data: updatedUser, error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
+                user.id,
+                {
+                    email: placeholderEmail,
+                    email_confirm: true,
+                    password: crypto.randomUUID(), // Scramble password
+                    user_metadata: {
+                        ...user.user_metadata,
+                        // Clear dismissal metadata
+                        dismissed_new_email: null,
+                        last_email_update: new Date().toISOString()
+                    }
+                }
+            )
+
+            if (updateError) throw updateError
+
+            // Sync Profile
+            await supabaseAdmin
+                .from('profiles')
+                .update({ email: placeholderEmail })
+                .eq('id', user.id)
+
+            return new Response(
+                JSON.stringify({ message: 'Email unbound successfully', user: updatedUser }),
+                { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            )
+        }
+
         if (!email) throw new Error('Email is required')
 
         // 3. Verify Identity (Critical for admin operations)
@@ -49,9 +97,9 @@ serve(async (req) => {
             Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
         )
 
-        // 5. Check if this is a "Cancel" request (Email == Current Email)
-        if (email === user.email) {
-            console.log('[Bind Email] Detect Cancel Request. Dismissing pending warning.')
+        // Handle Cancel Action explicitly
+        if (action === 'cancel') {
+            console.log(`[Bind Email] Cancelling change for user ${user.id}`)
             const { data: adminUserData } = await supabaseAdmin.auth.admin.getUserById(user.id)
             const pendingEmail = adminUserData.user?.new_email
 
@@ -63,10 +111,23 @@ serve(async (req) => {
                     }
                 })
                 if (dismissError) throw dismissError
+            } else {
+                // If no pending email found in backend, force clear the frontend warning by setting a dummy or clearing local state?
+                // Actually, if pendingEmail is null, the frontend shouldn't show the warning anyway (user.new_email would be null).
+                // Just in case, we can set dismissed to 'all' or similar? No, stick to logic.
             }
 
             return new Response(
                 JSON.stringify({ message: 'Change cancelled (dismissed)' }),
+                { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            )
+        }
+
+        // 5. Check if this is a "Cancel" request (Legacy Param: Email == Current Email)
+        if (email === user.email) {
+            // Keep this for backward compatibility or just redirect to cancel logic
+            return new Response(
+                JSON.stringify({ message: 'No change detected' }),
                 { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
             )
         }

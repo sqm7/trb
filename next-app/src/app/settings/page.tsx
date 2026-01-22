@@ -227,19 +227,20 @@ export default function SettingsPage() {
         if (!confirm("確定要解除 Email 綁定嗎？\n解除後您將無法使用 Email/密碼登入，僅能使用 LINE 登入。")) return;
 
         try {
-            // Strategy: Unlink the 'email' identity.
-            // Note: This effectively removes the email login capability.
-            // Supabase `unlinkIdentity` requires the identity_id.
+            // Strategy: Use bind-email to revert to placeholder logic
+            // providing action: 'unbind'
 
-            const emailIdentity = user?.identities?.find((id: any) => id.provider === 'email');
-            if (!emailIdentity) throw new Error("找不到 Email 綁定資訊");
+            const { data, error } = await supabase.functions.invoke('bind-email', {
+                body: { action: 'unbind' }
+            });
 
-            const { error } = await supabase.auth.unlinkIdentity(emailIdentity.identity_id);
             if (error) throw error;
+            if (data?.error) throw new Error(data.error);
 
             alert("已成功解除 Email 綁定。");
 
             // Refresh
+            await supabase.auth.refreshSession();
             const { data: { session } } = await supabase.auth.getSession();
             setUser(session?.user ?? null);
         } catch (error: any) {
@@ -293,6 +294,15 @@ export default function SettingsPage() {
             }
 
             const idToken = liff.getIDToken();
+            const decoded = liff.getDecodedIDToken();
+
+            // Validation: Check if token is expired (buffer 60s)
+            if (!idToken || (decoded && decoded.exp && (decoded.exp * 1000) < (Date.now() - 60000))) {
+                console.log("Token expired or missing, re-logging in...");
+                liff.logout(); // Force clear stale session
+                liff.login({ redirectUri: window.location.href });
+                return;
+            }
             if (!idToken) throw new Error("Failed to get ID Token from LINE");
 
             const { data, error } = await supabase.functions.invoke('line-auth', {
@@ -573,47 +583,6 @@ export default function SettingsPage() {
                                             )}
                                         </div>
                                     </div>
-
-                                    {/* Pending Email Verification Warning */}
-                                    {isEmailBound && user.new_email && user.new_email !== user.email && user.new_email !== user.user_metadata?.dismissed_new_email && (
-                                        <div className="mt-3 flex items-start justify-between gap-2 text-yellow-500 bg-yellow-500/10 p-3 rounded-lg text-xs border border-yellow-500/20">
-                                            <div className="flex items-start gap-3">
-                                                <Bell className="h-4 w-4 mt-0.5 shrink-0" />
-                                                <div className="space-y-1">
-                                                    <p className="font-medium">變更申請待驗證</p>
-                                                    <p className="opacity-80">新信箱: <span className="font-mono">{user.new_email}</span></p>
-                                                    <p className="opacity-70">系統已發送驗證信，請前往信箱點擊確認。</p>
-                                                </div>
-                                            </div>
-                                            <button
-                                                onClick={async () => {
-                                                    if (!confirm("確定要取消此變更申請嗎？")) return;
-                                                    try {
-                                                        // Use bind-email to force reset/confirm the current email, which clears the pending new_email
-                                                        const { data, error } = await supabase.functions.invoke('bind-email', {
-                                                            body: {
-                                                                email: user.email
-                                                            }
-                                                        });
-
-                                                        if (error) throw error;
-                                                        if (data?.error) throw new Error(data.error);
-
-                                                        alert("已取消變更申請");
-                                                        await supabase.auth.refreshSession();
-                                                        const { data: { session } } = await supabase.auth.getSession();
-                                                        setUser(session?.user ?? null);
-                                                    } catch (e: any) {
-                                                        console.error("Cancel failed:", e);
-                                                        alert("取消失敗: " + e.message);
-                                                    }
-                                                }}
-                                                className="text-yellow-600 hover:text-yellow-400 bg-yellow-500/20 hover:bg-yellow-500/30 px-2 py-1 rounded transition-colors"
-                                            >
-                                                取消
-                                            </button>
-                                        </div>
-                                    )}
 
                                     {/* Inline Editing Form (Bind or Change) */}
                                     {isEditingEmail && (
