@@ -25,9 +25,127 @@ serve(async (req) => {
 
     try {
         const body = await req.json().catch(() => ({}));
-        const { idToken, linkToUserId } = body; // Accept linkToUserId
+        const { idToken, linkToUserId, action } = body;
 
-        console.log('[Line Auth] Request received. Link Mode:', !!linkToUserId);
+        console.log('[Line Auth] Request received. Link Mode:', !!linkToUserId, 'Action:', action);
+
+        // Handle Unlink Action
+        if (action === 'unlink') {
+            const authHeader = req.headers.get('Authorization')
+            if (!authHeader) throw new Error('Missing Authorization header')
+
+            const supabaseClient = createClient(
+                Deno.env.get('SUPABASE_URL') ?? '',
+                Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+                { global: { headers: { Authorization: authHeader } } }
+            )
+
+            const { data: { user }, error: authError } = await supabaseClient.auth.getUser()
+            if (authError || !user) throw new Error('Invalid Token')
+
+            console.log('[Line Auth] Unlink Request - User Email:', user.email);
+            console.log('[Line Auth] Unlink Request - App Metadata:', JSON.stringify(user.app_metadata));
+            console.log('[Line Auth] Unlink Request - User Metadata:', JSON.stringify(user.user_metadata));
+
+            const logs: string[] = [];
+            logs.push(`[Start Unlink] User: ${user.id}, Email: ${user.email}`);
+
+            // Verify email is bound (at least one login method must remain)
+            const hasRealEmail = user.email && !user.email.includes('@line.workaround');
+
+            if (!hasRealEmail) {
+                logs.push(`[Check Failed] No real email: ${user.email}`);
+                console.error(logs.join('\n'));
+                throw new Error(`無法解除 LINE 綁定：您必須先綁定 Email 作為備用登入方式。(Detected: ${user.email})`)
+            }
+
+            const supabaseAdmin = createClient(
+                Deno.env.get('SUPABASE_URL') ?? '',
+                Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+            )
+
+            // 1. Remove Identity
+            try {
+                const lineIdentity = user.identities?.find((id: any) => id.provider === 'line');
+                if (lineIdentity) {
+                    logs.push(`[Identity Found] ID: ${lineIdentity.id}`);
+                    const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUserIdentity(user.id, lineIdentity.id);
+                    if (deleteError) {
+                        logs.push(`[Delete Identity Error] ${deleteError.message}`);
+                        throw deleteError;
+                    } else {
+                        logs.push(`[Delete Identity Success]`);
+                    }
+                } else {
+                    logs.push(`[Identity Not Found] No LINE identity to delete.`);
+                }
+            } catch (err: any) {
+                logs.push(`[Identity Error] ${err.message}`);
+                // Don't throw here, try to clean up metadata anyway
+            }
+
+            // 2. Remove Metadata
+            const newMetadata = { ...user.user_metadata }
+            delete newMetadata.line_user_id
+            delete newMetadata.avatar_url
+
+            // Clean App Metadata - FORCE provider to 'email' since we validated they have a real email
+            const newAppMetadata = {
+                ...user.app_metadata,
+                provider: 'email', // Explicitly switch primary provider
+                providers: (user.app_metadata?.providers || []).filter((p: string) => p !== 'line')
+            };
+
+            logs.push(`[Update User] Setting provider to 'email'...`);
+
+            const { data: updatedUser, error: updateError } = await supabaseAdmin.auth.admin.updateUserById(user.id, {
+                user_metadata: newMetadata,
+                app_metadata: newAppMetadata
+            })
+
+            if (updateError) {
+                logs.push(`[Update Error] ${updateError.message}`);
+                console.error(logs.join('\n'));
+                throw updateError
+            } else {
+                logs.push(`[Update Success] New App Metadata: ${JSON.stringify(updatedUser.user.app_metadata)}`);
+            }
+
+            // 3. Sync Public Profile (Targeted Update based on user feedback)
+            try {
+                logs.push(`[Sync Profile] Attempting to update public.profiles columns (provider, line_user_id)...`);
+
+                // User confirmed 'provider' and 'line_user_id' and 'avatar_url' exist in profiles/table view.
+                const { error: profileError } = await supabaseAdmin
+                    .from('profiles')
+                    .update({
+                        provider: 'email',           // Explicitly set to email
+                        line_user_id: null,          // Clear LINE ID
+                        avatar_url: null,            // Clear LINE Avatar (optional, but cleaner)
+                        email: user.email,           // Ensure email is synced
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq('id', user.id);
+
+                if (profileError) {
+                    logs.push(`[Profile Sync Error] ${profileError.message}`);
+                    console.error('Profile Update Failed:', profileError);
+                } else {
+                    logs.push(`[Profile Sync Success] Updated provider to 'email' and cleared LINE data.`);
+                }
+
+            } catch (err: any) {
+                logs.push(`[Profile Sync Exception] ${err.message}`);
+            }
+
+
+            console.log(logs.join('\n'));
+
+            return new Response(
+                JSON.stringify({ message: 'LINE unlinked successfully', logs }),
+                { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            )
+        }
 
         if (!idToken) {
             throw new Error('Missing idToken in body');
@@ -123,11 +241,25 @@ serve(async (req) => {
         }
 
         if (targetUser) {
+            // Security Check: If found by EMAIL but not by LINE ID, it means the accounts are NOT linked.
+            // We should NOT auto-link them here without explicit user consent (which is done via the 'linkToUserId' flow).
+            if (targetUser.email === email && targetUser.user_metadata?.line_user_id !== lineUserId) {
+                // Check if this account was explicitly unlinked (we can't easily know history, but we can be strict)
+                // STRICT MODE: If user exists by email but isn't linked to this LINE ID, deny login.
+                // The user must log in via Email first, then go to Settings to bind LINE.
+                console.log('[Line Auth] Prevented auto-linking for unlinked account:', targetUser.email);
+                throw new Error('此 LINE 帳號尚未綁定任何會員。請先使用 Email 登入後，至設定頁面進行綁定。');
+            }
+
             userId = targetUser.id
             console.log('[Line Auth] Found existing user:', userId);
-            await supabaseAdmin.auth.admin.updateUserById(userId, {
-                user_metadata: { ...targetUser.user_metadata, full_name: name, avatar_url: picture, line_user_id: lineUserId }
-            })
+
+            // Only update metadata if it's already linked (double safety, though condition above handles it)
+            if (targetUser.user_metadata?.line_user_id === lineUserId) {
+                await supabaseAdmin.auth.admin.updateUserById(userId, {
+                    user_metadata: { ...targetUser.user_metadata, full_name: name, avatar_url: picture }
+                })
+            }
         } else {
             console.log('[Line Auth] Creating new user...');
             const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({

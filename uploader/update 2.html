@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>不動產批次上傳工具 v6.5 (版面優化)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'dark-bg': '#1a1d29',
+                        'dark-card': '#252836',
+                        'dark-sidebar': '#1f2937',
+                        'cyan-accent': '#06b6d4',
+                        'cyan-light': '#67e8f9',
+                        'purple-accent': '#8b5cf6',
+                        'orange-accent': '#f59e0b'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #1a1d29 0%, #252836 100%);
+            min-height: 100vh;
+        }
+
+        .glass-card {
+            background: rgba(37, 40, 54, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .progress-ring {
+            transform: rotate(-90deg);
+        }
+
+        .progress-ring-circle {
+            stroke-dasharray: 251.2;
+            stroke-dashoffset: 251.2;
+            transition: stroke-dashoffset 0.5s ease-in-out;
+        }
+
+        .terminal {
+            background: #0f172a;
+            border: 1px solid #334155;
+            font-family: 'Courier New', monospace;
+            color: #64748b;
+        }
+
+        .terminal-success {
+            color: #10b981;
+        }
+
+        .terminal-error {
+            color: #ef4444;
+        }
+
+        .terminal-warning {
+            color: #f59e0b;
+        }
+
+        .terminal-info {
+            color: #06b6d4;
+        }
+
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+        }
+
+        .status-online {
+            background: #10b981;
+        }
+
+        .status-offline {
+            background: #ef4444;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+            transition: opacity 0.3s ease;
+        }
+
+        /* --- ▼▼▼ 修改Modal寬度 ▼▼▼ --- */
+        .modal-container {
+            background: #1f2937;
+            padding: 2rem;
+            border-radius: 12px;
+            width: 95%;
+            max-width: 1400px;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid #4b5563;
+        }
+
+        .modal-header {
+            flex-shrink: 0;
+        }
+
+        .modal-body {
+            flex-grow: 1;
+            overflow-y: auto;
+            min-height: 0;
+            background-color: #1a1d29;
+            padding: 1rem;
+            border-radius: 8px;
+        }
+
+        .modal-footer {
+            flex-shrink: 0;
+        }
+
+        .form-input-custom {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background-color: #374151;
+            border: 1px solid #4b5563;
+            border-radius: 0.5rem;
+            color: white;
+            transition: all 0.2s;
+        }
+
+        .form-input-custom:focus {
+            outline: none;
+            border-color: #06b6d4;
+            box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.5);
+        }
+
+        /* --- ▼▼▼ 新增/修改的樣式 ▼▼▼ --- */
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+            /* 固定表格布局 */
+        }
+
+        .results-table th,
+        .results-table td {
+            padding: 0.5rem 0.75rem;
+            vertical-align: middle;
+            font-size: 0.8rem;
+            /* 縮小字體 */
+            border-bottom: 1px solid #374151;
+        }
+
+        .results-table th {
+            text-align: left;
+            color: #9ca3af;
+            font-weight: 500;
+        }
+
+        .results-table .summary-row:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+
+        .results-table .details-row {
+            display: none;
+        }
+
+        .results-table .details-cell {
+            background-color: #111827;
+            padding: 1rem;
+        }
+
+        .details-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 0.5rem 1.5rem;
+        }
+
+        .details-grid>div {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .details-grid .key {
+            font-weight: 600;
+            color: #9ca3af;
+            font-size: 0.75rem;
+            margin-bottom: 0.1rem;
+        }
+
+        .details-grid .value {
+            color: #e5e7eb;
+            word-break: break-all;
+        }
+
+        .truncate-cell {
+            max-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .details-toggle-btn {
+            padding: 0.25rem 0.75rem;
+            border: 1px solid #06b6d4;
+            color: #06b6d4;
+            background-color: transparent;
+            border-radius: 999px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.75rem;
+        }
+
+        .details-toggle-btn:hover {
+            background-color: rgba(6, 182, 212, 0.2);
+            color: #67e8f9;
+        }
+
+        /* --- ▲▲▲ 樣式結束 ▲▲▲ --- */
+
+        /* --- ▼▼▼ 上傳詳情 Modal 的新樣式 ▼▼▼ --- */
+        .details-tab-button {
+            padding: 0.5rem 1rem;
+            font-weight: 500;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+            color: #9ca3af;
+        }
+
+        .details-tab-button.active {
+            color: #06b6d4;
+            border-bottom-color: #06b6d4;
+        }
+
+        .diff-highlight {
+            background-color: rgba(245, 158, 11, 0.2);
+            color: #fcd34d;
+            border-radius: 3px;
+            padding: 1px 3px;
+        }
+
+        /* --- ▲▲▲ 樣式結束 ▲▲▲ --- */
+    </style>
+</head>
+
+<body class="bg-dark-bg text-white">
+    <div class="bg-dark-sidebar border-b border-gray-700 px-6 py-4">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-4">
+                <div
+                    class="w-10 h-10 bg-gradient-to-r from-cyan-accent to-purple-accent rounded-lg flex items-center justify-center">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4">
+                        </path>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold text-white">不動產批次上傳/修改工具</h1>
+                    <p class="text-sm text-gray-400">Real Estate Batch Upload & Update Dashboard v6.5</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-4">
+                <a href="../index.html"
+                    class="flex items-center space-x-2 text-gray-400 hover:text-white transition-colors px-3 py-1 rounded-lg hover:bg-white/5">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6">
+                        </path>
+                    </svg>
+                    <span>回首頁</span>
+                </a>
+                <div class="flex items-center space-x-2">
+                    <span class="status-indicator" id="connectionStatus"></span>
+                    <span class="text-sm text-gray-400" id="connectionText">未連線</span>
+                </div>
+                <div class="text-right">
+                    <div class="text-sm font-medium text-white" id="currentTime"></div>
+                    <div class="text-xs text-gray-400">系統時間</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="flex">
+        <div class="w-64 bg-dark-sidebar border-r border-gray-700 min-h-screen p-4">
+            <nav class="space-y-2">
+                <div class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">主要功能</div>
+                <a href="#"
+                    class="flex items-center space-x-3 px-3 py-2 rounded-lg bg-cyan-accent/10 text-cyan-accent border border-cyan-accent/20">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 7v10c0 2.21 1.79 4 4 4h8c0-2.21-1.79-4-4-4H8c-2.21 0-4-1.79-4-4zm0 0V4c0-2.21 1.79-4 4-4h4c2.21 0 4 1.79 4 4v3M4 7h16">
+                        </path>
+                    </svg>
+                    <span>資料庫管理</span>
+                </a>
+            </nav>
+        </div>
+
+        <div class="flex-1 p-6">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="lg:col-span-2">
+                    <div class="glass-card rounded-xl p-6 mb-6">
+                        <h2 class="text-lg font-semibold text-white flex items-center mb-6">
+                            <svg class="w-5 h-5 text-cyan-accent mr-2" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                            </svg>
+                            Supabase 資料庫連線
+                        </h2>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-300 mb-2">Supabase URL</label>
+                                <input type="text" id="supabaseUrl" class="form-input-custom"
+                                    placeholder="https://your-project-ref.supabase.co">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-300 mb-2">Service Role Key</label>
+                                <input type="password" id="supabaseKey" class="form-input-custom"
+                                    placeholder="your-service-role-key">
+                            </div>
+                        </div>
+                        <button id="testConnectionButton"
+                            class="bg-gradient-to-r from-cyan-accent to-purple-accent text-white px-6 py-3 rounded-lg font-medium hover:shadow-lg hover:shadow-cyan-accent/25 transition-all duration-300">
+                            <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                            </svg>
+                            測試連線
+                        </button>
+                    </div>
+
+                    <div class="glass-card rounded-xl p-6 mb-6">
+                        <h2 class="text-lg font-semibold text-white flex items-center mb-6">
+                            <svg class="w-5 h-5 text-purple-accent mr-2" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z">
+                                </path>
+                            </svg>
+                            資料批次修改 (獨立功能)
+                        </h2>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
+                            <div>
+                                <label for="updateCountySelect"
+                                    class="block text-sm font-medium text-gray-300 mb-2">縣市</label>
+                                <select id="updateCountySelect" class="form-input-custom">
+                                    <option value="">請選擇</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="updateTransactionType"
+                                    class="block text-sm font-medium text-gray-300 mb-2">交易類型</label>
+                                <select id="updateTransactionType" class="form-input-custom">
+                                    <option value="b">預售交易</option>
+                                    <option value="a">中古交易</option>
+                                    <option value="c">租賃交易</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="updateSearchField"
+                                    class="block text-sm font-medium text-gray-300 mb-2">搜尋欄位</label>
+                                <select id="updateSearchField" class="form-input-custom">
+                                    <option value="建案名稱">建案名稱</option>
+                                    <option value="編號">編號</option>
+                                </select>
+                            </div>
+                            <div class="lg:col-span-2">
+                                <label for="updateSearchKeyword"
+                                    class="block text-sm font-medium text-gray-300 mb-2">搜尋關鍵字</label>
+                                <div class="flex gap-2">
+                                    <input type="text" id="updateSearchKeyword" class="form-input-custom"
+                                        placeholder="輸入部分或完整名稱">
+                                    <button id="searchForUpdateButton"
+                                        class="bg-gradient-to-r from-purple-accent to-orange-accent text-white px-6 py-3 rounded-lg font-medium hover:shadow-lg hover:shadow-purple-accent/25 transition-all duration-300 flex-shrink-0">查詢資料</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="glass-card rounded-xl p-6">
+                        <h2 class="text-lg font-semibold text-white mb-6 flex items-center">
+                            <svg class="w-5 h-5 text-cyan-accent mr-2" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12">
+                                </path>
+                            </svg>
+                            檔案批次上傳
+                        </h2>
+                        <div
+                            class="border-2 border-dashed border-gray-600 rounded-lg p-8 text-center mb-6 hover:border-cyan-accent transition-colors">
+                            <svg class="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12">
+                                </path>
+                            </svg>
+                            <p class="text-gray-300 mb-2">選擇包含所有資料的總資料夾</p>
+                            <p class="text-sm text-gray-400 mb-4">系統將自動掃描並排序所有檔案</p>
+                            <button id="selectFoldersButton"
+                                class="bg-gradient-to-r from-cyan-accent to-blue-500 text-white px-8 py-3 rounded-lg font-medium hover:shadow-lg hover:shadow-cyan-accent/25 transition-all duration-300">
+                                選擇資料夾
+                            </button>
+                        </div>
+
+                        <div id="fileListContainer" class="hidden">
+                            <div class="bg-gray-800 rounded-lg p-4 mb-4">
+                                <h3 class="text-sm font-medium text-gray-300 mb-3">偵測到的檔案</h3>
+                                <div id="fileList" class="space-y-2 max-h-40 overflow-y-auto"></div>
+                            </div>
+
+                            <div id="uploadTypeSelector" class="bg-gray-800 rounded-lg p-4 mb-4">
+                                <h3 class="text-sm font-medium text-gray-300 mb-3">選擇上傳類型</h3>
+                                <div class="flex items-center space-x-6 text-sm">
+                                    <label class="flex items-center space-x-2 cursor-pointer"><input type="radio"
+                                            name="uploadType" value="all"
+                                            class="form-radio h-4 w-4 text-cyan-accent bg-gray-700 border-gray-600 focus:ring-cyan-accent"
+                                            checked><span>全選</span></label>
+                                    <label class="flex items-center space-x-2 cursor-pointer"><input type="radio"
+                                            name="uploadType" value="a"
+                                            class="form-radio h-4 w-4 text-cyan-accent bg-gray-700 border-gray-600 focus:ring-cyan-accent"><span>中古
+                                            (a)</span></label>
+                                    <label class="flex items-center space-x-2 cursor-pointer"><input type="radio"
+                                            name="uploadType" value="b"
+                                            class="form-radio h-4 w-4 text-cyan-accent bg-gray-700 border-gray-600 focus:ring-cyan-accent"><span>預售
+                                            (b)</span></label>
+                                    <label class="flex items-center space-x-2 cursor-pointer"><input type="radio"
+                                            name="uploadType" value="c"
+                                            class="form-radio h-4 w-4 text-cyan-accent bg-gray-700 border-gray-600 focus:ring-cyan-accent"><span>租賃
+                                            (c)</span></label>
+                                </div>
+                            </div>
+
+                            <button id="startUploadButton"
+                                class="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white py-4 rounded-lg font-semibold hover:shadow-lg hover:shadow-green-500/25 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed">
+                                <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12">
+                                    </path>
+                                </svg>
+                                開始上傳
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-6">
+                    <div class="glass-card rounded-xl p-6">
+                        <h3 class="text-lg font-semibold text-white mb-4">上傳進度</h3>
+                        <div class="flex items-center justify-center">
+                            <div class="relative w-32 h-32">
+                                <svg class="w-32 h-32 progress-ring" viewBox="0 0 84 84">
+                                    <circle cx="42" cy="42" r="40" stroke="#374151" stroke-width="4" fill="none" />
+                                    <circle cx="42" cy="42" r="40" stroke="#06b6d4" stroke-width="4" fill="none"
+                                        class="progress-ring-circle" id="progressCircle" />
+                                </svg>
+                                <div class="absolute inset-0 flex items-center justify-center">
+                                    <div class="text-center">
+                                        <div class="text-2xl font-bold text-white" id="progressPercent">0%</div>
+                                        <div class="text-xs text-gray-400">完成度</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-4 text-center">
+                            <p class="text-sm text-gray-400" id="progressStatus">等待開始...</p>
+                            <p class="text-xs text-gray-500 mt-1" id="currentFileName"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
+                <div class="glass-card rounded-xl p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-white flex items-center">
+                            <svg class="w-5 h-5 text-cyan-accent mr-2" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                                </path>
+                            </svg>
+                            執行日誌
+                        </h3>
+                        <div class="flex items-center gap-4">
+                            <button id="showUploadDetailsButton"
+                                class="text-sm bg-purple-600 text-white px-3 py-1 rounded-md hover:bg-purple-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                disabled>
+                                查看上傳詳情
+                            </button>
+                            <button class="text-xs text-gray-400 hover:text-white"
+                                onclick="clearLogs('status')">清除</button>
+                        </div>
+                    </div>
+                    <div id="statusContainer" class="terminal rounded-lg p-4 h-80 overflow-y-auto">
+                        <div class="text-gray-400">等待操作...</div>
+                    </div>
+                </div>
+
+                <div class="glass-card rounded-xl p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-white flex items-center">
+                            <svg class="w-5 h-5 text-red-400 mr-2" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            錯誤日誌
+                        </h3>
+                        <button class="text-xs text-gray-400 hover:text-white" onclick="clearLogs('error')">清除</button>
+                    </div>
+                    <div id="errorLogContainer" class="terminal rounded-lg p-4 h-80 overflow-y-auto">
+                        <div class="text-gray-400">無錯誤記錄</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="batchUpdateModal" class="modal-overlay hidden">
+        <div class="modal-container">
+            <div class="modal-header flex justify-between items-center pb-4 border-b border-gray-700">
+                <h2 class="text-2xl font-bold text-white">批次修改資料</h2>
+                <button id="batchUpdateModalCloseBtn"
+                    class="text-gray-400 hover:text-white text-3xl font-bold">&times;</button>
+            </div>
+
+            <div class="my-4">
+                <div class="bg-dark-bg p-3 rounded-lg">
+                    <div id="modalSearchCriteriaDisplay" class="text-sm text-gray-400 mb-2"></div>
+                    <div class="flex gap-2">
+                        <input type="text" id="modalFilterInput" class="form-input-custom w-full"
+                            placeholder="在此處篩選已顯示的結果...">
+                        <button id="modalFilterButton"
+                            class="bg-cyan-accent text-white px-4 rounded-lg font-medium hover:bg-cyan-600 transition-colors flex-shrink-0">篩選</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-body">
+                <div class="flex items-center justify-between mb-4">
+                    <div id="searchResultCount" class="text-sm text-gray-400">找到 0 筆資料</div>
+                    <button id="selectAllCheckbox" class="text-sm text-cyan-400 hover:text-cyan-300">全選/全不選</button>
+                </div>
+                <div id="searchResultsContainer">
+                </div>
+            </div>
+            <div class="modal-footer pt-4 border-t border-gray-700 mt-4">
+                <h3 class="text-lg font-semibold text-white mb-4">執行更新</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                    <div>
+                        <label for="updateFieldSelect"
+                            class="block text-sm font-medium text-gray-300 mb-2">選擇要修改的欄位</label>
+                        <select id="updateFieldSelect" class="form-input-custom"></select>
+                    </div>
+                    <div class="md:col-span-2">
+                        <label for="updateValueInput" class="block text-sm font-medium text-gray-300 mb-2">輸入新內容</label>
+                        <div class="flex gap-2">
+                            <input type="text" id="updateValueInput" class="form-input-custom" placeholder="留空以清除該欄位內容">
+                            <button id="executeBatchUpdateButton"
+                                class="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-6 py-3 rounded-lg font-medium hover:shadow-lg hover:shadow-green-500/25 transition-all duration-300 flex-shrink-0">執行更新</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="uploadDetailsModal" class="modal-overlay hidden">
+        <div class="modal-container">
+            <div class="modal-header flex justify-between items-center pb-4 border-b border-gray-700">
+                <h2 class="text-2xl font-bold text-white">上傳詳情</h2>
+                <button id="uploadDetailsModalCloseBtn"
+                    class="text-gray-400 hover:text-white text-3xl font-bold">&times;</button>
+            </div>
+            <div class="my-4 flex border-b border-gray-700" id="uploadDetailsTabs">
+                <button data-tab="new" class="details-tab-button active">新增</button>
+                <button data-tab="updated" class="details-tab-button">更新</button>
+                <button data-tab="identical" class="details-tab-button">相同 (跳過)</button>
+            </div>
+            <div class="modal-body" id="uploadDetailsContent">
+            </div>
+        </div>
+    </div>
+    <script type="module" src="./js/main.js"></script>
+
+</body>
+
+</html>

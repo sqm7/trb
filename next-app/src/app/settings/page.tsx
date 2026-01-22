@@ -171,6 +171,23 @@ export default function SettingsPage() {
     const isLineBound = !!(user?.app_metadata?.provider === 'line' || user?.user_metadata?.line_user_id || user?.identities?.some((id: any) => id.provider === 'line'));
     const isEmailBound = !!(user?.email && !user.email.includes('line.workaround'));
 
+    // DEBUG: Inspect why LINE is considered bound
+    useEffect(() => {
+        if (user) {
+            console.log('[Auth Debug] User Data:', {
+                id: user.id,
+                email: user.email,
+                app_metadata: user.app_metadata,
+                user_metadata: user.user_metadata,
+                identities: user.identities,
+                check_provider: user.app_metadata?.provider === 'line',
+                check_metadata: !!user.user_metadata?.line_user_id,
+                check_identities: user.identities?.some((id: any) => id.provider === 'line'),
+                calculated_isLineBound: isLineBound
+            });
+        }
+    }, [user, isLineBound]);
+
     const handleUpdateEmail = async (e: React.FormEvent) => {
         e.preventDefault();
         setBindStatus('loading');
@@ -258,18 +275,37 @@ export default function SettingsPage() {
         if (!confirm("確定要解除 LINE 連結嗎？解除後您將無法使用 LINE 登入。")) return;
 
         try {
-            const lineIdentity = user?.identities?.find((id: any) => id.provider === 'line');
-            if (lineIdentity) {
-                const { error } = await supabase.auth.unlinkIdentity(lineIdentity.identity_id);
-                if (error) throw error;
+            console.log('[handleUnlinkLine] Starting LINE unlink...');
+            // Use line-auth Edge Function with action: 'unlink'
+            const { data, error } = await supabase.functions.invoke('line-auth', {
+                body: { action: 'unlink' }
+            });
+            console.log('[handleUnlinkLine] Response:', { data, error });
 
-                // Refresh user
-                const { data: { session } } = await supabase.auth.getSession();
-                setUser(session?.user ?? null);
-                alert("已成功解除 LINE 連結");
-            } else {
-                alert("找不到 LINE 連結資訊");
+            if (error) throw error;
+            if (data?.error) throw new Error(data.error);
+
+            // Successfully unlinked - need to re-login to get fresh session with updated metadata
+            alert("已成功解除 LINE 連結！請使用 Email 重新登入。");
+
+            // Clear LIFF session to prevent auto re-login
+            try {
+                const liffId = getLiffId();
+                if (liffId) {
+                    const liffModule = await import('@line/liff');
+                    const liff = liffModule.default;
+                    await liff.init({ liffId });
+                    if (liff.isLoggedIn()) {
+                        liff.logout();
+                    }
+                }
+            } catch (e) {
+                console.log('[handleUnlinkLine] LIFF logout error (ok to ignore):', e);
             }
+
+            // Sign out Supabase session, then redirect
+            await supabase.auth.signOut();
+            window.location.href = '/';
         } catch (error: any) {
             console.error("Unlink error:", error);
             alert("解除連結失敗: " + error.message);

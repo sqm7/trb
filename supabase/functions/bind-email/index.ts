@@ -142,6 +142,11 @@ serve(async (req) => {
                 ...user.user_metadata,
                 dismissed_new_email: null,
                 last_email_update: new Date().toISOString()
+            },
+            app_metadata: {
+                ...user.app_metadata,
+                // Ensure 'email' is added to providers list
+                providers: [...new Set([...(user.app_metadata?.providers || []), 'email'])]
             }
         }
         if (password) updateAttributes.password = password
