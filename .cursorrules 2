@@ -1,9 +1,0 @@
-# Behavior Guidelines
-
-## Version Control Reporting
-- When listing git commits, restore points, or history, **ALWAYS** include the Date and Time.
-- Preferred format: `Hash | Date Time | Message` (e.g., `git log --pretty=format:'%h | %cd | %s' --date=format:'%Y-%m-%d %H:%M:%S'`)
-
-## Memory & Documentation
-- Follow the user-defined memory rules in <MEMORY[user_global]>.
-- Keep SPEC.md, PLAN.md, and ARCHITECTURE.md updated.
