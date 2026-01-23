@@ -3,7 +3,7 @@
 ## 1. Stack Overview
 - **Frontend**: Next.js 14 (App Router), React, TailwindCSS, Shadcn UI.
 - **Backend / BaaS**: Supabase (Auth, Database, Edge Functions).
-- **Hosting**: Vercel (Frontend), Supabase (Edge Functions).
+- **Hosting**: GitHub Pages (靜態輸出), Supabase (Edge Functions).
 
 ## 2. Directory Structure
 ```
@@ -45,3 +45,33 @@
 ### Frontend State
 - **User Context**: derived from `supabase.auth.getSession()`.
 - **Binding Status**: Calculated from `user.email` (placeholder check) and `user.app_metadata` / `identities`.
+
+## 5. 部署平台規則
+
+> ⚠️ **重要：變更部署平台前必須取得用戶同意**
+
+### 目前方案：GitHub Pages
+- **域名**: www.sqmtalk.com → sqm7.github.io
+- **部署方式**: `npm run build` 後將 `next-app/out/` 內容複製到根目錄，推送到 main 分支
+- **限制**: 僅支援靜態輸出 (`output: 'export'`)，不支援 API Routes、Server Components
+
+### 未來可能遷移：Vercel
+- 當專案需要以下功能時，可考慮遷移到 Vercel：
+  - Next.js API Routes
+  - Server-Side Rendering (SSR)
+  - Incremental Static Regeneration (ISR)
+  - Edge Middleware
+- **遷移前必須詢問用戶並取得同意**
+
+### 部署流程
+```bash
+# 1. 建置靜態檔案
+cd next-app && npm run build
+
+# 2. 複製到根目錄
+cp -R out/* ../
+
+# 3. 推送到 GitHub
+cd .. && git add -A && git commit -m "deploy" && git push origin main
+```
+

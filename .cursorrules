@@ -7,3 +7,8 @@
 ## Memory & Documentation
 - Follow the user-defined memory rules in <MEMORY[user_global]>.
 - Keep SPEC.md, PLAN.md, and ARCHITECTURE.md updated.
+
+## 部署平台規則 ⚠️
+- **目前使用 GitHub Pages**，不可擅自更改為 Vercel 或其他平台。
+- 若需要 API Routes、SSR 等功能需遷移到 Vercel，**必須先詢問用戶並取得同意**。
+- 部署流程：`npm run build` → 複製 `out/` 到根目錄 → `git push`。
