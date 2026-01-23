@@ -97,8 +97,17 @@ serve(async (req) => {
             new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
         )
 
+        // Return with meta info for admin dashboard
+        const responseData = {
+            users: mergedUsers,
+            meta: {
+                authUsersCount: users.length,
+                profilesCount: profiles?.length || 0
+            }
+        }
+
         return new Response(
-            JSON.stringify(mergedUsers),
+            JSON.stringify(responseData),
             { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         )
 

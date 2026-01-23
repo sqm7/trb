@@ -64,3 +64,20 @@ User is unable to unbind LINE even after binding an email. We suspect a state sy
 ### Step 9: Workspace Cleanup & Commit
 - [x] Remove duplicate documentation files (`PLAN 2.md` etc).
 - [x] Commit all changes.
+
+### Step 10: RWD Verification (Mobile)
+- [x] Check Landing Page layout on mobile.
+- [x] Check Settings/Member pages on mobile.
+- [x] Check Complex Reports (Charts/Tables) on mobile.
+
+### Step 11: Fix Mobile Navigation
+- [x] Update `Header.tsx` to include missing sidebar items:
+    - [x] System Settings (/settings)
+    - [x] System Announcements (/announcements)
+    - [x] Admin Interface (conditional)
+    - [x] User Profile & Logout
+- [x] Re-verify mobile menu.
+
+### Step 12: Deployment
+- [x] Deploy to Test Environment (TRB).
+- [x] Deploy to Production Environment (PROD).

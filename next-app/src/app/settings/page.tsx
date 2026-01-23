@@ -411,7 +411,7 @@ export default function SettingsPage() {
                     {!loading && user ? (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             {/* User Profile Card */}
-                            <div className="bg-zinc-900/50 border border-white/10 rounded-2xl p-6 space-y-6 relative overflow-hidden group">
+                            <div className="bg-zinc-900/50 border border-white/10 rounded-2xl p-6 flex flex-col relative overflow-hidden group">
                                 <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
                                     <Fingerprint className="h-24 w-24 text-cyan-500" />
                                 </div>
@@ -499,7 +499,10 @@ export default function SettingsPage() {
                                     </div>
                                 </div>
 
-                                <div className="pt-2">
+                                {/* Spacer to push button to bottom */}
+                                <div className="flex-grow" />
+
+                                <div className="pt-4 border-t border-white/5 mt-auto">
                                     <button
                                         onClick={handleLogout}
                                         className="w-full flex items-center justify-center gap-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 rounded-xl px-4 py-2.5 transition-all text-sm font-medium"
@@ -511,7 +514,7 @@ export default function SettingsPage() {
                             </div>
 
                             {/* Subscription Status Card */}
-                            <div className="bg-zinc-900/50 border border-white/10 rounded-2xl p-6 space-y-4 flex flex-col justify-between">
+                            <div className="bg-zinc-900/50 border border-white/10 rounded-2xl p-6 flex flex-col">
                                 <div>
                                     <div className="flex items-center justify-between mb-2">
                                         <span className="text-zinc-400 text-sm font-medium">目前方案</span>
@@ -535,7 +538,10 @@ export default function SettingsPage() {
                                     </div>
                                 </div>
 
-                                <div className="pt-4 border-t border-white/5">
+                                {/* Spacer to push button to bottom */}
+                                <div className="flex-grow" />
+
+                                <div className="pt-4 border-t border-white/5 mt-auto">
                                     <button className="w-full flex items-center justify-center gap-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-xl px-4 py-2.5 transition-all text-sm font-medium cursor-not-allowed opacity-70">
                                         <CreditCard className="h-4 w-4" />
                                         升級 Pro 方案 (Coming Soon)

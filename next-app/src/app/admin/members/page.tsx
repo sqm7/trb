@@ -28,6 +28,7 @@ export default function AdminMembersPage() {
     const [currentUserRole, setCurrentUserRole] = useState<string>('user');
     const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
     const [expandedEmails, setExpandedEmails] = useState<Set<string>>(new Set());
+    const [tableStats, setTableStats] = useState<{ authUsers: number, profiles: number } | null>(null);
 
     useEffect(() => {
         if (!isAuthLoading && isAdmin) {
@@ -37,10 +38,17 @@ export default function AdminMembersPage() {
 
     const fetchMembers = async () => {
         try {
-            const data = await api.getAdminUsers() as Member[];
-            setMembers(data);
+            const data = await api.getAdminUsers() as any;
+            // Check if response has meta (new format) or is array (old format)
+            const memberList = Array.isArray(data) ? data : data.users || [];
+            const meta = data.meta || null;
 
-            const currentProfile = data.find(p => p.id === user?.id);
+            setMembers(memberList as Member[]);
+            if (meta) {
+                setTableStats({ authUsers: meta.authUsersCount, profiles: meta.profilesCount });
+            }
+
+            const currentProfile = memberList.find((p: any) => p.id === user?.id);
             if (currentProfile) {
                 setCurrentUserRole(currentProfile.role);
             }
@@ -447,6 +455,13 @@ export default function AdminMembersPage() {
                         <p className="text-xl font-bold text-amber-400">{members.filter(m => m.role === 'admin' || m.role === 'super_admin').length}</p>
                     </div>
                 </div>
+
+                {/* Backend Table Stats */}
+                {tableStats && (
+                    <div className="mt-3 text-[10px] text-zinc-600 font-mono">
+                        後端：auth.users = {tableStats.authUsers} | profiles = {tableStats.profiles}
+                    </div>
+                )}
             </div>
         </div>
     );

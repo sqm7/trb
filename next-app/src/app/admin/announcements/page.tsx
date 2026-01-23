@@ -77,17 +77,24 @@ export default function AdminAnnouncementsPage() {
 
                 if (error) throw error;
             } else {
-                // Create
-                const { error } = await supabase
-                    .from('announcements')
-                    .insert({
-                        title: formData.title,
-                        content: formData.content,
-                        type: formData.type,
-                        is_pinned: formData.is_pinned,
-                        created_by: user?.id,
-                    });
+                // Create - must include is_active, and RLS may require admin check
+                console.log('[Announcement] Creating with user:', user?.id);
+                const insertPayload = {
+                    title: formData.title,
+                    content: formData.content,
+                    type: formData.type,
+                    is_pinned: formData.is_pinned,
+                    is_active: true,
+                    created_by: user?.id,
+                };
+                console.log('[Announcement] Insert payload:', insertPayload);
 
+                const { data, error } = await supabase
+                    .from('announcements')
+                    .insert(insertPayload)
+                    .select();
+
+                console.log('[Announcement] Insert result:', { data, error });
                 if (error) throw error;
             }
 
@@ -97,7 +104,7 @@ export default function AdminAnnouncementsPage() {
             fetchAnnouncements();
         } catch (error: any) {
             console.error('Error saving announcement:', error);
-            alert('儲存失敗：' + error.message);
+            alert('儲存失敗：' + (error.message || JSON.stringify(error)));
         } finally {
             setSaving(false);
         }
