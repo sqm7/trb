@@ -75,3 +75,46 @@ cp -R out/* ../
 cd .. && git add -A && git commit -m "deploy" && git push origin main
 ```
 
+## 6. 腳本清單 (scripts/)
+
+> ⚠️ **注意：已有現成腳本，請勿重複創建**
+
+| 腳本 | 用途 | 執行方式 |
+|------|------|----------|
+| `backup_supabase.sh` | 備份 Supabase 資料庫結構 (Schema + RLS + Functions) | `bash scripts/backup_supabase.sh` |
+| `deploy_next_prod.sh` | 部署 Next.js 到正式版 (www.sqmtalk.com) | `bash scripts/deploy_next_prod.sh "commit message"` |
+| `deploy_next_trb.sh` | 部署 Next.js 到測試版 (sqm7.github.io/trb) | `bash scripts/deploy_next_trb.sh` |
+| `deploy_github.sh` | 快速 Git commit + push | `bash scripts/deploy_github.sh "commit message"` |
+| `start_server.sh` | 啟動本地靜態伺服器 (Python http.server) | `bash scripts/start_server.sh` |
+| `inspect_user.js` | 調試用戶資料 (需 Service Role Key) | `SUPABASE_SERVICE_ROLE_KEY=... node scripts/inspect_user.js` |
+
+### 備份目錄
+- **Schema 備份**: `supabase_schema_sqm/YYYY-MM-DD/`
+- **需要 Docker**: `backup_supabase.sh` 需要 Docker Desktop 運行
+
+## 7. Edge Functions 清單 (supabase/functions/)
+
+| Function | 用途 |
+|----------|------|
+| `bind-email` | 綁定/解綁 Email（繞過驗證） |
+| `delete-user` | 刪除用戶（同時刪 auth.users 和 profiles） |
+| `get-users` | 獲取所有用戶列表（Admin 用） |
+| `line-auth` | LINE 登入/綁定/解綁 |
+| `sync-emails` | 同步 auth.users 和 profiles 的 email |
+| `query-data` | 查詢房地產資料 |
+| `query-names` | 搜尋建案名稱 |
+| `query-sub-data` | 查詢子資料 |
+| `analyze-data` | 資料分析 |
+| `analyze-project-ranking` | 建案排名分析 |
+| `analyze-district-price` | 區域價格分析 |
+| `generate-share-link` | 產生分享連結 |
+| `public-report` | 公開報表 |
+
+### 部署 Edge Functions
+```bash
+# 部署單一 function
+supabase functions deploy <function-name> --no-verify-jwt
+
+# 部署所有 functions
+supabase functions deploy --all
+```

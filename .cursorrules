@@ -12,3 +12,11 @@
 - **目前使用 GitHub Pages**，不可擅自更改為 Vercel 或其他平台。
 - 若需要 API Routes、SSR 等功能需遷移到 Vercel，**必須先詢問用戶並取得同意**。
 - 部署流程：`npm run build` → 複製 `out/` 到根目錄 → `git push`。
+
+## 腳本使用規則 ⚠️
+- **禁止重複創建已存在的腳本**，先查閱 ARCHITECTURE.md 第 6、7 章節。
+- 常用腳本：
+  - 備份 Schema: `bash scripts/backup_supabase.sh`
+  - 部署正式版: `bash scripts/deploy_next_prod.sh`
+  - 部署測試版: `bash scripts/deploy_next_trb.sh`
+  - 部署 Edge Functions: `supabase functions deploy <name>`
