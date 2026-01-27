@@ -47,17 +47,7 @@ export const AlchemyDemoOverlay = ({ onClose }: AlchemyDemoOverlayProps) => {
             <div className="relative w-full max-w-6xl aspect-video bg-black/50 rounded-2xl overflow-hidden border border-white/10 shadow-2xl">
                 <AlchemyOfDataWeb />
 
-                {/* Cinematic Title Overlay inside the player */}
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 1 }}
-                    className="absolute bottom-6 left-0 right-0 text-center z-[110] pointer-events-none"
-                >
-                    <p className="text-zinc-500 text-[10px] md:text-xs tracking-[0.5em] uppercase font-bold drop-shadow-md">
-                        The Alchemy of Data - Cinematic Experience
-                    </p>
-                </motion.div>
+
             </div>
         </motion.div>,
         document.body
