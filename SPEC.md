@@ -73,3 +73,12 @@ The system allows users to access the platform using multiple identity providers
 - **Permissions**: Feature is restricted to `Pro`, `Pro Max`, `Admin`, and `Super Admin` roles.
   - Non-pro users will see a locked button or permission denied alert.
     - **Content**: Visible data points or underlying dataset for the specific view.
+
+## 6. Dashboard UX Logic
+- **Global Search**: Moved to the left Sidebar to free up Header space.
+  - **Collapsed State**: Displays only a Search icon.
+  - **Expanded State**: Displays a full-width search input with focus effects.
+- **Smart FilterBar**:
+  - **Pill Transformation**: When scrolling down (> 100px), the FilterBar collapses into a compact "Pill" fixed at `top-3` (Header area).
+  - **Z-Index Strategy**: The compact pill and its parent container must use high z-indices (`z-[70]` and `z-[100]` respectively) to float above the `z-50` Header and other page elements.
+  - **Auto-Expansion**: Clicking the compact pill triggers a smooth scroll to the top of the page and expands the full filter panel.

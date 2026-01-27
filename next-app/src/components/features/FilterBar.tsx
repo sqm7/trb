@@ -171,8 +171,68 @@ export function FilterBar({ onAnalyze, isLoading }: FilterBarProps) {
         };
     }, []);
 
+    // Scroll Detection
+    const [isCompact, setIsCompact] = useState(false);
+    const filterRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const handleScroll = () => {
+            if (window.scrollY > 100) {
+                setIsCompact(true);
+            } else {
+                setIsCompact(false);
+            }
+        };
+
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
+
+    // Summary Text Generation
+    const getSummaryText = () => {
+        const parts = [];
+        if (counties.length > 0) parts.push(`${counties.length} 縣市`);
+        if (transactionType) parts.push(transactionType.replace('交易', ''));
+        if (dateRange !== 'custom') {
+            const dateLabels: Record<string, string> = {
+                '1q': '近一季', '2q': '近兩季', '3q': '近三季', '1y': '近一年',
+                'this_year': '今年', 'last_2_years': '近兩年'
+            };
+            parts.push(dateLabels[dateRange] || dateRange);
+        } else {
+            parts.push('自訂期間');
+        }
+        return parts.join(' • ') || '請選擇篩選條件';
+    };
+
+    if (isCompact) {
+        return (
+            <div
+                className="fixed top-3 left-1/2 -translate-x-1/2 z-[70] p-1.5 glass-card rounded-full shadow-xl animate-in fade-in slide-in-from-top-2 duration-300 flex items-center justify-between gap-3 cursor-pointer hover:bg-zinc-900/90 transition-all mx-auto max-w-lg backdrop-blur-2xl border border-white/20 origin-top"
+                onClick={() => {
+                    setIsCompact(false);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+            >
+                <div className="flex items-center gap-2 px-1">
+                    <div className="h-6 w-6 rounded-full bg-violet-500/20 text-violet-400 flex items-center justify-center shrink-0">
+                        <Filter className="h-3 w-3" />
+                    </div>
+                    <div className="flex flex-col leading-tight overflow-hidden">
+                        <span className="text-[9px] text-zinc-500 font-bold uppercase tracking-tighter">篩選摘要</span>
+                        <span className="text-xs text-zinc-100 font-semibold truncate max-w-[200px]">{getSummaryText()}</span>
+                    </div>
+                </div>
+
+                <div className="flex items-center gap-2 pl-2 border-l border-white/5">
+                    <span className="text-[10px] text-cyan-400/80 font-medium whitespace-nowrap pr-1">展開</span>
+                </div>
+            </div>
+        );
+    }
+
     return (
-        <div className="p-4 md:p-6 glass-card rounded-xl shadow-lg animate-in fade-in slide-in-from-top-4 duration-500">
+        <div ref={filterRef} className="p-4 md:p-6 glass-card rounded-xl shadow-lg animate-in fade-in slide-in-from-top-4 duration-500">
             {/* Mobile Header & Toggle */}
             <div className="flex md:hidden items-center justify-between mb-4">
                 <h2 className="text-lg font-bold text-white flex items-center gap-2">

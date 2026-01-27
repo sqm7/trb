@@ -51,6 +51,8 @@
 ### Frontend State
 - **User Context**: derived from `supabase.auth.getSession()`.
 - **Binding Status**: Calculated from `user.email` (placeholder check) and `user.app_metadata` / `identities`.
+- **Global Search**: Integrated into `Sidebar.tsx`, replacing the previous Header search.
+- **Filter State**: Managed by `useFilterStore`, synchronized across full and compact `FilterBar` views.
 
 ## 5. 部署平台規則
 

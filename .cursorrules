@@ -32,3 +32,6 @@
     - **禁止使用 Framer Motion** (`framer-motion`) 進行影片渲染。時間軸不同步會導致嚴重頓挫 (Stuttering)。
     - **必須使用 Remotion Native Hooks** (`spring`, `interpolate`, `useCurrentFrame`) 進行所有動畫計算，確保 Frame-Perfect 的 60FPS 流暢度。
   - **Static Assets**: 必須使用 `staticFile("path/to/asset.png")` 來引用 `public/` 資料夾內的圖片，直接寫 `src="/icon.png"` 會導致 Render 失敗。
+- **Z-Index & Stacking Context**:
+  - 當在 Dashboard 實作 `fixed` 或 `sticky` 元素時，必須注意與 `Header (z-50)` 的層級關係。
+  - 當 `FilterBar` 處於精簡模式時，其容器應設置 `z-[100]` 以上，且元素本身設置 `z-[70]`，以確保正確出現在 Header 最上方。

@@ -104,7 +104,7 @@ export function Sidebar() {
     return (
         <aside className="hidden lg:flex fixed left-0 top-0 z-[60] h-screen w-20 flex-col border-r border-white/5 bg-zinc-950 transition-all duration-300 ease-in-out hover:w-64 group shadow-2xl shadow-black/50 overflow-hidden">
             {/* Brand */}
-            <div className="flex h-16 items-center justify-center px-4 border-b border-white/5 overflow-hidden whitespace-nowrap transition-all duration-300 gap-1.5">
+            <div className="flex h-16 items-center justify-center px-4 border-b border-white/5 overflow-hidden whitespace-nowrap transition-all duration-300 gap-1.5 flex-shrink-0">
                 <div className="relative h-8 w-8 flex-shrink-0 rounded-full overflow-hidden">
                     <Image
                         src={`${process.env.NEXT_PUBLIC_BASE_PATH || ''}/icon.png`}
@@ -117,6 +117,32 @@ export function Sidebar() {
                 <div className="flex flex-col opacity-0 group-hover:opacity-100 transition-all duration-300 w-0 group-hover:w-auto overflow-hidden">
                     <span className="font-bold text-white text-lg leading-none">平米內參</span>
                     <span className="font-mono text-[10px] text-zinc-500 leading-none">sqmtalk.com</span>
+                </div>
+            </div>
+
+            {/* Global Search (Sidebar) */}
+            <div className="px-3 py-4 border-b border-white/5">
+                <div className="relative group/search">
+                    <div className="absolute left-0 top-0 flex items-center justify-center h-10 w-full group-hover:w-10 transition-all duration-300 pointer-events-none">
+                        <div className="flex items-center justify-center h-10 w-10">
+                            {/* Icon placeholder for collapsed state */}
+                        </div>
+                    </div>
+
+                    <div className="relative flex items-center">
+                        <div className="absolute left-2.5 z-10 text-zinc-500 group-hover/search:text-zinc-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-search"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /></svg>
+                        </div>
+                        <input
+                            type="text"
+                            placeholder="全站搜尋..."
+                            className="h-10 w-full bg-zinc-900/50 rounded-lg border border-transparent focus:border-violet-500/50 focus:bg-zinc-900 text-sm text-zinc-200 placeholder:text-zinc-600 pl-9 pr-3 outline-none transition-all duration-300 opacity-0 group-hover:opacity-100 w-0 group-hover:w-full overflow-hidden"
+                        />
+                        {/* Icon visible in collapsed state (overlaid) */}
+                        <div className="absolute left-0 top-0 h-10 w-full flex items-center justify-center group-hover:hidden cursor-pointer">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-search text-zinc-500"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /></svg>
+                        </div>
+                    </div>
                 </div>
             </div>
 

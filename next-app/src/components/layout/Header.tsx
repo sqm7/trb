@@ -62,13 +62,7 @@ export function Header() {
             <div className="flex flex-1 items-center justify-between gap-4">
                 {/* Left: Global Search or Breadcrumb */}
                 <div className="hidden lg:flex max-w-sm flex-1 items-center gap-2">
-                    <div className="relative w-full">
-                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-zinc-500" />
-                        <Input
-                            placeholder="全站搜尋..."
-                            className="w-full bg-zinc-900/50 pl-9 border-zinc-800 focus:border-violet-500/50"
-                        />
-                    </div>
+                    {/* Search moved to Sidebar */}
                 </div>
 
             </div>

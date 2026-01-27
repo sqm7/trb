@@ -206,16 +206,20 @@ User is unable to unbind LINE even after binding an email. We suspect a state sy
 
 
 
-### [Current Task] Export Promotional Video
-- [x] Install `remotion` and related dependencies.
-- [x] Create `src/remotion/AlchemyVideo.tsx` (adapted from `AlchemyOfDataWeb.tsx`).
-- [x] Create `src/remotion/Root.tsx`.
-- [x] Create `src/remotion/index.ts`.
-- [x] Add `render:minivideo` script to `package.json`.
-- [x] Run render command and verify `out/square_promo.mp4`.
-
 ### [Current Task] Fix Double Scrollbar
 - [x] Analyze cause: inner div `overflow-x-hidden` causing vertical scroll context.
 - [x] Fix: Move `overflow-x: hidden` to global `body`.
 - [x] Fix: Remove `overflow-x-hidden` from `page.tsx`.
 - [x] Deploy to Test Environment (TRB).
+
+## [Completed Task] Dashboard UX Refinements (Current)
+- [x] **[Sidebar]** Move Global Search from Header to Sidebar.
+    - [x] Implement toggleable search bar in `Sidebar.tsx`.
+    - [x] Fix overlapping search icons in collapsed mode.
+- [x] **[Header]** Remove Global Search from `Header.tsx`.
+- [x] **[FilterBar]** Implement Smart Compact Mode.
+    - [x] Add scroll detection and automatic pill transformation.
+    - [x] Implement summary text generation for active filters.
+    - [x] Fix positioning and z-index conflict with Header (`z-[70]` in `top-3`).
+    - [x] Implement "click-to-expand" with auto-scroll to top.
+- [x] **[Ops]** Deploy refinements to Test Environment (TRB).
