@@ -39,7 +39,7 @@ export default function DashboardPage() {
 
     return (
         <AppLayout>
-            <section className="mb-6">
+            <section className="mb-6 relative z-50">
                 <FilterBar onAnalyze={handleAnalyze} isLoading={loading} />
             </section>
 
