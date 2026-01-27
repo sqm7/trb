@@ -16,7 +16,7 @@ export function AppLayout({ children }: AppLayoutProps) {
             <div className="flex-1 flex flex-col lg:pl-20 min-w-0 transition-all duration-300">
                 <Header />
 
-                <main className="flex-1 p-4 md:p-6 lg:p-8 overflow-y-auto">
+                <main className="flex-1 p-4 md:p-6 lg:p-8">
                     <div className="container-custom py-6 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 min-h-[calc(100vh-12rem)]">
                         {children}
                     </div>

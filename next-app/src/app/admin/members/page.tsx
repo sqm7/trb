@@ -113,7 +113,7 @@ export default function AdminMembersPage() {
                 );
             case 'pro_max':
                 return (
-                    <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium bg-gradient-to-r from-purple-500/10 to-amber-500/10 text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-amber-400 border border-purple-500/20 rounded-full">
+                    <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium bg-gradient-to-r from-purple-500/10 to-amber-500/10 text-amber-400 border border-purple-500/20 rounded-full">
                         <Star className="h-3 w-3 text-amber-400" /> PRO MAX
                     </span>
                 );

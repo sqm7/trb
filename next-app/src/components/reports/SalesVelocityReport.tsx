@@ -9,6 +9,7 @@ import { Select } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { getRoomType } from "@/lib/room-utils";
+import { ExportButton } from "@/components/ui/ExportButton";
 
 interface SalesVelocityReportProps {
     data: {
@@ -211,6 +212,12 @@ export function SalesVelocityReport({ data }: SalesVelocityReportProps) {
                             <option value="priceSum">總銷金額</option>
                             <option value="areaSum">總銷坪數</option>
                         </Select>
+                        <ExportButton
+                            data={salesVelocityAnalysis?.[velocityView]}
+                            filename={`sales_velocity_${velocityView}`}
+                            label="匯出"
+                            columns={{ period: '時間區間', count: '交易筆數', priceSum: '總銷金額', areaSum: '總銷坪數' }}
+                        />
                     </div>
                 }
             >
@@ -225,6 +232,14 @@ export function SalesVelocityReport({ data }: SalesVelocityReportProps) {
             <ReportWrapper
                 title="銷售速度明細表"
                 description="各時間段詳細銷售數據統計"
+                headerAction={
+                    <ExportButton
+                        data={salesVelocityAnalysis?.[velocityView]}
+                        filename={`sales_velocity_table_${velocityView}`}
+                        label="匯出明細"
+                        columns={{ period: '時間區間', count: '交易筆數', priceSum: '總銷金額', areaSum: '總銷坪數' }}
+                    />
+                }
             >
                 <VelocityTable
                     data={salesVelocityAnalysis?.[velocityView]}
@@ -261,6 +276,12 @@ export function SalesVelocityReport({ data }: SalesVelocityReportProps) {
                             onChange={e => setInterval(Number(e.target.value))}
                             className="w-16 h-8 text-xs bg-zinc-950/50"
                         />
+                        <ExportButton
+                            data={areaDistributionAnalysis ? Object.entries(areaDistributionAnalysis).map(([k, v]) => ({ key: k, value: JSON.stringify(v) })) : []}
+                            filename="area_distribution_heatmap"
+                            label="匯出熱力數據"
+                            columns={{ key: '坪數區間', value: '分佈數據' }}
+                        />
                     </div>
                 }
             >
@@ -287,12 +308,19 @@ export function SalesVelocityReport({ data }: SalesVelocityReportProps) {
                                     共找到 {aggregatedDetails.length} 個建案，合計 {heatmapModalMeta.totalCount} 筆交易
                                 </p>
                             </div>
-                            <button
-                                onClick={() => setHeatmapModalMeta(null)}
-                                className="text-zinc-400 hover:text-white text-sm bg-zinc-800/50 px-3 py-1 rounded-full hover:bg-zinc-700 transition-colors"
-                            >
-                                ✕ 關閉
-                            </button>
+                            <div className="flex gap-2">
+                                <ExportButton
+                                    data={aggregatedDetails.flatMap(d => d.transactions)}
+                                    filename={`heatmap_details_${heatmapModalMeta.roomType}_${heatmapModalMeta.areaRange}`}
+                                    label="匯出交易明細"
+                                />
+                                <button
+                                    onClick={() => setHeatmapModalMeta(null)}
+                                    className="text-zinc-400 hover:text-white text-sm bg-zinc-800/50 px-3 py-1 rounded-full hover:bg-zinc-700 transition-colors"
+                                >
+                                    ✕ 關閉
+                                </button>
+                            </div>
                         </div>
 
                         {aggregatedDetails.length > 0 ? (

@@ -221,7 +221,7 @@ export function RankingChart({ data, sortKey, limit = 30, chartType = 'auto' }: 
     // Logic: 
     // If dataCount is small (e.g. < 20), use 100% width to fill the container naturally.
     // If dataCount is large, ensure each bar has at least minWidthPerBar (e.g. 40px) to prevent squeezing, enabling scroll.
-    const minWidthPerBar = 40;
+    const minWidthPerBar = 45;
     const calculatedMinTotalWidth = dataCount * minWidthPerBar;
 
     // We use a style that sets width to 100%, but min-width to the calculated value.

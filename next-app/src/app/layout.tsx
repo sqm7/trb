@@ -38,7 +38,7 @@ export const metadata: Metadata = {
     description: "獨家預售屋銷控表與調價熱力圖分析。透過視覺化數據，精準掌握房市趨勢與建案真實價值。",
   },
   icons: {
-    icon: "/icon.jpg",  // Explicitly reference the file in public/
+    icon: "/icon.png",  // Updated to high-res PNG
     shortcut: "/favicon.ico",
     apple: "/apple-icon.png",
   },

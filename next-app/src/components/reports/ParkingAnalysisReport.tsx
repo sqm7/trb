@@ -7,6 +7,7 @@ import { ParkingScatterChart } from "@/components/charts/ParkingScatterChart";
 import { cn } from "@/lib/utils";
 import { Check, Search, Calendar, HelpCircle } from "lucide-react";
 import { Modal } from "@/components/ui/Modal";
+import { ExportButton } from "@/components/ui/ExportButton";
 
 interface FloorData {
     floor: string;
@@ -371,12 +372,87 @@ export function ParkingAnalysisReport({ data }: ParkingAnalysisReportProps) {
         'Unknown': '#71717a', // Zinc-500 for neutral/unknown
     };
 
+    // Refactored Parking Area Chart Data Calculation
+    const { parkingChartData, parkingChartStats, hasParkingData } = useMemo(() => {
+        // 1. Process Data by Project
+        const projectStats = new Map<string, { count: number, totalArea: number, totalPrice: number }>();
+        let hasData = false;
+
+        filteredFloorData.forEach(floorData => {
+            if (floorData.rawRecords) {
+                floorData.rawRecords.forEach((record: any) => {
+                    const projectName = record['建案名稱'];
+                    const area = record.parkingArea || record['車位面積(坪)'] || ((record['車位移轉總面積平方公尺'] || 0) * 0.3025);
+                    const price = (record.parkingPrice || (record['車位價格(萬)'] || 0)); // Wan
+
+                    if (projectName && area > 0) {
+                        if (!projectStats.has(projectName)) {
+                            projectStats.set(projectName, { count: 0, totalArea: 0, totalPrice: 0 });
+                        }
+                        const stats = projectStats.get(projectName)!;
+                        stats.count += 1;
+                        stats.totalArea += area;
+                        stats.totalPrice += price;
+                        hasData = true;
+                    }
+                });
+            }
+        });
+
+        // 2. Prepare Chart Data Points
+        const chartData = Array.from(projectStats.entries()).map(([name, stats]) => ({
+            id: name,
+            label: name,
+            avgArea: parseFloat((stats.totalArea / stats.count).toFixed(2)),
+            count: stats.count,
+            avgPrice: parseFloat((stats.totalPrice / stats.count).toFixed(2))
+        }));
+
+        // 3. Calculate Global Stats
+        let totalCount = 0;
+        let allAvgAreas: number[] = [];
+
+        chartData.forEach(d => {
+            totalCount += d.count;
+            allAvgAreas.push(d.avgArea);
+        });
+
+        allAvgAreas.sort((a, b) => a - b);
+        const globalAvgArea = allAvgAreas.length > 0 ? allAvgAreas.reduce((a, b) => a + b, 0) / allAvgAreas.length : 0;
+        const globalMedianArea = allAvgAreas.length > 0 ? allAvgAreas[Math.floor(allAvgAreas.length / 2)] : 0;
+
+        return {
+            parkingChartData: chartData,
+            parkingChartStats: {
+                count: totalCount,
+                avgArea: globalAvgArea,
+                medianArea: globalMedianArea
+            },
+            hasParkingData: hasData
+        };
+    }, [filteredFloorData]);
+
     return (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 text-white">
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* 1. Parking Ratio */}
-                <ReportWrapper title="房車配比分析" description="建案有購置車位的比例">
+                <ReportWrapper
+                    title="房車配比分析"
+                    description="建案有購置車位的比例"
+                    headerAction={
+                        <ExportButton
+                            data={[
+                                { type: '有車位', ...parkingRatio?.withParking },
+                                { type: '無車位', ...parkingRatio?.withoutParking },
+                                { ratio: parkingRatio?.avgRatio }
+                            ]}
+                            filename="parking_ratio_data"
+                            label="匯出配比"
+                            columns={{ type: '類別', count: '數量', percentage: '百分比', ratio: '比率' }}
+                        />
+                    }
+                >
                     <div className="flex flex-col md:flex-row items-start gap-6">
                         <div className="w-full md:w-1/2">
                             <ParkingRatioChart data={parkingRatio} />
@@ -422,7 +498,18 @@ export function ParkingAnalysisReport({ data }: ParkingAnalysisReportProps) {
                 </ReportWrapper>
 
                 {/* 2. Price By Type */}
-                <ReportWrapper title="車位類型均價" description="各類車位成交行情">
+                <ReportWrapper
+                    title="車位類型均價"
+                    description="各類車位成交行情"
+                    headerAction={
+                        <ExportButton
+                            data={avgPriceByType || []}
+                            filename="parking_price_by_type"
+                            label="匯出均價"
+                            columns={{ type: '車位類型', avgPrice: '平均價格', medianPrice: '中位數', count: '數量' }}
+                        />
+                    }
+                >
                     <table className="w-full text-sm">
                         <thead className="bg-zinc-900/50 text-zinc-500">
                             <tr>
@@ -447,71 +534,39 @@ export function ParkingAnalysisReport({ data }: ParkingAnalysisReportProps) {
             </div>
 
             {/* 3. Ramp Plane Area Stats */}
-            <ReportWrapper title="坡道平面車位坪數散佈分析" description="建案車位數與坪數分佈" className="relative z-20">
-                {(() => {
-                    // 1. Process Data by Project
-                    const projectStats = new Map<string, { count: number, totalArea: number, totalPrice: number }>();
-                    let hasData = false;
-
-                    filteredFloorData.forEach(floorData => {
-                        if (floorData.rawRecords) {
-                            floorData.rawRecords.forEach((record: any) => {
-                                const projectName = record['建案名稱'];
-                                const area = record.parkingArea || record['車位面積(坪)'] || ((record['車位移轉總面積平方公尺'] || 0) * 0.3025);
-                                const price = (record.parkingPrice || (record['車位價格(萬)'] || 0)); // Wan
-
-                                if (projectName && area > 0) {
-                                    if (!projectStats.has(projectName)) {
-                                        projectStats.set(projectName, { count: 0, totalArea: 0, totalPrice: 0 });
-                                    }
-                                    const stats = projectStats.get(projectName)!;
-                                    stats.count += 1;
-                                    stats.totalArea += area;
-                                    stats.totalPrice += price;
-                                    hasData = true;
-                                }
-                            });
-                        }
-                    });
-
-                    // 2. Prepare Chart Data Points
-                    const chartData = Array.from(projectStats.entries()).map(([name, stats]) => ({
-                        id: name,
-                        label: name,
-                        avgArea: parseFloat((stats.totalArea / stats.count).toFixed(2)),
-                        count: stats.count,
-                        avgPrice: parseFloat((stats.totalPrice / stats.count).toFixed(2))
-                    }));
-
-                    // 3. Calculate Global Stats (Restored)
-                    let totalCount = 0;
-                    let allAvgAreas: number[] = [];
-
-                    chartData.forEach(d => {
-                        totalCount += d.count;
-                        allAvgAreas.push(d.avgArea);
-                    });
-
-                    allAvgAreas.sort((a, b) => a - b);
-                    const globalAvgArea = allAvgAreas.length > 0 ? allAvgAreas.reduce((a, b) => a + b, 0) / allAvgAreas.length : 0;
-                    const globalMedianArea = allAvgAreas.length > 0 ? allAvgAreas[Math.floor(allAvgAreas.length / 2)] : 0;
-
-                    return (
-                        <ParkingAreaCharts
-                            chartData={chartData}
-                            hasData={hasData}
-                            summaryStats={{
-                                count: totalCount,
-                                avgArea: globalAvgArea,
-                                medianArea: globalMedianArea
-                            }}
-                        />
-                    );
-                })()}
+            <ReportWrapper
+                title="坡道平面車位坪數散佈分析"
+                description="建案車位數與坪數分佈"
+                className="relative z-20"
+                headerAction={
+                    <ExportButton
+                        data={parkingChartData || []}
+                        filename="parking_area_scatter_data"
+                        label="匯出散佈數據"
+                        columns={{ id: '建案名稱', label: '標籤', avgArea: '平均坪數', count: '車位數', avgPrice: '平均價格' }}
+                    />
+                }
+            >
+                <ParkingAreaCharts
+                    chartData={parkingChartData}
+                    hasData={hasParkingData}
+                    summaryStats={parkingChartStats}
+                />
             </ReportWrapper>
 
             {/* 4. Ramp Plane Floor Analysis - Enhanced */}
-            <ReportWrapper title="坡道平面車位 - 樓層價差分析" description="勾選樓層以動態更新統計數據">
+            <ReportWrapper
+                title="坡道平面車位 - 樓層價差分析"
+                description="勾選樓層以動態更新統計數據"
+                headerAction={
+                    <ExportButton
+                        data={filteredFloorData || []}
+                        filename="parking_floor_analysis"
+                        label="匯出樓層統計"
+                        columns={{ floor: '樓層', count: '數量', avgPrice: '平均價格', medianPrice: '中位數', maxPrice: '最高價', minPrice: '最低價', q3Price: '第三四分位數' }}
+                    />
+                }
+            >
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                     {/* 3D Visual Stack */}
                     <div className="flex flex-col gap-2 items-center justify-center p-8 bg-zinc-900/30 rounded-xl relative">
@@ -595,6 +650,14 @@ export function ParkingAnalysisReport({ data }: ParkingAnalysisReportProps) {
                                 >
                                     未匹配 ({floorDetailData.length - strictMatchCount})
                                 </button>
+                                <div className="ml-auto">
+                                    <ExportButton
+                                        data={floorDetailData
+                                            .filter(r => showAllRampPlane ? !r._isMatch : r._isMatch)}
+                                        filename={`parking_details_${selectedDetailFloor}_${showAllRampPlane ? 'all' : 'match'}`}
+                                        label="匯出明細"
+                                    />
+                                </div>
                             </div>
                         </div>
 

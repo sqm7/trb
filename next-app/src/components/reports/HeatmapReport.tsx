@@ -10,6 +10,7 @@ import { Code, Wand2 } from "lucide-react";
 
 import { generateHeatmapData, calculateSuggestedFloorPremium } from "@/lib/heatmap-utils";
 import { useFilterStore } from "@/store/useFilterStore";
+import { ExportButton } from "@/components/ui/ExportButton";
 
 interface HeatmapReportProps {
     data: {
@@ -127,37 +128,40 @@ export function HeatmapReport({ data }: HeatmapReportProps) {
 
     const { projectNames, byProject } = data.priceGridAnalysis;
 
+    // Centralize filtering logic for efficient reuse
+    const filteredProjectTx = React.useMemo(() => {
+        if (!selectedProject || !data.transactionDetails) return null;
+
+        let projectTx = data.transactionDetails.filter((tx: any) => tx['建案名稱'] === selectedProject);
+
+        // Use store state directly or hook if we want reactivity on filter change
+        // Since we are inside component, let's just use the direct access for simplicity in this memo
+        const { excludeCommercial } = useFilterStore.getState();
+
+        if (excludeCommercial) {
+            projectTx = projectTx.filter((tx: any) => {
+                const mainPurpose = tx['主要用途'] || '';
+                const buildingType = tx['建物型態'] || '';
+                const note = tx['備註'] || '';
+                if (mainPurpose.includes('商業') || buildingType.includes('店') || note.includes('店')) return false;
+                if (mainPurpose.includes('辦公') || buildingType.includes('辦公') || buildingType.includes('事務所')) return false;
+                return true;
+            });
+        }
+        return projectTx;
+    }, [selectedProject, data.transactionDetails]);
+
     // Attempt to get pre-calculated data or generate it on the fly
     const projectData = React.useMemo(() => {
         if (!selectedProject) return null;
 
         // 1. Prefer generating on the fly to support dynamic floorPremium
-        if (data.transactionDetails) {
-            const { excludeCommercial } = useFilterStore.getState(); // Access flattened state directly 
-            // Better to use hook if we want reactivity, but useMemo dep array handles re-runs if we include it.
-            // Let's add hook usage at top level.
-
-            let projectTx = data.transactionDetails.filter((tx: any) => tx['建案名稱'] === selectedProject);
-
-            if (excludeCommercial) {
-                projectTx = projectTx.filter((tx: any) => {
-                    const mainPurpose = tx['主要用途'] || '';
-                    const buildingType = tx['建物型態'] || '';
-                    const note = tx['備註'] || '';
-                    // Simple exclude logic matching backend/spec
-                    if (mainPurpose.includes('商業') || buildingType.includes('店') || note.includes('店')) return false;
-                    if (mainPurpose.includes('辦公') || buildingType.includes('辦公') || buildingType.includes('事務所')) return false;
-                    return true;
-                });
-            }
-
-            if (projectTx.length > 0) {
-                try {
-                    return generateHeatmapData(projectTx, floorPremium, initialWindowDays);
-                } catch (err) {
-                    console.error("Heatmap generation error:", err);
-                    // Fallback to pre-calculated if generation fails
-                }
+        if (filteredProjectTx && filteredProjectTx.length > 0) {
+            try {
+                return generateHeatmapData(filteredProjectTx, floorPremium, initialWindowDays);
+            } catch (err) {
+                console.error("Heatmap generation error:", err);
+                // Fallback will happen below if byProject exists
             }
         }
 
@@ -167,7 +171,7 @@ export function HeatmapReport({ data }: HeatmapReportProps) {
         }
 
         return null;
-    }, [selectedProject, byProject, data.transactionDetails, floorPremium, initialWindowDays]);
+    }, [selectedProject, filteredProjectTx, byProject, floorPremium, initialWindowDays]);
 
     const handleAutoSuggest = () => {
         if (!data.transactionDetails || !selectedProject) return;
@@ -298,7 +302,17 @@ export function HeatmapReport({ data }: HeatmapReportProps) {
             </div>
 
             {/* Heatmap */}
-            <ReportWrapper title="建案銷控表與調價熱力圖" description="可視化建案各戶別的銷售狀況與價格調整幅度">
+            <ReportWrapper
+                title="建案銷控表與調價熱力圖"
+                description="可視化建案各戶別的銷售狀況與價格調整幅度"
+                headerAction={
+                    <ExportButton
+                        data={filteredProjectTx || []}
+                        filename={`heatmap_tx_${selectedProject}`}
+                        label="匯出交易明細"
+                    />
+                }
+            >
                 {projectData ? (
                     <PricingHeatmap data={projectData} floorPremium={floorPremium} />
                 ) : (

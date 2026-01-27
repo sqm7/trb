@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { UnitPriceStatsBlock } from "./UnitPriceStatsBlock";
 import { TypeComparisonTable } from "./TypeComparisonTable";
 import { cn } from "@/lib/utils";
+import { ExportButton } from "@/components/ui/ExportButton";
 
 interface UnitPriceAnalysisReportProps {
     data: {
@@ -103,7 +104,18 @@ export function UnitPriceAnalysisReport({ data, visibleSections = ['stats', 'com
 
             {/* 2. Type Comparison Section */}
             {visibleSections.includes('comparison') && typeComparison && typeComparison.length > 0 && (
-                <ReportWrapper title="建案產品類型單價比較" description="同一建案內不同用途（住宅/店面/事務所）的單價與倍數比較">
+                <ReportWrapper
+                    title="建案產品類型單價比較"
+                    description="同一建案內不同用途（住宅/店面/事務所）的單價與倍數比較"
+                    headerAction={
+                        <ExportButton
+                            data={typeComparison}
+                            filename="type_comparison_data"
+                            label="匯出比較表"
+                            columns={{ projectName: '建案', residentialAvg: '住宅均價', officeAvg: '辦公均價', storeAvg: '店舖均價', officeRatio: '辦公倍數', storeRatio: '店舖倍數' }}
+                        />
+                    }
+                >
                     <TypeComparisonTable data={typeComparison} />
                 </ReportWrapper>
             )}
@@ -112,7 +124,17 @@ export function UnitPriceAnalysisReport({ data, visibleSections = ['stats', 'com
             {visibleSections.includes('chart') && (
                 <div className="space-y-4">
                     {/* Bubble Chart with Integrated Controls */}
-                    <ReportWrapper title="單價分佈泡泡圖" description="分析各單價區間的成交熱度與分佈密集區">
+                    <ReportWrapper
+                        title="單價分佈泡泡圖"
+                        description="分析各單價區間的成交熱度與分佈密集區"
+                        headerAction={
+                            <ExportButton
+                                data={transactionDetails}
+                                filename="bubble_chart_source_data"
+                                label="匯出交易數據"
+                            />
+                        }
+                    >
                         <BubbleChart
                             data={transactionDetails}
                             minPrice={minPrice}

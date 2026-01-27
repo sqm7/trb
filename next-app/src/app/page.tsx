@@ -4,9 +4,22 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import Image from 'next/image';
-import { ArrowRight, Lock, Mail, User, Shield, TrendingUp, Building2, ChevronDown, Search, Zap } from 'lucide-react';
+import { ArrowRight, Lock, Mail, User, Shield, TrendingUp, Building2, ChevronDown, Search, Zap, Play } from 'lucide-react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { getLiffId } from '@/lib/liff-config';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ScannerBackground } from '@/components/animations/ScannerBackground';
+import {
+  AnimatedPriceBars,
+  AnimatedHeatmap,
+  AnimatedVelocity,
+  AnimatedRanking,
+  AnimatedSearch
+} from '@/components/animations/AnimatedFeatureGraphic';
+import { FeaturePromoOverlay } from '@/components/animations/FeaturePromoOverlay';
+import { AlchemyDemoOverlay } from '@/components/animations/AlchemyDemoOverlay';
+import { BrandImageIntro } from '@/components/animations/BrandImageIntro';
+import { AlchemyOfDataWeb } from '@/components/animations/AlchemyOfDataWeb';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -17,8 +30,15 @@ export default function LoginPage() {
   const [mode, setMode] = useState<'login' | 'register' | 'forgot_pass'>('login');
   const [message, setMessage] = useState<{ text: string; type: 'error' | 'success' } | null>(null);
   const [mounted, setMounted] = useState(false);
+  const [showPromo, setShowPromo] = useState(false);
+  const [showIntro, setShowIntro] = useState(false);
 
   useEffect(() => {
+    const hasSeenIntro = sessionStorage.getItem('hasSeenIntro');
+    if (!hasSeenIntro) {
+      setShowIntro(true);
+    }
+
     setMounted(true);
     const checkUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -249,17 +269,29 @@ export default function LoginPage() {
 
   return (
     <AppLayout>
-      <div className="min-h-screen relative overflow-x-hidden overflow-y-auto font-sans selection:bg-cyan-500/30 -m-6 rounded-tl-2xl">
+      <AnimatePresence>
+        {showIntro && (
+          <BrandImageIntro onComplete={() => {
+            setShowIntro(false);
+            sessionStorage.setItem('hasSeenIntro', 'true');
+          }} />
+        )}
+      </AnimatePresence>
+
+      <div className={`min-h-fit relative overflow-x-hidden font-sans selection:bg-cyan-500/30 -m-6 rounded-tl-2xl transition-all duration-1000 ${showIntro ? 'opacity-0 scale-105 filter blur-md' : 'opacity-100 scale-100 filter blur-0'}`}>
         {/* Background & Overlay - Fixed */}
-        <div className="fixed inset-0 z-0">
+        <div className="fixed inset-0 z-0 bg-[#050A15] pointer-events-none">
           <Image
             src="/images/loginbackground.jpg"
             alt="Background"
             fill
-            className="object-cover blur-sm scale-105 opacity-40"
+            className="object-cover blur-sm scale-110 opacity-10"
             priority
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-zinc-950/80 via-zinc-950/90 to-zinc-950 z-10" />
+          <div className="absolute inset-0 z-0">
+            <ScannerBackground />
+          </div>
+          <div className="absolute inset-0 bg-gradient-to-b from-zinc-950/80 via-zinc-950/60 to-zinc-950 z-10" />
         </div>
 
         {/* Moving Border Style */}
@@ -277,20 +309,43 @@ export default function LoginPage() {
         <main className={`relative z-30 w-full min-h-[calc(100vh-4rem)] flex flex-col lg:flex-row items-center justify-center gap-20 p-6 lg:p-12 transition-opacity duration-1000 ${mounted ? 'opacity-100' : 'opacity-0'}`}>
 
           {/* Visual Identity / Headlines */}
-          <div className="flex-1 lg:max-w-xl space-y-8 text-center lg:text-left pt-10 lg:pt-0">
+          <motion.div
+            initial={{ opacity: 0, x: -30 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+            style={{ willChange: 'transform, opacity' }}
+            className="flex-1 lg:max-w-xl space-y-8 text-center lg:text-left pt-10 lg:pt-0"
+          >
             <div className="space-y-4">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-xs font-bold tracking-wider uppercase mb-2 animate-in slide-in-from-left-4 fade-in duration-700 delay-100">
-                <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-500"></span>
-                </span>
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-xs font-bold tracking-wider uppercase mb-2"
+              >
+                <div className="relative h-4 w-4 mr-1 rounded-full overflow-hidden shadow-[0_0_10px_rgba(6,182,212,0.5)]">
+                  <Image
+                    src={`${process.env.NEXT_PUBLIC_BASE_PATH || ''}/icon.png`}
+                    alt="Logo"
+                    fill
+                    className="object-cover"
+                  />
+                </div>
                 sqmtalk.com
-              </div>
+              </motion.div>
               <h1 className="text-5xl lg:text-6xl font-bold tracking-tight text-white drop-shadow-lg leading-[1.1]">
-                <span className="bg-clip-text text-transparent bg-gradient-to-r from-white via-zinc-200 to-zinc-400">平米內參</span>
+                <span className="bg-clip-text text-transparent bg-gradient-to-r from-white via-white to-zinc-400">平米內參</span>
               </h1>
               <p className="text-2xl lg:text-3xl font-light text-zinc-300">
-                數據驅動的<span className="text-cyan-400 font-medium">預售屋市場決策平台</span>
+                數據驅動的<span className="text-cyan-400 font-medium relative">
+                  預售屋市場決策平台
+                  <motion.span
+                    className="absolute -bottom-1 left-0 w-full h-[2px] bg-cyan-500/50"
+                    initial={{ width: 0 }}
+                    animate={{ width: "100%" }}
+                    transition={{ delay: 1, duration: 1 }}
+                  />
+                </span>
               </p>
             </div>
 
@@ -334,7 +389,24 @@ export default function LoginPage() {
                 </div>
               </div>
             </div>
-          </div>
+
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 1.2 }}
+              className="flex justify-center lg:justify-start"
+            >
+              <button
+                onClick={() => setShowPromo(true)}
+                className="group flex items-center gap-3 px-6 py-3 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-cyan-500/50 transition-all text-zinc-300 hover:text-cyan-400"
+              >
+                <div className="p-2 rounded-full bg-cyan-500/20 text-cyan-400 group-hover:bg-cyan-500 group-hover:text-zinc-950 transition-all">
+                  <Play size={18} fill="currentColor" />
+                </div>
+                <span className="font-semibold tracking-wide">觀看產品演示動畫</span>
+              </button>
+            </motion.div>
+          </motion.div>
 
           {/* Glassmorphism Auth Card */}
           <div className="w-full max-w-md animate-in zoom-in-95 fade-in duration-700 delay-200">
@@ -534,13 +606,14 @@ export default function LoginPage() {
                 )}
               </div>
             </div>
-
-            <p className="text-center text-zinc-500 text-xs mt-8">
-              &copy; 2026 平米內參 sqmtalk.com. All rights reserved.
-            </p>
           </div>
-
         </main>
+
+        <AnimatePresence>
+          {showPromo && (
+            <AlchemyDemoOverlay onClose={() => setShowPromo(false)} />
+          )}
+        </AnimatePresence>
 
         {/* Scroll Indicator */}
         <div className={`absolute bottom-8 left-1/2 -translate-x-1/2 z-20 animate-bounce transition-opacity duration-1000 delay-1000 ${mounted ? 'opacity-100' : 'opacity-0'}`}>
@@ -548,7 +621,7 @@ export default function LoginPage() {
         </div>
 
         {/* Feature Introduction Section (Bento Grid) */}
-        <section className="relative z-20 py-16 px-6 lg:px-12 border-t border-white/5 bg-zinc-950/50 backdrop-blur-3xl -mt-12 pt-32">
+        <section className="relative z-20 py-16 px-6 lg:px-12 border-t border-white/5 bg-zinc-950/80 backdrop-blur-xl -mt-12 pt-32">
           {/* Seamless transition gradient */}
           <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-transparent to-zinc-950/50 pointer-events-none" />
 
@@ -577,11 +650,7 @@ export default function LoginPage() {
                 gradient="from-indigo-500/10 via-indigo-500/5 to-transparent"
                 graphic={
                   <div className="absolute right-0 bottom-0 w-2/3 h-full opacity-30 group-hover:opacity-50 transition-opacity">
-                    <div className="flex items-end gap-2 h-full pb-8 pr-8 justify-end">
-                      {[40, 65, 45, 80, 55, 70, 35].map((h, i) => (
-                        <div key={i} className="w-4 bg-indigo-500 rounded-t-sm" style={{ height: `${h}%`, opacity: 0.5 + (i * 0.05) }} />
-                      ))}
-                    </div>
+                    <AnimatedPriceBars />
                   </div>
                 }
               />
@@ -596,11 +665,7 @@ export default function LoginPage() {
                 gradient="from-pink-500/10 via-pink-500/5 to-transparent"
                 graphic={
                   <div className="absolute inset-0 flex items-center justify-center opacity-30 group-hover:opacity-50 transition-opacity">
-                    <div className="grid grid-cols-3 gap-1 rotate-12 scale-110">
-                      {[...Array(12)].map((_, i) => (
-                        <div key={i} className={`w-8 h-8 rounded-sm ${i % 4 === 0 ? 'bg-pink-500/80' : i % 3 === 0 ? 'bg-pink-500/40' : 'bg-pink-500/20'}`} />
-                      ))}
-                    </div>
+                    <AnimatedHeatmap />
                   </div>
                 }
               />
@@ -613,11 +678,7 @@ export default function LoginPage() {
                 description="即時追蹤區域競品銷售速率 (Velocity)，動態調整推案節奏。"
                 color="yellow"
                 gradient="from-yellow-500/10 via-yellow-500/5 to-transparent"
-                graphic={
-                  <div className="absolute right-4 top-4 opacity-30 group-hover:opacity-60 transition-opacity">
-                    <Zap className="w-24 h-24 text-yellow-500 rotate-12" />
-                  </div>
-                }
+                graphic={<AnimatedVelocity />}
               />
 
               {/* Feature 4: Ranking */}
@@ -629,12 +690,8 @@ export default function LoginPage() {
                 color="emerald"
                 gradient="from-emerald-500/10 via-emerald-500/5 to-transparent"
                 graphic={
-                  <div className="absolute right-0 bottom-0 w-1/2 h-1/2 opacity-30 group-hover:opacity-50 transition-opacity pr-4 pb-4">
-                    <div className="space-y-2">
-                      <div className="w-full h-2 bg-emerald-500/50 rounded-full" />
-                      <div className="w-3/4 h-2 bg-emerald-500/30 rounded-full" />
-                      <div className="w-1/2 h-2 bg-emerald-500/20 rounded-full" />
-                    </div>
+                  <div className="absolute right-0 bottom-10 w-full opacity-30 group-hover:opacity-50 transition-opacity">
+                    <AnimatedRanking />
                   </div>
                 }
               />
@@ -668,25 +725,13 @@ export default function LoginPage() {
                 gradient="from-cyan-500/10 via-cyan-500/5 to-transparent"
                 graphic={
                   <div className="absolute right-4 bottom-4 opacity-20 group-hover:opacity-40 transition-opacity">
-                    <Search className="w-20 h-20 text-cyan-500 -scale-x-100" />
+                    <AnimatedSearch />
                   </div>
                 }
               />
             </div>
           </div>
         </section>
-
-        <footer className="relative z-20 py-12 text-center border-t border-white/5 bg-zinc-950">
-          <div className="flex items-center justify-center gap-2 mb-4 opacity-30">
-            {/* Footer dots */}
-          </div>
-          <p className="text-zinc-600 text-sm font-medium">
-            &copy; 2026 平米內參 sqmtalk.com. All rights reserved.
-          </p>
-          <a href="mailto:sqmtalk7@gmail.com" className="block mt-2 text-zinc-700 hover:text-cyan-500 text-xs transition-colors">
-            Contact: sqmtalk7@gmail.com
-          </a>
-        </footer>
       </div>
     </AppLayout>
   );
@@ -719,7 +764,6 @@ function BentoCard({
     emerald: "text-emerald-400",
   };
 
-  // Determine glow color for hover
   const hoverBorder: Record<string, string> = {
     indigo: "group-hover:border-indigo-500/50",
     pink: "group-hover:border-pink-500/50",
@@ -730,9 +774,15 @@ function BentoCard({
   };
 
   return (
-    <div className={`
-            group relative p-6 lg:p-8 rounded-3xl border border-white/5 bg-zinc-900/40 backdrop-blur-md overflow-hidden
-            transition-all duration-500 hover:-translate-y-1 hover:shadow-2xl hover:bg-zinc-900/60
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.5 }}
+      style={{ willChange: 'transform, opacity' }}
+      className={`
+            group relative p-6 lg:p-8 rounded-3xl border border-white/5 bg-zinc-900/60 overflow-hidden
+            transition-all duration-500 hover:-translate-y-1 hover:shadow-2xl hover:bg-zinc-900/80
             flex flex-col justify-between
             ${className} 
             ${hoverBorder[color]}
@@ -742,9 +792,13 @@ function BentoCard({
 
       {/* Abstract Graphic Layer */}
       {graphic && (
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <motion.div
+          className="absolute inset-0 pointer-events-none overflow-hidden"
+          whileHover={{ scale: 1.05 }}
+          transition={{ type: "spring", stiffness: 300 }}
+        >
           {graphic}
-        </div>
+        </motion.div>
       )}
 
       {/* Content */}
@@ -766,6 +820,6 @@ function BentoCard({
 
       {/* Shine Effect */}
       <div className="absolute inset-0 opacity-0 group-hover:opacity-10 pointer-events-none bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:animate-shine" />
-    </div>
+    </motion.div>
   );
 }

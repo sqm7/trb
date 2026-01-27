@@ -9,6 +9,7 @@ import { api } from "@/lib/api";
 import { COUNTY_CODE_MAP, DISTRICT_DATA } from "@/lib/config";
 import { getDateRangeDates } from "@/lib/date-utils";
 import { Modal } from "@/components/ui/Modal";
+import { ExportButton } from "@/components/ui/ExportButton";
 
 interface TransactionRecord {
     編號?: string;
@@ -419,7 +420,17 @@ export function DataListReport({ data: _triggerData, trigger }: DataListReportPr
             </div>
 
             {/* Data Table */}
-            <ReportWrapper title="交易資料明細" description="點擊表頭可排序，點擊「明細」可展開詳細資訊">
+            <ReportWrapper
+                title="交易資料明細"
+                description="點擊表頭可排序，點擊「明細」可展開詳細資訊"
+                headerAction={
+                    <ExportButton
+                        data={processedData}
+                        filename="transaction_list_data"
+                        label="匯出明細表"
+                    />
+                }
+            >
                 <div className="overflow-x-auto">
                     <table className="w-full text-sm text-left">
                         <thead className="bg-zinc-900/80 text-zinc-400 uppercase text-xs font-semibold sticky top-0">
@@ -598,9 +609,17 @@ export function DataListReport({ data: _triggerData, trigger }: DataListReportPr
                 onClose={() => setIsSubTableOpen(false)}
                 className="max-w-5xl"
                 title={
-                    <div className="flex items-center gap-2">
-                        <Table2 className="text-cyan-400" />
-                        <span>{subTableTitle}</span>
+                    <div className="flex items-center justify-between w-full">
+                        <div className="flex items-center gap-2">
+                            <Table2 className="text-cyan-400" />
+                            <span>{subTableTitle}</span>
+                        </div>
+                        <ExportButton
+                            data={subTableData}
+                            filename={`sub_table_${subTableTitle}`}
+                            label="匯出附表"
+                            className="ml-4"
+                        />
                     </div>
                 }
             >

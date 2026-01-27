@@ -2,6 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { cn } from "@/lib/utils";
@@ -22,7 +23,8 @@ import {
     ChevronDown,
     Upload,
     Megaphone,
-    Users
+    Users,
+    Crown
 } from "lucide-react";
 
 export const NAV_ITEMS = [
@@ -31,6 +33,7 @@ export const NAV_ITEMS = [
     { label: "地圖模式", href: "/map", icon: Map },
     { label: "平面圖測量", href: "/tools/floor-plan", icon: Ruler },
     { label: "生成報告", href: "/reports", icon: FileText },
+    { label: "會員方案", href: "/pricing", icon: Crown },
     { label: "開發者日誌", href: "https://medium.com/@sqmtalk7", icon: BookOpen, isExternal: true },
     { label: "Threads", href: "https://www.threads.net/@sqm.talk", icon: AtSign, isExternal: true },
 ];
@@ -99,16 +102,22 @@ export function Sidebar() {
     };
 
     return (
-        <aside className="hidden lg:flex fixed left-0 top-0 z-50 h-screen w-20 flex-col border-r border-white/5 bg-zinc-950 transition-all duration-300 ease-in-out hover:w-64 group shadow-2xl shadow-black/50 overflow-hidden">
+        <aside className="hidden lg:flex fixed left-0 top-0 z-[60] h-screen w-20 flex-col border-r border-white/5 bg-zinc-950 transition-all duration-300 ease-in-out hover:w-64 group shadow-2xl shadow-black/50 overflow-hidden">
             {/* Brand */}
-            <div className="flex h-16 flex-col items-center justify-center px-4 border-b border-white/5 overflow-hidden whitespace-nowrap transition-all duration-300">
-                <div className="flex flex-col group-hover:flex-row items-center justify-center transition-all duration-300 font-bold text-white group-hover:text-xl text-[10px] leading-tight group-hover:leading-normal group-hover:gap-0">
-                    <span className="group-hover:tracking-normal tracking-widest">平米</span>
-                    <span className="group-hover:tracking-normal tracking-widest">內參</span>
+            <div className="flex h-16 items-center justify-center px-4 border-b border-white/5 overflow-hidden whitespace-nowrap transition-all duration-300 gap-1.5">
+                <div className="relative h-8 w-8 flex-shrink-0 rounded-full overflow-hidden">
+                    <Image
+                        src={`${process.env.NEXT_PUBLIC_BASE_PATH || ''}/icon.png`}
+                        alt="Logo"
+                        fill
+                        className="object-cover"
+                        sizes="32px"
+                    />
                 </div>
-                <span className="font-mono text-zinc-500 transition-all duration-300 group-hover:text-xs group-hover:text-zinc-400 opacity-0 group-hover:opacity-100 h-0 group-hover:h-auto -translate-y-2 group-hover:translate-y-0 text-[10px]">
-                    sqmtalk.com
-                </span>
+                <div className="flex flex-col opacity-0 group-hover:opacity-100 transition-all duration-300 w-0 group-hover:w-auto overflow-hidden">
+                    <span className="font-bold text-white text-lg leading-none">平米內參</span>
+                    <span className="font-mono text-[10px] text-zinc-500 leading-none">sqmtalk.com</span>
+                </div>
             </div>
 
             {/* Nav */}

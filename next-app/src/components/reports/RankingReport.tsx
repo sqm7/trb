@@ -7,6 +7,7 @@ import { useFilterStore } from "@/store/useFilterStore";
 import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/select";
 import { ChevronLeft, ChevronRight, ArrowUpDown, ArrowUp, ArrowDown, BarChart3, LayoutGrid, Sparkles } from "lucide-react";
+import { ExportButton } from "@/components/ui/ExportButton";
 
 interface ProjectRankingItem {
     projectName: string;
@@ -204,7 +205,7 @@ export function RankingReport({ data, visibleSections = ['metrics', 'chart', 'ta
                         title="建案分析圖表"
                         description="根據排序指標顯示建案排名"
                         headerAction={
-                            <div className="flex items-center gap-3">
+                            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 w-full sm:w-auto">
                                 {/* Chart Type Toggle */}
                                 <div className="flex bg-zinc-800 p-0.5 rounded-lg border border-white/5">
                                     <button
@@ -239,23 +240,34 @@ export function RankingReport({ data, visibleSections = ['metrics', 'chart', 'ta
                                     </button>
                                 </div>
 
-                                {/* Divider */}
-                                <div className="w-px h-6 bg-white/10" />
+                                {/* Divider (Hidden on small mobile if needed, or keep for visual break) */}
+                                <div className="hidden sm:block w-px h-6 bg-white/10" />
 
-                                {/* Limit Toggle */}
-                                <div className="flex bg-zinc-800 p-0.5 rounded-lg border border-white/5">
-                                    {[10, 30, 50, 100].map(limit => (
-                                        <button
-                                            key={limit}
-                                            onClick={() => setChartLimit(limit)}
-                                            className={`px-3 py-1 text-xs rounded-md transition-all ${chartLimit === limit
-                                                ? 'bg-violet-600 text-white shadow-lg shadow-violet-500/20'
-                                                : 'text-zinc-400 hover:text-white hover:bg-white/5'
-                                                }`}
-                                        >
-                                            Top {limit}
-                                        </button>
-                                    ))}
+                                <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-start">
+                                    {/* Limit Toggle */}
+                                    <div className="flex bg-zinc-800 p-0.5 rounded-lg border border-white/5 overflow-x-auto max-w-[200px] sm:max-w-none scrollbar-hide">
+                                        {[10, 30, 50, 100].map(limit => (
+                                            <button
+                                                key={limit}
+                                                onClick={() => setChartLimit(limit)}
+                                                className={`px-3 py-1 text-xs rounded-md transition-all whitespace-nowrap ${chartLimit === limit
+                                                    ? 'bg-violet-600 text-white shadow-lg shadow-violet-500/20'
+                                                    : 'text-zinc-400 hover:text-white hover:bg-white/5'
+                                                    }`}
+                                            >
+                                                Top {limit}
+                                            </button>
+                                        ))}
+                                    </div>
+
+                                    <div className="hidden sm:block w-px h-6 bg-white/10" />
+
+                                    <ExportButton
+                                        data={sortedData.slice(0, chartLimit)}
+                                        filename="ranking_chart_data"
+                                        label="匯出"
+                                        columns={{ projectName: '建案名稱', county: '縣市', district: '行政區', saleAmountSum: '交易總價', houseAreaSum: '房屋面積', transactionCount: '資料筆數', marketShare: '市場佔比', averagePrice: '平均單價', minPrice: '最低單價', maxPrice: '最高單價', medianPrice: '中位數單價', avgParkingPrice: '車位均價' }}
+                                    />
                                 </div>
                             </div>
                         }
@@ -270,7 +282,18 @@ export function RankingReport({ data, visibleSections = ['metrics', 'chart', 'ta
             {/* 3. Table */}
             {
                 visibleSections.includes('table') && (
-                    <ReportWrapper title="區域建案排行列表" description="點擊表頭可進行排序">
+                    <ReportWrapper
+                        title="區域建案排行列表"
+                        description="點擊表頭可進行排序"
+                        headerAction={
+                            <ExportButton
+                                data={sortedData}
+                                filename="ranking_table_data"
+                                label="匯出完整列表"
+                                columns={{ projectName: '建案名稱', county: '縣市', district: '行政區', saleAmountSum: '交易總價', houseAreaSum: '房屋面積', transactionCount: '資料筆數', marketShare: '市場佔比', averagePrice: '平均單價', minPrice: '最低單價', maxPrice: '最高單價', medianPrice: '中位數單價', avgParkingPrice: '車位均價' }}
+                            />
+                        }
+                    >
                         <div className="overflow-x-auto">
                             <table className="w-full text-sm text-left">
                                 <thead className="bg-zinc-900/80 text-zinc-400 uppercase text-xs font-semibold">

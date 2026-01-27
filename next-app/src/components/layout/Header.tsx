@@ -52,7 +52,7 @@ export function Header() {
     };
 
     return (
-        <header className="sticky top-0 z-40 flex h-16 w-full items-center border-b border-white/5 bg-zinc-950/80 backdrop-blur-md px-6 shadow-sm">
+        <header className="sticky top-0 z-50 flex h-16 w-full items-center border-b border-white/5 bg-zinc-950/80 backdrop-blur-md px-6 shadow-sm">
             <div className="flex items-center gap-4 lg:hidden">
                 <Button variant="ghost" size="icon" className="-ml-2" onClick={() => setIsMenuOpen(!isMenuOpen)}>
                     <Menu className="h-5 w-5" />

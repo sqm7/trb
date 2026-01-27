@@ -8,6 +8,7 @@ import { ProjectListModal } from "@/components/ui/ProjectListModal";
 import { cn } from "@/lib/utils";
 import { Select } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ExportButton } from "@/components/ui/ExportButton";
 
 interface PriceBandItem {
     roomType: string;
@@ -300,6 +301,18 @@ export function PriceBandReport({ data, visibleSections = ['chart', 'table', 'lo
         });
     };
 
+    const crossTableExportData = useMemo(() => {
+        if (!crossTableData) return [];
+        return crossTableData.rows.map(row => {
+            const rowObj: any = { '房型': row.roomType };
+            crossTableData.locations.forEach((loc, idx) => {
+                rowObj[loc] = row.cells[idx];
+            });
+            rowObj['總計'] = row.rowTotal;
+            return rowObj;
+        });
+    }, [crossTableData]);
+
     // Helper to get sub-items for a merged row
     const getSubItems = (roomType: string) => {
         return details.filter(d => d.roomType === roomType).sort((a, b) => {
@@ -309,6 +322,25 @@ export function PriceBandReport({ data, visibleSections = ['chart', 'table', 'lo
             return bathsA - bathsB;
         });
     };
+
+    // Prepare export data based on visual expansion state
+    const exportTableData = useMemo(() => {
+        // If showing details (not merging), tableData is already flat and detailed
+        if (!mergeBathrooms) return tableData;
+
+        // If merging, we need to interleave parent rows with expanded child rows
+        const flatList: PriceBandItem[] = [];
+        tableData.forEach(item => {
+            flatList.push(item); // Add Parent Row
+
+            // If this row is expanded in UI, add its children immediately after
+            if (expandedRoomTypes.has(item.roomType)) {
+                const subItems = getSubItems(item.roomType);
+                flatList.push(...subItems);
+            }
+        });
+        return flatList;
+    }, [tableData, mergeBathrooms, expandedRoomTypes, details]);
 
     return (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -350,7 +382,18 @@ export function PriceBandReport({ data, visibleSections = ['chart', 'table', 'lo
 
             {/* 2. Chart */}
             {visibleSections.includes('chart') && (
-                <ReportWrapper title="各房型總價帶分佈箱型圖" description="顯示各房型總價的中位數與四分位距">
+                <ReportWrapper
+                    title="各房型總價帶分佈箱型圖"
+                    description="顯示各房型總價的中位數與四分位距"
+                    headerAction={
+                        <ExportButton
+                            data={tableData}
+                            filename="price_band_chart_data"
+                            label="匯出"
+                            columns={{ roomType: '房型', bathrooms: '衛浴', minPrice: '最低價', q1Price: 'Q1', medianPrice: '中位數', q3Price: 'Q3', maxPrice: '最高價', avgPrice: '平均價', count: '筆數' }}
+                        />
+                    }
+                >
                     <PriceBandChart data={tableData} />
                 </ReportWrapper>
             )}
@@ -358,7 +401,18 @@ export function PriceBandReport({ data, visibleSections = ['chart', 'table', 'lo
 
             {/* 3. Detailed Table */}
             {visibleSections.includes('table') && (
-                <ReportWrapper title="總價帶詳細數據" description={mergeBathrooms ? "各房型合併統計 (點擊「全部」可展開細節)" : "各房型詳細價格統計"}>
+                <ReportWrapper
+                    title="總價帶詳細數據"
+                    description={mergeBathrooms ? "各房型合併統計 (點擊「全部」可展開細節)" : "各房型詳細價格統計"}
+                    headerAction={
+                        <ExportButton
+                            data={exportTableData}
+                            filename="price_band_detail_data"
+                            label="匯出列表"
+                            columns={{ roomType: '房型', bathrooms: '衛浴', minPrice: '最低價', q1Price: 'Q1', medianPrice: '中位數', q3Price: 'Q3', maxPrice: '最高價', avgPrice: '平均價', count: '筆數' }}
+                        />
+                    }
+                >
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm text-left">
                             <thead className="bg-zinc-900/80 text-zinc-400 uppercase text-xs font-semibold">
@@ -508,7 +562,17 @@ export function PriceBandReport({ data, visibleSections = ['chart', 'table', 'lo
                     )}
 
                     {visibleSections.includes('location-table') && (
-                        <ReportWrapper title="區域房型成交分佈" description="各區域不同房型的成交數量熱力分佈">
+                        <ReportWrapper
+                            title="區域房型成交分佈"
+                            description="各區域不同房型的成交數量熱力分佈"
+                            headerAction={
+                                <ExportButton
+                                    data={crossTableExportData}
+                                    filename="price_band_location_cross_table"
+                                    label="匯出分佈表"
+                                />
+                            }
+                        >
                             <div className="overflow-x-auto">
                                 {crossTableData ? (
                                     <table className="w-full text-sm text-left border-collapse">

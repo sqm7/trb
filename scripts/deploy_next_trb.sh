@@ -2,7 +2,7 @@
 
 # Configuration
 # Test Repository (trb)
-REMOTE_URL="https://sqmtalk7%40gmail.com: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@github.com/sqm7/trb.git"
+REMOTE_URL="https://github.com/sqm7/trb.git"
 APP_DIR="next-app"
 BUILD_DIR="$APP_DIR/out"
 
@@ -18,6 +18,8 @@ echo "========================================"
 # 1. Build Next.js App
 echo "Step 1: Building Next.js application..."
 pushd "$APP_DIR" > /dev/null
+# Set Base Path for Test Environment (GitHub Pages Project Site)
+export NEXT_PUBLIC_BASE_PATH="/trb"
 npm run build
 
 if [ $? -ne 0 ]; then

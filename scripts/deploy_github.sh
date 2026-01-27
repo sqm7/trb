@@ -3,7 +3,7 @@
 # Configuration
 # 使用您的 Personal Access Token 進行驗證
 # 注意：此 Token 具有您儲存庫的寫入權限，請勿隨意分享此腳本檔給他人
-REMOTE_URL="https://sqmtalk7%40gmail.com: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@github.com/sqm7/kthd.git"
+REMOTE_URL="https://github.com/sqm7/trb.git"
 
 # Default commit message
 TIMESTAMP=$(date '+%Y-%m-%d %H:%M:%S')

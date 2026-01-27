@@ -20,3 +20,9 @@
   - 部署正式版: `bash scripts/deploy_next_prod.sh`
   - 部署測試版: `bash scripts/deploy_next_trb.sh`
   - 部署 Edge Functions: `supabase functions deploy <name>`
+
+## Tech Stack Constraints & Pitfalls ⚠️
+- **Tailwind CSS v4 Usage**: 
+  - 本專案使用 **Tailwind CSS v4** (`@tailwindcss/postcss`)，**不存在** `tailwind.config.ts` 或 `tailwind.config.js`。
+  - 當使用 Agent Skills (如 `/react-components`) 或生成代碼時，若遇到讀取 config 的步驟，請**直接忽略**或假設使用標準設定。
+  - 樣式配置請查閱 CSS 變數或全域 CSS 檔案，勿嘗試讀取或創建 config 檔案。

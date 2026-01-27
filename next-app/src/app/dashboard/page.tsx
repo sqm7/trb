@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
+import { motion } from "framer-motion";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { FilterBar } from "@/components/features/FilterBar";
 import { RankingReport } from "@/components/reports/RankingReport";
@@ -82,38 +83,54 @@ export default function DashboardPage() {
                         </div>
 
                         <TabsContent value="ranking" className="focus-visible:outline-none focus-visible:ring-0">
-                            <RankingReport data={analysisData} />
+                            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+                                <RankingReport data={analysisData} />
+                            </motion.div>
                         </TabsContent>
 
                         <TabsContent value="price-band" className="focus-visible:outline-none focus-visible:ring-0">
-                            <PriceBandReport data={{
-                                ...analysisData.priceBandAnalysis,
-                                transactionDetails: analysisData.transactionDetails
-                            }} />
+                            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+                                <PriceBandReport data={{
+                                    ...analysisData.priceBandAnalysis,
+                                    transactionDetails: analysisData.transactionDetails
+                                }} />
+                            </motion.div>
                         </TabsContent>
 
                         <TabsContent value="unit-price" className="focus-visible:outline-none focus-visible:ring-0">
-                            <UnitPriceAnalysisReport data={analysisData} />
+                            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+                                <UnitPriceAnalysisReport data={analysisData} />
+                            </motion.div>
                         </TabsContent>
 
                         <TabsContent value="heatmap" className="focus-visible:outline-none focus-visible:ring-0">
-                            <HeatmapReport data={analysisData} />
+                            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+                                <HeatmapReport data={analysisData} />
+                            </motion.div>
                         </TabsContent>
 
                         <TabsContent value="timeline" className="focus-visible:outline-none focus-visible:ring-0">
-                            <PolicyTimelineReport data={analysisData.transactionDetails} />
+                            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+                                <PolicyTimelineReport data={analysisData.transactionDetails} />
+                            </motion.div>
                         </TabsContent>
 
                         <TabsContent value="velocity" className="focus-visible:outline-none focus-visible:ring-0">
-                            <SalesVelocityReport data={analysisData} />
+                            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+                                <SalesVelocityReport data={analysisData} />
+                            </motion.div>
                         </TabsContent>
 
                         <TabsContent value="parking" className="focus-visible:outline-none focus-visible:ring-0">
-                            <ParkingAnalysisReport data={analysisData} />
+                            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+                                <ParkingAnalysisReport data={analysisData} />
+                            </motion.div>
                         </TabsContent>
 
                         <TabsContent value="data-list" className="focus-visible:outline-none focus-visible:ring-0">
-                            <DataListReport trigger={analysisData} />
+                            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+                                <DataListReport trigger={analysisData} />
+                            </motion.div>
                         </TabsContent>
                     </Tabs>
                 </div>

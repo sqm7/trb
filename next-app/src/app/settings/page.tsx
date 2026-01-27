@@ -39,6 +39,7 @@ export default function SettingsPage() {
     const [activeTheme, setActiveTheme] = useState('cyberpunk');
     const [user, setUser] = useState<any>(null);
     const [loading, setLoading] = useState(true);
+    const [userRole, setUserRole] = useState<string>('user');
 
     // Name Editing State
     const [displayName, setDisplayName] = useState("Vibe Member");
@@ -69,10 +70,10 @@ export default function SettingsPage() {
             setUser(currentUser);
 
             if (currentUser) {
-                // Fetch Profile Data
+                // Fetch Profile Data (including role)
                 const { data: profile } = await supabase
                     .from('profiles')
-                    .select('full_name')
+                    .select('full_name, role')
                     .eq('id', currentUser.id)
                     .single();
 
@@ -84,6 +85,11 @@ export default function SettingsPage() {
                     const metaName = currentUser.user_metadata?.full_name || currentUser.user_metadata?.name || "Vibe Member";
                     setDisplayName(metaName);
                     setOriginalName(metaName);
+                }
+
+                // Set user role
+                if (profile?.role) {
+                    setUserRole(profile.role);
                 }
             }
             setLoading(false);
@@ -518,11 +524,35 @@ export default function SettingsPage() {
                                 <div>
                                     <div className="flex items-center justify-between mb-2">
                                         <span className="text-zinc-400 text-sm font-medium">目前方案</span>
-                                        <span className="bg-cyan-500/20 text-cyan-300 text-xs px-2 py-1 rounded-full border border-cyan-500/30">
-                                            Free Tier
-                                        </span>
+                                        {userRole === 'super_admin' ? (
+                                            <span className="bg-purple-500/20 text-purple-300 text-xs px-2 py-1 rounded-full border border-purple-500/30">
+                                                Super Admin
+                                            </span>
+                                        ) : userRole === 'admin' ? (
+                                            <span className="bg-amber-500/20 text-amber-300 text-xs px-2 py-1 rounded-full border border-amber-500/30">
+                                                Admin
+                                            </span>
+                                        ) : userRole === 'pro_max' ? (
+                                            <span className="bg-gradient-to-r from-purple-500/20 to-amber-500/20 text-amber-300 text-xs px-2 py-1 rounded-full border border-purple-500/30">
+                                                PRO MAX
+                                            </span>
+                                        ) : userRole === 'pro' ? (
+                                            <span className="bg-violet-500/20 text-violet-300 text-xs px-2 py-1 rounded-full border border-violet-500/30">
+                                                PRO
+                                            </span>
+                                        ) : (
+                                            <span className="bg-cyan-500/20 text-cyan-300 text-xs px-2 py-1 rounded-full border border-cyan-500/30">
+                                                Free Tier
+                                            </span>
+                                        )}
                                     </div>
-                                    <h3 className="text-2xl font-bold text-white">標準會員</h3>
+                                    <h3 className="text-2xl font-bold text-white">
+                                        {userRole === 'super_admin' ? '超級管理員' :
+                                            userRole === 'admin' ? '管理員' :
+                                                userRole === 'pro_max' ? 'PRO MAX 會員' :
+                                                    userRole === 'pro' ? 'PRO 會員' :
+                                                        '一般會員'}
+                                    </h3>
 
                                     <div className="mt-4 space-y-2">
                                         <div className="flex justify-between text-sm">

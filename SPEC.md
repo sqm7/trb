@@ -56,3 +56,20 @@ The system allows users to access the platform using multiple identity providers
     - Sets `email_confirm` to true.
     - Syncs email to `public.profiles`.
 4. Frontend refreshes session.
+    
+## 5. Data Export Features
+- **Goal**: Enable users to analyze data in external tools (Google Sheets, Excel).
+- **Format**: CSV (Comma Separated Values) with BOM (\uFEFF) for UTF-8 compatibility in Excel.
+- **Coverage**: All major charts and data tables on the dashboard must offer an export option.
+- **Implementation**:
+    - **Format**: CSV with UTF-8 BOM for Excel compatibility.
+- **Coverage**: All data tables and key charts must include an "Export to CSV" button.
+- **Naming**: Files should be named descriptively (e.g., `sales_velocity_monthly_2024-01-23.csv`).
+- **Headers**: Column headers must be localized to Chinese (e.g., "建案名稱" instead of "projectName").
+- **View State**: Exported data must mirror the current UI view state (WYSIWYG).
+  - If a table row is expanded to show details, the export must include those details inline.
+  - If collapsed, the export should only show the summary row.
+  - If a chart is showing "Top 30", the export should contain the top 30 items.
+- **Permissions**: Feature is restricted to `Pro`, `Pro Max`, `Admin`, and `Super Admin` roles.
+  - Non-pro users will see a locked button or permission denied alert.
+    - **Content**: Visible data points or underlying dataset for the specific view.

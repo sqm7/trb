@@ -11,8 +11,15 @@
 ├── next-app/           # Next.js Application (Active Frontend)
 │   ├── src/
 │   │   ├── app/        # App Router Pages
+│   │   │   - `pricing/`: Membership Pricing & Upgrade Page
 │   │   ├── components/ # React Components
+│   │   │   - `ui/`: Reusable UI elements (Button, Card, Modal, Input, ExportButton, Tooltip).
+│   │   │   - `reports/`: Complex report components (RankingReport, PriceBandReport, etc.) containing business logic and visualization composition.
 │   │   └── ...
+│   ├── remotion/       # Video Generation Components
+│   │   ├── AlchemyOfData.tsx # [New] Abstract Data Visualization Video
+│   │   ├── BrandIntro.tsx    # Brand Introduction Video
+│   │   └── Root.tsx          # Remotion Composition Entry Point
 ├── supabase/           # Supabase Configuration
 │   ├── functions/      # Deno Edge Functions (delete-user, line-auth, etc.)
 │   └── migrations/     # Database Schema

@@ -2,7 +2,7 @@
 
 # Configuration
 # Production Repository (kthd)
-REMOTE_URL="https://sqmtalk7%40gmail.com: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@github.com/sqm7/kthd.git"
+REMOTE_URL="https://github.com/sqm7/kthd.git"
 APP_DIR="next-app"
 BUILD_DIR="$APP_DIR/out"
 

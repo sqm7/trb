@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 import { Calendar, TrendingUp, Gavel, Landmark, Info, ZoomIn, ZoomOut, ChevronDown, ChevronUp } from 'lucide-react';
 
 import { ProjectSearchMultiselect } from "@/components/ui/ProjectSearchMultiselect";
+import { ExportButton } from "@/components/ui/ExportButton";
 
 interface Transaction {
     "交易日": string;
@@ -118,6 +119,17 @@ export default function PolicyTimelineReport({ data }: PolicyTimelineReportProps
             return d >= timelineRange.start && d <= timelineRange.end;
         });
     }, [timelineRange]);
+
+    const exportPolicies = useMemo(() => {
+        return visiblePolicies.slice().reverse().map(p => ({
+            "日期": p.date,
+            "標題": p.title,
+            "類別": p.category === 'finance' ? '金融' : '政策',
+            "影響": p.impact,
+            "變革內容": p.change_content,
+            "影響對象": p.affected_scope
+        }));
+    }, [visiblePolicies]);
 
     const getIcon = (category: string) => {
         switch (category) {
@@ -427,9 +439,16 @@ export default function PolicyTimelineReport({ data }: PolicyTimelineReportProps
                     </div>
                 )}
                 <div className="mt-8 border-t border-zinc-800 pt-6">
-                    <div className="flex items-center gap-2 mb-4">
-                        <TrendingUp className="w-5 h-5 text-purple-400" />
-                        <h3 className="text-lg font-bold text-zinc-200">政策影響比較表</h3>
+                    <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-2">
+                            <TrendingUp className="w-5 h-5 text-purple-400" />
+                            <h3 className="text-lg font-bold text-zinc-200">政策影響比較表</h3>
+                        </div>
+                        <ExportButton
+                            data={exportPolicies}
+                            filename="policy_comparison"
+                            label="匯出政策表"
+                        />
                     </div>
 
                     <div className="rounded-xl border border-white/10 overflow-hidden bg-black/20">

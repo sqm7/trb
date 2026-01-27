@@ -12,6 +12,7 @@ interface Announcement {
     type: 'info' | 'warning' | 'important';
     is_pinned: boolean;
     created_at: string;
+    target_user_id: string | null;
 }
 
 export default function AnnouncementsPage() {
@@ -24,10 +25,22 @@ export default function AnnouncementsPage() {
 
     const fetchAnnouncements = async () => {
         try {
-            const { data, error } = await supabase
+            const { data: { user } } = await supabase.auth.getUser();
+
+            let query = supabase
                 .from('announcements')
                 .select('*')
-                .eq('is_active', true)
+                .eq('is_active', true);
+
+            if (user) {
+                // Determine visibility: Broadcast (null) OR Private (user.id)
+                query = query.or(`target_user_id.is.null,target_user_id.eq.${user.id}`);
+            } else {
+                // Public only
+                query = query.is('target_user_id', null);
+            }
+
+            const { data, error } = await query
                 .order('is_pinned', { ascending: false })
                 .order('created_at', { ascending: false });
 
@@ -109,6 +122,11 @@ export default function AnnouncementsPage() {
                                         </div>
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-center gap-2 mb-2 flex-wrap">
+                                                {announcement.target_user_id && (
+                                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-full">
+                                                        私訊
+                                                    </span>
+                                                )}
                                                 {announcement.is_pinned && (
                                                     <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-full">
                                                         <Pin className="h-3 w-3" />
