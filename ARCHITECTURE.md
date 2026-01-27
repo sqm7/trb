@@ -17,9 +17,9 @@
 │   │   │   - `reports/`: Complex report components (RankingReport, PriceBandReport, etc.) containing business logic and visualization composition.
 │   │   └── ...
 │   ├── remotion/       # Video Generation Components
-│   │   ├── AlchemyOfData.tsx # [New] Abstract Data Visualization Video
-│   │   ├── BrandIntro.tsx    # Brand Introduction Video
-│   │   └── Root.tsx          # Remotion Composition Entry Point
+│   │   ├── AlchemyVideo.tsx  # [New] Promotional Square Video
+│   │   ├── Root.tsx          # Remotion Composition Entry Point
+│   │   └── index.ts          # Remotion Register Root
 ├── supabase/           # Supabase Configuration
 │   ├── functions/      # Deno Edge Functions (delete-user, line-auth, etc.)
 │   └── migrations/     # Database Schema

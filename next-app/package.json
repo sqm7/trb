@@ -6,13 +6,16 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "render:minivideo": "remotion render src/remotion/index.ts AlchemySquare out/square_promo.mp4"
   },
   "dependencies": {
     "@line/liff": "^2.27.3",
     "@radix-ui/react-slot": "^1.2.4",
     "@radix-ui/react-tabs": "^1.1.13",
     "@radix-ui/react-tooltip": "^1.2.8",
+    "@remotion/cli": "^4.0.410",
+    "@remotion/zod-types": "^4.0.410",
     "@supabase/ssr": "^0.8.0",
     "@supabase/supabase-js": "^2.90.1",
     "@tanstack/react-query": "^5.90.17",
@@ -36,6 +39,7 @@
     "react-apexcharts": "^1.9.0",
     "react-dom": "19.2.3",
     "react-leaflet": "^5.0.0",
+    "remotion": "^4.0.410",
     "tailwind-merge": "^3.4.0",
     "tailwindcss-animate": "^1.0.7",
     "zustand": "^5.0.10"
@@ -49,6 +53,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.1.2",
+    "postcss-loader": "^8.2.0",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

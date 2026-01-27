@@ -205,3 +205,11 @@ User is unable to unbind LINE even after binding an email. We suspect a state sy
 - [x] Deploy to Test Environment (TRB).
 
 
+
+### [Current Task] Export Promotional Video
+- [x] Install `remotion` and related dependencies.
+- [x] Create `src/remotion/AlchemyVideo.tsx` (adapted from `AlchemyOfDataWeb.tsx`).
+- [x] Create `src/remotion/Root.tsx`.
+- [x] Create `src/remotion/index.ts`.
+- [x] Add `render:minivideo` script to `package.json`.
+- [x] Run render command and verify `out/square_promo.mp4`.
