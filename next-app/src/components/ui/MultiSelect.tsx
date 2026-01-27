@@ -144,7 +144,7 @@ const MultiSelect = forwardRef<HTMLDivElement, MultiSelectProps>(({
 
             {
                 isOpen && !disabled && (
-                    <div className="absolute z-50 w-full mt-1 bg-zinc-900 border border-zinc-700 rounded-md shadow-xl max-h-60 overflow-y-auto custom-scrollbar animate-in fade-in slide-in-from-top-2 duration-100">
+                    <div className="absolute z-[110] w-full mt-1 bg-zinc-900 border border-zinc-700 rounded-md shadow-xl max-h-60 overflow-y-auto custom-scrollbar animate-in fade-in slide-in-from-top-2 duration-100">
                         {loading ? (
                             <div className="p-2 text-center text-zinc-500 text-sm">Loading...</div>
                         ) : filteredOptions.length === 0 ? (

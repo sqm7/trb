@@ -177,8 +177,8 @@ export function FilterBar({ onAnalyze, isLoading }: FilterBarProps) {
 
     useEffect(() => {
         const handleScroll = () => {
-            // Pill appears when full filter bar scrolled away (approx 350px)
-            if (window.scrollY > 350) {
+            // Pill appears when full filter bar starts to be obscured by header
+            if (window.scrollY > 100) {
                 setIsCompact(true);
             } else {
                 setIsCompact(false);
