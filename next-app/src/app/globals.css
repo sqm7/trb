@@ -155,6 +155,7 @@ body {
   background-color: var(--color-dark-bg);
   color: var(--color-text-primary);
   font-family: 'Inter', 'Noto Sans TC', sans-serif;
+  overflow-x: hidden;
   @apply antialiased selection:bg-violet-500/30 selection:text-violet-200;
 }
 

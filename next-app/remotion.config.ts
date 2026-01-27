@@ -11,7 +11,7 @@ Config.overrideWebpackConfig((currentConfiguration) => {
             ...currentConfiguration.module,
             rules: [
                 ...(currentConfiguration.module?.rules ?? []).filter((rule) => {
-                    if (rule === '...') return false;
+                    if (!rule || rule === '...') return false;
                     // Remove existing css rule to avoid conflict
                     return rule.test?.toString() !== '/\\.css$/i';
                 }),

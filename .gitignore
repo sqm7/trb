@@ -39,3 +39,6 @@ temp_deploy_trb/
 temp_deploy_prod/
 temp_deploy_trb/
 temp_deploy_prod/
+
+# Renders
+next-app/renders/

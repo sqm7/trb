@@ -213,3 +213,9 @@ User is unable to unbind LINE even after binding an email. We suspect a state sy
 - [x] Create `src/remotion/index.ts`.
 - [x] Add `render:minivideo` script to `package.json`.
 - [x] Run render command and verify `out/square_promo.mp4`.
+
+### [Current Task] Fix Double Scrollbar
+- [x] Analyze cause: inner div `overflow-x-hidden` causing vertical scroll context.
+- [x] Fix: Move `overflow-x: hidden` to global `body`.
+- [x] Fix: Remove `overflow-x-hidden` from `page.tsx`.
+- [x] Deploy to Test Environment (TRB).
