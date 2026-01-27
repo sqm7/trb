@@ -223,3 +223,9 @@ User is unable to unbind LINE even after binding an email. We suspect a state sy
     - [x] Fix positioning and z-index conflict with Header (`z-[70]` in `top-3`).
     - [x] Implement "click-to-expand" with auto-scroll to top.
 - [x] **[Ops]** Deploy refinements to Test Environment (TRB).
+
+## [Completed Task] Reports Reliability Fixes
+- [x] **[Fix]** Add `error.tsx` boundary to `/reports`.
+- [x] **[Fix]** Safe navigation for `.toFixed()` in `RankingSlide.tsx` and `UnitPriceSlide.tsx`.
+- [x] **[Fix]** Correct data passing logic in `ReportsPage.tsx` for `RankingSlide` and `SalesVelocitySlide`.
+- [x] **[Ops]** Manually deploy fixes to Test Environment (TRB) bypassing script hang.

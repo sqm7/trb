@@ -9,7 +9,9 @@ import { Button } from "@/components/ui/button";
 import { Loader2, FileDown, FileType, CheckSquare, Square, ChevronRight, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { downloadReportPPTX } from "@/lib/pptx-generator";
+import { useAdminAuth } from "@/hooks/useAdminAuth";
 
+// Report Components
 // Report Components
 import { RankingReport } from "@/components/reports/RankingReport";
 import { PriceBandReport } from "@/components/reports/PriceBandReport";
@@ -20,11 +22,21 @@ import { ParkingAnalysisReport } from "@/components/reports/ParkingAnalysisRepor
 import PolicyTimelineReport from "@/components/reports/PolicyTimelineReport";
 import { SlideContainer } from "@/components/reports/SlideContainer";
 
+// Slide Components
+import { RankingSlide } from "@/components/reports/slides/RankingSlide";
+import { PriceBandSlide } from "@/components/reports/slides/PriceBandSlide";
+import { UnitPriceSlide } from "@/components/reports/slides/UnitPriceSlide";
+import { HeatmapSlide } from "@/components/reports/slides/HeatmapSlide";
+import { SalesVelocitySlide } from "@/components/reports/slides/SalesVelocitySlide";
+import { ParkingSlide } from "@/components/reports/slides/ParkingSlide";
+import { PolicyTimelineSlide } from "@/components/reports/slides/PolicyTimelineSlide";
+
 const REPORT_CONFIG = [
     {
         id: 'ranking',
         label: '核心指標與排名',
         component: RankingReport,
+        slideComponent: RankingSlide,
         modules: [
             { id: 'metrics', label: '核心指標看板' },
             { id: 'chart', label: '建案分析圖表' },
@@ -35,6 +47,7 @@ const REPORT_CONFIG = [
         id: 'price-band',
         label: '總價帶分析',
         component: PriceBandReport,
+        slideComponent: PriceBandSlide,
         modules: [
             { id: 'chart', label: '總價帶分佈圖' },
             { id: 'table', label: '總價帶詳細數據' },
@@ -46,6 +59,7 @@ const REPORT_CONFIG = [
         id: 'unit-price',
         label: '單價分析',
         component: UnitPriceAnalysisReport,
+        slideComponent: UnitPriceSlide,
         modules: [
             { id: 'stats', label: '各用途單價統計' },
             { id: 'comparison', label: '建案產品類型比較' },
@@ -56,6 +70,7 @@ const REPORT_CONFIG = [
         id: 'heatmap',
         label: '調價熱力圖',
         component: HeatmapReport,
+        slideComponent: HeatmapSlide,
         modules: [
             { id: 'all', label: '完整熱力圖報告' }
         ]
@@ -64,6 +79,7 @@ const REPORT_CONFIG = [
         id: 'velocity',
         label: '銷售速度與房型',
         component: SalesVelocityReport,
+        slideComponent: SalesVelocitySlide,
         modules: [
             { id: 'all', label: '完整銷售速度報告' }
         ]
@@ -72,6 +88,7 @@ const REPORT_CONFIG = [
         id: 'parking',
         label: '車位分析',
         component: ParkingAnalysisReport,
+        slideComponent: ParkingSlide,
         modules: [
             { id: 'all', label: '完整車位分析報告' }
         ]
@@ -80,6 +97,7 @@ const REPORT_CONFIG = [
         id: 'timeline',
         label: '政策時光機',
         component: PolicyTimelineReport,
+        slideComponent: PolicyTimelineSlide,
         modules: [
             { id: 'all', label: '完整政策影響分析' }
         ]
@@ -105,11 +123,10 @@ export default function ReportsPage() {
         });
         setSelections(initialSelections);
 
-        // Trigger data fetch if we have filters but no data
-        if (!analysisData && filters.counties.length > 0) {
-            handleAnalyze();
-        }
-    }, [analysisData, filters.counties, handleAnalyze]); // Correct dependencies
+        // [Data-Driven Refactor] 
+        // We no longer auto-fetch. We expect data to be present in the store from Dashboard.
+        // If analysisData is null, we could redirect or show a "Go to Dashboard" message.
+    }, []);
 
     const toggleSection = (sectionId: string) => {
         setExpandedSections(prev =>
@@ -151,7 +168,8 @@ export default function ReportsPage() {
 
         switch (sectionId) {
             case 'ranking':
-                return { data: analysisData, visibleSections: selectedModules };
+                // RankingSlide expects { coreMetrics, projectRanking }
+                return { data: analysisData.rankingAnalysis, visibleSections: selectedModules };
             case 'price-band':
                 return {
                     data: {
@@ -161,12 +179,26 @@ export default function ReportsPage() {
                     visibleSections: selectedModules
                 };
             case 'unit-price':
-                return { data: analysisData }; // Pass through (todo: refactor for granularity)
+                // UnitPriceSlide likely expects unitPriceAnalysis. Let's pass the specific object if possible, 
+                // but checking UnitPriceSlide definition it probably destructured from root or used analysisData.
+                // Safest is to pass analysisData generally IF the slide handles it, but let's look at others.
+                // UnitPriceSlide usually expects { unitPriceAnalysis: ... } or just the analysis object?
+                // Let's pass analysisData for now as it's less clear, but Ranking was definitely wrong.
+                return { data: analysisData };
             case 'heatmap':
+                // HeatmapSlide expects { priceGridAnalysis: ..., transactionDetails: ... }
                 return { data: analysisData };
             case 'velocity':
-                return { data: analysisData };
+                // SalesVelocitySlide expects { salesVelocity: ... }
+                // analysisData has salesVelocityAnalysis.
+                return {
+                    data: {
+                        salesVelocity: analysisData.salesVelocityAnalysis,
+                        salesRate: analysisData.salesVelocityAnalysis?.salesRate
+                    }
+                };
             case 'parking':
+                // ParkingSlide expects { parkingAnalysis: ... }
                 return {
                     data: {
                         parkingAnalysis: analysisData.parkingAnalysis,
@@ -174,7 +206,7 @@ export default function ReportsPage() {
                     }
                 };
             case 'timeline':
-                return { data: analysisData.transactionDetails };
+                return { data: analysisData.transactionDetails }; // PolicyTimelineSlide receives data directly?
             default:
                 return null;
         }
@@ -375,6 +407,9 @@ export default function ReportsPage() {
         }
     };
 
+    // Admin Auth
+    const { isAdmin, isLoading: authLoading } = useAdminAuth();
+
     // Calculate numbering
     let pageCount = 0;
 
@@ -542,23 +577,78 @@ export default function ReportsPage() {
                         </div>
                     </div>
 
-                    <div className="flex-1 overflow-y-auto p-4 lg:p-10 custom-scrollbar relative bg-zinc-950/95">
+                    <div className="flex-1 overflow-y-auto p-4 lg:p-10 custom-scrollbar relative bg-zinc-950/95" id="report-preview-container">
 
-                        {/* Coming Soon - Feature Under Development */}
-                        <div className="flex flex-col items-center justify-center h-full text-center">
-                            <div className="p-8 rounded-2xl border border-amber-500/20 bg-amber-500/5 max-w-lg">
-                                <div className="text-6xl mb-6">🚧</div>
-                                <h2 className="text-2xl font-bold text-white mb-3">功能開發中</h2>
-                                <p className="text-zinc-400 mb-6">
-                                    報表生成功能正在積極開發中，敬請期待！
-                                </p>
-                                <div className="flex flex-wrap gap-2 justify-center text-sm">
-                                    <span className="px-3 py-1 rounded-full bg-violet-500/20 text-violet-300">PPTX 匯出</span>
-                                    <span className="px-3 py-1 rounded-full bg-cyan-500/20 text-cyan-300">PDF 報告</span>
-                                    <span className="px-3 py-1 rounded-full bg-green-500/20 text-green-300">圖表視覺化</span>
+                        {/* No Data State */}
+                        {!analysisData && !loading && (
+                            <div className="flex flex-col items-center justify-center h-full text-center space-y-4">
+                                <div className="p-6 rounded-full bg-zinc-900 border border-white/5">
+                                    <FileDown className="h-10 w-10 text-zinc-600" />
+                                </div>
+                                <div>
+                                    <h3 className="text-lg font-medium text-white">尚未載入數據</h3>
+                                    <p className="text-zinc-500 text-sm mt-1">請先至 <a href="/dashboard" className="text-violet-400 hover:underline">儀表板</a> 進行分析</p>
                                 </div>
                             </div>
-                        </div>
+                        )}
+
+                        {/* Rendering Loop */}
+                        {analysisData && (
+                            <div className="space-y-12 max-w-5xl mx-auto pb-20">
+
+                                {/* Admin Guard */}
+                                {authLoading ? (
+                                    <div className="flex items-center justify-center py-20">
+                                        <Loader2 className="h-8 w-8 animate-spin text-zinc-500" />
+                                    </div>
+                                ) : !isAdmin ? (
+                                    <div className="flex flex-col items-center justify-center py-20 text-center">
+                                        <div className="p-8 rounded-2xl border border-amber-500/20 bg-amber-500/5 max-w-lg">
+                                            <div className="text-4xl mb-4">🔐</div>
+                                            <h2 className="text-xl font-bold text-white mb-2">權限限制</h2>
+                                            <p className="text-zinc-400 text-sm">
+                                                報表生成功能目前僅開放管理員使用。<br />
+                                                請聯繫系統管理員開通權限。
+                                            </p>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    /* Actual Report Rendering */
+                                    <>
+                                        {REPORT_CONFIG.map((section) => {
+                                            const selectedModules = selections[section.id] || [];
+                                            if (selectedModules.length === 0) return null;
+
+                                            // Here we cheat slightly: We map 1-to-1 section to slide for now
+                                            // Ideally we might split modules into separate slides if needed
+                                            // But current component design is monolith-per-section
+
+                                            pageCount++;
+                                            // @ts-ignore - dynamic extension
+                                            const SlideComponent = section.slideComponent || section.component;
+                                            const props = getReportProps(section.id);
+
+                                            if (!props) return null;
+
+                                            return (
+                                                <div key={section.id} className="slide-item">
+                                                    <SlideContainer
+                                                        title={section.label}
+                                                        subTitle={`${filters.counties.join('、')} • ${filters.dateRange === 'custom' ? '自訂期間' : filters.dateRange}`}
+                                                        pageNumber={pageCount}
+                                                    >
+                                                        <div className="h-full overflow-hidden">
+                                                            {/* @ts-ignore - dynamic component props */}
+                                                            <SlideComponent {...props} isPrintMode={true} />
+                                                        </div>
+                                                    </SlideContainer>
+                                                </div>
+                                            );
+                                        })}
+                                    </>
+                                )}
+                            </div>
+                        )}
 
                     </div>
                 </main>

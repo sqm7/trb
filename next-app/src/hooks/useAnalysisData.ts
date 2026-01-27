@@ -10,12 +10,11 @@ export function useAnalysisData() {
     const filters = useFilterStore();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [analysisData, setAnalysisData] = useState<any>(null);
 
     const handleAnalyze = useCallback(async () => {
         setLoading(true);
         setError(null);
-        setAnalysisData(null); // Clear previous data
+        filters.setAnalysisData(null); // Clear global store
 
         try {
             // Map county names to codes
@@ -53,7 +52,7 @@ export function useAnalysisData() {
                 dateEnd: endDate
             };
 
-            console.log("Analyzing with counties:", countyCodes);
+            console.log("[useAnalysisData] Analyzing with counties:", countyCodes);
 
             // Fetch data for all counties in parallel
             const promises = countyCodes.map(countyCode => {
@@ -93,7 +92,8 @@ export function useAnalysisData() {
                 setError(`注意：有 ${failedCount} 個縣市的資料載入失敗，分析結果可能不完整。`);
             }
 
-            setAnalysisData(totalResult);
+            // Persistence
+            filters.setAnalysisData(totalResult);
         } catch (err: any) {
             console.error("Analysis failed:", err);
             setError(err.message || "無法取得分析數據，請稍後再試。");
@@ -102,5 +102,13 @@ export function useAnalysisData() {
         }
     }, [filters]);
 
-    return { loading, error, analysisData, handleAnalyze, setError, setLoading, setAnalysisData };
+    return {
+        loading,
+        error,
+        analysisData: filters.analysisData,
+        handleAnalyze,
+        setError,
+        setLoading,
+        setAnalysisData: filters.setAnalysisData
+    };
 }

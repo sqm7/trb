@@ -39,6 +39,10 @@ interface FilterState {
     setVelocityView: (view: 'monthly' | 'quarterly') => void;
     setVelocityMetric: (metric: 'count' | 'priceSum' | 'areaSum') => void;
 
+    // Data Persistence
+    analysisData: any | null;
+    setAnalysisData: (data: any | null) => void;
+
     resetFilters: () => void;
 }
 
@@ -61,7 +65,9 @@ const DEFAULT_FILTERS = {
     currentAverageType: 'arithmetic' as 'arithmetic' | 'weighted',
     velocityView: 'monthly' as 'monthly' | 'quarterly',
     velocityMetric: 'count' as 'count' | 'priceSum' | 'areaSum',
-    activeTab: 'ranking'
+    activeTab: 'ranking',
+
+    analysisData: null
 };
 
 export const useFilterStore = create<FilterState>((set) => ({
@@ -89,6 +95,8 @@ export const useFilterStore = create<FilterState>((set) => ({
     setVelocityView: (velocityView) => set({ velocityView }),
     setVelocityMetric: (velocityMetric) => set({ velocityMetric }),
     setActiveTab: (activeTab) => set({ activeTab }),
+
+    setAnalysisData: (analysisData) => set({ analysisData }),
 
     resetFilters: () => set(DEFAULT_FILTERS)
 }));
