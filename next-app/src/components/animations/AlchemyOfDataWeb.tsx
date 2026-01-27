@@ -61,66 +61,81 @@ export const AlchemyOfDataWeb = () => {
     );
 };
 
+// Shared layout component for consistent spacing
+const SceneLayout = ({ children, title, subtitle, titleGradientFrom, titleGradientTo }: { children: React.ReactNode, title: string, subtitle: string, titleGradientFrom?: string, titleGradientTo?: string }) => (
+    <motion.div className="flex flex-col items-center justify-center relative w-full h-full"
+        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+    >
+        {/* Visual Area - Fixed Height to prevent text jumping */}
+        <div className="h-[320px] w-full flex items-center justify-center relative">
+            {children}
+        </div>
+
+        {/* Text Area - Consistent Spacing */}
+        <motion.div
+            className="flex flex-col items-center z-20"
+            initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.5 }}
+        >
+            <h3 className={`text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r ${titleGradientFrom || 'from-cyan-400'} ${titleGradientTo || 'to-blue-500'} text-center mb-3 drop-shadow-sm px-4`}>
+                {title}
+            </h3>
+            <p className="text-zinc-400 text-sm md:text-base tracking-[0.2em] uppercase text-center font-medium">
+                {subtitle}
+            </p>
+        </motion.div>
+    </motion.div>
+);
+
 // Scene 1: Data Integration (Map + Database)
 const Scene1DataIntegrity = () => {
     return (
-        <motion.div className="flex flex-col items-center justify-center relative w-full h-full"
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-        >
-            <div className="relative mb-8">
-                {/* Connecting Lines */}
-                <motion.div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 border border-dashed border-cyan-500/30 rounded-full animate-[spin_10s_linear_infinite]" />
-                <motion.div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 border border-zinc-800 rounded-full" />
+        <SceneLayout title="全境實登搜索" subtitle="Cross-Region Data Integration" titleGradientFrom="from-cyan-400" titleGradientTo="to-blue-500">
+            {/* Background Rings */}
+            <motion.div className="absolute w-64 h-64 border border-dashed border-cyan-500/20 rounded-full animate-[spin_20s_linear_infinite]" />
+            <motion.div className="absolute w-80 h-80 border border-zinc-800/60 rounded-full" />
 
-                {/* Central Icon */}
-                <motion.div
-                    initial={{ scale: 0 }} animate={{ scale: 1 }}
-                    transition={{ type: "spring", stiffness: 200, damping: 15 }}
-                    className="w-20 h-20 bg-cyan-500/10 rounded-2xl border border-cyan-500/50 flex items-center justify-center relative z-10 backdrop-blur-sm"
-                >
-                    <Map className="w-10 h-10 text-cyan-400" />
-                </motion.div>
-
-                {/* Floating Data Nodes */}
-                {[...Array(6)].map((_, i) => (
-                    <motion.div
-                        key={i}
-                        className="absolute w-8 h-8 bg-zinc-900 border border-zinc-700 rounded-lg flex items-center justify-center"
-                        style={{ top: '50%', left: '50%' }}
-                        animate={{
-                            x: Math.cos(i * 60 * (Math.PI / 180)) * 100,
-                            y: Math.sin(i * 60 * (Math.PI / 180)) * 100,
-                            opacity: [0, 1]
-                        }}
-                        transition={{ delay: i * 0.1, duration: 0.5 }}
-                    >
-                        <Database className="w-4 h-4 text-zinc-500" />
-                    </motion.div>
-                ))}
-            </div>
-
-            <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.5 }}>
-                <h3 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-blue-500 text-center mb-2">全境實登搜索</h3>
-                <p className="text-zinc-400 text-sm tracking-widest uppercase text-center">Cross-Region Data Integration</p>
+            {/* Central Icon */}
+            <motion.div
+                initial={{ scale: 0 }} animate={{ scale: 1 }}
+                transition={{ type: "spring", stiffness: 200, damping: 15 }}
+                className="w-24 h-24 bg-zinc-900/80 backdrop-blur rounded-3xl border border-cyan-500/50 flex items-center justify-center relative z-20 shadow-[0_0_30px_rgba(6,182,212,0.2)]"
+            >
+                <Map className="w-12 h-12 text-cyan-400" />
             </motion.div>
-        </motion.div>
+
+            {/* Floating Data Nodes - Adjusted radius to not overlap text */}
+            {[...Array(6)].map((_, i) => (
+                <motion.div
+                    key={i}
+                    className="absolute w-10 h-10 bg-zinc-900 border border-zinc-700/50 rounded-xl flex items-center justify-center z-10"
+                    initial={{ scale: 0, opacity: 0 }}
+                    animate={{
+                        x: Math.cos(i * 60 * (Math.PI / 180)) * 140, // Increased radius to 140
+                        y: Math.sin(i * 60 * (Math.PI / 180)) * 140,
+                        scale: 1,
+                        opacity: 1
+                    }}
+                    transition={{ delay: i * 0.1, duration: 0.5, type: "spring" }}
+                >
+                    <Database className="w-5 h-5 text-zinc-500" />
+                </motion.div>
+            ))}
+        </SceneLayout>
     );
 };
 
 // Scene 2: Market Analytics (Charts)
 const Scene2Analytics = () => {
     return (
-        <motion.div className="flex flex-col items-center justify-center relative w-full h-full"
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-        >
-            <div className="flex items-end gap-3 h-40 mb-12">
+        <SceneLayout title="市場趨勢分析" subtitle="Real-time Market Visualization" titleGradientFrom="from-violet-400" titleGradientTo="to-fuchsia-500">
+            <div className="flex items-end gap-3 md:gap-4 h-48 mb-8">
                 {[40, 65, 45, 80, 55, 90, 100].map((h, i) => (
                     <motion.div
                         key={i}
                         initial={{ height: 0 }}
                         animate={{ height: `${h}%` }}
                         transition={{ delay: i * 0.1, type: "spring", stiffness: 100 }}
-                        className="w-6 bg-gradient-to-t from-violet-500/20 to-violet-500 rounded-t-sm relative group"
+                        className="w-6 md:w-8 bg-gradient-to-t from-violet-500/20 to-violet-500 rounded-t-lg relative group shadow-[0_0_15px_rgba(139,92,246,0.3)]"
                     >
                         <motion.div
                             initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1 + i * 0.1 }}
@@ -133,26 +148,19 @@ const Scene2Analytics = () => {
             </div>
 
             <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: 0.2 }}>
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[140%] w-full max-w-[200px]">
-                    <TrendingUp className="w-full h-32 text-violet-500/10 absolute top-0 left-0" />
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <TrendingUp className="w-full h-full max-w-[280px] max-h-[160px] text-violet-500/10 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
                 </div>
             </motion.div>
-
-            <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.5 }}>
-                <h3 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-violet-400 to-fuchsia-500 text-center mb-2">市場趨勢分析</h3>
-                <p className="text-zinc-400 text-sm tracking-widest uppercase text-center">Real-time Market Visualization</p>
-            </motion.div>
-        </motion.div>
+        </SceneLayout>
     );
 };
 
 // Scene 3: Strategic Insight (Target/Radar)
 const Scene3Strategy = () => {
     return (
-        <motion.div className="flex flex-col items-center justify-center relative w-full h-full"
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-        >
-            <div className="relative mb-10 w-64 h-64 flex items-center justify-center">
+        <SceneLayout title="精準定價策略" subtitle="Identify The Sweet Spot" titleGradientFrom="from-amber-400" titleGradientTo="to-orange-500">
+            <div className="relative w-64 h-64 flex items-center justify-center">
                 <motion.div
                     animate={{ rotate: 360 }} transition={{ duration: 20, ease: "linear", repeat: Infinity }}
                     className="absolute inset-0 border border-amber-500/20 rounded-full border-dashed"
@@ -167,7 +175,7 @@ const Scene3Strategy = () => {
                 <motion.div
                     initial={{ scale: 2, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
                     transition={{ type: "spring", stiffness: 100 }}
-                    className="relative z-10 w-24 h-24 bg-amber-500/10 rounded-full border border-amber-500 flex items-center justify-center shadow-[0_0_30px_rgba(245,158,11,0.3)]"
+                    className="relative z-10 w-24 h-24 bg-amber-500/10 rounded-full border border-amber-500 flex items-center justify-center shadow-[0_0_30px_rgba(245,158,11,0.3)] backdrop-blur-sm"
                 >
                     <Target className="w-12 h-12 text-amber-500" />
                 </motion.div>
@@ -175,17 +183,12 @@ const Scene3Strategy = () => {
                 {/* Lock Tags */}
                 <motion.div
                     initial={{ x: 50, opacity: 0 }} animate={{ x: 30, opacity: 1 }} transition={{ delay: 0.8 }}
-                    className="absolute right-0 top-1/3 bg-zinc-900 border border-amber-500/50 px-2 py-1 rounded text-[10px] text-amber-500"
+                    className="absolute right-0 top-1/3 bg-zinc-900 border border-amber-500/50 px-3 py-1.5 rounded-md text-xs text-amber-500 font-mono shadow-lg"
                 >
                     TARGET LOCKED
                 </motion.div>
             </div>
-
-            <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.5 }}>
-                <h3 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-amber-400 to-orange-500 text-center mb-2">精準定價策略</h3>
-                <p className="text-zinc-400 text-sm tracking-widest uppercase text-center">Identify The Sweet Spot</p>
-            </motion.div>
-        </motion.div>
+        </SceneLayout>
     );
 };
 
