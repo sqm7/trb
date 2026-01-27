@@ -1,284 +1,226 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Database, Map, BarChart3, TrendingUp, Target, Crosshair, Building2 } from 'lucide-react';
 
 const COLORS = {
-    bg: '#050A15',      // Midnight Blue
-    cyan: '#06b6d4',    // Neon Cyan (Data)
-    gold: '#f59e0b',    // Amber Gold (Value)
+    bg: '#050A15',
+    cyan: '#06b6d4',
+    violet: '#8b5cf6',
+    gold: '#f59e0b',
     white: '#ffffff',
-    grid: 'rgba(30, 41, 59, 0.4)', // Slate 800-ish
 };
 
+// Scene Configuration
+const SCENES = [
+    { id: 1, duration: 3500, title: "全境實登搜索", subtitle: "Data Integration", icon: Database },
+    { id: 2, duration: 3500, title: "市場趨勢分析", subtitle: "Visualized Analytics", icon: TrendingUp },
+    { id: 3, duration: 3500, title: "精準定價策略", subtitle: "Strategic Pricing", icon: Target },
+    { id: 4, duration: 4000, title: "平米內參", subtitle: "SQMTALK.COM", icon: Building2 }, // Brand
+];
+
 export const AlchemyOfDataWeb = () => {
-    const [scene, setScene] = useState(1);
+    const [sceneIndex, setSceneIndex] = useState(0);
 
     useEffect(() => {
-        let timer: NodeJS.Timeout;
-
-        // Scene duration logic
-        const duration = 3000; // 3 seconds per scene
-
-        switch (scene) {
-            case 1:
-                timer = setTimeout(() => setScene(2), duration);
-                break;
-            case 2:
-                timer = setTimeout(() => setScene(3), duration);
-                break;
-            case 3:
-                timer = setTimeout(() => setScene(4), duration);
-                break;
-            case 4:
-                timer = setTimeout(() => setScene(5), duration);
-                break;
-            case 5:
-                timer = setTimeout(() => setScene(1), duration);
-                break;
-        }
-
+        const currentDuration = SCENES[sceneIndex].duration;
+        const timer = setTimeout(() => {
+            setSceneIndex((prev) => (prev + 1) % SCENES.length);
+        }, currentDuration);
         return () => clearTimeout(timer);
-    }, [scene]);
+    }, [sceneIndex]);
 
     return (
-        <div className="absolute inset-0 z-10 flex items-center justify-center overflow-hidden pointer-events-none">
-            <AnimatePresence>
-                {scene === 1 && <Scene1Dust key="s1" />}
-                {scene === 2 && <Scene2Lattice key="s2" />}
-                {scene === 3 && <Scene3Crown key="s3" />}
-                {scene === 4 && <Scene4Ripples key="s4" />}
-                {scene === 5 && <Scene5Diamond key="s5" />}
+        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center overflow-hidden bg-zinc-950 text-white select-none">
+            {/* Background Grid */}
+            <div className="absolute inset-0 bg-[linear-gradient(rgba(6,182,212,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(6,182,212,0.05)_1px,transparent_1px)] bg-[size:40px_40px] opacity-20" />
+
+            <AnimatePresence mode='wait'>
+                {sceneIndex === 0 && <Scene1DataIntegrity key="s1" />}
+                {sceneIndex === 1 && <Scene2Analytics key="s2" />}
+                {sceneIndex === 2 && <Scene3Strategy key="s3" />}
+                {sceneIndex === 3 && <Scene4Branding key="s4" />}
             </AnimatePresence>
 
-            {/* Global Ambient Glow */}
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(6,182,212,0.05)_0%,transparent_70%)] pointer-events-none" />
+            {/* Progress Indicators */}
+            <div className="absolute bottom-8 flex gap-2 z-20">
+                {SCENES.map((_, i) => (
+                    <motion.div
+                        key={i}
+                        className={`h-1 rounded-full ${i === sceneIndex ? 'bg-cyan-400' : 'bg-zinc-800'}`}
+                        animate={{
+                            width: i === sceneIndex ? 32 : 8,
+                            opacity: i === sceneIndex ? 1 : 0.3
+                        }}
+                        transition={{ duration: 0.3 }}
+                    />
+                ))}
+            </div>
         </div>
     );
 };
 
-// Scene 1: Dust in the Fog (0-4s)
-const Scene1Dust = () => {
-    const particles = useMemo(() =>
-        new Array(120).fill(0).map((_, i) => ({
-            id: i,
-            x: Math.random() * 100,
-            y: Math.random() * 100,
-            size: Math.random() * 4 + 1,
-            delay: Math.random() * 2,
-        })), []);
-
+// Scene 1: Data Integration (Map + Database)
+const Scene1DataIntegrity = () => {
     return (
-        <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 1.5 }}
-            className="absolute inset-0"
+        <motion.div className="flex flex-col items-center justify-center relative w-full h-full"
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
         >
-            {particles.map(p => (
+            <div className="relative mb-8">
+                {/* Connecting Lines */}
+                <motion.div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 border border-dashed border-cyan-500/30 rounded-full animate-[spin_10s_linear_infinite]" />
+                <motion.div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 border border-zinc-800 rounded-full" />
+
+                {/* Central Icon */}
                 <motion.div
-                    key={p.id}
-                    className="absolute rounded-full"
-                    style={{
-                        left: `${p.x}%`,
-                        top: `${p.y}%`,
-                        width: p.size,
-                        height: p.size,
-                        backgroundColor: p.id % 8 === 0 ? COLORS.cyan : COLORS.white,
-                        boxShadow: p.id % 8 === 0 ? `0 0 12px ${COLORS.cyan}` : '0 0 8px rgba(255,255,255,0.3)',
-                    }}
-                    animate={{
-                        x: [0, (Math.random() - 0.5) * 150],
-                        y: [0, (Math.random() - 0.5) * 150],
-                        opacity: [0, 0.8, 0],
-                        scale: [0, 1.2, 0],
-                    }}
-                    transition={{
-                        duration: 6,
-                        repeat: Infinity,
-                        delay: p.delay,
-                        ease: "easeInOut"
-                    }}
-                />
-            ))}
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_20%,#050A15_90%)] opacity-40" />
-        </motion.div>
-    );
-};
+                    initial={{ scale: 0 }} animate={{ scale: 1 }}
+                    transition={{ type: "spring", stiffness: 200, damping: 15 }}
+                    className="w-20 h-20 bg-cyan-500/10 rounded-2xl border border-cyan-500/50 flex items-center justify-center relative z-10 backdrop-blur-sm"
+                >
+                    <Map className="w-10 h-10 text-cyan-400" />
+                </motion.div>
 
-// Scene 2: Etchings of Law (4-8s)
-const Scene2Lattice = () => {
-    return (
-        <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0, scale: 1.1 }}
-            transition={{ duration: 1.5 }}
-            className="absolute inset-0 flex items-center justify-center"
-        >
-            {/* Rotating Halo */}
-            <motion.div
-                initial={{ scale: 3, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ duration: 2, ease: [0.22, 1, 0.36, 1] }}
-                className="relative z-10"
-            >
-                <svg width="400" height="400" className="animate-spin-slow">
-                    <circle cx="200" cy="200" r="180" fill="none" stroke={COLORS.cyan} strokeWidth="1" strokeDasharray="4 8" className="opacity-40" />
-                    <circle cx="200" cy="200" r="150" fill="none" stroke={COLORS.white} strokeWidth="0.5" className="opacity-20" />
-                </svg>
-            </motion.div>
-
-            {/* Grid Formation */}
-            <div className="absolute inset-0 grid grid-cols-12 grid-rows-6 opacity-30">
-                {new Array(72).fill(0).map((_, i) => (
+                {/* Floating Data Nodes */}
+                {[...Array(6)].map((_, i) => (
                     <motion.div
                         key={i}
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: i * 0.01 + 1 }}
-                        className="border-[0.5px] border-slate-800 flex items-center justify-center"
+                        className="absolute w-8 h-8 bg-zinc-900 border border-zinc-700 rounded-lg flex items-center justify-center"
+                        style={{ top: '50%', left: '50%' }}
+                        animate={{
+                            x: Math.cos(i * 60 * (Math.PI / 180)) * 100,
+                            y: Math.sin(i * 60 * (Math.PI / 180)) * 100,
+                            opacity: [0, 1]
+                        }}
+                        transition={{ delay: i * 0.1, duration: 0.5 }}
                     >
-                        <motion.div
-                            initial={{ scale: 0 }}
-                            animate={{ scale: 1 }}
-                            transition={{ delay: i * 0.01 + 2 }}
-                            className="w-[2px] h-[2px] bg-cyan-400 rounded-full"
-                        />
+                        <Database className="w-4 h-4 text-zinc-500" />
                     </motion.div>
                 ))}
             </div>
+
+            <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.5 }}>
+                <h3 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-blue-500 text-center mb-2">全境實登搜索</h3>
+                <p className="text-zinc-400 text-sm tracking-widest uppercase text-center">Cross-Region Data Integration</p>
+            </motion.div>
         </motion.div>
     );
 };
 
-// Scene 3: Ascension of the Crown (8-12s)
-const Scene3Crown = () => {
-    const bars = 15;
+// Scene 2: Market Analytics (Charts)
+const Scene2Analytics = () => {
     return (
-        <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 1 }}
-            className="flex items-end gap-3 h-[400px]"
+        <motion.div className="flex flex-col items-center justify-center relative w-full h-full"
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
         >
-            {new Array(bars).fill(0).map((_, i) => {
-                const dist = Math.abs(i - Math.floor(bars / 2));
-                const height = 300 - (dist * 35);
-                return (
-                    <div key={i} className="flex flex-col items-center gap-2">
+            <div className="flex items-end gap-3 h-40 mb-12">
+                {[40, 65, 45, 80, 55, 90, 100].map((h, i) => (
+                    <motion.div
+                        key={i}
+                        initial={{ height: 0 }}
+                        animate={{ height: `${h}%` }}
+                        transition={{ delay: i * 0.1, type: "spring", stiffness: 100 }}
+                        className="w-6 bg-gradient-to-t from-violet-500/20 to-violet-500 rounded-t-sm relative group"
+                    >
                         <motion.div
-                            initial={{ height: 0 }}
-                            animate={{ height: height }}
-                            transition={{
-                                type: "spring",
-                                stiffness: 60,
-                                damping: 15,
-                                delay: i * 0.1
-                            }}
-                            className="w-4 rounded-t-full bg-gradient-to-t from-cyan-500/0 via-cyan-500/50 to-cyan-400 relative"
-                            style={{ boxShadow: '0 -10px 20px -5px rgba(6, 182, 212, 0.4)' }}
+                            initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1 + i * 0.1 }}
+                            className="absolute -top-6 left-1/2 -translate-x-1/2 text-[10px] text-violet-300 font-mono"
                         >
-                            <motion.div
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                transition={{ delay: i * 0.1 + 0.5 }}
-                                className="absolute -top-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-white rounded-full shadow-[0_0_10px_#fff]"
-                            />
+                            {h}
                         </motion.div>
-                    </div>
-                );
-            })}
+                    </motion.div>
+                ))}
+            </div>
+
+            <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: 0.2 }}>
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[140%] w-full max-w-[200px]">
+                    <TrendingUp className="w-full h-32 text-violet-500/10 absolute top-0 left-0" />
+                </div>
+            </motion.div>
+
+            <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.5 }}>
+                <h3 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-violet-400 to-fuchsia-500 text-center mb-2">市場趨勢分析</h3>
+                <p className="text-zinc-400 text-sm tracking-widest uppercase text-center">Real-time Market Visualization</p>
+            </motion.div>
         </motion.div>
     );
 };
 
-// Scene 4: Pulsating Heat (12-16s)
-const Scene4Ripples = () => {
+// Scene 3: Strategic Insight (Target/Radar)
+const Scene3Strategy = () => {
     return (
-        <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="absolute inset-0 flex items-center justify-center"
+        <motion.div className="flex flex-col items-center justify-center relative w-full h-full"
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
         >
-            {/* Amber Ripples */}
-            {new Array(4).fill(0).map((_, i) => (
+            <div className="relative mb-10 w-64 h-64 flex items-center justify-center">
                 <motion.div
-                    key={i}
-                    initial={{ scale: 0, opacity: 0.8 }}
-                    animate={{ scale: 4, opacity: 0 }}
-                    transition={{
-                        duration: 3,
-                        repeat: Infinity,
-                        delay: i * 0.8,
-                        ease: "easeOut"
-                    }}
-                    className="absolute w-64 h-64 border border-amber-500/40 rounded-full"
-                    style={{ boxShadow: 'inset 0 0 30px rgba(245, 158, 11, 0.1)' }}
+                    animate={{ rotate: 360 }} transition={{ duration: 20, ease: "linear", repeat: Infinity }}
+                    className="absolute inset-0 border border-amber-500/20 rounded-full border-dashed"
                 />
-            ))}
+                <motion.div
+                    animate={{ scale: [1, 1.1, 1] }} transition={{ duration: 2, repeat: Infinity }}
+                    className="absolute inset-8 border border-amber-500/40 rounded-full"
+                />
 
-            {/* Core */}
-            <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: [1, 1.2, 1] }}
-                transition={{ duration: 2, repeat: Infinity }}
-                className="w-16 h-16 bg-amber-500 rounded-full shadow-[0_0_60px_rgba(245,158,11,0.8)] z-10"
-            />
+                <Crosshair className="absolute w-full h-full text-amber-500/10 p-4" />
+
+                <motion.div
+                    initial={{ scale: 2, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
+                    transition={{ type: "spring", stiffness: 100 }}
+                    className="relative z-10 w-24 h-24 bg-amber-500/10 rounded-full border border-amber-500 flex items-center justify-center shadow-[0_0_30px_rgba(245,158,11,0.3)]"
+                >
+                    <Target className="w-12 h-12 text-amber-500" />
+                </motion.div>
+
+                {/* Lock Tags */}
+                <motion.div
+                    initial={{ x: 50, opacity: 0 }} animate={{ x: 30, opacity: 1 }} transition={{ delay: 0.8 }}
+                    className="absolute right-0 top-1/3 bg-zinc-900 border border-amber-500/50 px-2 py-1 rounded text-[10px] text-amber-500"
+                >
+                    TARGET LOCKED
+                </motion.div>
+            </div>
+
+            <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.5 }}>
+                <h3 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-amber-400 to-orange-500 text-center mb-2">精準定價策略</h3>
+                <p className="text-zinc-400 text-sm tracking-widest uppercase text-center">Identify The Sweet Spot</p>
+            </motion.div>
         </motion.div>
     );
 };
 
-// Scene 5: Wisdom (16-20s)
-const Scene5Diamond = () => {
+// Scene 4: Branding (New Logo)
+const Scene4Branding = () => {
     return (
-        <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="absolute inset-0 flex flex-col items-center justify-center p-20"
+        <motion.div className="flex flex-col items-center justify-center relative w-full h-full bg-zinc-950"
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }}
         >
-            {/* Diamond Core */}
             <motion.div
-                initial={{ scale: 0, rotate: -45 }}
-                animate={{ scale: 1, rotate: 45 }}
-                transition={{ type: "spring", stiffness: 100, damping: 10 }}
-                className="w-24 h-24 bg-white shadow-[0_0_80px_rgba(6,182,212,0.6)] relative z-20"
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ duration: 0.8, ease: "easeOut" }}
+                className="relative mb-6"
             >
-                {/* Internal Glow */}
-                <div className="absolute inset-2 bg-cyan-50 opacity-40 blur-sm" />
+                <div className="absolute inset-0 bg-cyan-500 blur-3xl opacity-20 animate-pulse" />
+                <img src={`${process.env.NEXT_PUBLIC_BASE_PATH || ''}/icon.png`} alt="Logo" className="w-32 h-32 relative z-10 rounded-2xl shadow-2xl" />
             </motion.div>
 
-            {/* Arcing Beam */}
-            <svg className="absolute inset-0 w-full h-full pointer-events-none overflow-visible">
-                <motion.path
-                    initial={{ pathLength: 0, opacity: 0 }}
-                    animate={{ pathLength: 1, opacity: 1 }}
-                    transition={{ duration: 2, delay: 0.5, ease: "easeInOut" }}
-                    d="M 50% 50% Q 70% 30% 120% 20%"
-                    fill="none"
-                    stroke="url(#beamGrad)"
-                    strokeWidth="3"
-                    className="filter drop-shadow-[0_0_15px_rgba(6,182,212,0.8)]"
-                />
-                <defs>
-                    <linearGradient id="beamGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                        <stop offset="0%" stopColor="#fff" />
-                        <stop offset="100%" stopColor={COLORS.cyan} stopOpacity="0" />
-                    </linearGradient>
-                </defs>
-            </svg>
+            <motion.div
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.5 }}
+                className="text-center"
+            >
+                <h1 className="text-4xl md:text-5xl font-bold text-white mb-2 tracking-tight">平米內參</h1>
+                <p className="text-zinc-500 font-mono tracking-[0.4em] text-sm md:text-base">SQMTALK.COM</p>
+            </motion.div>
 
             <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 1.5 }}
-                className="mt-32 text-cyan-400 font-mono tracking-[0.6em] text-lg uppercase font-bold"
-            >
-                SQMTALK.COM
-            </motion.div>
+                initial={{ width: 0 }}
+                animate={{ width: 100 }}
+                transition={{ delay: 1, duration: 1 }}
+                className="h-[1px] bg-gradient-to-r from-transparent via-cyan-500 to-transparent mt-8"
+            />
         </motion.div>
     );
 };
