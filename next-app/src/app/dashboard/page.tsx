@@ -67,7 +67,7 @@ export default function DashboardPage() {
             {!loading && analysisData && (
                 <div className="space-y-8 pb-20">
                     {/* Reports Tabs */}
-                    <Tabs defaultValue="ranking" className="w-full">
+                    <Tabs value={filters.activeTab} onValueChange={filters.setActiveTab} className="w-full">
                         <div className="overflow-x-auto pb-2 scrollbar-hide">
                             <TabsList className="bg-zinc-900/50 border border-white/5 p-1 mb-6 inline-flex min-w-max">
                                 <TabsTrigger value="ranking">核心指標與排名</TabsTrigger>

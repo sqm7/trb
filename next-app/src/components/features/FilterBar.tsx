@@ -17,6 +17,17 @@ interface FilterBarProps {
     isLoading?: boolean;
 }
 
+const REPORT_TABS = [
+    { value: 'ranking', label: '核心指標與排名' },
+    { value: 'price-band', label: '總價帶分析' },
+    { value: 'unit-price', label: '單價分析' },
+    { value: 'heatmap', label: '調價熱力圖' },
+    { value: 'timeline', label: '政策時光機' },
+    { value: 'velocity', label: '銷售速度與房型' },
+    { value: 'parking', label: '車位分析' },
+    { value: 'data-list', label: '交易明細列表' },
+];
+
 export function FilterBar({ onAnalyze, isLoading }: FilterBarProps) {
     // Store
     const {
@@ -29,6 +40,7 @@ export function FilterBar({ onAnalyze, isLoading }: FilterBarProps) {
         startDate,
         endDate,
         excludeCommercial,
+        activeTab,
         setCounties,
         setDistricts,
         setTransactionType,
@@ -37,6 +49,7 @@ export function FilterBar({ onAnalyze, isLoading }: FilterBarProps) {
         setDateRange,
         setCustomDate,
         setExcludeCommercial,
+        setActiveTab,
         resetFilters
     } = useFilterStore();
 
@@ -221,24 +234,46 @@ export function FilterBar({ onAnalyze, isLoading }: FilterBarProps) {
                         animate={{ opacity: 1, y: 0, x: "-50%", scale: 1 }}
                         exit={{ opacity: 0, y: -20, x: "-50%", scale: 0.95 }}
                         transition={{ duration: 0.2, ease: "easeOut" }}
-                        className="fixed top-3 left-1/2 z-[70] p-1.5 glass-card rounded-full shadow-xl flex items-center justify-between gap-3 cursor-pointer hover:bg-zinc-900/90 transition-all mx-auto max-w-lg backdrop-blur-2xl border border-white/20 origin-top"
-                        onClick={() => {
-                            setIsCompact(false);
-                            window.scrollTo({ top: 0, behavior: 'smooth' });
-                        }}
+                        className="fixed top-3 left-1/2 z-[70] p-1 glass-card rounded-full shadow-2xl flex items-center justify-between gap-1 transition-all mx-auto max-w-7xl backdrop-blur-2xl border border-white/20 origin-top"
                     >
-                        <div className="flex items-center gap-2 px-1">
+                        {/* Summary & Scroll Top */}
+                        <div
+                            className="flex items-center gap-2 px-3 py-1 hover:bg-white/5 rounded-full transition-colors cursor-pointer shrink-0"
+                            onClick={() => {
+                                setIsCompact(false);
+                                window.scrollTo({ top: 0, behavior: 'smooth' });
+                            }}
+                        >
                             <div className="h-6 w-6 rounded-full bg-violet-500/20 text-violet-400 flex items-center justify-center shrink-0">
                                 <Filter className="h-3 w-3" />
                             </div>
                             <div className="flex flex-col leading-tight overflow-hidden">
                                 <span className="text-[9px] text-zinc-500 font-bold uppercase tracking-tighter">篩選摘要</span>
-                                <span className="text-xs text-zinc-100 font-semibold truncate max-w-[200px]">{getSummaryText()}</span>
+                                <span className="text-xs text-zinc-100 font-semibold truncate max-w-[150px]">{getSummaryText()}</span>
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-2 pl-2 border-l border-white/5">
-                            <span className="text-[10px] text-cyan-400/80 font-medium whitespace-nowrap pr-1">展開</span>
+                        {/* Integrated Tabs */}
+                        <div className="flex items-center gap-1 px-2 border-l border-white/10 overflow-x-auto scrollbar-hide max-w-full lg:max-w-none">
+                            {REPORT_TABS.map((tab) => (
+                                <button
+                                    key={tab.value}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        setActiveTab(tab.value);
+                                    }}
+                                    className={`px-3 py-1.5 rounded-full text-[11px] font-bold transition-all whitespace-nowrap ${activeTab === tab.value
+                                            ? 'bg-violet-500 text-white shadow-inner scale-105'
+                                            : 'text-zinc-400 hover:text-zinc-200 hover:bg-white/5'
+                                        }`}
+                                >
+                                    {tab.label}
+                                </button>
+                            ))}
+                        </div>
+
+                        <div className="pr-2 pl-1 hidden sm:block">
+                            <div className="h-1.5 w-1.5 rounded-full bg-cyan-500/50 animate-pulse" title="操作中" />
                         </div>
                     </motion.div>
                 ) : (

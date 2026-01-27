@@ -11,6 +11,7 @@ interface FilterState {
     endDate: string;
     excludeCommercial: boolean;
     floorPremium: number;
+    activeTab: string;
 
     setCounties: (counties: string[]) => void;
     setDistricts: (districts: string[]) => void;
@@ -21,6 +22,7 @@ interface FilterState {
     setCustomDate: (start: string, end: string) => void;
     setExcludeCommercial: (exclude: boolean) => void;
     setFloorPremium: (value: number) => void;
+    setActiveTab: (tab: string) => void;
 
     // UI / Report State
     rankingCurrentPage: number;
@@ -58,7 +60,8 @@ const DEFAULT_FILTERS = {
     currentSort: { key: 'saleAmountSum', order: 'desc' } as { key: string; order: 'asc' | 'desc' },
     currentAverageType: 'arithmetic' as 'arithmetic' | 'weighted',
     velocityView: 'monthly' as 'monthly' | 'quarterly',
-    velocityMetric: 'count' as 'count' | 'priceSum' | 'areaSum'
+    velocityMetric: 'count' as 'count' | 'priceSum' | 'areaSum',
+    activeTab: 'ranking'
 };
 
 export const useFilterStore = create<FilterState>((set) => ({
@@ -85,6 +88,7 @@ export const useFilterStore = create<FilterState>((set) => ({
     setCurrentAverageType: (currentAverageType) => set({ currentAverageType }),
     setVelocityView: (velocityView) => set({ velocityView }),
     setVelocityMetric: (velocityMetric) => set({ velocityMetric }),
+    setActiveTab: (activeTab) => set({ activeTab }),
 
     resetFilters: () => set(DEFAULT_FILTERS)
 }));
