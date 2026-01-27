@@ -39,7 +39,7 @@ export default function DashboardPage() {
 
     return (
         <AppLayout>
-            <section className="mb-6 sticky top-20 z-[100]">
+            <section className="mb-6">
                 <FilterBar onAnalyze={handleAnalyze} isLoading={loading} />
             </section>
 
