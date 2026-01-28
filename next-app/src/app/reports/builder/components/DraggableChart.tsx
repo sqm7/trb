@@ -88,8 +88,44 @@ export function DraggableChart({ item, isSelected, onSelect, onUpdate, onRemove,
                 );
             }
             case 'sales-heatmap-detail': {
-                const details = item.data || [];
-                if (!Array.isArray(details) || details.length === 0) return <div className="p-4 text-zinc-500 text-xs text-center">無詳細數據 (請從「房型面積熱力圖」點擊區塊後匯出)</div>;
+                // Fallback: Generate aggregation from all transactions if no specific snapshot
+                const details = React.useMemo(() => {
+                    if (item.data && Array.isArray(item.data) && item.data.length > 0) return item.data;
+
+                    if (!analysisData.transactionDetails) return [];
+
+                    // Simple aggregation logic matching SalesVelocityReport
+                    const grouped: Record<string, any[]> = {};
+                    analysisData.transactionDetails.forEach((tx: any) => {
+                        const pname = tx['建案名稱'] || tx.projectName || '未知';
+                        if (!grouped[pname]) grouped[pname] = [];
+                        grouped[pname].push(tx);
+                    });
+
+                    return Object.entries(grouped).map(([projectName, txs]) => {
+                        const totalPrices = txs.map((t: any) => t['產權總價'] || t['交易總價(萬)'] || t.totalPrice || 0).filter(p => p > 0).sort((a, b) => a - b);
+                        const unitPrices = txs.map((t: any) => t['房屋單價'] || t['房屋單價(萬)'] || t.unitPrice || 0).filter(p => p > 0);
+
+                        let medianPrice = 0;
+                        if (totalPrices.length > 0) {
+                            const mid = Math.floor(totalPrices.length / 2);
+                            medianPrice = totalPrices.length % 2 !== 0 ? totalPrices[mid] : (totalPrices[mid - 1] + totalPrices[mid]) / 2;
+                        }
+
+                        return {
+                            projectName,
+                            count: txs.length,
+                            priceRange: { median: medianPrice },
+                            unitPriceRange: {
+                                min: unitPrices.length ? Math.min(...unitPrices) : 0,
+                                max: unitPrices.length ? Math.max(...unitPrices) : 0
+                            }
+                        };
+                    }).sort((a, b) => b.unitPriceRange.max - a.unitPriceRange.max);
+                }, [item.data, analysisData.transactionDetails]);
+
+                if (details.length === 0) return <div className="p-4 text-zinc-500 text-xs text-center">無數據</div>;
+
                 return (
                     <div className="h-full overflow-auto custom-scrollbar p-1">
                         <table className="w-full text-xs border-collapse">
@@ -121,7 +157,11 @@ export function DraggableChart({ item, isSelected, onSelect, onUpdate, onRemove,
             }
             case 'heatmap':
             case 'heatmap-grid': {
-                const heatmapData = item.data?.projectData || analysisData.priceGridAnalysis?.byProject[Object.keys(analysisData.priceGridAnalysis?.byProject || {})[0]];
+                const heatmapData = item.data?.projectData || (
+                    analysisData.priceGridAnalysis?.byProject
+                        ? analysisData.priceGridAnalysis.byProject[Object.keys(analysisData.priceGridAnalysis.byProject)[0]]
+                        : null
+                );
                 const premium = item.data?.floorPremium || 0.3;
                 return (
                     <div className="h-full overflow-auto custom-scrollbar p-1">
@@ -129,17 +169,24 @@ export function DraggableChart({ item, isSelected, onSelect, onUpdate, onRemove,
                             <PricingHeatmap
                                 data={heatmapData}
                                 floorPremium={premium}
+                                showGrid={true}
                                 showSummary={false}
                                 showComparison={false}
                             />
                         ) : (
-                            <div className="text-zinc-500 text-sm p-4 text-center">無熱力圖數據</div>
+                            <div className="text-zinc-500 text-sm p-4 text-center">無熱力圖數據 (請先載入建案資料)</div>
                         )}
                     </div>
                 );
             }
             case 'heatmap-stats': {
-                const heatmapData = item.data?.summary ? { summary: item.data.summary } : analysisData.priceGridAnalysis?.byProject[Object.keys(analysisData.priceGridAnalysis?.byProject || {})[0]];
+                const heatmapData = item.data?.summary
+                    ? { summary: item.data.summary }
+                    : (
+                        analysisData.priceGridAnalysis?.byProject
+                            ? analysisData.priceGridAnalysis.byProject[Object.keys(analysisData.priceGridAnalysis.byProject)[0]]
+                            : null
+                    );
                 return (
                     <div className="h-full overflow-auto custom-scrollbar p-1">
                         {heatmapData?.summary ? (
@@ -156,7 +203,13 @@ export function DraggableChart({ item, isSelected, onSelect, onUpdate, onRemove,
                 );
             }
             case 'heatmap-comparison': {
-                const heatmapData = item.data?.horizontalComparison ? { horizontalComparison: item.data.horizontalComparison } : analysisData.priceGridAnalysis?.byProject[Object.keys(analysisData.priceGridAnalysis?.byProject || {})[0]];
+                const heatmapData = item.data?.horizontalComparison
+                    ? { horizontalComparison: item.data.horizontalComparison }
+                    : (
+                        analysisData.priceGridAnalysis?.byProject
+                            ? analysisData.priceGridAnalysis.byProject[Object.keys(analysisData.priceGridAnalysis.byProject)[0]]
+                            : null
+                    );
                 return (
                     <div className="h-full overflow-auto custom-scrollbar p-1">
                         {heatmapData?.horizontalComparison ? (
