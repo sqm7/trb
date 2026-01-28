@@ -110,6 +110,11 @@ interface ReportBuilderState {
     // Canvas Actions
     setCanvasRatio: (ratio: '16:9' | 'A4' | '1:1' | '9:16' | '4:5') => void;
 
+    // Dragging State (Global)
+    isDragging: boolean;
+    draggedItemCount: number;
+    setDragging: (isDragging: boolean, count?: number) => void;
+
     // Legacy compatibility - get current page's items
     get items(): CanvasItem[];
 }
@@ -127,6 +132,10 @@ export const useReportBuilderStore = create<ReportBuilderState>()(
             currentPageIndex: 0,
             canvasRatio: '16:9',
             selectedIds: [],
+
+            isDragging: false,
+            draggedItemCount: 0,
+            setDragging: (isDragging, count = 0) => set({ isDragging, draggedItemCount: count }),
 
             // Getter for current page items (for backward compatibility)
             get items() {

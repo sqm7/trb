@@ -9,4 +9,4 @@
 
 ## [Current Task] Documentation & Finalization
 - [x] Update `PLAN.md` with completed tasks.
-- [ ] Deploy to Test Environment.
+- [x] Deploy to Test Environment.

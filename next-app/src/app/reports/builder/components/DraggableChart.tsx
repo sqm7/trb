@@ -66,6 +66,7 @@ export function DraggableChart({ item, isSelected, onSelect, onUpdate, onRemove,
     const batchUpdateItems = useReportBuilderStore(state => state.batchUpdateItems);
     const pages = useReportBuilderStore(state => state.pages);
     const currentPageIndex = useReportBuilderStore(state => state.currentPageIndex);
+    const setDragging = useReportBuilderStore(state => state.setDragging);
     const allItems = pages[currentPageIndex]?.items || []; // Current page items - fix for batch drag
 
     // Track initial positions for group dragging
@@ -739,6 +740,7 @@ export function DraggableChart({ item, isSelected, onSelect, onUpdate, onRemove,
                 hasDragged.current = false; // Reset drag flag
                 if (isSelected) {
                     isDraggingGroup.current = true;
+                    setDragging(true, selectedIds.length);
                     // Record start positions of all selected items
                     const positions: Record<string, { x: number, y: number }> = {};
                     selectedIds.forEach(id => {
@@ -751,6 +753,7 @@ export function DraggableChart({ item, isSelected, onSelect, onUpdate, onRemove,
                     console.log("Group drag start:", positions);
                 } else {
                     isDraggingGroup.current = false;
+                    setDragging(true, 1);
                 }
             }}
             onDrag={(e, d) => {
@@ -822,6 +825,7 @@ export function DraggableChart({ item, isSelected, onSelect, onUpdate, onRemove,
 
                 isDraggingGroup.current = false;
                 dragStartPositions.current = {};
+                setDragging(false);
             }}
             onResizeStop={(e, direction, ref, delta, position) => {
                 onUpdate({
