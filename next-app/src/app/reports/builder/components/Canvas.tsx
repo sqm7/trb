@@ -10,7 +10,7 @@ interface CanvasProps {
     children: React.ReactNode;
     items: CanvasItem[];
     onClickBackground?: () => void;
-    onMarqueeSelect?: (ids: string[]) => void;
+    onMarqueeSelect?: (ids: string[], isAdditive: boolean) => void;
 }
 
 interface MarqueeState {
@@ -18,6 +18,7 @@ interface MarqueeState {
     startY: number;
     endX: number;
     endY: number;
+    isShiftPressed: boolean;
 }
 
 function getIntersectingItems(marquee: MarqueeState, items: CanvasItem[]): string[] {
@@ -71,7 +72,7 @@ export function Canvas({ width, height, children, items, onClickBackground, onMa
         const y = (e.clientY - rect.top) / scale;
 
         setIsMarqueeActive(true);
-        setMarquee({ startX: x, startY: y, endX: x, endY: y });
+        setMarquee({ startX: x, startY: y, endX: x, endY: y, isShiftPressed: e.shiftKey });
     }, [scale]);
 
     const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
@@ -81,10 +82,10 @@ export function Canvas({ width, height, children, items, onClickBackground, onMa
         const x = Math.max(0, Math.min(width, (e.clientX - rect.left) / scale));
         const y = Math.max(0, Math.min(height, (e.clientY - rect.top) / scale));
 
-        setMarquee(prev => prev ? { ...prev, endX: x, endY: y } : null);
+        setMarquee(prev => prev ? { ...prev, endX: x, endY: y, isShiftPressed: e.shiftKey } : null);
     }, [isMarqueeActive, marquee, scale, width, height]);
 
-    const handleMouseUp = useCallback(() => {
+    const handleMouseUp = useCallback((e: React.MouseEvent) => {
         if (isMarqueeActive && marquee) {
             const selectedIds = getIntersectingItems(marquee, items);
             // If no items selected and just clicked (very small marquee), treat as background click
@@ -93,7 +94,7 @@ export function Canvas({ width, height, children, items, onClickBackground, onMa
             if (marqueeWidth < 5 && marqueeHeight < 5) {
                 onClickBackground?.();
             } else if (selectedIds.length > 0) {
-                onMarqueeSelect?.(selectedIds);
+                onMarqueeSelect?.(selectedIds, e.shiftKey || marquee.isShiftPressed);
             } else {
                 onClickBackground?.();
             }

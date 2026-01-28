@@ -45,6 +45,7 @@ export default function ReportBuilderPage() {
     const setCanvasRatio = useReportBuilderStore(state => state.setCanvasRatio);
     const setSelectedIds = useReportBuilderStore(state => state.setSelectedIds);
     const toggleSelection = useReportBuilderStore(state => state.toggleSelection);
+    const addToSelection = useReportBuilderStore(state => state.addToSelection);
     const clearSelection = useReportBuilderStore(state => state.clearSelection);
     const removeSelectedItems = useReportBuilderStore(state => state.removeSelectedItems);
     const moveSelectedItemsToPage = useReportBuilderStore(state => state.moveSelectedItemsToPage);
@@ -187,6 +188,26 @@ export default function ReportBuilderPage() {
         printWindow.document.close();
     }, [canvasRatio]);
 
+    // Export to Image (PNG/JPG)
+    const handleExportImage = useCallback(async (format: 'png' | 'jpg') => {
+        const canvasElement = document.querySelector('.report-canvas-content') as HTMLElement;
+        if (!canvasElement) return;
+
+        // Import html2canvas dynamically to avoid SSR issues if any
+        const html2canvas = (await import('html2canvas')).default;
+
+        const canvas = await html2canvas(canvasElement, {
+            useCORS: true,
+            scale: 2, // Higher quality
+            backgroundColor: '#09090b',
+        });
+
+        const link = document.createElement('a');
+        link.download = `SQM-Report-${new Date().getTime()}.${format}`;
+        link.href = canvas.toDataURL(`image/${format === 'png' ? 'png' : 'jpeg'}`, 0.9);
+        link.click();
+    }, []);
+
     // Clear canvas
     const handleClearCanvas = useCallback(() => {
         if (confirm("確定要清空當前頁面的所有元件嗎？")) {
@@ -197,7 +218,13 @@ export default function ReportBuilderPage() {
     // Canvas dimensions based on ratio
     const canvasDimensions = canvasRatio === '16:9'
         ? { width: 960, height: 540 }
-        : { width: 842, height: 595 }; // A4 Landscape at 72dpi
+        : canvasRatio === 'A4'
+            ? { width: 842, height: 595 }
+            : canvasRatio === '1:1'
+                ? { width: 900, height: 900 }
+                : canvasRatio === '9:16'
+                    ? { width: 540, height: 960 }
+                    : { width: 720, height: 900 }; // 4:5
 
     return (
         <AppLayout>
@@ -251,15 +278,72 @@ export default function ReportBuilderPage() {
                                     A4
                                 </Button>
                             </div>
+                            <div className="flex gap-2">
+                                <Button
+                                    size="sm"
+                                    variant={canvasRatio === '1:1' ? 'default' : 'outline'}
+                                    onClick={() => setCanvasRatio('1:1')}
+                                    className={cn(
+                                        "flex-1 text-xs px-1",
+                                        canvasRatio === '1:1' ? 'bg-violet-600' : 'border-zinc-700'
+                                    )}
+                                >
+                                    1:1 (方)
+                                </Button>
+                                <Button
+                                    size="sm"
+                                    variant={canvasRatio === '9:16' ? 'default' : 'outline'}
+                                    onClick={() => setCanvasRatio('9:16')}
+                                    className={cn(
+                                        "flex-1 text-xs px-1",
+                                        canvasRatio === '9:16' ? 'bg-violet-600' : 'border-zinc-700'
+                                    )}
+                                >
+                                    9:16 (限動)
+                                </Button>
+                                <Button
+                                    size="sm"
+                                    variant={canvasRatio === '4:5' ? 'default' : 'outline'}
+                                    onClick={() => setCanvasRatio('4:5')}
+                                    className={cn(
+                                        "flex-1 text-xs px-1",
+                                        canvasRatio === '4:5' ? 'bg-violet-600' : 'border-zinc-700'
+                                    )}
+                                >
+                                    4:5 (貼文)
+                                </Button>
+                            </div>
 
-                            <Button
-                                className="w-full bg-emerald-600 hover:bg-emerald-700 h-10"
-                                disabled={items.length === 0}
-                                onClick={handleExport}
-                            >
-                                <FileDown className="h-4 w-4 mr-2" />
-                                匯出報表
-                            </Button>
+                            <div className="space-y-2">
+                                <Button
+                                    className="w-full bg-emerald-600 hover:bg-emerald-700 h-10"
+                                    disabled={items.length === 0}
+                                    onClick={handleExport}
+                                >
+                                    <FileDown className="h-4 w-4 mr-2" />
+                                    匯出 PDF
+                                </Button>
+                                <div className="flex gap-2">
+                                    <Button
+                                        size="sm"
+                                        variant="outline"
+                                        className="flex-1 border-emerald-900/50 text-emerald-400 hover:bg-emerald-500/10 h-8 text-[10px]"
+                                        disabled={items.length === 0}
+                                        onClick={() => handleExportImage('png')}
+                                    >
+                                        PNG 圖片
+                                    </Button>
+                                    <Button
+                                        size="sm"
+                                        variant="outline"
+                                        className="flex-1 border-emerald-900/50 text-emerald-400 hover:bg-emerald-500/10 h-8 text-[10px]"
+                                        disabled={items.length === 0}
+                                        onClick={() => handleExportImage('jpg')}
+                                    >
+                                        JPG 圖片
+                                    </Button>
+                                </div>
+                            </div>
 
                             <Button
                                 variant="outline"
@@ -363,7 +447,13 @@ export default function ReportBuilderPage() {
                                     height={canvasDimensions.height}
                                     items={items}
                                     onClickBackground={() => clearSelection()}
-                                    onMarqueeSelect={(ids) => setSelectedIds(ids)}
+                                    onMarqueeSelect={(ids, isAdditive) => {
+                                        if (isAdditive) {
+                                            ids.forEach(id => addToSelection(id));
+                                        } else {
+                                            setSelectedIds(ids);
+                                        }
+                                    }}
                                 >
                                     {items.map(item => (
                                         <DraggableChart

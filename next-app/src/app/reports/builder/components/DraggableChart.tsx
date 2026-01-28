@@ -12,6 +12,7 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useReportBuilderStore } from "@/store/useReportBuilderStore";
 
 // Chart Components (we'll render these dynamically)
 import { RankingChart } from "@/components/charts/RankingChart";
@@ -61,6 +62,14 @@ const CHART_LABELS: Record<ChartType, string> = {
 };
 
 export function DraggableChart({ item, isSelected, onSelect, onUpdate, onRemove, onMoveToPage, analysisData }: DraggableChartProps) {
+    const selectedIds = useReportBuilderStore(state => state.selectedIds);
+    const batchUpdateItems = useReportBuilderStore(state => state.batchUpdateItems);
+    const allItems = useReportBuilderStore(state => state.items); // Current page items
+
+    // Track initial positions for group dragging
+    const dragStartPositions = React.useRef<Record<string, { x: number, y: number }>>({});
+    const isDraggingGroup = React.useRef(false);
+
     // Render the appropriate chart based on type
     const renderChart = () => {
         if (!analysisData) {
@@ -723,11 +732,44 @@ export function DraggableChart({ item, isSelected, onSelect, onUpdate, onRemove,
         <Rnd
             size={{ width: item.width, height: item.height }}
             position={{ x: item.x, y: item.y }}
+            onDragStart={(e) => {
+                if (isSelected) {
+                    isDraggingGroup.current = true;
+                    // Record start positions of all selected items
+                    const positions: Record<string, { x: number, y: number }> = {};
+                    selectedIds.forEach(id => {
+                        const it = allItems.find(p => p.id === id);
+                        if (it) {
+                            positions[id] = { x: it.x, y: it.y };
+                        }
+                    });
+                    dragStartPositions.current = positions;
+                } else {
+                    isDraggingGroup.current = false;
+                }
+            }}
+            onDrag={(e, d) => {
+                if (isDraggingGroup.current && selectedIds.length > 1) {
+                    const deltaX = d.x - (dragStartPositions.current[item.id]?.x || item.x);
+                    const deltaY = d.y - (dragStartPositions.current[item.id]?.y || item.y);
+
+                    const updates: Record<string, Partial<CanvasItem>> = {};
+                    selectedIds.forEach(id => {
+                        if (id !== item.id && dragStartPositions.current[id]) {
+                            updates[id] = {
+                                x: dragStartPositions.current[id].x + deltaX,
+                                y: dragStartPositions.current[id].y + deltaY
+                            };
+                        }
+                    });
+
+                    if (Object.keys(updates).length > 0) {
+                        batchUpdateItems(updates);
+                    }
+                }
+            }}
             onDragStop={(e, d) => {
                 // Check if dropped on a page tab
-                // We use document.elementsFromPoint because the mouse event might be on the handler,
-                // and we need to check what's underneath at that screen coordinate.
-                // Using generic MouseEvent or TouchEvent from react-rnd
                 const clientX = (e as MouseEvent).clientX || (e as TouchEvent).changedTouches?.[0]?.clientX;
                 const clientY = (e as MouseEvent).clientY || (e as TouchEvent).changedTouches?.[0]?.clientY;
 
@@ -737,14 +779,41 @@ export function DraggableChart({ item, isSelected, onSelect, onUpdate, onRemove,
 
                     if (dropTarget) {
                         const pageIndex = parseInt(dropTarget.getAttribute('data-page-index') || '-1', 10);
-                        if (pageIndex >= 0 && onMoveToPage) {
-                            onMoveToPage(pageIndex);
+                        if (pageIndex >= 0) {
+                            if (isSelected) {
+                                // Use store action for batch move
+                                useReportBuilderStore.getState().moveSelectedItemsToPage(pageIndex);
+                            } else if (onMoveToPage) {
+                                onMoveToPage(pageIndex);
+                            }
+                            isDraggingGroup.current = false;
+                            dragStartPositions.current = {};
                             return;
                         }
                     }
                 }
 
-                onUpdate({ x: d.x, y: d.y });
+                if (isDraggingGroup.current && selectedIds.length > 1) {
+                    const deltaX = d.x - (dragStartPositions.current[item.id]?.x || item.x);
+                    const deltaY = d.y - (dragStartPositions.current[item.id]?.y || item.y);
+
+                    const updates: Record<string, Partial<CanvasItem>> = {};
+                    selectedIds.forEach(id => {
+                        const startPos = dragStartPositions.current[id];
+                        if (startPos) {
+                            updates[id] = {
+                                x: id === item.id ? d.x : startPos.x + deltaX,
+                                y: id === item.id ? d.y : startPos.y + deltaY
+                            };
+                        }
+                    });
+                    batchUpdateItems(updates);
+                } else {
+                    onUpdate({ x: d.x, y: d.y });
+                }
+
+                isDraggingGroup.current = false;
+                dragStartPositions.current = {};
             }}
             onResizeStop={(e, direction, ref, delta, position) => {
                 onUpdate({

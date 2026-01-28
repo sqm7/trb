@@ -25,3 +25,8 @@
 - [x] Removed legacy Report Generator (`src/app/reports/page.tsx` replaced with redirect).
 - [x] Deleted unused slide components (`HeatmapSlide`, `ParkingSlide`, etc.).
 - [x] Deleted legacy PDF/PPTX templates and generators.
+
+## [Current Task] Marquee Selection
+- [x] Implement multi-selection state in `useReportBuilderStore`.
+- [x] Implement selection box drawing in `Canvas.tsx`.
+- [x] Support Ctrl/Cmd+Click and batch actions in `ReportBuilderPage`.

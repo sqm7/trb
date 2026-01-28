@@ -81,7 +81,7 @@ interface ReportBuilderState {
     pages: ReportPage[];
     currentPageIndex: number;
 
-    canvasRatio: '16:9' | 'A4';
+    canvasRatio: '16:9' | 'A4' | '1:1' | '9:16' | '4:5';
     selectedIds: string[];
 
     // Page Actions
@@ -97,6 +97,7 @@ interface ReportBuilderState {
     removeItem: (id: string) => void;
     moveItemToPage: (itemId: string, targetPageIndex: number) => void;
     clearCanvas: () => void;
+    batchUpdateItems: (updates: Record<string, Partial<CanvasItem>>) => void;
 
     // Multi-selection Actions
     setSelectedIds: (ids: string[]) => void;
@@ -107,7 +108,7 @@ interface ReportBuilderState {
     moveSelectedItemsToPage: (targetPageIndex: number) => void;
 
     // Canvas Actions
-    setCanvasRatio: (ratio: '16:9' | 'A4') => void;
+    setCanvasRatio: (ratio: '16:9' | 'A4' | '1:1' | '9:16' | '4:5') => void;
 
     // Legacy compatibility - get current page's items
     get items(): CanvasItem[];
@@ -306,6 +307,22 @@ export const useReportBuilderStore = create<ReportBuilderState>()(
                         pages: updatedPages,
                         selectedIds: [],
                     };
+                });
+            },
+
+            batchUpdateItems: (updates: Record<string, Partial<CanvasItem>>) => {
+                set(state => {
+                    const updatedPages = state.pages.map((page, i) =>
+                        i === state.currentPageIndex
+                            ? {
+                                ...page,
+                                items: page.items.map(item =>
+                                    updates[item.id] ? { ...item, ...updates[item.id] } : item
+                                ),
+                            }
+                            : page
+                    );
+                    return { pages: updatedPages };
                 });
             },
 
