@@ -1,30 +1,58 @@
 "use client";
 
-import React from "react";
+import React, { useState, useCallback, useRef } from "react";
 import { cn } from "@/lib/utils";
+import { CanvasItem } from "@/store/useReportBuilderStore";
 
 interface CanvasProps {
     width: number;
     height: number;
     children: React.ReactNode;
+    items: CanvasItem[];
     onClickBackground?: () => void;
+    onMarqueeSelect?: (ids: string[]) => void;
 }
 
-export function Canvas({ width, height, children, onClickBackground }: CanvasProps) {
-    // Scale factor for display (to fit in viewport while maintaining aspect)
-    const containerRef = React.useRef<HTMLDivElement>(null);
-    const [scale, setScale] = React.useState(1);
+interface MarqueeState {
+    startX: number;
+    startY: number;
+    endX: number;
+    endY: number;
+}
+
+function getIntersectingItems(marquee: MarqueeState, items: CanvasItem[]): string[] {
+    const minX = Math.min(marquee.startX, marquee.endX);
+    const maxX = Math.max(marquee.startX, marquee.endX);
+    const minY = Math.min(marquee.startY, marquee.endY);
+    const maxY = Math.max(marquee.startY, marquee.endY);
+
+    return items
+        .filter(item => {
+            const itemRight = item.x + item.width;
+            const itemBottom = item.y + item.height;
+            // Check if rectangles intersect
+            return !(item.x > maxX || itemRight < minX || item.y > maxY || itemBottom < minY);
+        })
+        .map(item => item.id);
+}
+
+export function Canvas({ width, height, children, items, onClickBackground, onMarqueeSelect }: CanvasProps) {
+    const containerRef = useRef<HTMLDivElement>(null);
+    const canvasRef = useRef<HTMLDivElement>(null);
+    const [scale, setScale] = useState(1);
+    const [isMarqueeActive, setIsMarqueeActive] = useState(false);
+    const [marquee, setMarquee] = useState<MarqueeState | null>(null);
 
     React.useEffect(() => {
         const updateScale = () => {
             if (containerRef.current) {
                 const parent = containerRef.current.parentElement;
                 if (parent) {
-                    const availableWidth = parent.clientWidth - 64; // padding
+                    const availableWidth = parent.clientWidth - 64;
                     const availableHeight = parent.clientHeight - 64;
                     const scaleX = availableWidth / width;
                     const scaleY = availableHeight / height;
-                    setScale(Math.min(scaleX, scaleY, 1)); // Never scale up
+                    setScale(Math.min(scaleX, scaleY, 1));
                 }
             }
         };
@@ -33,6 +61,54 @@ export function Canvas({ width, height, children, onClickBackground }: CanvasPro
         window.addEventListener('resize', updateScale);
         return () => window.removeEventListener('resize', updateScale);
     }, [width, height]);
+
+    const handleMouseDown = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+        // Only start marquee if clicking directly on canvas background (not on children)
+        if (e.target !== e.currentTarget) return;
+
+        const rect = e.currentTarget.getBoundingClientRect();
+        const x = (e.clientX - rect.left) / scale;
+        const y = (e.clientY - rect.top) / scale;
+
+        setIsMarqueeActive(true);
+        setMarquee({ startX: x, startY: y, endX: x, endY: y });
+    }, [scale]);
+
+    const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+        if (!isMarqueeActive || !marquee) return;
+
+        const rect = e.currentTarget.getBoundingClientRect();
+        const x = Math.max(0, Math.min(width, (e.clientX - rect.left) / scale));
+        const y = Math.max(0, Math.min(height, (e.clientY - rect.top) / scale));
+
+        setMarquee(prev => prev ? { ...prev, endX: x, endY: y } : null);
+    }, [isMarqueeActive, marquee, scale, width, height]);
+
+    const handleMouseUp = useCallback(() => {
+        if (isMarqueeActive && marquee) {
+            const selectedIds = getIntersectingItems(marquee, items);
+            // If no items selected and just clicked (very small marquee), treat as background click
+            const marqueeWidth = Math.abs(marquee.endX - marquee.startX);
+            const marqueeHeight = Math.abs(marquee.endY - marquee.startY);
+            if (marqueeWidth < 5 && marqueeHeight < 5) {
+                onClickBackground?.();
+            } else if (selectedIds.length > 0) {
+                onMarqueeSelect?.(selectedIds);
+            } else {
+                onClickBackground?.();
+            }
+        }
+        setIsMarqueeActive(false);
+        setMarquee(null);
+    }, [isMarqueeActive, marquee, items, onClickBackground, onMarqueeSelect]);
+
+    // Calculate marquee box style
+    const marqueeStyle = marquee ? {
+        left: Math.min(marquee.startX, marquee.endX),
+        top: Math.min(marquee.startY, marquee.endY),
+        width: Math.abs(marquee.endX - marquee.startX),
+        height: Math.abs(marquee.endY - marquee.startY),
+    } : null;
 
     return (
         <div
@@ -45,20 +121,21 @@ export function Canvas({ width, height, children, onClickBackground }: CanvasPro
         >
             {/* Scaled Canvas */}
             <div
+                ref={canvasRef}
                 className={cn(
                     "absolute origin-top-left bg-zinc-900 border border-white/10 rounded-lg shadow-2xl overflow-hidden",
-                    "transition-transform duration-200"
+                    "transition-transform duration-200",
+                    isMarqueeActive && "cursor-crosshair"
                 )}
                 style={{
                     width,
                     height,
                     transform: `scale(${scale})`,
                 }}
-                onClick={(e) => {
-                    if (e.target === e.currentTarget) {
-                        onClickBackground?.();
-                    }
-                }}
+                onMouseDown={handleMouseDown}
+                onMouseMove={handleMouseMove}
+                onMouseUp={handleMouseUp}
+                onMouseLeave={handleMouseUp}
             >
                 {/* Grid Pattern */}
                 <div
@@ -76,6 +153,14 @@ export function Canvas({ width, height, children, onClickBackground }: CanvasPro
                 <div className="relative w-full h-full report-canvas-content">
                     {children}
                 </div>
+
+                {/* Marquee Selection Box */}
+                {isMarqueeActive && marqueeStyle && (
+                    <div
+                        className="absolute border-2 border-violet-500 bg-violet-500/20 pointer-events-none z-50"
+                        style={marqueeStyle}
+                    />
+                )}
 
                 {/* Canvas Info Badge */}
                 <div className="absolute bottom-2 right-2 text-[10px] text-zinc-600 font-mono bg-zinc-950/80 px-2 py-1 rounded">

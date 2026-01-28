@@ -20,3 +20,8 @@
 ## [Current Task] Debugging & Fixes
 - [x] Fix Report Builder Sidebar items (Heatmap, Sales Velocity) not loading data (fallback logic).
 - [x] Fix Report Builder Ranking components empty state (legacy data structure fallback).
+
+## [Current Task] Code Cleanup
+- [x] Removed legacy Report Generator (`src/app/reports/page.tsx` replaced with redirect).
+- [x] Deleted unused slide components (`HeatmapSlide`, `ParkingSlide`, etc.).
+- [x] Deleted legacy PDF/PPTX templates and generators.

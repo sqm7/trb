@@ -37,13 +37,17 @@ export default function ReportBuilderPage() {
     const pages = useReportBuilderStore(state => state.pages);
     const currentPageIndex = useReportBuilderStore(state => state.currentPageIndex);
     const canvasRatio = useReportBuilderStore(state => state.canvasRatio);
-    const selectedId = useReportBuilderStore(state => state.selectedId);
+    const selectedIds = useReportBuilderStore(state => state.selectedIds);
     const addItem = useReportBuilderStore(state => state.addItem);
     const updateItem = useReportBuilderStore(state => state.updateItem);
     const removeItem = useReportBuilderStore(state => state.removeItem);
     const clearCanvas = useReportBuilderStore(state => state.clearCanvas);
     const setCanvasRatio = useReportBuilderStore(state => state.setCanvasRatio);
-    const setSelectedId = useReportBuilderStore(state => state.setSelectedId);
+    const setSelectedIds = useReportBuilderStore(state => state.setSelectedIds);
+    const toggleSelection = useReportBuilderStore(state => state.toggleSelection);
+    const clearSelection = useReportBuilderStore(state => state.clearSelection);
+    const removeSelectedItems = useReportBuilderStore(state => state.removeSelectedItems);
+    const moveSelectedItemsToPage = useReportBuilderStore(state => state.moveSelectedItemsToPage);
     const addPage = useReportBuilderStore(state => state.addPage);
     const deletePage = useReportBuilderStore(state => state.deletePage);
     const setCurrentPage = useReportBuilderStore(state => state.setCurrentPage);
@@ -277,15 +281,15 @@ export default function ReportBuilderPage() {
                                 報表編輯器 • {canvasRatio} • 第 {currentPageIndex + 1}/{pages.length} 頁 • {items.length} 個元件
                             </span>
                             <div className="flex items-center gap-2">
-                                {selectedId && (
+                                {selectedIds.length > 0 && (
                                     <Button
                                         size="sm"
                                         variant="ghost"
-                                        onClick={() => handleRemoveItem(selectedId)}
+                                        onClick={() => removeSelectedItems()}
                                         className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
                                     >
                                         <Trash2 className="h-4 w-4 mr-1" />
-                                        刪除選中
+                                        刪除選中 ({selectedIds.length})
                                     </Button>
                                 )}
                             </div>
@@ -357,14 +361,22 @@ export default function ReportBuilderPage() {
                                 <Canvas
                                     width={canvasDimensions.width}
                                     height={canvasDimensions.height}
-                                    onClickBackground={() => setSelectedId(null)}
+                                    items={items}
+                                    onClickBackground={() => clearSelection()}
+                                    onMarqueeSelect={(ids) => setSelectedIds(ids)}
                                 >
                                     {items.map(item => (
                                         <DraggableChart
                                             key={item.id}
                                             item={item}
-                                            isSelected={selectedId === item.id}
-                                            onSelect={() => setSelectedId(item.id)}
+                                            isSelected={selectedIds.includes(item.id)}
+                                            onSelect={(e?: React.MouseEvent) => {
+                                                if (e?.ctrlKey || e?.metaKey) {
+                                                    toggleSelection(item.id);
+                                                } else {
+                                                    setSelectedIds([item.id]);
+                                                }
+                                            }}
                                             onUpdate={(updates) => handleUpdateItem(item.id, updates)}
                                             onRemove={() => handleRemoveItem(item.id)}
                                             onMoveToPage={(pageIndex) => moveItemToPage(item.id, pageIndex)}

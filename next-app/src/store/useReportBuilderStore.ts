@@ -82,7 +82,7 @@ interface ReportBuilderState {
     currentPageIndex: number;
 
     canvasRatio: '16:9' | 'A4';
-    selectedId: string | null;
+    selectedIds: string[];
 
     // Page Actions
     addPage: () => void;
@@ -98,9 +98,16 @@ interface ReportBuilderState {
     moveItemToPage: (itemId: string, targetPageIndex: number) => void;
     clearCanvas: () => void;
 
+    // Multi-selection Actions
+    setSelectedIds: (ids: string[]) => void;
+    toggleSelection: (id: string) => void;
+    addToSelection: (id: string) => void;
+    clearSelection: () => void;
+    removeSelectedItems: () => void;
+    moveSelectedItemsToPage: (targetPageIndex: number) => void;
+
     // Canvas Actions
     setCanvasRatio: (ratio: '16:9' | 'A4') => void;
-    setSelectedId: (id: string | null) => void;
 
     // Legacy compatibility - get current page's items
     get items(): CanvasItem[];
@@ -118,7 +125,7 @@ export const useReportBuilderStore = create<ReportBuilderState>()(
             pages: [createDefaultPage(0)],
             currentPageIndex: 0,
             canvasRatio: '16:9',
-            selectedId: null,
+            selectedIds: [],
 
             // Getter for current page items (for backward compatibility)
             get items() {
@@ -133,7 +140,7 @@ export const useReportBuilderStore = create<ReportBuilderState>()(
                     return {
                         pages: [...state.pages, newPage],
                         currentPageIndex: state.pages.length,
-                        selectedId: null,
+                        selectedIds: [],
                     };
                 });
             },
@@ -156,7 +163,7 @@ export const useReportBuilderStore = create<ReportBuilderState>()(
                     return {
                         pages: renamedPages,
                         currentPageIndex: newIndex,
-                        selectedId: null,
+                        selectedIds: [],
                     };
                 });
             },
@@ -164,7 +171,7 @@ export const useReportBuilderStore = create<ReportBuilderState>()(
             setCurrentPage: (index: number) => {
                 set(state => ({
                     currentPageIndex: Math.max(0, Math.min(index, state.pages.length - 1)),
-                    selectedId: null,
+                    selectedIds: [],
                 }));
             },
 
@@ -229,7 +236,7 @@ export const useReportBuilderStore = create<ReportBuilderState>()(
 
                     return {
                         pages: updatedPages,
-                        selectedId: newItem.id,
+                        selectedIds: [newItem.id],
                     };
                 });
             },
@@ -261,7 +268,7 @@ export const useReportBuilderStore = create<ReportBuilderState>()(
 
                     return {
                         pages: updatedPages,
-                        selectedId: state.selectedId === id ? null : state.selectedId,
+                        selectedIds: state.selectedIds.filter(sid => sid !== id),
                     };
                 });
             },
@@ -283,7 +290,7 @@ export const useReportBuilderStore = create<ReportBuilderState>()(
                         return page;
                     });
 
-                    return { pages: updatedPages, selectedId: null };
+                    return { pages: updatedPages, selectedIds: [] };
                 });
             },
 
@@ -297,13 +304,63 @@ export const useReportBuilderStore = create<ReportBuilderState>()(
 
                     return {
                         pages: updatedPages,
-                        selectedId: null,
+                        selectedIds: [],
                     };
                 });
             },
 
             setCanvasRatio: (canvasRatio) => set({ canvasRatio }),
-            setSelectedId: (selectedId) => set({ selectedId }),
+
+            // Multi-selection Actions
+            setSelectedIds: (selectedIds) => set({ selectedIds }),
+            toggleSelection: (id: string) => {
+                set(state => ({
+                    selectedIds: state.selectedIds.includes(id)
+                        ? state.selectedIds.filter(sid => sid !== id)
+                        : [...state.selectedIds, id],
+                }));
+            },
+            addToSelection: (id: string) => {
+                set(state => ({
+                    selectedIds: state.selectedIds.includes(id)
+                        ? state.selectedIds
+                        : [...state.selectedIds, id],
+                }));
+            },
+            clearSelection: () => set({ selectedIds: [] }),
+            removeSelectedItems: () => {
+                set(state => {
+                    const currentPage = state.pages[state.currentPageIndex];
+                    if (!currentPage) return state;
+                    const updatedPages = state.pages.map((page, i) =>
+                        i === state.currentPageIndex
+                            ? { ...page, items: page.items.filter(item => !state.selectedIds.includes(item.id)) }
+                            : page
+                    );
+                    return { pages: updatedPages, selectedIds: [] };
+                });
+            },
+            moveSelectedItemsToPage: (targetPageIndex: number) => {
+                set(state => {
+                    if (targetPageIndex === state.currentPageIndex) return state;
+                    if (targetPageIndex < 0 || targetPageIndex >= state.pages.length) return state;
+                    const currentPage = state.pages[state.currentPageIndex];
+                    const itemsToMove = currentPage.items.filter(item => state.selectedIds.includes(item.id));
+                    if (itemsToMove.length === 0) return state;
+
+                    const updatedPages = state.pages.map((page, i) => {
+                        if (i === state.currentPageIndex) {
+                            return { ...page, items: page.items.filter(it => !state.selectedIds.includes(it.id)) };
+                        }
+                        if (i === targetPageIndex) {
+                            return { ...page, items: [...page.items, ...itemsToMove.map((it, idx) => ({ ...it, x: 50 + idx * 20, y: 50 + idx * 20 }))] };
+                        }
+                        return page;
+                    });
+
+                    return { pages: updatedPages, selectedIds: [] };
+                });
+            },
         }),
         {
             name: 'report-builder-storage',

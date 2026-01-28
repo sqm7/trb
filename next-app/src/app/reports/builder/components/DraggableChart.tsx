@@ -27,7 +27,7 @@ import { AreaHeatmapChart } from "@/components/charts/AreaHeatmapChart";
 interface DraggableChartProps {
     item: CanvasItem;
     isSelected: boolean;
-    onSelect: () => void;
+    onSelect: (e?: React.MouseEvent) => void;
     onUpdate: (updates: Partial<CanvasItem>) => void;
     onRemove: () => void;
     onMoveToPage?: (pageIndex: number) => void;
@@ -759,7 +759,7 @@ export function DraggableChart({ item, isSelected, onSelect, onUpdate, onRemove,
             bounds="parent"
             onClick={(e: React.MouseEvent) => {
                 e.stopPropagation();
-                onSelect();
+                onSelect(e);
             }}
             className={cn(
                 "bg-zinc-800/80 backdrop-blur-sm rounded-lg border-2 transition-colors overflow-hidden",
@@ -881,7 +881,7 @@ export function DraggableChart({ item, isSelected, onSelect, onUpdate, onRemove,
                         className="absolute inset-0 z-10 cursor-pointer"
                         onClick={(e) => {
                             e.stopPropagation();
-                            onSelect();
+                            onSelect(e);
                         }}
                     />
                 )}
