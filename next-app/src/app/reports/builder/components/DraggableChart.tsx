@@ -259,18 +259,19 @@ export function DraggableChart({ item, isSelected, onSelect, onUpdate, onRemove,
                 );
             }
             case 'ranking-metrics': {
+                const rankingProjectList = analysisData.rankingAnalysis?.projectRanking || analysisData.projectRanking || [];
                 const metrics = item.data || {
-                    coreMetrics: analysisData.rankingAnalysis?.coreMetrics,
+                    coreMetrics: analysisData.rankingAnalysis?.coreMetrics || analysisData.coreMetrics,
                     derivedMetrics: {
-                        min: Math.min(...(analysisData.rankingAnalysis?.projectRanking?.map((p: any) => p.minPrice).filter((v: number) => v > 0) || [0])),
-                        max: Math.max(...(analysisData.rankingAnalysis?.projectRanking?.map((p: any) => p.maxPrice) || [0])),
-                        median: analysisData.rankingAnalysis?.projectRanking?.length ? analysisData.rankingAnalysis.projectRanking.reduce((a: any, b: any) => a + (b.medianPrice || 0), 0) / analysisData.rankingAnalysis.projectRanking.length : 0,
-                        parking: analysisData.rankingAnalysis?.projectRanking?.length ? analysisData.rankingAnalysis.projectRanking.reduce((a: any, b: any) => a + (b.avgParkingPrice || 0), 0) / analysisData.rankingAnalysis.projectRanking.length : 0,
+                        min: Math.min(...(rankingProjectList.map((p: any) => p.minPrice).filter((v: number) => v > 0) || [0])),
+                        max: Math.max(...(rankingProjectList.map((p: any) => p.maxPrice) || [0])),
+                        median: rankingProjectList.length ? rankingProjectList.reduce((a: any, b: any) => a + (b.medianPrice || 0), 0) / rankingProjectList.length : 0,
+                        parking: rankingProjectList.length ? rankingProjectList.reduce((a: any, b: any) => a + (b.avgParkingPrice || 0), 0) / rankingProjectList.length : 0,
                     }
                 };
 
                 const { coreMetrics, derivedMetrics } = metrics;
-                if (!coreMetrics) return <div className="p-4 text-zinc-500 text-xs">無指標數據</div>;
+                if (!coreMetrics) return <div className="p-4 text-zinc-500 text-xs text-center flex items-center justify-center h-full">無指標數據</div>;
 
                 const cards = [
                     { title: "市場去化總銷售金額", value: coreMetrics.totalSaleAmount?.toLocaleString(), unit: "萬" },
@@ -298,7 +299,7 @@ export function DraggableChart({ item, isSelected, onSelect, onUpdate, onRemove,
                 );
             }
             case 'ranking-chart':
-                const rankingData = (item as any).data || analysisData.rankingAnalysis?.projectRanking || [];
+                const rankingData = (item as any).data || analysisData.rankingAnalysis?.projectRanking || analysisData.projectRanking || [];
                 return (
                     <RankingChart
                         data={rankingData.slice(0, 10)}
@@ -455,7 +456,7 @@ export function DraggableChart({ item, isSelected, onSelect, onUpdate, onRemove,
                 );
 
             case 'ranking-table':
-                const rankingTableData = (item as any).data || analysisData.rankingAnalysis?.projectRanking || [];
+                const rankingTableData = (item as any).data || analysisData.rankingAnalysis?.projectRanking || analysisData.projectRanking || [];
                 return (
                     <div className="h-full overflow-auto custom-scrollbar">
                         <table className="w-full text-[10px] text-left">

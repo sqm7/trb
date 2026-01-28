@@ -14,5 +14,9 @@
 
 ## [Current Task] Deployment
 - [x] Build and Deploy to Test Environment (TRB).
-- [x] Verified build success (Step Id: 474).
-- [x] Verified deploy success (Step Id: 478).
+- [x] Verified build success.
+- [x] Verified deploy success.
+
+## [Current Task] Debugging & Fixes
+- [x] Fix Report Builder Sidebar items (Heatmap, Sales Velocity) not loading data (fallback logic).
+- [x] Fix Report Builder Ranking components empty state (legacy data structure fallback).
