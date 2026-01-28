@@ -297,26 +297,87 @@ export function HeatmapReport({ data }: HeatmapReportProps) {
                 </div>
             </div>
 
-            {/* Heatmap */}
+            {/* 1. Main Heatmap Grid */}
             <ReportWrapper
                 title="建案銷控表與調價熱力圖"
                 description="可視化建案各戶別的銷售狀況與價格調整幅度"
                 headerAction={
                     <ExportButton
                         data={filteredProjectTx || []}
-                        filename={`heatmap_tx_${selectedProject}`}
+                        filename={`heatmap_grid_${selectedProject}`}
                         label="匯出"
-                        chartType="heatmap"
-                        snapshotData={filteredProjectTx || []}
+                        chartType="heatmap-grid"
+                        snapshotData={{
+                            projectData,
+                            floorPremium,
+                            selectedProject
+                        }}
                     />
                 }
             >
                 {projectData ? (
-                    <PricingHeatmap data={projectData} floorPremium={floorPremium} />
+                    <PricingHeatmap
+                        data={projectData}
+                        floorPremium={floorPremium}
+                        showSummary={false}
+                        showComparison={false}
+                    />
                 ) : (
                     <div className="text-zinc-500 text-center p-12">請選擇建案以查看銷控表</div>
                 )}
             </ReportWrapper>
+
+            {/* 2. Summary Table */}
+            {projectData?.summary && (
+                <ReportWrapper
+                    title="調價幅度統計摘要 (排除店舖/辦公室)"
+                    headerAction={
+                        <ExportButton
+                            data={[projectData.summary]}
+                            filename={`heatmap_stats_${selectedProject}`}
+                            label="匯出"
+                            chartType="heatmap-stats"
+                            snapshotData={{
+                                summary: projectData.summary,
+                                selectedProject
+                            }}
+                        />
+                    }
+                >
+                    <PricingHeatmap
+                        data={projectData}
+                        showGrid={false}
+                        showSummary={true}
+                        showComparison={false}
+                    />
+                </ReportWrapper>
+            )}
+
+            {/* 3. Horizontal Comparison Table */}
+            {projectData?.horizontalComparison && projectData.horizontalComparison.length > 0 && (
+                <ReportWrapper
+                    title="戶型水平價差與溢價貢獻"
+                    headerAction={
+                        <ExportButton
+                            data={projectData.horizontalComparison}
+                            filename={`heatmap_comparison_${selectedProject}`}
+                            label="匯出"
+                            chartType="heatmap-comparison"
+                            snapshotData={{
+                                horizontalComparison: projectData.horizontalComparison,
+                                selectedProject
+                            }}
+                        />
+                    }
+                >
+                    <PricingHeatmap
+                        data={projectData}
+                        showGrid={false}
+                        showSummary={false}
+                        showComparison={true}
+                    />
+                </ReportWrapper>
+            )}
         </div>
     );
 }

@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { BarChart3, PieChart, TrendingUp, Grid3X3, Activity } from "lucide-react";
+import { BarChart3, PieChart, TrendingUp, Grid3X3, Activity, Table2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ChartType } from "@/store/useReportBuilderStore";
 
@@ -44,7 +44,9 @@ const CHART_CATEGORIES = [
         id: 'heatmap',
         title: '調價熱力圖',
         items: [
-            { type: 'heatmap', label: '銷控熱力圖', icon: <Grid3X3 className="h-4 w-4" />, description: '樓層戶別價差分析' },
+            { type: 'heatmap-grid', label: '銷控熱力圖', icon: <Grid3X3 className="h-4 w-4" />, description: '樓層戶別價差分析' },
+            { type: 'heatmap-stats', label: '調價幅度摘要', icon: <Grid3X3 className="h-4 w-4" />, description: '總溢價與平均調價' },
+            { type: 'heatmap-comparison', label: '戶型溢價貢獻', icon: <Grid3X3 className="h-4 w-4" />, description: '各戶型水平價差比較' },
         ]
     },
     {
@@ -53,6 +55,8 @@ const CHART_CATEGORIES = [
         items: [
             { type: 'sales-velocity-chart', label: '銷售速度趨勢', icon: <TrendingUp className="h-4 w-4" />, description: '去化速度與量能' },
             { type: 'sales-velocity-table', label: '銷售速度明細', icon: <Grid3X3 className="h-4 w-4" />, description: '詳細銷售數據' },
+            { type: 'sales-heatmap', label: '房型面積熱力圖', icon: <Grid3X3 className="h-4 w-4" />, description: '坪數去化分佈' },
+            { type: 'sales-heatmap-detail', label: '熱力詳細交易表', icon: <Table2 className="h-4 w-4" />, description: '熱力圖點擊詳細分析' },
         ]
     },
     {

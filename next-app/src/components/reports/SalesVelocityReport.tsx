@@ -281,7 +281,15 @@ export function SalesVelocityReport({ data }: SalesVelocityReportProps) {
                         <ExportButton
                             data={areaDistributionAnalysis ? Object.entries(areaDistributionAnalysis).map(([k, v]) => ({ key: k, value: JSON.stringify(v) })) : []}
                             filename="area_distribution_heatmap"
-                            label="匯出熱力數據"
+                            label="匯出"
+                            chartType="sales-heatmap"
+                            snapshotData={{
+                                distribution: areaDistributionAnalysis,
+                                selectedRooms,
+                                min: minArea,
+                                max: maxArea,
+                                interval
+                            }}
                             columns={{ key: '坪數區間', value: '分佈數據' }}
                         />
                     </div>
@@ -312,9 +320,16 @@ export function SalesVelocityReport({ data }: SalesVelocityReportProps) {
                             </div>
                             <div className="flex gap-2">
                                 <ExportButton
+                                    data={aggregatedDetails}
+                                    filename={`heatmap_aggregated_${heatmapModalMeta.roomType}_${heatmapModalMeta.areaRange}`}
+                                    label="匯出統計"
+                                    chartType="sales-heatmap-detail"
+                                    snapshotData={aggregatedDetails}
+                                />
+                                <ExportButton
                                     data={aggregatedDetails.flatMap(d => d.transactions)}
                                     filename={`heatmap_details_${heatmapModalMeta.roomType}_${heatmapModalMeta.areaRange}`}
-                                    label="匯出交易明細"
+                                    label="匯出明細"
                                 />
                                 <button
                                     onClick={() => setHeatmapModalMeta(null)}

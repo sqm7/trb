@@ -21,6 +21,8 @@ import { BubbleChart } from "@/components/charts/BubbleChart";
 import { SalesVelocityChart } from "@/components/charts/SalesVelocityChart";
 import { ClientChart } from "@/components/charts/ClientChart";
 import { UnitPriceStatsBlock } from "@/components/reports/UnitPriceStatsBlock";
+import { PricingHeatmap } from "@/components/charts/PricingHeatmap";
+import { AreaHeatmapChart } from "@/components/charts/AreaHeatmapChart";
 
 interface DraggableChartProps {
     item: CanvasItem;
@@ -50,6 +52,11 @@ const CHART_LABELS: Record<ChartType, string> = {
     'parking-scatter': '車位坪數分析',
     'parking-floor': '車位樓層分析',
     'heatmap': '銷控熱力圖',
+    'heatmap-grid': '建案銷控熱力圖',
+    'heatmap-stats': '調價幅度摘要',
+    'heatmap-comparison': '戶型溢價貢獻',
+    'sales-heatmap': '房型面積熱力圖',
+    'sales-heatmap-detail': '熱力詳細交易表',
     'data-list': '交易明細表',
 };
 
@@ -65,6 +72,106 @@ export function DraggableChart({ item, isSelected, onSelect, onUpdate, onRemove,
         }
 
         switch (item.type) {
+            case 'sales-heatmap': {
+                const dist = item.data?.distribution || analysisData.areaDistributionAnalysis;
+                if (!dist) return <div className="p-4 text-zinc-500">無熱力圖數據</div>;
+                return (
+                    <div className="h-full overflow-hidden p-1">
+                        <AreaHeatmapChart
+                            data={dist}
+                            selectedRooms={item.data?.selectedRooms || ['2房', '3房']}
+                            minArea={item.data?.min || 15}
+                            maxArea={item.data?.max || 65}
+                            interval={item.data?.interval || 5}
+                        />
+                    </div>
+                );
+            }
+            case 'sales-heatmap-detail': {
+                const details = item.data || [];
+                if (!Array.isArray(details) || details.length === 0) return <div className="p-4 text-zinc-500 text-xs text-center">無詳細數據 (請從「房型面積熱力圖」點擊區塊後匯出)</div>;
+                return (
+                    <div className="h-full overflow-auto custom-scrollbar p-1">
+                        <table className="w-full text-xs border-collapse">
+                            <thead className="bg-zinc-800 text-zinc-300 sticky top-0">
+                                <tr>
+                                    <th className="p-2 text-left">建案名稱</th>
+                                    <th className="p-2 text-center">單價範圍(萬/坪)</th>
+                                    <th className="p-2 text-center">總價中位數(萬)</th>
+                                    <th className="p-2 text-center">交易筆數</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-white/5">
+                                {details.map((d: any, i: number) => (
+                                    <tr key={i} className="hover:bg-zinc-800/30">
+                                        <td className="p-2 text-white font-medium">{d.projectName}</td>
+                                        <td className="p-2 text-center text-cyan-400">
+                                            {d.unitPriceRange?.min?.toFixed(1)} ~ {d.unitPriceRange?.max?.toFixed(1)}
+                                        </td>
+                                        <td className="p-2 text-center text-violet-400">
+                                            {Math.round(d.priceRange?.median || 0).toLocaleString()}
+                                        </td>
+                                        <td className="p-2 text-center text-zinc-300">{d.count}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                );
+            }
+            case 'heatmap':
+            case 'heatmap-grid': {
+                const heatmapData = item.data?.projectData || analysisData.priceGridAnalysis?.byProject[Object.keys(analysisData.priceGridAnalysis?.byProject || {})[0]];
+                const premium = item.data?.floorPremium || 0.3;
+                return (
+                    <div className="h-full overflow-auto custom-scrollbar p-1">
+                        {heatmapData ? (
+                            <PricingHeatmap
+                                data={heatmapData}
+                                floorPremium={premium}
+                                showSummary={false}
+                                showComparison={false}
+                            />
+                        ) : (
+                            <div className="text-zinc-500 text-sm p-4 text-center">無熱力圖數據</div>
+                        )}
+                    </div>
+                );
+            }
+            case 'heatmap-stats': {
+                const heatmapData = item.data?.summary ? { summary: item.data.summary } : analysisData.priceGridAnalysis?.byProject[Object.keys(analysisData.priceGridAnalysis?.byProject || {})[0]];
+                return (
+                    <div className="h-full overflow-auto custom-scrollbar p-1">
+                        {heatmapData?.summary ? (
+                            <PricingHeatmap
+                                data={heatmapData}
+                                showGrid={false}
+                                showSummary={true}
+                                showComparison={false}
+                            />
+                        ) : (
+                            <div className="text-zinc-500 text-sm p-4 text-center">無統計摘要數據</div>
+                        )}
+                    </div>
+                );
+            }
+            case 'heatmap-comparison': {
+                const heatmapData = item.data?.horizontalComparison ? { horizontalComparison: item.data.horizontalComparison } : analysisData.priceGridAnalysis?.byProject[Object.keys(analysisData.priceGridAnalysis?.byProject || {})[0]];
+                return (
+                    <div className="h-full overflow-auto custom-scrollbar p-1">
+                        {heatmapData?.horizontalComparison ? (
+                            <PricingHeatmap
+                                data={heatmapData}
+                                showGrid={false}
+                                showSummary={false}
+                                showComparison={true}
+                            />
+                        ) : (
+                            <div className="text-zinc-500 text-sm p-4 text-center">無溢價貢獻數據</div>
+                        )}
+                    </div>
+                );
+            }
             case 'unit-price-stats': {
                 const stats = item.data || {
                     residentialStats: analysisData.unitPriceAnalysis?.residentialStats,

@@ -8,6 +8,9 @@ import { Store, Briefcase, Sprout, Users } from "lucide-react";
 interface HeatmapGridProps {
     data: any;
     floorPremium?: number;
+    showGrid?: boolean;
+    showSummary?: boolean;
+    showComparison?: boolean;
 }
 
 // Helper: Format number
@@ -62,7 +65,13 @@ const PortalTooltip = ({ children, triggerRect, isTopRow }: { children: React.Re
     );
 };
 
-export function PricingHeatmap({ data, floorPremium = 0.3 }: HeatmapGridProps) {
+export function PricingHeatmap({
+    data,
+    floorPremium = 0.3,
+    showGrid = true,
+    showSummary = true,
+    showComparison = true
+}: HeatmapGridProps) {
     const { horizontalGrid, sortedFloors, sortedUnits, unitColorMap, summary, horizontalComparison } = data;
     const [hoverData, setHoverData] = useState<{ rect: DOMRect, data: any, isTopRow: boolean } | null>(null);
 
@@ -107,87 +116,89 @@ export function PricingHeatmap({ data, floorPremium = 0.3 }: HeatmapGridProps) {
             )}
 
             {/* 1. Main Heatmap Grid */}
-            <div className="min-w-max pb-32">
-                <table className="divide-y divide-zinc-800 border-collapse w-full text-sm">
-                    <thead>
-                        <tr>
-                            <th className="sticky left-0 bg-dark-card z-20 p-2 text-zinc-400 border-r border-zinc-800">樓層 \ 戶別</th>
-                            {sortedUnits.map((unit: string) => (
-                                <th
-                                    key={unit}
-                                    className="p-2 text-zinc-300 font-medium border-l border-zinc-800/50 bg-zinc-900/50"
-                                >
-                                    {unit}
-                                </th>
-                            ))}
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-zinc-800/50">
-                        {sortedFloors.map((floor: string, floorIndex: number) => (
-                            <tr key={floor} className="hover:bg-zinc-800/30 transition-colors">
-                                <td className="sticky left-0 bg-dark-card z-10 p-2 font-bold text-zinc-300 border-r border-zinc-800 text-center">
-                                    {floor}
-                                </td>
-                                {sortedUnits.map((unit: string) => {
-                                    const cellData = horizontalGrid[floor]?.[unit];
+            {showGrid && (
+                <div className="min-w-max pb-32">
+                    <table className="divide-y divide-zinc-800 border-collapse w-full text-sm">
+                        <thead>
+                            <tr>
+                                <th className="sticky left-0 bg-dark-card z-20 p-2 text-zinc-400 border-r border-zinc-800">樓層 \ 戶別</th>
+                                {sortedUnits.map((unit: string) => (
+                                    <th
+                                        key={unit}
+                                        className="p-2 text-zinc-300 font-medium border-l border-zinc-800/50 bg-zinc-900/50"
+                                    >
+                                        {unit}
+                                    </th>
+                                ))}
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-zinc-800/50">
+                            {sortedFloors.map((floor: string, floorIndex: number) => (
+                                <tr key={floor} className="hover:bg-zinc-800/30 transition-colors">
+                                    <td className="sticky left-0 bg-dark-card z-10 p-2 font-bold text-zinc-300 border-r border-zinc-800 text-center">
+                                        {floor}
+                                    </td>
+                                    {sortedUnits.map((unit: string) => {
+                                        const cellData = horizontalGrid[floor]?.[unit];
 
-                                    if (!cellData || cellData.length === 0) {
+                                        if (!cellData || cellData.length === 0) {
+                                            return (
+                                                <td key={`${floor}-${unit}`} className="p-2 border-l border-zinc-800/50 bg-zinc-900/20 text-center text-zinc-600">
+                                                    -
+                                                </td>
+                                            );
+                                        }
+
                                         return (
-                                            <td key={`${floor}-${unit}`} className="p-2 border-l border-zinc-800/50 bg-zinc-900/20 text-center text-zinc-600">
-                                                -
+                                            <td key={`${floor}-${unit}`} className="p-1 border-l border-zinc-800/50 align-top">
+                                                <div className="flex flex-col gap-1">
+                                                    {cellData.map((tx: any, idx: number) => {
+                                                        const bgColor = getHeatmapColor(tx.premium, tx);
+                                                        const special = getSpecialIcon(tx);
+                                                        const isAnchor = tx.premium === 0;
+                                                        const isTopRow = floorIndex < 3; // First 3 rows go down
+
+                                                        return (
+                                                            <div
+                                                                key={idx}
+                                                                className={cn(
+                                                                    "p-1.5 rounded text-xs transition-transform hover:scale-105 cursor-default relative group",
+                                                                    isAnchor && "ring-1 ring-cyan-500"
+                                                                )}
+                                                                style={{ backgroundColor: bgColor }}
+                                                                onMouseEnter={(e) => handleMouseEnter(e, tx, isTopRow)}
+                                                                onMouseLeave={handleMouseLeave}
+                                                            >
+                                                                <div className="flex items-center justify-between gap-1">
+                                                                    <span className="font-semibold text-white flex items-center gap-1">
+                                                                        {special && <span className="text-zinc-200" title={special.label}>{special.icon}</span>}
+                                                                        {tx.unitPrice.toFixed(1)}萬
+                                                                    </span>
+                                                                    {tx.hasParking && (
+                                                                        <span className="flex items-center justify-center w-3.5 h-3.5 bg-blue-500 text-white text-[9px] font-bold rounded-sm ml-0.5" title="含車位">
+                                                                            P
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+                                                                <div className="text-[10px] text-zinc-300 mt-0.5 font-mono tracking-tight opacity-90">
+                                                                    {tx.transactionDate || '-'}
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
                                             </td>
                                         );
-                                    }
-
-                                    return (
-                                        <td key={`${floor}-${unit}`} className="p-1 border-l border-zinc-800/50 align-top">
-                                            <div className="flex flex-col gap-1">
-                                                {cellData.map((tx: any, idx: number) => {
-                                                    const bgColor = getHeatmapColor(tx.premium, tx);
-                                                    const special = getSpecialIcon(tx);
-                                                    const isAnchor = tx.premium === 0;
-                                                    const isTopRow = floorIndex < 3; // First 3 rows go down
-
-                                                    return (
-                                                        <div
-                                                            key={idx}
-                                                            className={cn(
-                                                                "p-1.5 rounded text-xs transition-transform hover:scale-105 cursor-default relative group",
-                                                                isAnchor && "ring-1 ring-cyan-500"
-                                                            )}
-                                                            style={{ backgroundColor: bgColor }}
-                                                            onMouseEnter={(e) => handleMouseEnter(e, tx, isTopRow)}
-                                                            onMouseLeave={handleMouseLeave}
-                                                        >
-                                                            <div className="flex items-center justify-between gap-1">
-                                                                <span className="font-semibold text-white flex items-center gap-1">
-                                                                    {special && <span className="text-zinc-200" title={special.label}>{special.icon}</span>}
-                                                                    {tx.unitPrice.toFixed(1)}萬
-                                                                </span>
-                                                                {tx.hasParking && (
-                                                                    <span className="flex items-center justify-center w-3.5 h-3.5 bg-blue-500 text-white text-[9px] font-bold rounded-sm ml-0.5" title="含車位">
-                                                                        P
-                                                                    </span>
-                                                                )}
-                                                            </div>
-                                                            <div className="text-[10px] text-zinc-300 mt-0.5 font-mono tracking-tight opacity-90">
-                                                                {tx.transactionDate || '-'}
-                                                            </div>
-                                                        </div>
-                                                    );
-                                                })}
-                                            </div>
-                                        </td>
-                                    );
-                                })}
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
+                                    })}
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            )}
 
             {/* 2. Summary Table */}
-            {summary && (
+            {showSummary && summary && (
                 <div className="space-y-2">
                     <h3 className="text-lg font-semibold text-zinc-200">調價幅度統計摘要 (排除店舖/辦公室)</h3>
                     <div className="overflow-x-auto rounded-lg border border-zinc-800">
@@ -222,7 +233,7 @@ export function PricingHeatmap({ data, floorPremium = 0.3 }: HeatmapGridProps) {
             )}
 
             {/* 3. Horizontal Comparison Table */}
-            {horizontalComparison && horizontalComparison.length > 0 && (
+            {showComparison && horizontalComparison && horizontalComparison.length > 0 && (
                 <div className="space-y-2">
                     <h3 className="text-lg font-semibold text-zinc-200">
                         戶型水平價差與溢價貢獻

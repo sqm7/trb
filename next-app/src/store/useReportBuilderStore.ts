@@ -21,7 +21,12 @@ export type ChartType =
     | 'parking-price'
     | 'parking-scatter'
     | 'parking-floor'
+    | 'sales-heatmap'
+    | 'sales-heatmap-detail'
     | 'heatmap'
+    | 'heatmap-grid'
+    | 'heatmap-stats'
+    | 'heatmap-comparison'
     | 'data-list';
 
 export type ScaleMode = 'crop' | 'pan' | 'fit';
@@ -58,11 +63,16 @@ const DEFAULT_SIZES: Record<ChartType, { width: number; height: number }> = {
     'type-comparison-table': { width: 600, height: 350 },
     'sales-velocity-chart': { width: 420, height: 260 },
     'sales-velocity-table': { width: 600, height: 400 },
+    'sales-heatmap': { width: 450, height: 350 },
+    'sales-heatmap-detail': { width: 800, height: 400 },
     'parking-pie': { width: 300, height: 300 },
     'parking-price': { width: 400, height: 300 },
     'parking-scatter': { width: 450, height: 350 },
     'parking-floor': { width: 400, height: 400 },
     'heatmap': { width: 500, height: 350 },
+    'heatmap-grid': { width: 800, height: 500 },
+    'heatmap-stats': { width: 800, height: 120 },
+    'heatmap-comparison': { width: 800, height: 300 },
     'data-list': { width: 600, height: 400 },
 };
 
