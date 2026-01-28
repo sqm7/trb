@@ -6,6 +6,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { X, GripVertical } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useDroppable } from "@dnd-kit/core";
+import { useReportBuilderStore } from "@/store/useReportBuilderStore";
 
 interface SortablePageTabProps {
     id: string;
@@ -41,6 +42,9 @@ export function SortablePageTab({
         data: { type: 'page-tab', pageIndex: index },
     });
 
+    const hoveredPageIndex = useReportBuilderStore(state => state.hoveredPageIndex);
+    const isHoveredGlobally = hoveredPageIndex === index;
+
     const style = {
         transform: CSS.Transform.toString(transform),
         transition,
@@ -59,7 +63,7 @@ export function SortablePageTab({
                     ? "bg-violet-600 text-white"
                     : "text-zinc-400 hover:bg-zinc-800 hover:text-white",
                 isDragging && "opacity-50 shadow-lg",
-                isOver && !isActive && "ring-2 ring-violet-500 bg-violet-600 text-white shadow-lg scale-105"
+                (isOver || isHoveredGlobally) && !isActive && "ring-2 ring-violet-500 bg-violet-600 text-white shadow-lg scale-105"
             )}
             onClick={onClick}
             data-page-drop-target="true"

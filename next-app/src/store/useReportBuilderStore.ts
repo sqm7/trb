@@ -113,7 +113,9 @@ interface ReportBuilderState {
     // Dragging State (Global)
     isDragging: boolean;
     draggedItemCount: number;
+    hoveredPageIndex: number | null;
     setDragging: (isDragging: boolean, count?: number) => void;
+    setHoveredPageIndex: (index: number | null) => void;
 
     // Legacy compatibility - get current page's items
     get items(): CanvasItem[];
@@ -135,7 +137,9 @@ export const useReportBuilderStore = create<ReportBuilderState>()(
 
             isDragging: false,
             draggedItemCount: 0,
+            hoveredPageIndex: null,
             setDragging: (isDragging, count = 0) => set({ isDragging, draggedItemCount: count }),
+            setHoveredPageIndex: (index) => set({ hoveredPageIndex: index }),
 
             // Getter for current page items (for backward compatibility)
             get items() {

@@ -58,6 +58,21 @@ export default function ReportBuilderPage() {
 
     // Drag state
     const [activeItemId, setActiveItemId] = useState<string | null>(null);
+    const isDragging = useReportBuilderStore(state => state.isDragging);
+    const draggedItemCount = useReportBuilderStore(state => state.draggedItemCount);
+    const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+    const [isMouseOverCanvas, setIsMouseOverCanvas] = useState(true);
+
+    // Track mouse position global for drag feedback
+    React.useEffect(() => {
+        const handleMouseMove = (e: MouseEvent) => {
+            if (isDragging) {
+                setMousePos({ x: e.clientX, y: e.clientY });
+            }
+        };
+        window.addEventListener('mousemove', handleMouseMove);
+        return () => window.removeEventListener('mousemove', handleMouseMove);
+    }, [isDragging]);
 
     // DnD sensors
     const sensors = useSensors(
@@ -67,6 +82,17 @@ export default function ReportBuilderPage() {
     // Get current page items
     const currentPage = pages[currentPageIndex];
     const items = currentPage?.items || [];
+
+    // Canvas dimensions based on ratio
+    const canvasDimensions = canvasRatio === '16:9'
+        ? { width: 960, height: 540 }
+        : canvasRatio === 'A4'
+            ? { width: 595, height: 842 } // A4 portrait
+            : canvasRatio === '1:1'
+                ? { width: 900, height: 900 }
+                : canvasRatio === '9:16'
+                    ? { width: 540, height: 960 }
+                    : { width: 720, height: 900 }; // 4:5
 
     // Add item to canvas (wrapper for ComponentPalette)
     const handleAddItem = useCallback((type: ChartType) => {
@@ -190,7 +216,6 @@ export default function ReportBuilderPage() {
     }, [canvasRatio]);
 
     // Export to Image (PNG/JPG)
-    // Export to Image (PNG/JPG)
     const handleExportImage = useCallback(async (format: 'png' | 'jpg') => {
         try {
             const canvasElement = document.querySelector('.report-canvas-content') as HTMLElement;
@@ -207,12 +232,19 @@ export default function ReportBuilderPage() {
 
             console.log("Starting export with modern-screenshot...", format);
 
+            // Get actual dimensions from canvasDimensions state
+            const width = canvasDimensions.width;
+            const height = canvasDimensions.height;
+
             const options = {
-                scale: 3,
+                scale: 2,
                 backgroundColor: '#09090b',
+                width,
+                height,
                 style: {
-                    // Ensure the element is fully rendered
                     transform: 'none',
+                    width: `${width}px`,
+                    height: `${height}px`,
                 },
             };
 
@@ -220,7 +252,7 @@ export default function ReportBuilderPage() {
             if (format === 'png') {
                 dataUrl = await domToPng(canvasElement, options);
             } else {
-                dataUrl = await domToJpeg(canvasElement, { ...options, quality: 0.9 });
+                dataUrl = await domToJpeg(canvasElement, { ...options, quality: 0.95 });
             }
 
             console.log("Screenshot generated successfully");
@@ -234,7 +266,7 @@ export default function ReportBuilderPage() {
             console.error("Export failed:", error);
             alert("匯出失敗，請檢查控制台錯誤訊息。");
         }
-    }, []);
+    }, [canvasDimensions]);
 
     // Clear canvas
     const handleClearCanvas = useCallback(() => {
@@ -243,16 +275,6 @@ export default function ReportBuilderPage() {
         }
     }, [clearCanvas]);
 
-    // Canvas dimensions based on ratio
-    const canvasDimensions = canvasRatio === '16:9'
-        ? { width: 960, height: 540 }
-        : canvasRatio === 'A4'
-            ? { width: 595, height: 842 } // A4 portrait
-            : canvasRatio === '1:1'
-                ? { width: 900, height: 900 }
-                : canvasRatio === '9:16'
-                    ? { width: 540, height: 960 }
-                    : { width: 720, height: 900 }; // 4:5
 
     return (
         <AppLayout>
@@ -483,7 +505,11 @@ export default function ReportBuilderPage() {
                         </div>
 
                         {/* Canvas Container */}
-                        <div className="flex-1 overflow-auto p-8 flex items-center justify-center bg-zinc-950/50">
+                        <div
+                            className="flex-1 overflow-auto p-8 flex items-center justify-center bg-zinc-950/50"
+                            onMouseEnter={() => setIsMouseOverCanvas(true)}
+                            onMouseLeave={() => setIsMouseOverCanvas(false)}
+                        >
                             {!analysisData && !loading ? (
                                 <div className="text-center space-y-4">
                                     <div className="p-6 rounded-full bg-zinc-900 border border-white/5 inline-block">
@@ -534,7 +560,7 @@ export default function ReportBuilderPage() {
                     </main>
                 </div>
 
-                {/* Drag Overlay - Shows a ghost preview when dragging */}
+                {/* Drag Overlay - Shows a ghost preview when dragging (DND Kit version) */}
                 <DragOverlay dropAnimation={null}>
                     {activeItemId ? (
                         <div className="px-4 py-3 bg-violet-600/80 backdrop-blur-sm text-white rounded-lg shadow-2xl border border-violet-400/50 flex items-center gap-2 pointer-events-none">
@@ -542,11 +568,27 @@ export default function ReportBuilderPage() {
                                 <Plus className="w-4 h-4" />
                             </div>
                             <span className="text-sm font-medium">
-                                移動中... {selectedIds.length > 1 ? `(${selectedIds.length} 個元件)` : ''}
+                                多選拖移中... {selectedIds.length > 1 ? `(${selectedIds.length} 個元件)` : ''}
                             </span>
                         </div>
                     ) : null}
                 </DragOverlay>
+
+                {/* Global Draggable Feedback (React-Rnd version) - Only show when NOT over canvas */}
+                {isDragging && !activeItemId && !isMouseOverCanvas && (
+                    <div
+                        className="fixed z-[9999] pointer-events-none px-2 py-1 bg-violet-600 text-white rounded shadow-lg border border-violet-400 flex items-center gap-1.5 transform -translate-x-1/2 -translate-y-[120%]"
+                        style={{
+                            left: mousePos.x,
+                            top: mousePos.y,
+                        }}
+                    >
+                        <Plus className="w-3 h-3" />
+                        <span className="text-[10px] font-bold">
+                            跨頁移動 {draggedItemCount > 1 ? `(${draggedItemCount})` : ''}
+                        </span>
+                    </div>
+                )}
             </DndContext>
         </AppLayout>
     );

@@ -758,6 +758,18 @@ export function DraggableChart({ item, isSelected, onSelect, onUpdate, onRemove,
             }}
             onDrag={(e, d) => {
                 hasDragged.current = true; // Mark that dragging happened
+
+                // Detect hover over page tabs
+                const clientX = (e as MouseEvent).clientX || (e as TouchEvent).touches?.[0]?.clientX;
+                const clientY = (e as MouseEvent).clientY || (e as TouchEvent).touches?.[0]?.clientY;
+                if (clientX !== undefined && clientY !== undefined) {
+                    const elements = document.elementsFromPoint(clientX, clientY);
+                    const hoverTarget = elements.find(el => el.getAttribute('data-page-drop-target') === 'true');
+                    const pageIndexStr = hoverTarget?.getAttribute('data-page-index');
+                    const pageIndex = pageIndexStr !== null && pageIndexStr !== undefined ? parseInt(pageIndexStr, 10) : null;
+                    useReportBuilderStore.getState().setHoveredPageIndex(pageIndex);
+                }
+
                 if (isDraggingGroup.current && selectedIds.length > 1) {
                     const deltaX = d.x - (dragStartPositions.current[item.id]?.x || item.x);
                     const deltaY = d.y - (dragStartPositions.current[item.id]?.y || item.y);
@@ -826,6 +838,7 @@ export function DraggableChart({ item, isSelected, onSelect, onUpdate, onRemove,
                 isDraggingGroup.current = false;
                 dragStartPositions.current = {};
                 setDragging(false);
+                useReportBuilderStore.getState().setHoveredPageIndex(null);
             }}
             onResizeStop={(e, direction, ref, delta, position) => {
                 onUpdate({
