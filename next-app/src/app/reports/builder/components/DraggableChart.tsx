@@ -298,7 +298,7 @@ export function DraggableChart({ item, isSelected, onSelect, onUpdate, onRemove,
                 );
             }
             case 'ranking-chart':
-                const rankingData = analysisData.rankingAnalysis?.projectRanking || [];
+                const rankingData = (item as any).data || analysisData.rankingAnalysis?.projectRanking || [];
                 return (
                     <RankingChart
                         data={rankingData.slice(0, 10)}
@@ -455,7 +455,7 @@ export function DraggableChart({ item, isSelected, onSelect, onUpdate, onRemove,
                 );
 
             case 'ranking-table':
-                const rankingTableData = (item as any).data || analysisData.projectRanking?.projectRanking || [];
+                const rankingTableData = (item as any).data || analysisData.rankingAnalysis?.projectRanking || [];
                 return (
                     <div className="h-full overflow-auto custom-scrollbar">
                         <table className="w-full text-[10px] text-left">
