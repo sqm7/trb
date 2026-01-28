@@ -307,6 +307,7 @@ export function HeatmapReport({ data }: HeatmapReportProps) {
                         filename={`heatmap_tx_${selectedProject}`}
                         label="匯出"
                         chartType="heatmap"
+                        snapshotData={filteredProjectTx || []}
                     />
                 }
             >

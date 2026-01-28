@@ -8,6 +8,19 @@
 - [x] Rename "匯出分佈表" to "匯出" in Location Table section and add `chartType`.
 - [x] Add "匯出" button to Location Chart section with `price-band-location-chart` chartType.
 
+## [Current Task] Standardize Exports & Improve Report Builder
+
+### Step 1: Report Standardization (Snapshot Data)
+- [x] **RankingReport**: Unify "Export" button, add snapshot data.
+- [x] **UnitPriceAnalysisReport**: Unify "Export" button, add snapshot data.
+- [x] **HeatmapReport**: Unify "Export" button, add snapshot data.
+- [x] **SalesVelocityReport**: Unify "Export" button, add snapshot data.
+- [x] **ParkingAnalysisReport**: Unify "Export" button, add snapshot data.
+
+### Step 2: Report Builder Sidebar
+- [x] **ComponentPalette**: Group components by Report Category (Tabs).
+- [x] **UI**: Add headers for each category in the sidebar.
+
 ## [Current Task] Deployment to Test Environment
 
 ### Step 1: Execution

@@ -446,6 +446,11 @@ export function ParkingAnalysisReport({ data }: ParkingAnalysisReportProps) {
                             label="匯出"
                             columns={{ type: '類別', count: '數量', percentage: '百分比', ratio: '比率' }}
                             chartType="parking-pie"
+                            snapshotData={[
+                                { type: '有車位', ...parkingRatio?.withParking },
+                                { type: '無車位', ...parkingRatio?.withoutParking },
+                                { ratio: parkingRatio?.avgRatio }
+                            ]}
                         />
                     }
                 >
@@ -504,6 +509,7 @@ export function ParkingAnalysisReport({ data }: ParkingAnalysisReportProps) {
                             label="匯出"
                             columns={{ type: '車位類型', avgPrice: '平均價格', medianPrice: '中位數', count: '數量' }}
                             chartType="parking-price"
+                            snapshotData={avgPriceByType || []}
                         />
                     }
                 >
@@ -542,6 +548,7 @@ export function ParkingAnalysisReport({ data }: ParkingAnalysisReportProps) {
                         label="匯出"
                         columns={{ id: '建案名稱', label: '標籤', avgArea: '平均坪數', count: '車位數', avgPrice: '平均價格' }}
                         chartType="parking-scatter"
+                        snapshotData={parkingChartData || []}
                     />
                 }
             >
@@ -563,6 +570,7 @@ export function ParkingAnalysisReport({ data }: ParkingAnalysisReportProps) {
                         label="匯出"
                         columns={{ floor: '樓層', count: '數量', avgPrice: '平均價格', medianPrice: '中位數', maxPrice: '最高價', minPrice: '最低價', q3Price: '第三四分位數' }}
                         chartType="parking-floor"
+                        snapshotData={filteredFloorData || []}
                     />
                 }
             >
