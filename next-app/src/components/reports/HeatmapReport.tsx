@@ -12,14 +12,10 @@ import { generateHeatmapData, calculateSuggestedFloorPremium } from "@/lib/heatm
 import { useFilterStore } from "@/store/useFilterStore";
 import { ExportButton } from "@/components/ui/ExportButton";
 
+import { AnalysisData } from "@/lib/types";
+
 interface HeatmapReportProps {
-    data: {
-        priceGridAnalysis: {
-            projectNames: string[];
-            byProject: Record<string, any>;
-        };
-        transactionDetails?: any[];
-    } | null;
+    data: AnalysisData | null;
 }
 
 

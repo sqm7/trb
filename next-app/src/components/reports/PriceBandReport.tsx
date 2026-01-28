@@ -10,28 +10,10 @@ import { Select } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ExportButton } from "@/components/ui/ExportButton";
 
-interface PriceBandItem {
-    roomType: string;
-    bathrooms: number | null;
-    minPrice: number;
-    q1Price: number;
-    medianPrice: number;
-    q3Price: number;
-    maxPrice: number;
-    avgPrice: number;
-    count: number;
-    projectNames?: string[];
-    [key: string]: any;
-}
+import { PriceBandItem, PriceBandAnalysis } from "@/lib/types";
 
 interface PriceBandReportProps {
-    data: {
-        details: PriceBandItem[];
-        locationCrossTable?: Record<string, Record<string, number>>;
-        allDistricts?: string[];
-        allRoomTypes?: string[];
-        transactionDetails?: any[];
-    } | null;
+    data: PriceBandAnalysis | null;
     visibleSections?: string[];
 }
 
@@ -72,7 +54,7 @@ export function PriceBandReport({ data, visibleSections = ['chart', 'table', 'lo
         setModalOpen(true);
     };
 
-    if (!data || !data.details) return null;
+    if (!data || !data.details || data.details.length === 0) return null;
 
     const { details, locationCrossTable, allDistricts, transactionDetails } = data;
 
@@ -390,6 +372,7 @@ export function PriceBandReport({ data, visibleSections = ['chart', 'table', 'lo
                             data={tableData}
                             filename="price_band_chart_data"
                             label="匯出"
+                            chartType="price-band-chart"
                             columns={{ roomType: '房型', bathrooms: '衛浴', minPrice: '最低價', q1Price: 'Q1', medianPrice: '中位數', q3Price: 'Q3', maxPrice: '最高價', avgPrice: '平均價', count: '筆數' }}
                         />
                     }

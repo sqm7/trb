@@ -74,6 +74,19 @@ The system allows users to access the platform using multiple identity providers
   - Non-pro users will see a locked button or permission denied alert.
     - **Content**: Visible data points or underlying dataset for the specific view.
 
+## 6. Report Generation Architecture
+- **Philosophy**: "Data -> Template -> Output".
+- **Constraint**: DO NOT use client-side screen scraping (e.g., `html2canvas`, DOM cloning).
+- **PDF Generation**:
+  - Must use a dedicated **Print Template** component.
+  - Rendered in a detached context (iframe or new window) using the raw `AnalysisData`.
+  - Optimized for **A4 Landscape**.
+  - Must not contain UI controls (buttons, scrollbars).
+- **PPTX Generation**:
+  - Must rely on `PptxGenJS` with a **Strict Template System**.
+  - Visuals must be defined in a "Design System" config (Colors, Fonts), separate from logic.
+  - Output must contain **Native Editable Charts** (no images of charts).
+
 ## 6. Dashboard UX Logic
 - **Global Search**: Moved to the left Sidebar to free up Header space.
   - **Collapsed State**: Displays only a Search icon.

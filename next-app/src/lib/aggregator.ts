@@ -515,6 +515,66 @@ function aggregateParkingAnalysis(parkA: any, parkB: any) {
 function aggregateSalesVelocityAnalysis(velA: any, velB: any) {
     if (!velB) return velA;
 
+    // Merge Overall Stats
+    const overallA = velA.overall || {};
+    const overallB = velB.overall || {};
+    const countA = overallA.transactionCount || 0;
+    const countB = overallB.transactionCount || 0;
+    const totalCount = countA + countB;
+
+    let mergedOverall = {
+        avgDaysToSell: 0,
+        medianDaysToSell: 0,
+        fastestSale: 0,
+        transactionCount: totalCount
+    };
+
+    if (totalCount > 0) {
+        // Weighted average for days
+        const avgDaysA = overallA.avgDaysToSell || 0;
+        const avgDaysB = overallB.avgDaysToSell || 0;
+        mergedOverall.avgDaysToSell = (avgDaysA * countA + avgDaysB * countB) / totalCount;
+
+        // Fastest sale is just min
+        const fastA = overallA.fastestSale !== undefined ? overallA.fastestSale : Infinity;
+        const fastB = overallB.fastestSale !== undefined ? overallB.fastestSale : Infinity;
+        mergedOverall.fastestSale = Math.min(fastA, fastB);
+        if (mergedOverall.fastestSale === Infinity) mergedOverall.fastestSale = 0;
+
+        // Median is hard to aggregate without raw data, approximation or keeping one? 
+        // We often just take weighted avg of medians as rough proxy or avg of medians
+        const medA = overallA.medianDaysToSell || 0;
+        const medB = overallB.medianDaysToSell || 0;
+        // Simple weighted avg for median proxy
+        mergedOverall.medianDaysToSell = (medA * countA + medB * countB) / totalCount;
+    }
+
+    // Merge byRoomType
+    // byRoomType is typically an array of objects { roomType, avgDays, count, ... }
+    const roomTypeMap = new Map();
+    const mergeRoomTypeItem = (item: any) => {
+        if (!item) return;
+        const key = item.roomType;
+        if (!roomTypeMap.has(key)) {
+            roomTypeMap.set(key, { ...item });
+        } else {
+            const existing = roomTypeMap.get(key);
+            const totalC = existing.count + item.count;
+            const existingAvg = existing.avgDays || 0;
+            const itemAvg = item.avgDays || 0;
+
+            existing.avgDays = totalC > 0 ? (existingAvg * existing.count + itemAvg * item.count) / totalC : 0;
+            existing.count = totalC;
+
+            // Merge other fields if needed (median, etc) - keeping simple for weighted avg
+        }
+    };
+
+    (velA.byRoomType || []).forEach(mergeRoomTypeItem);
+    (velB.byRoomType || []).forEach(mergeRoomTypeItem);
+    const mergedByRoomType = Array.from(roomTypeMap.values());
+
+
     const allRoomTypes: any = Array.from(new Set([...(velA.allRoomTypes || []), ...(velB.allRoomTypes || [])]));
     const views = ['monthly', 'quarterly', 'yearly', 'weekly'];
     const mergedViews: any = {};
@@ -558,6 +618,8 @@ function aggregateSalesVelocityAnalysis(velA: any, velB: any) {
     });
 
     return {
+        overall: mergedOverall,
+        byRoomType: mergedByRoomType,
         allRoomTypes,
         ...mergedViews
     };

@@ -12,6 +12,7 @@
 │   ├── src/
 │   │   ├── app/        # App Router Pages
 │   │   │   - `pricing/`: Membership Pricing & Upgrade Page
+│   │   │   - `reports/builder/`: Custom Report Builder (Drag & Drop Canvas)
 │   │   ├── components/ # React Components
 │   │   │   - `ui/`: Reusable UI elements
 │   │   ├── remotion/   # [New] Video Generation Components
@@ -53,6 +54,7 @@
 - **Binding Status**: Calculated from `user.email` (placeholder check) and `user.app_metadata` / `identities`.
 - **Global Search**: Integrated into `Sidebar.tsx`, replacing the previous Header search.
 - **Filter State**: Managed by `useFilterStore`, synchronized across full and compact `FilterBar` views.
+- **Report Builder State**: Managed by `useReportBuilderStore`, persists canvas items to `localStorage`.
 
 ## 5. 部署平台規則
 

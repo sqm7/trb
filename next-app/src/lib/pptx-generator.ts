@@ -7,76 +7,29 @@
  */
 
 import PptxGenJS from 'pptxgenjs';
+import { REPORT_THEME } from './report-design-system';
+import { AnalysisData, GenerateOptions } from './types';
 
 // ============================================================================
-// 色彩配置 (Dark Mode + Data-Dense 風格)
+// 色彩配置 (Mapping from REPORT_THEME)
 // ============================================================================
-const COLORS = {
-    background: '0A0C10',      // 深黑背景
-    cardBg: '1A1D24',          // 卡片背景
-    headerBg: '12141A',        // 標題列背景
-    textPrimary: 'FFFFFF',     // 主要文字
-    textSecondary: '9CA3AF',   // 次要文字
-    textMuted: '6B7280',       // 淡化文字
-    accent: '8B5CF6',          // 強調色（紫）
-    accentLight: 'A78BFA',     // 淺紫
-    cyan: '06B6D4',            // 青色
-    green: '10B981',           // 綠色
-    orange: 'F59E0B',          // 橙色
-    red: 'EF4444',             // 紅色
-    border: '374151',          // 邊框色
+// PptxGenJS expects hex strings without hash for some inputs, or with hash.
+// Safe to use hex strings.
+const THEME = {
+    bg: REPORT_THEME.colors.background,
+    card: REPORT_THEME.colors.cardBg,
+    header: REPORT_THEME.colors.headerBg,
+    text: REPORT_THEME.colors.textPrimary,
+    textSec: REPORT_THEME.colors.textSecondary,
+    textMuted: REPORT_THEME.colors.textMuted,
+    accent: REPORT_THEME.colors.primary,
+    secondary: REPORT_THEME.colors.secondary,
+    border: REPORT_THEME.colors.border,
 };
 
-// 圖表配色
-const CHART_COLORS = ['8B5CF6', '06B6D4', '10B981', 'F59E0B', 'EF4444', 'EC4899', '3B82F6', '14B8A6'];
+const CHART_COLORS = REPORT_THEME.chartColors;
 
-// ============================================================================
-// 類型定義
-// ============================================================================
-interface AnalysisData {
-    coreMetrics: {
-        totalSaleAmount: number;
-        totalHouseArea: number;
-        overallAveragePrice: number;
-        transactionCount: number;
-    };
-    projectRanking: Array<{
-        projectName: string;
-        district?: string;
-        saleAmountSum: number;
-        houseAreaSum: number;
-        averagePrice: number;
-        transactionCount: number;
-        marketShare: number;
-        minPrice?: number;
-        maxPrice?: number;
-        medianPrice?: number;
-    }>;
-    priceBandAnalysis?: {
-        details: Array<{
-            roomType: string;
-            avgPrice: number;
-            minPrice: number;
-            maxPrice: number;
-            medianPrice: number;
-            count: number;
-        }>;
-        locationCrossTable?: Record<string, Record<string, number>>;
-    };
-    salesVelocityAnalysis?: {
-        monthly?: Record<string, any>;
-    };
-    transactionDetails?: any[];
-}
-
-interface GenerateOptions {
-    title?: string;
-    counties?: string[];
-    districts?: string[];
-    dateRange?: string;
-    startDate?: string;
-    endDate?: string;
-}
+// Types moved to ./types.ts
 
 // ============================================================================
 // 輔助函式
@@ -101,20 +54,20 @@ const formatPrice = (num: number): string => {
  */
 function addCoverSlide(pptx: PptxGenJS, options: GenerateOptions): void {
     const slide = pptx.addSlide();
-    slide.background = { color: COLORS.background };
+    slide.background = { color: THEME.bg };
 
     // 裝飾元素 - 漸層區塊（左側）
     slide.addShape('rect', {
         x: 0, y: 0, w: 0.15, h: '100%',
-        fill: { color: COLORS.accent }
+        fill: { color: THEME.accent }
     });
 
     // 主標題
     slide.addText('房市分析報告', {
         x: 0.8, y: 2, w: 8.4, h: 1,
         fontSize: 44,
-        fontFace: 'Arial',
-        color: COLORS.textPrimary,
+        fontFace: REPORT_THEME.fonts.heading,
+        color: THEME.text,
         bold: true
     });
 
@@ -133,8 +86,8 @@ function addCoverSlide(pptx: PptxGenJS, options: GenerateOptions): void {
     slide.addText(subtitleParts.join(' | ') || '完整區域分析', {
         x: 0.8, y: 3.1, w: 8.4, h: 0.5,
         fontSize: 18,
-        fontFace: 'Arial',
-        color: COLORS.textSecondary
+        fontFace: REPORT_THEME.fonts.body,
+        color: THEME.textSec
     });
 
     // 生成日期
@@ -143,16 +96,16 @@ function addCoverSlide(pptx: PptxGenJS, options: GenerateOptions): void {
     slide.addText(`報告生成日期：${dateStr}`, {
         x: 0.8, y: 4.8, w: 4, h: 0.3,
         fontSize: 12,
-        fontFace: 'Arial',
-        color: COLORS.textMuted
+        fontFace: REPORT_THEME.fonts.body,
+        color: THEME.textMuted
     });
 
     // 品牌標識
     slide.addText('平米內參', {
         x: 7.5, y: 4.8, w: 2, h: 0.3,
         fontSize: 14,
-        fontFace: 'Arial',
-        color: COLORS.accent,
+        fontFace: REPORT_THEME.fonts.body,
+        color: THEME.accent,
         bold: true,
         align: 'right'
     });
@@ -163,14 +116,14 @@ function addCoverSlide(pptx: PptxGenJS, options: GenerateOptions): void {
  */
 function addMetricsSlide(pptx: PptxGenJS, data: AnalysisData): void {
     const slide = pptx.addSlide();
-    slide.background = { color: COLORS.background };
+    slide.background = { color: THEME.bg };
 
     // 標題
     slide.addText('核心指標摘要', {
         x: 0.5, y: 0.3, w: 9, h: 0.6,
         fontSize: 28,
-        fontFace: 'Arial',
-        color: COLORS.textPrimary,
+        fontFace: REPORT_THEME.fonts.heading,
+        color: THEME.text,
         bold: true
     });
 
@@ -184,14 +137,14 @@ function addMetricsSlide(pptx: PptxGenJS, data: AnalysisData): void {
 
     // 指標卡片配置
     const metrics = [
-        { label: '總銷售金額', value: formatPrice(data.coreMetrics.totalSaleAmount), color: COLORS.accent },
-        { label: '總銷坪數', value: `${formatNumber(data.coreMetrics.totalHouseArea, 1)} 坪`, color: COLORS.cyan },
-        { label: '平均單價', value: `${formatNumber(data.coreMetrics.overallAveragePrice, 1)} 萬/坪`, color: COLORS.green },
-        { label: '交易筆數', value: `${formatNumber(data.coreMetrics.transactionCount)} 筆`, color: COLORS.orange },
-        { label: '最低單價', value: `${formatNumber(minPrice, 1)} 萬/坪`, color: COLORS.textSecondary },
-        { label: '最高單價', value: `${formatNumber(maxPrice, 1)} 萬/坪`, color: COLORS.textSecondary },
-        { label: '中位數單價', value: `${formatNumber(medianPrice, 1)} 萬/坪`, color: COLORS.accentLight },
-        { label: '建案數量', value: `${rankings.length} 個`, color: COLORS.textSecondary },
+        { label: '總銷售金額', value: formatPrice(data.coreMetrics.totalSaleAmount), color: THEME.accent },
+        { label: '總銷坪數', value: `${formatNumber(data.coreMetrics.totalHouseArea, 1)} 坪`, color: THEME.secondary },
+        { label: '平均單價', value: `${formatNumber(data.coreMetrics.overallAveragePrice, 1)} 萬/坪`, color: REPORT_THEME.colors.success },
+        { label: '交易筆數', value: `${formatNumber(data.coreMetrics.transactionCount)} 筆`, color: REPORT_THEME.colors.accent },
+        { label: '最低單價', value: `${formatNumber(minPrice, 1)} 萬/坪`, color: THEME.textSec },
+        { label: '最高單價', value: `${formatNumber(maxPrice, 1)} 萬/坪`, color: THEME.textSec },
+        { label: '中位數單價', value: `${formatNumber(medianPrice, 1)} 萬/坪`, color: THEME.textMuted }, // Keeping it subtle
+        { label: '建案數量', value: `${rankings.length} 個`, color: THEME.textSec },
     ];
 
     // 4x2 網格佈局
@@ -211,8 +164,8 @@ function addMetricsSlide(pptx: PptxGenJS, data: AnalysisData): void {
         // 卡片背景
         slide.addShape('roundRect', {
             x, y, w: cardW, h: cardH,
-            fill: { color: COLORS.cardBg },
-            line: { color: COLORS.border, width: 0.5 },
+            fill: { color: THEME.card },
+            line: { color: THEME.border, width: 0.5 },
             rectRadius: 0.08
         });
 
@@ -220,8 +173,8 @@ function addMetricsSlide(pptx: PptxGenJS, data: AnalysisData): void {
         slide.addText(metric.label, {
             x, y: y + 0.15, w: cardW, h: 0.3,
             fontSize: 11,
-            fontFace: 'Arial',
-            color: COLORS.textMuted,
+            fontFace: REPORT_THEME.fonts.body,
+            color: THEME.textMuted,
             align: 'center'
         });
 
@@ -229,7 +182,7 @@ function addMetricsSlide(pptx: PptxGenJS, data: AnalysisData): void {
         slide.addText(metric.value, {
             x, y: y + 0.5, w: cardW, h: 0.5,
             fontSize: 20,
-            fontFace: 'Arial',
+            fontFace: REPORT_THEME.fonts.body,
             color: metric.color,
             bold: true,
             align: 'center'
@@ -240,7 +193,7 @@ function addMetricsSlide(pptx: PptxGenJS, data: AnalysisData): void {
     slide.addText('02', {
         x: 9.2, y: 5.1, w: 0.5, h: 0.3,
         fontSize: 10,
-        color: COLORS.textMuted,
+        color: THEME.textMuted,
         align: 'right'
     });
 }
@@ -250,14 +203,14 @@ function addMetricsSlide(pptx: PptxGenJS, data: AnalysisData): void {
  */
 function addRankingChartSlide(pptx: PptxGenJS, data: AnalysisData): void {
     const slide = pptx.addSlide();
-    slide.background = { color: COLORS.background };
+    slide.background = { color: THEME.bg };
 
     // 標題
     slide.addText('Top 10 建案銷售金額排名', {
         x: 0.5, y: 0.3, w: 9, h: 0.6,
         fontSize: 24,
-        fontFace: 'Arial',
-        color: COLORS.textPrimary,
+        fontFace: REPORT_THEME.fonts.heading,
+        color: THEME.text,
         bold: true
     });
 
@@ -270,7 +223,7 @@ function addRankingChartSlide(pptx: PptxGenJS, data: AnalysisData): void {
         slide.addText('無資料', {
             x: 3, y: 2.5, w: 4, h: 1,
             fontSize: 18,
-            color: COLORS.textMuted,
+            color: THEME.textMuted,
             align: 'center'
         });
         return;
@@ -287,25 +240,25 @@ function addRankingChartSlide(pptx: PptxGenJS, data: AnalysisData): void {
         barDir: 'bar',
         showTitle: false,
         showLegend: false,
-        chartColors: [COLORS.accent],
-        catAxisLabelColor: COLORS.textSecondary,
+        chartColors: [THEME.accent],
+        catAxisLabelColor: THEME.textSec,
         catAxisLabelFontSize: 10,
-        valAxisLabelColor: COLORS.textSecondary,
+        valAxisLabelColor: THEME.textSec,
         valAxisLabelFontSize: 9,
         valAxisTitle: '銷售金額 (萬)',
-        valAxisTitleColor: COLORS.textMuted,
+        valAxisTitleColor: THEME.textMuted,
         valAxisTitleFontSize: 10,
         showValAxisTitle: true,
         catGridLine: { style: 'none' },
-        valGridLine: { color: COLORS.border, style: 'dash' },
-        plotArea: { fill: { color: COLORS.background } }
+        valGridLine: { color: THEME.border, style: 'dash' },
+        plotArea: { fill: { color: THEME.bg } }
     });
 
     // 頁碼
     slide.addText('03', {
         x: 9.2, y: 5.1, w: 0.5, h: 0.3,
         fontSize: 10,
-        color: COLORS.textMuted,
+        color: THEME.textMuted,
         align: 'right'
     });
 }
@@ -315,14 +268,14 @@ function addRankingChartSlide(pptx: PptxGenJS, data: AnalysisData): void {
  */
 function addRakingTableSlide(pptx: PptxGenJS, data: AnalysisData): void {
     const slide = pptx.addSlide();
-    slide.background = { color: COLORS.background };
+    slide.background = { color: THEME.bg };
 
     // 標題
     slide.addText('建案排名詳細資料', {
         x: 0.5, y: 0.3, w: 9, h: 0.5,
         fontSize: 24,
-        fontFace: 'Arial',
-        color: COLORS.textPrimary,
+        fontFace: REPORT_THEME.fonts.heading,
+        color: THEME.text,
         bold: true
     });
 
@@ -330,31 +283,31 @@ function addRakingTableSlide(pptx: PptxGenJS, data: AnalysisData): void {
     const top15 = (data.projectRanking || []).slice(0, 15);
 
     const headerRow = [
-        { text: '排名', options: { fill: { color: COLORS.headerBg }, color: COLORS.textSecondary, bold: true, align: 'center' as const } },
-        { text: '建案名稱', options: { fill: { color: COLORS.headerBg }, color: COLORS.textSecondary, bold: true } },
-        { text: '總銷金額', options: { fill: { color: COLORS.headerBg }, color: COLORS.textSecondary, bold: true, align: 'right' as const } },
-        { text: '平均單價', options: { fill: { color: COLORS.headerBg }, color: COLORS.textSecondary, bold: true, align: 'right' as const } },
-        { text: '坪數', options: { fill: { color: COLORS.headerBg }, color: COLORS.textSecondary, bold: true, align: 'right' as const } },
-        { text: '筆數', options: { fill: { color: COLORS.headerBg }, color: COLORS.textSecondary, bold: true, align: 'center' as const } },
+        { text: '排名', options: { fill: { color: THEME.header }, color: THEME.textSec, bold: true, align: 'center' as const } },
+        { text: '建案名稱', options: { fill: { color: THEME.header }, color: THEME.textSec, bold: true } },
+        { text: '總銷金額', options: { fill: { color: THEME.header }, color: THEME.textSec, bold: true, align: 'right' as const } },
+        { text: '平均單價', options: { fill: { color: THEME.header }, color: THEME.textSec, bold: true, align: 'right' as const } },
+        { text: '坪數', options: { fill: { color: THEME.header }, color: THEME.textSec, bold: true, align: 'right' as const } },
+        { text: '筆數', options: { fill: { color: THEME.header }, color: THEME.textSec, bold: true, align: 'center' as const } },
     ];
 
     const dataRows = top15.map((p, idx) => [
-        { text: String(idx + 1), options: { color: COLORS.textMuted, align: 'center' as const } },
-        { text: p.projectName.substring(0, 15), options: { color: COLORS.textPrimary } },
-        { text: formatNumber(p.saleAmountSum), options: { color: COLORS.accent, align: 'right' as const } },
-        { text: formatNumber(p.averagePrice, 1), options: { color: COLORS.cyan, align: 'right' as const } },
-        { text: formatNumber(p.houseAreaSum, 0), options: { color: COLORS.textSecondary, align: 'right' as const } },
-        { text: String(p.transactionCount), options: { color: COLORS.textSecondary, align: 'center' as const } },
+        { text: String(idx + 1), options: { color: THEME.textMuted, align: 'center' as const } },
+        { text: p.projectName.substring(0, 15), options: { color: THEME.text } },
+        { text: formatNumber(p.saleAmountSum), options: { color: THEME.accent, align: 'right' as const } },
+        { text: formatNumber(p.averagePrice, 1), options: { color: THEME.secondary, align: 'right' as const } },
+        { text: formatNumber(p.houseAreaSum, 0), options: { color: THEME.textSec, align: 'right' as const } },
+        { text: String(p.transactionCount), options: { color: THEME.textSec, align: 'center' as const } },
     ]);
 
     slide.addTable([headerRow, ...dataRows], {
         x: 0.3, y: 0.9, w: 9.4, h: 4.3,
         colW: [0.6, 3.2, 1.5, 1.4, 1.3, 0.8],
         fontSize: 10,
-        fontFace: 'Arial',
-        color: COLORS.textPrimary,
-        fill: { color: COLORS.cardBg },
-        border: { type: 'solid', pt: 0.5, color: COLORS.border },
+        fontFace: REPORT_THEME.fonts.body,
+        color: THEME.text,
+        fill: { color: THEME.card },
+        border: { type: 'solid', pt: 0.5, color: THEME.border },
         valign: 'middle'
     });
 
@@ -362,7 +315,7 @@ function addRakingTableSlide(pptx: PptxGenJS, data: AnalysisData): void {
     slide.addText('04', {
         x: 9.2, y: 5.1, w: 0.5, h: 0.3,
         fontSize: 10,
-        color: COLORS.textMuted,
+        color: THEME.textMuted,
         align: 'right'
     });
 }
@@ -372,14 +325,14 @@ function addRakingTableSlide(pptx: PptxGenJS, data: AnalysisData): void {
  */
 function addPriceBandSlide(pptx: PptxGenJS, data: AnalysisData): void {
     const slide = pptx.addSlide();
-    slide.background = { color: COLORS.background };
+    slide.background = { color: THEME.bg };
 
     // 標題
     slide.addText('各房型總價帶分析', {
         x: 0.5, y: 0.3, w: 9, h: 0.5,
         fontSize: 24,
-        fontFace: 'Arial',
-        color: COLORS.textPrimary,
+        fontFace: REPORT_THEME.fonts.heading,
+        color: THEME.text,
         bold: true
     });
 
@@ -389,7 +342,7 @@ function addPriceBandSlide(pptx: PptxGenJS, data: AnalysisData): void {
         slide.addText('無總價帶資料', {
             x: 3, y: 2.5, w: 4, h: 1,
             fontSize: 18,
-            color: COLORS.textMuted,
+            color: THEME.textMuted,
             align: 'center'
         });
         return;
@@ -408,39 +361,39 @@ function addPriceBandSlide(pptx: PptxGenJS, data: AnalysisData): void {
         showTitle: false,
         showLegend: false,
         chartColors: CHART_COLORS,
-        catAxisLabelColor: COLORS.textSecondary,
+        catAxisLabelColor: THEME.textSec,
         catAxisLabelFontSize: 10,
-        valAxisLabelColor: COLORS.textSecondary,
+        valAxisLabelColor: THEME.textSec,
         valAxisLabelFontSize: 9,
         valAxisTitle: '平均總價 (萬)',
         showValAxisTitle: true,
-        valAxisTitleColor: COLORS.textMuted,
+        valAxisTitleColor: THEME.textMuted,
         catGridLine: { style: 'none' },
-        valGridLine: { color: COLORS.border, style: 'dash' },
-        plotArea: { fill: { color: COLORS.background } }
+        valGridLine: { color: THEME.border, style: 'dash' },
+        plotArea: { fill: { color: THEME.bg } }
     });
 
     // 右側統計表格
     const tableData = priceBandData.slice(0, 6).map(d => [
-        { text: d.roomType, options: { color: COLORS.textPrimary } },
-        { text: formatNumber(d.count), options: { color: COLORS.textSecondary, align: 'center' as const } },
-        { text: formatNumber(d.avgPrice, 0), options: { color: COLORS.cyan, align: 'right' as const } },
+        { text: d.roomType, options: { color: THEME.text } },
+        { text: formatNumber(d.count), options: { color: THEME.textSec, align: 'center' as const } },
+        { text: formatNumber(d.avgPrice, 0), options: { color: THEME.secondary, align: 'right' as const } },
     ]);
 
     const header = [
-        { text: '房型', options: { fill: { color: COLORS.headerBg }, color: COLORS.textSecondary, bold: true } },
-        { text: '筆數', options: { fill: { color: COLORS.headerBg }, color: COLORS.textSecondary, bold: true, align: 'center' as const } },
-        { text: '均價', options: { fill: { color: COLORS.headerBg }, color: COLORS.textSecondary, bold: true, align: 'right' as const } },
+        { text: '房型', options: { fill: { color: THEME.header }, color: THEME.textSec, bold: true } },
+        { text: '筆數', options: { fill: { color: THEME.header }, color: THEME.textSec, bold: true, align: 'center' as const } },
+        { text: '均價', options: { fill: { color: THEME.header }, color: THEME.textSec, bold: true, align: 'right' as const } },
     ];
 
     slide.addTable([header, ...tableData], {
         x: 5.2, y: 1, w: 4.3, h: 2.5,
         colW: [1.5, 1.2, 1.4],
         fontSize: 11,
-        fontFace: 'Arial',
-        color: COLORS.textPrimary,
-        fill: { color: COLORS.cardBg },
-        border: { type: 'solid', pt: 0.5, color: COLORS.border },
+        fontFace: REPORT_THEME.fonts.body,
+        color: THEME.text,
+        fill: { color: THEME.card },
+        border: { type: 'solid', pt: 0.5, color: THEME.border },
         valign: 'middle'
     });
 
@@ -448,7 +401,7 @@ function addPriceBandSlide(pptx: PptxGenJS, data: AnalysisData): void {
     slide.addText('05', {
         x: 9.2, y: 5.1, w: 0.5, h: 0.3,
         fontSize: 10,
-        color: COLORS.textMuted,
+        color: THEME.textMuted,
         align: 'right'
     });
 }
@@ -458,14 +411,14 @@ function addPriceBandSlide(pptx: PptxGenJS, data: AnalysisData): void {
  */
 function addDistrictDistributionSlide(pptx: PptxGenJS, data: AnalysisData): void {
     const slide = pptx.addSlide();
-    slide.background = { color: COLORS.background };
+    slide.background = { color: THEME.bg };
 
     // 標題
     slide.addText('各行政區成交佔比', {
         x: 0.5, y: 0.3, w: 9, h: 0.5,
         fontSize: 24,
-        fontFace: 'Arial',
-        color: COLORS.textPrimary,
+        fontFace: REPORT_THEME.fonts.heading,
+        color: THEME.text,
         bold: true
     });
 
@@ -486,7 +439,7 @@ function addDistrictDistributionSlide(pptx: PptxGenJS, data: AnalysisData): void
         slide.addText('無區域分佈資料', {
             x: 3, y: 2.5, w: 4, h: 1,
             fontSize: 18,
-            color: COLORS.textMuted,
+            color: THEME.textMuted,
             align: 'center'
         });
         return;
@@ -503,7 +456,7 @@ function addDistrictDistributionSlide(pptx: PptxGenJS, data: AnalysisData): void
         showTitle: false,
         showLegend: true,
         legendPos: 'r',
-        legendColor: COLORS.textSecondary,
+        legendColor: THEME.textSec,
         legendFontSize: 10,
         chartColors: CHART_COLORS,
         showPercent: true,
@@ -514,7 +467,7 @@ function addDistrictDistributionSlide(pptx: PptxGenJS, data: AnalysisData): void
     slide.addText('06', {
         x: 9.2, y: 5.1, w: 0.5, h: 0.3,
         fontSize: 10,
-        color: COLORS.textMuted,
+        color: THEME.textMuted,
         align: 'right'
     });
 }
@@ -524,14 +477,14 @@ function addDistrictDistributionSlide(pptx: PptxGenJS, data: AnalysisData): void
  */
 function addSalesTrendSlide(pptx: PptxGenJS, data: AnalysisData): void {
     const slide = pptx.addSlide();
-    slide.background = { color: COLORS.background };
+    slide.background = { color: THEME.bg };
 
     // 標題
     slide.addText('月度銷售趨勢', {
         x: 0.5, y: 0.3, w: 9, h: 0.5,
         fontSize: 24,
-        fontFace: 'Arial',
-        color: COLORS.textPrimary,
+        fontFace: REPORT_THEME.fonts.heading,
+        color: THEME.text,
         bold: true
     });
 
@@ -555,7 +508,7 @@ function addSalesTrendSlide(pptx: PptxGenJS, data: AnalysisData): void {
         slide.addText('資料不足以顯示趨勢', {
             x: 3, y: 2.5, w: 4, h: 1,
             fontSize: 18,
-            color: COLORS.textMuted,
+            color: THEME.textMuted,
             align: 'center'
         });
         return;
@@ -571,29 +524,29 @@ function addSalesTrendSlide(pptx: PptxGenJS, data: AnalysisData): void {
         x: 0.5, y: 1, w: 9, h: 4,
         showTitle: false,
         showLegend: false,
-        chartColors: [COLORS.cyan],
+        chartColors: [THEME.secondary],
         lineSize: 3,
         lineSmooth: true,
-        catAxisLabelColor: COLORS.textSecondary,
+        catAxisLabelColor: THEME.textSec,
         catAxisLabelFontSize: 10,
         catAxisTitle: '月份',
         showCatAxisTitle: true,
-        catAxisTitleColor: COLORS.textMuted,
-        valAxisLabelColor: COLORS.textSecondary,
+        catAxisTitleColor: THEME.textMuted,
+        valAxisLabelColor: THEME.textSec,
         valAxisLabelFontSize: 9,
         valAxisTitle: '成交筆數',
         showValAxisTitle: true,
-        valAxisTitleColor: COLORS.textMuted,
+        valAxisTitleColor: THEME.textMuted,
         catGridLine: { style: 'none' },
-        valGridLine: { color: COLORS.border, style: 'dash' },
-        plotArea: { fill: { color: COLORS.background } }
+        valGridLine: { color: THEME.border, style: 'dash' },
+        plotArea: { fill: { color: THEME.bg } }
     });
 
     // 頁碼
     slide.addText('07', {
         x: 9.2, y: 5.1, w: 0.5, h: 0.3,
         fontSize: 10,
-        color: COLORS.textMuted,
+        color: THEME.textMuted,
         align: 'right'
     });
 }

@@ -14,9 +14,10 @@ interface RankingChartProps {
     sortKey: string;
     limit?: number;
     chartType?: 'auto' | 'bar' | 'treemap';
+    height?: number | string;
 }
 
-export function RankingChart({ data, sortKey, limit = 30, chartType = 'auto' }: RankingChartProps) {
+export function RankingChart({ data, sortKey, limit = 30, chartType = 'auto', height }: RankingChartProps) {
     const activeChartType = useMemo(() => {
         if (chartType && chartType !== 'auto') return chartType;
 
@@ -237,7 +238,7 @@ export function RankingChart({ data, sortKey, limit = 30, chartType = 'auto' }: 
                     type={activeChartType === 'bar' ? 'bar' : 'treemap'}
                     series={series}
                     options={options}
-                    height={450}
+                    height={height || 450}
                     className="w-full"
                 />
             </div>

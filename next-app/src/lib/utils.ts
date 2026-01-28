@@ -12,3 +12,11 @@ export function formatNumber(value: number | null | undefined, decimals: number 
         maximumFractionDigits: decimals
     });
 }
+
+export function formatPrice(num: number): string {
+    if (num === null || num === undefined || isNaN(num)) return '-';
+    if (num >= 10000) {
+        return `${(num / 10000).toFixed(2)}億`;
+    }
+    return `${formatNumber(num, 0)}萬`;
+}

@@ -8,29 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/select";
 import { ChevronLeft, ChevronRight, ArrowUpDown, ArrowUp, ArrowDown, BarChart3, LayoutGrid, Sparkles } from "lucide-react";
 import { ExportButton } from "@/components/ui/ExportButton";
-
-interface ProjectRankingItem {
-    projectName: string;
-    county: string;
-    district: string;
-    saleAmountSum: number;
-    houseAreaSum: number;
-    transactionCount: number;
-    marketShare: number;
-    averagePrice: number;
-    minPrice: number;
-    maxPrice: number;
-    medianPrice: number;
-    avgParkingPrice: number;
-    [key: string]: any;
-}
-
-interface CoreMetrics {
-    totalSaleAmount: number;
-    totalHouseArea: number;
-    overallAveragePrice: number;
-    transactionCount: number;
-}
+import { ProjectRankingItem, CoreMetrics } from "@/lib/types";
 
 interface RankingReportProps {
     data: {
@@ -266,6 +244,7 @@ export function RankingReport({ data, visibleSections = ['metrics', 'chart', 'ta
                                         data={sortedData.slice(0, chartLimit)}
                                         filename="ranking_chart_data"
                                         label="匯出"
+                                        chartType="ranking-chart"
                                         columns={{ projectName: '建案名稱', county: '縣市', district: '行政區', saleAmountSum: '交易總價', houseAreaSum: '房屋面積', transactionCount: '資料筆數', marketShare: '市場佔比', averagePrice: '平均單價', minPrice: '最低單價', maxPrice: '最高單價', medianPrice: '中位數單價', avgParkingPrice: '車位均價' }}
                                     />
                                 </div>

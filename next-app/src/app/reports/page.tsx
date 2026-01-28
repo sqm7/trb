@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Script from 'next/script';
+import { createRoot } from 'react-dom/client';
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useAnalysisData } from "@/hooks/useAnalysisData";
 import { useFilterStore } from "@/store/useFilterStore";
@@ -10,19 +11,16 @@ import { Loader2, FileDown, FileType, CheckSquare, Square, ChevronRight, Chevron
 import { cn } from "@/lib/utils";
 import { downloadReportPPTX } from "@/lib/pptx-generator";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
+import { PrintableReport } from "@/components/reports/templates/PrintableReport";
 
-// Report Components
-// Report Components
-import { RankingReport } from "@/components/reports/RankingReport";
-import { PriceBandReport } from "@/components/reports/PriceBandReport";
-import { UnitPriceAnalysisReport } from "@/components/reports/UnitPriceAnalysisReport";
-import { HeatmapReport } from "@/components/reports/HeatmapReport";
-import { SalesVelocityReport } from "@/components/reports/SalesVelocityReport";
-import { ParkingAnalysisReport } from "@/components/reports/ParkingAnalysisReport";
-import PolicyTimelineReport from "@/components/reports/PolicyTimelineReport";
+// Report Components (REMOVED - These are interactive dashboard components)
+// import { RankingReport } from "@/components/reports/RankingReport";
+// import { PriceBandReport } from "@/components/reports/PriceBandReport";
+// ... etc.
+
 import { SlideContainer } from "@/components/reports/SlideContainer";
 
-// Slide Components
+// Slide Components (PURE STATIC - No interactive elements)
 import { RankingSlide } from "@/components/reports/slides/RankingSlide";
 import { PriceBandSlide } from "@/components/reports/slides/PriceBandSlide";
 import { UnitPriceSlide } from "@/components/reports/slides/UnitPriceSlide";
@@ -31,11 +29,16 @@ import { SalesVelocitySlide } from "@/components/reports/slides/SalesVelocitySli
 import { ParkingSlide } from "@/components/reports/slides/ParkingSlide";
 import { PolicyTimelineSlide } from "@/components/reports/slides/PolicyTimelineSlide";
 
+/**
+ * REPORT_CONFIG - Design-First Slide Templates
+ * 
+ * Each entry maps to a STATIC slide component with no interactive elements.
+ * The `slideComponent` is the ONLY render target for the preview.
+ */
 const REPORT_CONFIG = [
     {
         id: 'ranking',
         label: '核心指標與排名',
-        component: RankingReport,
         slideComponent: RankingSlide,
         modules: [
             { id: 'metrics', label: '核心指標看板' },
@@ -46,7 +49,6 @@ const REPORT_CONFIG = [
     {
         id: 'price-band',
         label: '總價帶分析',
-        component: PriceBandReport,
         slideComponent: PriceBandSlide,
         modules: [
             { id: 'chart', label: '總價帶分佈圖' },
@@ -58,7 +60,6 @@ const REPORT_CONFIG = [
     {
         id: 'unit-price',
         label: '單價分析',
-        component: UnitPriceAnalysisReport,
         slideComponent: UnitPriceSlide,
         modules: [
             { id: 'stats', label: '各用途單價統計' },
@@ -69,7 +70,6 @@ const REPORT_CONFIG = [
     {
         id: 'heatmap',
         label: '調價熱力圖',
-        component: HeatmapReport,
         slideComponent: HeatmapSlide,
         modules: [
             { id: 'all', label: '完整熱力圖報告' }
@@ -78,7 +78,6 @@ const REPORT_CONFIG = [
     {
         id: 'velocity',
         label: '銷售速度與房型',
-        component: SalesVelocityReport,
         slideComponent: SalesVelocitySlide,
         modules: [
             { id: 'all', label: '完整銷售速度報告' }
@@ -87,7 +86,6 @@ const REPORT_CONFIG = [
     {
         id: 'parking',
         label: '車位分析',
-        component: ParkingAnalysisReport,
         slideComponent: ParkingSlide,
         modules: [
             { id: 'all', label: '完整車位分析報告' }
@@ -96,7 +94,6 @@ const REPORT_CONFIG = [
     {
         id: 'timeline',
         label: '政策時光機',
-        component: PolicyTimelineReport,
         slideComponent: PolicyTimelineSlide,
         modules: [
             { id: 'all', label: '完整政策影響分析' }
@@ -234,174 +231,104 @@ export default function ReportsPage() {
         }
     };
 
+    // ========== PDF Download Handler (Data-Driven) ==========
     const handleDownloadPDF = async () => {
+        if (!analysisData) {
+            alert("請先產生分析數據");
+            return;
+        }
+
         setIsGenerating(true);
         try {
-            console.log("Starting PDF generation (Slide Deck Mode)...");
+            console.log("Starting Data-Driven PDF generation...");
 
-            const element = document.getElementById('report-preview-container');
-            if (!element) {
-                throw new Error("Element #report-preview-container not found!");
-            }
-
-            // Create a new window with ONLY the report content
-            // Using 16:9 ratio window mainly for preview feel, print dialog will handle page size
+            // 1. Create a hidden print window
             const printWindow = window.open('', '_blank', 'width=1280,height=720');
             if (!printWindow) {
                 throw new Error("Could not open print window. Please allow popups.");
             }
 
-            // Helper: Convert any color to RGBA using Canvas
-            const toRgba = (color: string): string => {
-                if (!color || color === 'transparent' || color === 'rgba(0, 0, 0, 0)') return color;
-                if (color.startsWith('#') || color.startsWith('rgb')) return color;
-
-                try {
-                    const canvas = document.createElement('canvas');
-                    canvas.width = 1;
-                    canvas.height = 1;
-                    const ctx = canvas.getContext('2d');
-                    if (ctx) {
-                        ctx.fillStyle = color;
-                        ctx.fillRect(0, 0, 1, 1);
-                        const [r, g, b, a] = ctx.getImageData(0, 0, 1, 1).data;
-                        return `rgba(${r}, ${g}, ${b}, ${(a / 255).toFixed(2)})`;
-                    }
-                } catch (e) {
-                    console.warn("Color conversion failed for:", color);
-                }
-                return color;
-            };
-
-            // Helper: Recursively clone element with FULL inline styles
-            const deepCloneWithInlineStyles = (el: Element): HTMLElement => {
-                const clone = document.createElement(el.tagName.toLowerCase());
-
-                // Copy all attributes
-                Array.from(el.attributes).forEach(attr => {
-                    if (attr.name !== 'style' && attr.name !== 'class') {
-                        clone.setAttribute(attr.name, attr.value);
-                    }
-                });
-
-                // Preserve classes for print styling hooks
-                if (el.hasAttribute('class')) {
-                    clone.setAttribute('class', el.getAttribute('class') || '');
-                }
-
-                // Get ALL computed styles and apply them inline
-                const computed = window.getComputedStyle(el);
-                const colorProps = ['color', 'background-color', 'border-color', 'border-top-color',
-                    'border-bottom-color', 'border-left-color', 'border-right-color',
-                    'outline-color', 'fill', 'stroke'];
-
-                let styleString = '';
-                for (let i = 0; i < computed.length; i++) {
-                    const prop = computed[i];
-                    let value = computed.getPropertyValue(prop);
-
-                    // Convert colors to RGBA
-                    if (colorProps.includes(prop)) {
-                        value = toRgba(value);
-                    }
-
-                    styleString += `${prop}:${value};`;
-                }
-
-                // FORCE Print Breaks for Slides
-                if (el.classList.contains('slide-item')) {
-                    styleString += "page-break-after: always !important; break-after: page !important; margin-bottom: 0 !important; height: 100vh !important;";
-                }
-
-                clone.setAttribute('style', styleString);
-
-                // Handle text nodes and child elements
-                Array.from(el.childNodes).forEach(child => {
-                    if (child.nodeType === Node.TEXT_NODE) {
-                        clone.appendChild(document.createTextNode(child.textContent || ''));
-                    } else if (child.nodeType === Node.ELEMENT_NODE) {
-                        clone.appendChild(deepCloneWithInlineStyles(child as Element));
-                    }
-                });
-
-                return clone;
-            };
-
-            console.log("Creating styled clone...");
-            // Use cloneNode(true) and then iterate to apply styles might be faster but inline styles are robust.
-            // We use the deepCloneWithInlineStyles approach to capture computed styles effectively.
-            const styledClone = deepCloneWithInlineStyles(element);
-
-            // Write to print window with Landscape Page Setup
+            // 2. Setup the Print Window Document
             printWindow.document.write(`
                 <!DOCTYPE html>
                 <html>
                 <head>
                     <meta charset="utf-8">
                     <title>平米內參 - 房市簡報</title>
+                    <script src="https://cdn.tailwindcss.com"></script>
+                    <script>
+                        tailwind.config = {
+                            theme: {
+                                extend: {
+                                    colors: {
+                                        violet: { 400: '#a78bfa', 900: '#4c1d95' },
+                                        cyan: { 400: '#22d3ee' },
+                                        emerald: { 400: '#34d399' },
+                                        amber: { 400: '#fbbf24' }
+                                    }
+                                }
+                            }
+                        }
+                    </script>
                     <style>
-                        /* A4 Landscape Page Setup */
                         @page {
                             size: A4 landscape;
-                            margin: 0; /* Minimal margin, let slides define padding */
+                            margin: 0;
                         }
-                        
-                        /* Reset & Base */
-                        * { 
-                            margin: 0; 
-                            padding: 0; 
-                            box-sizing: border-box; 
+                        body {
+                            margin: 0;
                             -webkit-print-color-adjust: exact !important;
                             print-color-adjust: exact !important;
+                            background-color: #0A0C10;
                         }
-                        
-                        html, body {
-                            width: 100%;
-                            height: 100%;
-                            background: #09090b; 
+                        /* Print Specific Overrides */
+                        @media print {
+                            .break-after-page {
+                                page-break-after: always;
+                                break-after: page;
+                            }
+                            .break-inside-avoid {
+                                page-break-inside: avoid;
+                            }
                         }
-                        
-                        /* Ensure one slide per page */
-                        .slide-wrapper {
-                            page-break-after: always;
-                            page-break-inside: avoid;
-                            width: 100%;
-                            height: 100%;
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                        }
-
-                        /* Scale content to fit page if needed */
-                        /* But ideally we just let the aspect ratio container do its job */
                     </style>
                 </head>
                 <body>
-                    <div id="report-content"></div>
+                    <div id="print-root"></div>
                 </body>
                 </html>
             `);
+
             printWindow.document.close();
 
-            // Append to the report-content container
-            const container = printWindow.document.getElementById('report-content');
-            if (container) {
-                // Wrap each child of styledClone in a page-break wrapper if strictly needed?
-                // Our SlideContainer has aspect-ratio. 
-                // Let's rely on the structure we built.
-                container.appendChild(styledClone);
+            // Wait for Tailwind CDN to load slightly (optional but safer)
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+            // 3. Render the PrintableReport into the new window
+            const printRoot = printWindow.document.getElementById('print-root');
+            if (printRoot) {
+                const root = createRoot(printRoot);
+                const today = new Date().toLocaleDateString('zh-TW');
+
+                root.render(
+                    <PrintableReport
+                        data={analysisData}
+                        filters={filters}
+                        reportDate={today}
+                    />
+                );
             }
 
-            // Wait a moment for styles to apply
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            // 4. Wait for rendering (including charts) then Print
+            // Recharts needs a moment to animation/render
+            await new Promise(resolve => setTimeout(resolve, 1500));
 
-            // Trigger print dialog
-            console.log("Opening print dialog...");
+            console.log("Triggering Print Dialog...");
             printWindow.print();
 
         } catch (err: any) {
             console.error("PDF Generation failed:", err);
-            alert(`PDF 生成失敗: ${err.message || err}\n請截圖此畫面給工程師。`);
+            alert(`PDF 生成失敗: ${err.message || err}`);
         } finally {
             setIsGenerating(false);
         }
@@ -424,7 +351,7 @@ export default function ReportsPage() {
             <div className="lg:hidden flex items-center justify-between p-4 bg-zinc-900/80 border-b border-white/5">
                 <h2 className="font-semibold text-white flex items-center gap-2">
                     <FileDown className="h-5 w-5 text-violet-400" />
-                    報表生成器 (PPT Mode)
+                    報表生成器
                 </h2>
                 <Button
                     variant="outline"
@@ -619,13 +546,9 @@ export default function ReportsPage() {
                                             const selectedModules = selections[section.id] || [];
                                             if (selectedModules.length === 0) return null;
 
-                                            // Here we cheat slightly: We map 1-to-1 section to slide for now
-                                            // Ideally we might split modules into separate slides if needed
-                                            // But current component design is monolith-per-section
-
                                             pageCount++;
-                                            // @ts-ignore - dynamic extension
-                                            const SlideComponent = section.slideComponent || section.component;
+                                            // Use ONLY the static slideComponent - no fallback to interactive components
+                                            const SlideComponent = section.slideComponent;
                                             const props = getReportProps(section.id);
 
                                             if (!props) return null;

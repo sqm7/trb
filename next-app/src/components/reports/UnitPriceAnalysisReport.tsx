@@ -9,16 +9,10 @@ import { TypeComparisonTable } from "./TypeComparisonTable";
 import { cn } from "@/lib/utils";
 import { ExportButton } from "@/components/ui/ExportButton";
 
+import { AnalysisData } from "@/lib/types";
+
 interface UnitPriceAnalysisReportProps {
-    data: {
-        transactionDetails?: any[];
-        unitPriceAnalysis?: {
-            residentialStats?: any;
-            officeStats?: any;
-            storeStats?: any;
-            typeComparison?: any[];
-        };
-    } | null;
+    data: AnalysisData | null;
     visibleSections?: string[];
 }
 
@@ -132,6 +126,7 @@ export function UnitPriceAnalysisReport({ data, visibleSections = ['stats', 'com
                                 data={transactionDetails}
                                 filename="bubble_chart_source_data"
                                 label="匯出交易數據"
+                                chartType="unit-price-bubble"
                             />
                         }
                     >

@@ -1,5 +1,10 @@
 # Implementation Plan
 
+## [Current Task] Deployment to Test Environment
+
+### Step 1: Execution
+- [x] Run `scripts/deploy_next_trb.sh` to push updates to TRB test environment.
+
 ## [Current Task] Alchemy of Data (Web Edition)
 
 ### Step 1: Implementation
@@ -229,3 +234,44 @@ User is unable to unbind LINE even after binding an email. We suspect a state sy
 - [x] **[Fix]** Safe navigation for `.toFixed()` in `RankingSlide.tsx` and `UnitPriceSlide.tsx`.
 - [x] **[Fix]** Correct data passing logic in `ReportsPage.tsx` for `RankingSlide` and `SalesVelocitySlide`.
 - [x] **[Ops]** Manually deploy fixes to Test Environment (TRB) bypassing script hang.
+
+## [Completed Task] Refactor Report Generation
+### Step 1: Design System & Architecture
+- [x] Define `ReportData` schema and shared Design Tokens (Colors, Fonts) in `src/lib/report-design-system.ts`.
+- [x] Ensure strict typing for all report data sources.
+
+### Step 2: PDF Template Engine
+- [x] Create `PrintableReport` component (A4 Landscape optimized).
+- [x] Implement `handleDownloadPDF` using **New Window + Print** strategy (No DOM cloning).
+- [x] Verify PDF output is clean, vector-based, and matches the "Vibe" aesthetic.
+
+### Step 3: PPTX Template Engine
+- [x] Refactor `pptx-generator.ts` to use `PPTXTemplate` class pattern.
+- [x] Apply `ui-ux-pro-max` design principles to slide layouts.
+- [x] Ensure all charts are natively editable.
+
+### Step 4: Verification
+- [x] Verify both outputs with real data.
+- [x] Deploy to Test Environment.
+
+## [Completed Task] Report Builder (Custom Report Editor)
+### Step 1: Core Infrastructure
+- [x] Create `/reports/builder` page with drag-and-drop canvas.
+- [x] Implement `DraggableChart` component using `react-rnd`.
+- [x] Implement `ComponentPalette` for adding charts to canvas.
+- [x] Implement `Canvas` component with ratio settings (16:9, A4).
+
+### Step 2: State Management
+- [x] Create `useReportBuilderStore.ts` (Zustand with persist).
+- [x] Implement state persistence to `localStorage`.
+- [x] Add actions: `addItem`, `updateItem`, `removeItem`, `clearCanvas`.
+
+### Step 3: Export Integration
+- [x] Add PDF export from canvas via print dialog.
+- [x] Add `chartType` prop to `ExportButton.tsx`.
+- [x] Add "新增到報表編輯器" dropdown option.
+- [x] Integrate into `RankingReport`, `PriceBandReport`, `SalesVelocityReport`, `UnitPriceAnalysisReport`.
+
+### Step 4: Verification
+- [x] Deploy to Test Environment.
+- [/] Bug fixes and refinements (pending).

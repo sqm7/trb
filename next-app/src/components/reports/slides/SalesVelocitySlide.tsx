@@ -24,6 +24,9 @@ export function SalesVelocitySlide({ data }: SalesVelocitySlideProps) {
 
     const { overall, byRoomType, salesRate } = data.salesVelocity;
 
+    // Guard against missing overall data
+    if (!overall) return null;
+
     // Determine gauge status
     let statusText = "一般";
     let statusColor = "text-zinc-400";

@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { AnalysisData } from '@/lib/types';
 
 interface FilterState {
     counties: string[];
@@ -40,8 +41,8 @@ interface FilterState {
     setVelocityMetric: (metric: 'count' | 'priceSum' | 'areaSum') => void;
 
     // Data Persistence
-    analysisData: any | null;
-    setAnalysisData: (data: any | null) => void;
+    analysisData: AnalysisData | null;
+    setAnalysisData: (data: AnalysisData | null) => void;
 
     resetFilters: () => void;
 }

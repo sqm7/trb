@@ -90,10 +90,10 @@ export default function DashboardPage() {
 
                         <TabsContent value="price-band" className="focus-visible:outline-none focus-visible:ring-0">
                             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-                                <PriceBandReport data={{
+                                <PriceBandReport data={analysisData.priceBandAnalysis ? {
                                     ...analysisData.priceBandAnalysis,
                                     transactionDetails: analysisData.transactionDetails
-                                }} />
+                                } : null} />
                             </motion.div>
                         </TabsContent>
 
@@ -105,13 +105,13 @@ export default function DashboardPage() {
 
                         <TabsContent value="heatmap" className="focus-visible:outline-none focus-visible:ring-0">
                             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-                                <HeatmapReport data={analysisData} />
+                                <HeatmapReport data={analysisData.priceGridAnalysis ? analysisData : null} />
                             </motion.div>
                         </TabsContent>
 
                         <TabsContent value="timeline" className="focus-visible:outline-none focus-visible:ring-0">
                             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-                                <PolicyTimelineReport data={analysisData.transactionDetails} />
+                                <PolicyTimelineReport data={analysisData.transactionDetails as any} />
                             </motion.div>
                         </TabsContent>
 
@@ -123,13 +123,13 @@ export default function DashboardPage() {
 
                         <TabsContent value="parking" className="focus-visible:outline-none focus-visible:ring-0">
                             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-                                <ParkingAnalysisReport data={analysisData} />
+                                <ParkingAnalysisReport data={analysisData.parkingAnalysis?.parkingRatio ? analysisData : null} />
                             </motion.div>
                         </TabsContent>
 
                         <TabsContent value="data-list" className="focus-visible:outline-none focus-visible:ring-0">
                             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-                                <DataListReport trigger={analysisData} />
+                                <DataListReport trigger={analysisData.transactionDetails?.length ? analysisData : null} />
                             </motion.div>
                         </TabsContent>
                     </Tabs>

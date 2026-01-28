@@ -560,7 +560,7 @@ export function BubbleChart({
                 className={cn(
                     "relative rounded-3xl overflow-hidden border border-white/5 transition-all duration-500",
                     "bg-gradient-to-b from-zinc-900 via-zinc-900 to-zinc-950",
-                    displayMode === 'natural' ? "min-h-[500px]" : "min-h-[500px]"
+                    "h-full min-h-[300px]"
                 )}
             >
                 {/* Background Ambient Effects */}
@@ -571,7 +571,7 @@ export function BubbleChart({
                 </div>
 
                 {/* Content Area */}
-                <div className="relative w-full h-full min-h-[500px]">
+                <div className="relative w-full h-full min-h-[300px]">
 
                     {/* Natural Mode: Physics Simulation */}
                     {displayMode === 'natural' && (

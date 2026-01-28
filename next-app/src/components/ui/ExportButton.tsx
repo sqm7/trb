@@ -1,14 +1,17 @@
 import Link from 'next/link';
-import React from 'react';
-import { Download, Lock, Loader2 } from "lucide-react";
+import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { Download, Lock, Loader2, LayoutTemplate, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useUserRole } from "@/hooks/useUserRole";
+import { useReportBuilderStore, ChartType } from "@/store/useReportBuilderStore";
 import {
     Tooltip,
     TooltipContent,
     TooltipProvider,
     TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
 
 interface ExportButtonProps {
     data: any[];
@@ -16,18 +19,23 @@ interface ExportButtonProps {
     label?: string;
     className?: string;
     disabled?: boolean;
-    columns?: Record<string, string>; // Map english keys to chinese headers
+    columns?: Record<string, string>;
+    chartType?: ChartType; // NEW: For adding to Report Builder
 }
 
 export function ExportButton({
     data,
     filename = "export",
-    label = "匯出 CSV",
+    label = "匯出",
     className,
     disabled = false,
-    columns
+    columns,
+    chartType
 }: ExportButtonProps) {
     const { role, isLoading } = useUserRole();
+    const router = useRouter();
+    const addItem = useReportBuilderStore(state => state.addItem);
+    const [isOpen, setIsOpen] = useState(false);
 
     // Check permissions
     const hasPermission = ['pro', 'pro_max', 'admin', 'super_admin'].includes(role || '');
@@ -117,6 +125,14 @@ export function ExportButton({
         }
     };
 
+    // NEW: Add to Report Builder
+    const handleAddToBuilder = () => {
+        if (!hasPermission || !chartType) return;
+        addItem(chartType);
+        router.push('/reports/builder');
+        setIsOpen(false);
+    };
+
     if (isLoading) {
         return (
             <Button
@@ -133,43 +149,66 @@ export function ExportButton({
 
     return (
         <TooltipProvider>
-            <Tooltip delayDuration={0}>
-                <TooltipTrigger asChild>
-                    {/* Wrap in span to ensure tooltip works even if button is disabled (though here we handle logic inside) */}
-                    <span className="inline-block" tabIndex={!hasPermission ? 0 : -1}>
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={handleExport}
-                            // Logic: If user is not pro, we DO NOT disable the button natively, we just style it as disabled. 
-                            // This allows proper event capture for tooltips.
-                            disabled={disabled || (hasPermission && (!data || data.length === 0))}
-                            className={`gap-2 border-dashed ${!hasPermission
-                                ? 'border-zinc-800 bg-zinc-900/30 text-zinc-600 cursor-not-allowed hover:bg-zinc-900/30'
-                                : 'border-zinc-700 bg-zinc-900/50 hover:bg-zinc-800 text-zinc-400 hover:text-white'
-                                } transition-all ${className}`}
-                        >
-                            {!hasPermission ? <Lock className="h-3 w-3" /> : <Download className="h-4 w-4" />}
-                            <span className="hidden sm:inline">{label}</span>
-                        </Button>
-                    </span>
-                </TooltipTrigger>
-                <TooltipContent className="bg-zinc-950 border border-zinc-800 p-0 overflow-hidden">
-                    <div className="flex flex-col gap-1 items-center p-3">
-                        <p className="font-medium text-zinc-200">
-                            {!hasPermission ? "Pro 會員限定功能" : "下載 CSV 檔案"}
-                        </p>
-                        {!hasPermission && (
-                            <Link
-                                href="/pricing"
-                                className="text-xs text-violet-400 hover:text-violet-300 underline underline-offset-2 transition-colors flex items-center gap-1"
+            <div className="relative inline-block">
+                <Tooltip delayDuration={0}>
+                    <TooltipTrigger asChild>
+                        <span className="inline-flex" tabIndex={!hasPermission ? 0 : -1}>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => chartType ? setIsOpen(!isOpen) : handleExport()}
+                                disabled={disabled || (hasPermission && (!data || data.length === 0))}
+                                className={cn(
+                                    "gap-1.5 border-dashed transition-all",
+                                    !hasPermission
+                                        ? 'border-zinc-800 bg-zinc-900/30 text-zinc-600 cursor-not-allowed hover:bg-zinc-900/30'
+                                        : 'border-zinc-700 bg-zinc-900/50 hover:bg-zinc-800 text-zinc-400 hover:text-white',
+                                    className
+                                )}
                             >
-                                查看升級方案 →
-                            </Link>
-                        )}
+                                {!hasPermission ? <Lock className="h-3 w-3" /> : <Download className="h-4 w-4" />}
+                                <span className="hidden sm:inline">{label}</span>
+                                {chartType && hasPermission && <ChevronDown className={cn("h-3 w-3 transition-transform", isOpen && "rotate-180")} />}
+                            </Button>
+                        </span>
+                    </TooltipTrigger>
+                    <TooltipContent className="bg-zinc-950 border border-zinc-800 p-0 overflow-hidden">
+                        <div className="flex flex-col gap-1 items-center p-3">
+                            <p className="font-medium text-zinc-200">
+                                {!hasPermission ? "Pro 會員限定功能" : "匯出選項"}
+                            </p>
+                            {!hasPermission && (
+                                <Link
+                                    href="/pricing"
+                                    className="text-xs text-violet-400 hover:text-violet-300 underline underline-offset-2 transition-colors flex items-center gap-1"
+                                >
+                                    查看升級方案 →
+                                </Link>
+                            )}
+                        </div>
+                    </TooltipContent>
+                </Tooltip>
+
+                {/* Dropdown Menu */}
+                {isOpen && hasPermission && chartType && (
+                    <div className="absolute top-full left-0 mt-1 z-50 min-w-[180px] bg-zinc-900 border border-zinc-700 rounded-lg shadow-xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150">
+                        <button
+                            onClick={() => { handleExport(); setIsOpen(false); }}
+                            className="w-full px-3 py-2.5 text-left text-sm text-zinc-300 hover:bg-zinc-800 hover:text-white flex items-center gap-2 transition-colors"
+                        >
+                            <Download className="h-4 w-4 text-zinc-500" />
+                            匯出 CSV
+                        </button>
+                        <button
+                            onClick={handleAddToBuilder}
+                            className="w-full px-3 py-2.5 text-left text-sm text-zinc-300 hover:bg-violet-600/20 hover:text-violet-300 flex items-center gap-2 transition-colors border-t border-zinc-800"
+                        >
+                            <LayoutTemplate className="h-4 w-4 text-violet-500" />
+                            新增到報表編輯器
+                        </button>
                     </div>
-                </TooltipContent>
-            </Tooltip>
+                )}
+            </div>
         </TooltipProvider>
     );
 }

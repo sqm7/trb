@@ -5,6 +5,7 @@ import { useFilterStore } from "@/store/useFilterStore";
 import { COUNTY_CODE_MAP } from "@/lib/config";
 import { getDateRangeDates } from "@/lib/date-utils";
 import { aggregateAnalysisData } from "@/lib/aggregator";
+import { AnalysisData } from "@/lib/types";
 
 export function useAnalysisData() {
     const filters = useFilterStore();

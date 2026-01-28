@@ -11,12 +11,10 @@ import { cn } from "@/lib/utils";
 import { getRoomType } from "@/lib/room-utils";
 import { ExportButton } from "@/components/ui/ExportButton";
 
+import { AnalysisData } from "@/lib/types";
+
 interface SalesVelocityReportProps {
-    data: {
-        salesVelocityAnalysis: any;
-        areaDistributionAnalysis: any;
-        transactionDetails?: any[];
-    } | null;
+    data: AnalysisData | null;
 }
 
 export function SalesVelocityReport({ data }: SalesVelocityReportProps) {
@@ -213,16 +211,17 @@ export function SalesVelocityReport({ data }: SalesVelocityReportProps) {
                             <option value="areaSum">總銷坪數</option>
                         </Select>
                         <ExportButton
-                            data={salesVelocityAnalysis?.[velocityView]}
+                            data={salesVelocityAnalysis?.[velocityView] as any || []}
                             filename={`sales_velocity_${velocityView}`}
                             label="匯出"
+                            chartType="sales-velocity-chart"
                             columns={{ period: '時間區間', count: '交易筆數', priceSum: '總銷金額', areaSum: '總銷坪數' }}
                         />
                     </div>
                 }
             >
                 <SalesVelocityChart
-                    data={salesVelocityAnalysis?.[velocityView]}
+                    data={salesVelocityAnalysis?.[velocityView] as any || {}}
                     selectedRooms={selectedRooms}
                     metric={velocityMetric}
                 />
@@ -234,7 +233,7 @@ export function SalesVelocityReport({ data }: SalesVelocityReportProps) {
                 description="各時間段詳細銷售數據統計"
                 headerAction={
                     <ExportButton
-                        data={salesVelocityAnalysis?.[velocityView]}
+                        data={salesVelocityAnalysis?.[velocityView] as any}
                         filename={`sales_velocity_table_${velocityView}`}
                         label="匯出明細"
                         columns={{ period: '時間區間', count: '交易筆數', priceSum: '總銷金額', areaSum: '總銷坪數' }}
@@ -242,7 +241,7 @@ export function SalesVelocityReport({ data }: SalesVelocityReportProps) {
                 }
             >
                 <VelocityTable
-                    data={salesVelocityAnalysis?.[velocityView]}
+                    data={salesVelocityAnalysis?.[velocityView] || []}
                     viewType={velocityView}
                     selectedRooms={selectedRooms}
                 />
@@ -286,7 +285,7 @@ export function SalesVelocityReport({ data }: SalesVelocityReportProps) {
                 }
             >
                 <AreaHeatmapChart
-                    data={areaDistributionAnalysis}
+                    data={areaDistributionAnalysis || {}}
                     selectedRooms={selectedRooms}
                     minArea={minArea}
                     maxArea={maxArea}

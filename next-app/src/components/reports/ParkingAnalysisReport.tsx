@@ -195,15 +195,10 @@ function ParkingAreaCharts({ chartData, hasData, summaryStats }: {
 import { ProjectSearchMultiselect } from "@/components/ui/ProjectSearchMultiselect";
 
 
+import { AnalysisData } from "@/lib/types";
+
 interface ParkingAnalysisReportProps {
-    data: {
-        parkingAnalysis: {
-            parkingRatio: any;
-            avgPriceByType: any[];
-            rampPlanePriceByFloor: FloorData[];
-        },
-        transactionDetails?: any[]; // Full transaction records for drill-down
-    } | null;
+    data: AnalysisData | null;
 }
 
 // Calculate statistics from selected floors
