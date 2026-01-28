@@ -95,3 +95,18 @@ The system allows users to access the platform using multiple identity providers
   - **Pill Transformation**: When scrolling down (> 100px), the FilterBar collapses into a compact "Pill" fixed at `top-3` (Header area).
   - **Z-Index Strategy**: The compact pill and its parent container must use high z-indices (`z-[70]` and `z-[100]` respectively) to float above the `z-50` Header and other page elements.
   - **Auto-Expansion**: Clicking the compact pill triggers a smooth scroll to the top of the page and expands the full filter panel.
+## 7. Custom Report Builder
+- **Goal**: Allow users to create personalized report layouts by dragging and dropping dashboard charts onto a canvas.
+- **Features**:
+  - **Drag & Drop**: Reposition components freely on the canvas.
+  - **Resizing**: Adjust width and height of each chart.
+  - **Ratio Control**: Toggle between 16:9 and A4 Landscape canvas ratios.
+  - **Persistence**: Layout automatically saves to `localStorage`.
+  - **Direct Export**: PDF output via browser print dialog, maintaining "Vibe" aesthetic.
+- **Workflow**:
+  - Users can add components via a sidebar palette.
+  - Dashboard charts include an "Add to Report Builder" option in their export dropdown.
+- **Architecture**:
+  - **State**: Managed via `useReportBuilderStore` (Zustand).
+  - **Components**: Built with `react-rnd` for interactive manipulation.
+  - **Chart Rendering**: Shared chart components used across both Dashboard and Builder for consistency.
