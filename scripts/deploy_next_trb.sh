@@ -49,8 +49,8 @@ cd "$TEMP_DEPLOY_DIR" || exit
 find . -maxdepth 1 ! -name '.git' ! -name '.' ! -name '..' -exec rm -rf {} +
 
 # Copy new build files
-echo "Copying build files from ../$BUILD_DIR..."
-cp -r "../$BUILD_DIR/" .
+echo "Copying build files from ../$APP_DIR/out..."
+cp -R "../$APP_DIR/out/." .
 
 # 4. Commit and Push
 echo "Step 4: Committing and Pushing..."
