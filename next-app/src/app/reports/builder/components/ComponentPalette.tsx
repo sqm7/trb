@@ -42,6 +42,18 @@ const CHART_OPTIONS: { type: ChartType; label: string; icon: React.ReactNode; de
         icon: <PieChart className="h-5 w-5" />,
         description: '車位類型分佈圓餅圖'
     },
+    {
+        type: 'heatmap',
+        label: '銷控熱力圖',
+        icon: <Grid3X3 className="h-5 w-5" />,
+        description: '建案銷控與熱熱力分析'
+    },
+    {
+        type: 'data-list',
+        label: '交易明細',
+        icon: <BarChart3 className="mx-0 h-5 w-5" />,
+        description: '分頁交易數據列表'
+    },
 ];
 
 export function ComponentPalette({ onAddItem, hasData }: ComponentPaletteProps) {

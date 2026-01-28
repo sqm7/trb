@@ -101,6 +101,7 @@ The system allows users to access the platform using multiple identity providers
   - **Drag & Drop**: Reposition components freely on the canvas.
   - **Resizing**: Adjust width and height of each chart.
   - **Ratio Control**: Toggle between 16:9 and A4 Landscape canvas ratios.
+  - **Multi-page Support**: Add multiple pages to a single report, with easy navigation and management.
   - **Persistence**: Layout automatically saves to `localStorage`.
   - **Direct Export**: PDF output via browser print dialog, maintaining "Vibe" aesthetic.
 - **Workflow**:

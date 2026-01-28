@@ -272,6 +272,10 @@ User is unable to unbind LINE even after binding an email. We suspect a state sy
 - [x] Add "新增到報表編輯器" dropdown option.
 - [x] Integrate into `RankingReport`, `PriceBandReport`, `SalesVelocityReport`, `UnitPriceAnalysisReport`.
 
-### Step 4: Verification
-- [x] Deploy to Test Environment.
-- [/] Bug fixes and refinements (pending).
+### Step 4: Multi-page & UI Enhancements
+- [x] Implement multi-page support in `useReportBuilderStore`.
+- [x] Add page navigation (Tabs, Add/Delete Page) in Builder UI.
+- [x] Refactor `ExportButton` to use Radix UI `DropdownMenu`.
+- [x] Add toast notifications via `sonner`.
+- [x] Ensure all reports have "Add to Report Builder" functionality.
+- [x] Deploy to Test Environment (TRB).

@@ -10,6 +10,9 @@ export type ChartType =
     | 'unit-price-bubble'
     | 'sales-velocity-chart'
     | 'parking-pie'
+    | 'parking-price'
+    | 'parking-scatter'
+    | 'parking-floor'
     | 'heatmap'
     | 'data-list';
 
@@ -34,6 +37,9 @@ const DEFAULT_SIZES: Record<ChartType, { width: number; height: number }> = {
     'unit-price-bubble': { width: 380, height: 320 },
     'sales-velocity-chart': { width: 420, height: 260 },
     'parking-pie': { width: 300, height: 300 },
+    'parking-price': { width: 400, height: 300 },
+    'parking-scatter': { width: 450, height: 350 },
+    'parking-floor': { width: 400, height: 400 },
     'heatmap': { width: 500, height: 350 },
     'data-list': { width: 600, height: 400 },
 };
