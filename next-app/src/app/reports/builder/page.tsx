@@ -4,7 +4,7 @@ import React, { useCallback } from "react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useAnalysisData } from "@/hooks/useAnalysisData";
 import { Button } from "@/components/ui/button";
-import { Trash2, FileDown, Layers } from "lucide-react";
+import { Trash2, FileDown, Layers, Plus, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Canvas } from "./components/Canvas";
 import { DraggableChart } from "./components/DraggableChart";
@@ -18,7 +18,8 @@ export default function ReportBuilderPage() {
     const { loading, analysisData } = useAnalysisData();
 
     // Get state and actions from Zustand store
-    const items = useReportBuilderStore(state => state.items);
+    const pages = useReportBuilderStore(state => state.pages);
+    const currentPageIndex = useReportBuilderStore(state => state.currentPageIndex);
     const canvasRatio = useReportBuilderStore(state => state.canvasRatio);
     const selectedId = useReportBuilderStore(state => state.selectedId);
     const addItem = useReportBuilderStore(state => state.addItem);
@@ -27,6 +28,13 @@ export default function ReportBuilderPage() {
     const clearCanvas = useReportBuilderStore(state => state.clearCanvas);
     const setCanvasRatio = useReportBuilderStore(state => state.setCanvasRatio);
     const setSelectedId = useReportBuilderStore(state => state.setSelectedId);
+    const addPage = useReportBuilderStore(state => state.addPage);
+    const deletePage = useReportBuilderStore(state => state.deletePage);
+    const setCurrentPage = useReportBuilderStore(state => state.setCurrentPage);
+
+    // Get current page items
+    const currentPage = pages[currentPageIndex];
+    const items = currentPage?.items || [];
 
     // Add item to canvas (wrapper for ComponentPalette)
     const handleAddItem = useCallback((type: ChartType) => {
@@ -42,6 +50,19 @@ export default function ReportBuilderPage() {
     const handleRemoveItem = useCallback((id: string) => {
         removeItem(id);
     }, [removeItem]);
+
+    // Add new page
+    const handleAddPage = useCallback(() => {
+        addPage();
+    }, [addPage]);
+
+    // Delete page
+    const handleDeletePage = useCallback((pageId: string) => {
+        if (pages.length <= 1) return;
+        if (confirm("確定要刪除此頁面嗎？")) {
+            deletePage(pageId);
+        }
+    }, [deletePage, pages.length]);
 
     // Export to PDF
     const handleExport = useCallback(() => {
@@ -106,7 +127,7 @@ export default function ReportBuilderPage() {
 
     // Clear canvas
     const handleClearCanvas = useCallback(() => {
-        if (confirm("確定要清空所有元件嗎？")) {
+        if (confirm("確定要清空當前頁面的所有元件嗎？")) {
             clearCanvas();
         }
     }, [clearCanvas]);
@@ -189,7 +210,7 @@ export default function ReportBuilderPage() {
                     {/* Toolbar */}
                     <div className="h-12 border-b border-white/5 flex items-center justify-between px-4 bg-zinc-900/80">
                         <span className="text-sm font-medium text-zinc-400">
-                            報表編輯器 • {canvasRatio} • {items.length} 個元件
+                            報表編輯器 • {canvasRatio} • 第 {currentPageIndex + 1}/{pages.length} 頁 • {items.length} 個元件
                         </span>
                         <div className="flex items-center gap-2">
                             {selectedId && (
@@ -204,6 +225,68 @@ export default function ReportBuilderPage() {
                                 </Button>
                             )}
                         </div>
+                    </div>
+
+                    {/* Page Navigation Tabs */}
+                    <div className="h-10 border-b border-white/5 flex items-center px-2 bg-zinc-900/50 gap-1 overflow-x-auto">
+                        <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-7 w-7 flex-shrink-0"
+                            onClick={() => setCurrentPage(currentPageIndex - 1)}
+                            disabled={currentPageIndex === 0}
+                        >
+                            <ChevronLeft className="h-4 w-4" />
+                        </Button>
+
+                        {pages.map((page, index) => (
+                            <button
+                                key={page.id}
+                                onClick={() => setCurrentPage(index)}
+                                className={cn(
+                                    "px-3 h-7 rounded text-xs font-medium flex items-center gap-1.5 transition-colors whitespace-nowrap group",
+                                    index === currentPageIndex
+                                        ? "bg-violet-600 text-white"
+                                        : "text-zinc-400 hover:bg-zinc-800 hover:text-white"
+                                )}
+                            >
+                                {page.name}
+                                {pages.length > 1 && (
+                                    <span
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleDeletePage(page.id);
+                                        }}
+                                        className={cn(
+                                            "ml-1 p-0.5 rounded hover:bg-red-500/30 cursor-pointer transition-colors",
+                                            index === currentPageIndex ? "opacity-70 hover:opacity-100" : "opacity-0 group-hover:opacity-70"
+                                        )}
+                                    >
+                                        <X className="h-3 w-3" />
+                                    </span>
+                                )}
+                            </button>
+                        ))}
+
+                        <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-7 w-7 flex-shrink-0"
+                            onClick={() => setCurrentPage(currentPageIndex + 1)}
+                            disabled={currentPageIndex === pages.length - 1}
+                        >
+                            <ChevronRight className="h-4 w-4" />
+                        </Button>
+
+                        <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-7 px-2 text-violet-400 hover:text-violet-300 hover:bg-violet-500/10 flex-shrink-0"
+                            onClick={handleAddPage}
+                        >
+                            <Plus className="h-4 w-4 mr-1" />
+                            新增頁面
+                        </Button>
                     </div>
 
                     {/* Canvas Container */}

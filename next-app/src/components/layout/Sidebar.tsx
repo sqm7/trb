@@ -32,11 +32,12 @@ export const NAV_ITEMS = [
     { label: "總覽儀表板", href: "/dashboard", icon: LayoutDashboard },
     { label: "地圖模式", href: "/map", icon: Map },
     { label: "平面圖測量", href: "/tools/floor-plan", icon: Ruler },
-    { label: "生成報告", href: "/reports", icon: FileText },
+    { label: "報表編輯器", href: "/reports/builder", icon: FileText },
     { label: "會員方案", href: "/pricing", icon: Crown },
     { label: "開發者日誌", href: "https://medium.com/@sqmtalk7", icon: BookOpen, isExternal: true },
     { label: "Threads", href: "https://www.threads.net/@sqm.talk", icon: AtSign, isExternal: true },
 ];
+
 
 export function Sidebar() {
     const pathname = usePathname();
@@ -153,12 +154,11 @@ export function Sidebar() {
                         // Hide "Login" if user is logged in
                         if (user && item.label === "會員登入") return null;
 
-                        const isActive = pathname === item.href;
+                        const isActive = pathname === item.href || (item.href === '/reports/builder' && pathname?.startsWith('/reports'));
                         // @ts-ignore
                         const isExternal = item.isExternal;
-                        const isReportsItem = item.href === '/reports';
                         const isMapItem = item.href === '/map';
-                        const isUnderDevelopment = isReportsItem || isMapItem;
+                        const isUnderDevelopment = isMapItem;
 
                         // Features under development - show badge but keep link clickable
                         if (isUnderDevelopment) {

@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter, Noto_Sans_TC } from "next/font/google";
 import "./globals.css";
 import ReactQueryProvider from "@/components/providers/ReactQueryProvider";
+import { Toaster } from "sonner";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const notoSansTC = Noto_Sans_TC({
@@ -55,6 +56,17 @@ export default function RootLayout({
         <ReactQueryProvider>
           {children}
         </ReactQueryProvider>
+        <Toaster
+          position="bottom-right"
+          toastOptions={{
+            classNames: {
+              toast: "bg-zinc-900 border-zinc-700 text-zinc-100",
+              title: "text-zinc-100",
+              description: "text-zinc-400",
+              actionButton: "bg-violet-500 text-white",
+            },
+          }}
+        />
       </body>
     </html>
   );

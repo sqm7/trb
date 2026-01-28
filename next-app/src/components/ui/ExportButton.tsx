@@ -1,3 +1,5 @@
+"use client";
+
 import Link from 'next/link';
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -11,7 +13,14 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 interface ExportButtonProps {
     data: any[];
@@ -20,7 +29,7 @@ interface ExportButtonProps {
     className?: string;
     disabled?: boolean;
     columns?: Record<string, string>;
-    chartType?: ChartType; // NEW: For adding to Report Builder
+    chartType?: ChartType; // For adding to Report Builder
 }
 
 export function ExportButton({
@@ -35,7 +44,6 @@ export function ExportButton({
     const { role, isLoading } = useUserRole();
     const router = useRouter();
     const addItem = useReportBuilderStore(state => state.addItem);
-    const [isOpen, setIsOpen] = useState(false);
 
     // Check permissions
     const hasPermission = ['pro', 'pro_max', 'admin', 'super_admin'].includes(role || '');
@@ -45,7 +53,6 @@ export function ExportButton({
         if (!isReady) return;
 
         if (!hasPermission) {
-            // alert("此功能僅限 Pro 會員使用");
             return;
         }
 
@@ -125,12 +132,19 @@ export function ExportButton({
         }
     };
 
-    // NEW: Add to Report Builder
+    // Add to Report Builder
     const handleAddToBuilder = () => {
         if (!hasPermission || !chartType) return;
         addItem(chartType);
-        router.push('/reports/builder');
-        setIsOpen(false);
+
+        // Show toast notification
+        toast.success("已新增至報表編輯器", {
+            description: "請點選左側「生成報告」繼續編輯",
+            action: {
+                label: "前往編輯",
+                onClick: () => router.push('/reports/builder'),
+            },
+        });
     };
 
     if (isLoading) {
@@ -147,16 +161,17 @@ export function ExportButton({
         );
     }
 
-    return (
-        <TooltipProvider>
-            <div className="relative inline-block">
+    // If no chartType, render simple export button (no dropdown)
+    if (!chartType) {
+        return (
+            <TooltipProvider>
                 <Tooltip delayDuration={0}>
                     <TooltipTrigger asChild>
                         <span className="inline-flex" tabIndex={!hasPermission ? 0 : -1}>
                             <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={() => chartType ? setIsOpen(!isOpen) : handleExport()}
+                                onClick={handleExport}
                                 disabled={disabled || (hasPermission && (!data || data.length === 0))}
                                 className={cn(
                                     "gap-1.5 border-dashed transition-all",
@@ -168,47 +183,100 @@ export function ExportButton({
                             >
                                 {!hasPermission ? <Lock className="h-3 w-3" /> : <Download className="h-4 w-4" />}
                                 <span className="hidden sm:inline">{label}</span>
-                                {chartType && hasPermission && <ChevronDown className={cn("h-3 w-3 transition-transform", isOpen && "rotate-180")} />}
                             </Button>
                         </span>
                     </TooltipTrigger>
-                    <TooltipContent className="bg-zinc-950 border border-zinc-800 p-0 overflow-hidden">
-                        <div className="flex flex-col gap-1 items-center p-3">
-                            <p className="font-medium text-zinc-200">
-                                {!hasPermission ? "Pro 會員限定功能" : "匯出選項"}
-                            </p>
-                            {!hasPermission && (
+                    {!hasPermission && (
+                        <TooltipContent className="bg-zinc-950 border border-zinc-800 p-0 overflow-hidden">
+                            <div className="flex flex-col gap-1 items-center p-3">
+                                <p className="font-medium text-zinc-200">Pro 會員限定功能</p>
                                 <Link
                                     href="/pricing"
                                     className="text-xs text-violet-400 hover:text-violet-300 underline underline-offset-2 transition-colors flex items-center gap-1"
                                 >
                                     查看升級方案 →
                                 </Link>
-                            )}
+                            </div>
+                        </TooltipContent>
+                    )}
+                </Tooltip>
+            </TooltipProvider>
+        );
+    }
+
+    // With chartType, render dropdown menu
+    return (
+        <TooltipProvider>
+            <Tooltip delayDuration={0}>
+                <TooltipTrigger asChild>
+                    <span className="inline-flex" tabIndex={!hasPermission ? 0 : -1}>
+                        {hasPermission ? (
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        disabled={disabled || (!data || data.length === 0)}
+                                        className={cn(
+                                            "gap-1.5 border-dashed transition-all border-zinc-700 bg-zinc-900/50 hover:bg-zinc-800 text-zinc-400 hover:text-white",
+                                            className
+                                        )}
+                                    >
+                                        <Download className="h-4 w-4" />
+                                        <span className="hidden sm:inline">{label}</span>
+                                        <ChevronDown className="h-3 w-3" />
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent
+                                    align="start"
+                                    className="min-w-[180px] bg-zinc-900 border-zinc-700"
+                                >
+                                    <DropdownMenuItem
+                                        onClick={handleExport}
+                                        className="flex items-center gap-2 text-zinc-300 hover:text-white focus:text-white cursor-pointer"
+                                    >
+                                        <Download className="h-4 w-4 text-zinc-500" />
+                                        匯出 CSV
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem
+                                        onClick={handleAddToBuilder}
+                                        className="flex items-center gap-2 text-zinc-300 hover:text-violet-300 focus:text-violet-300 hover:bg-violet-600/20 focus:bg-violet-600/20 cursor-pointer"
+                                    >
+                                        <LayoutTemplate className="h-4 w-4 text-violet-500" />
+                                        新增到報表編輯器
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        ) : (
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                disabled
+                                className={cn(
+                                    "gap-1.5 border-dashed transition-all border-zinc-800 bg-zinc-900/30 text-zinc-600 cursor-not-allowed hover:bg-zinc-900/30",
+                                    className
+                                )}
+                            >
+                                <Lock className="h-3 w-3" />
+                                <span className="hidden sm:inline">{label}</span>
+                            </Button>
+                        )}
+                    </span>
+                </TooltipTrigger>
+                {!hasPermission && (
+                    <TooltipContent className="bg-zinc-950 border border-zinc-800 p-0 overflow-hidden">
+                        <div className="flex flex-col gap-1 items-center p-3">
+                            <p className="font-medium text-zinc-200">Pro 會員限定功能</p>
+                            <Link
+                                href="/pricing"
+                                className="text-xs text-violet-400 hover:text-violet-300 underline underline-offset-2 transition-colors flex items-center gap-1"
+                            >
+                                查看升級方案 →
+                            </Link>
                         </div>
                     </TooltipContent>
-                </Tooltip>
-
-                {/* Dropdown Menu */}
-                {isOpen && hasPermission && chartType && (
-                    <div className="absolute top-full left-0 mt-1 z-50 min-w-[180px] bg-zinc-900 border border-zinc-700 rounded-lg shadow-xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150">
-                        <button
-                            onClick={() => { handleExport(); setIsOpen(false); }}
-                            className="w-full px-3 py-2.5 text-left text-sm text-zinc-300 hover:bg-zinc-800 hover:text-white flex items-center gap-2 transition-colors"
-                        >
-                            <Download className="h-4 w-4 text-zinc-500" />
-                            匯出 CSV
-                        </button>
-                        <button
-                            onClick={handleAddToBuilder}
-                            className="w-full px-3 py-2.5 text-left text-sm text-zinc-300 hover:bg-violet-600/20 hover:text-violet-300 flex items-center gap-2 transition-colors border-t border-zinc-800"
-                        >
-                            <LayoutTemplate className="h-4 w-4 text-violet-500" />
-                            新增到報表編輯器
-                        </button>
-                    </div>
                 )}
-            </div>
+            </Tooltip>
         </TooltipProvider>
     );
 }
