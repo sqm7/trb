@@ -64,11 +64,14 @@ const CHART_LABELS: Record<ChartType, string> = {
 export function DraggableChart({ item, isSelected, onSelect, onUpdate, onRemove, onMoveToPage, analysisData }: DraggableChartProps) {
     const selectedIds = useReportBuilderStore(state => state.selectedIds);
     const batchUpdateItems = useReportBuilderStore(state => state.batchUpdateItems);
-    const allItems = useReportBuilderStore(state => state.items); // Current page items
+    const pages = useReportBuilderStore(state => state.pages);
+    const currentPageIndex = useReportBuilderStore(state => state.currentPageIndex);
+    const allItems = pages[currentPageIndex]?.items || []; // Current page items - fix for batch drag
 
     // Track initial positions for group dragging
     const dragStartPositions = React.useRef<Record<string, { x: number, y: number }>>({});
     const isDraggingGroup = React.useRef(false);
+    const hasDragged = React.useRef(false); // Track if actual drag happened to prevent click after drag
 
     // Render the appropriate chart based on type
     const renderChart = () => {
@@ -733,6 +736,7 @@ export function DraggableChart({ item, isSelected, onSelect, onUpdate, onRemove,
             size={{ width: item.width, height: item.height }}
             position={{ x: item.x, y: item.y }}
             onDragStart={(e) => {
+                hasDragged.current = false; // Reset drag flag
                 if (isSelected) {
                     isDraggingGroup.current = true;
                     // Record start positions of all selected items
@@ -750,6 +754,7 @@ export function DraggableChart({ item, isSelected, onSelect, onUpdate, onRemove,
                 }
             }}
             onDrag={(e, d) => {
+                hasDragged.current = true; // Mark that dragging happened
                 if (isDraggingGroup.current && selectedIds.length > 1) {
                     const deltaX = d.x - (dragStartPositions.current[item.id]?.x || item.x);
                     const deltaY = d.y - (dragStartPositions.current[item.id]?.y || item.y);
@@ -828,10 +833,14 @@ export function DraggableChart({ item, isSelected, onSelect, onUpdate, onRemove,
             }}
             minWidth={150}
             minHeight={100}
-            bounds="parent"
+            bounds={undefined}
             onClick={(e: React.MouseEvent) => {
                 e.stopPropagation();
-                onSelect(e);
+                // Only trigger selection if not just finished dragging
+                if (!hasDragged.current) {
+                    onSelect(e);
+                }
+                hasDragged.current = false;
             }}
             className={cn(
                 "bg-zinc-800/80 backdrop-blur-sm rounded-lg border-2 transition-colors overflow-hidden",

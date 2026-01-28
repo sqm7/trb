@@ -1,32 +1,12 @@
 # Implementation Plan
 
-## [Current Task] Standardize Component State & Export Actions
+## [Current Task] Report Builder Bug Fixes
 
 ### Step 1: Implementation
-- [x] Integrate **UnitPriceAnalysisReport** (Stats Blocks) into Report Builder.
-- [x] Integrate **HeatmapReport** (销控热力图, 調價幅度摘要, 戶型溢價貢獻) into Report Builder.
-- [x] Integrate **SalesVelocityReport** (房型面積熱力圖, 熱力詳細交易表) into Report Builder.
-- [x] Standardize Snapshots for all heatmap and unit price components.
+- [x] 修復圖片匯出 oklch 色彩錯誤
+- [x] 修復批次拖移邏輯
+- [x] 修復按鈕文字截斷問題
 
 ## [Current Task] Documentation & Finalization
-- [x] Update `ARCHITECTURE.md` to reflect new report builder components.
-- [x] Sync `PLAN.md` and commit all changes.
-
-## [Current Task] Deployment
-- [x] Build and Deploy to Test Environment (TRB).
-- [x] Verified build success.
-- [x] Verified deploy success.
-
-## [Current Task] Debugging & Fixes
-- [x] Fix Report Builder Sidebar items (Heatmap, Sales Velocity) not loading data (fallback logic).
-- [x] Fix Report Builder Ranking components empty state (legacy data structure fallback).
-
-## [Current Task] Code Cleanup
-- [x] Removed legacy Report Generator (`src/app/reports/page.tsx` replaced with redirect).
-- [x] Deleted unused slide components (`HeatmapSlide`, `ParkingSlide`, etc.).
-- [x] Deleted legacy PDF/PPTX templates and generators.
-
-## [Current Task] Marquee Selection
-- [x] Implement multi-selection state in `useReportBuilderStore`.
-- [x] Implement selection box drawing in `Canvas.tsx`.
-- [x] Support Ctrl/Cmd+Click and batch actions in `ReportBuilderPage`.
+- [x] Update `PLAN.md` with completed tasks.
+- [ ] Deploy to Test Environment.

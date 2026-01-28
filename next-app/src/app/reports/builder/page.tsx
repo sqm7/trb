@@ -201,35 +201,32 @@ export default function ReportBuilderPage() {
 
             console.log("Starting export...", format);
 
-            // Import html2canvas dynamically to avoid SSR issues if any
-            const html2canvas = (await import('html2canvas')).default;
+            // Use modern-screenshot instead of html2canvas (supports oklab/oklch colors)
+            const { domToPng, domToJpeg } = await import('modern-screenshot');
 
-            // We need to handle the scaling issue. The canvas container is scaled using CSS transform.
-            // html2canvas might respect that transform, resulting in a small image.
-            // A common workaround is to temporarily reset transform, or use `scale` option to compensate.
-            // But since we want the full resolution (e.g. 960x540), we rely on window.devicePixelRatio or custom scale.
+            console.log("Starting export with modern-screenshot...", format);
 
-            const canvas = await html2canvas(canvasElement, {
-                useCORS: true,
-                allowTaint: true, // Allow cross-origin images if possible
-                scale: 3, // Higher quality (3x standard)
-                backgroundColor: '#09090b', // Ensure background is captured
-                logging: true,
-                onclone: (clonedDoc) => {
-                    // Find the cloned canvas element and ensure it's visible/unscaled if needed
-                    // But usually html2canvas clone is good.
-                    // If the parent has transform: scale(), we might need to compensate?
-                    // Let's assume html2canvas handles the DOM tree.
-                    // If output is too small, we might need to adjust.
-                    console.log("DOM Cloned");
-                }
-            });
+            const options = {
+                scale: 3,
+                backgroundColor: '#09090b',
+                style: {
+                    // Ensure the element is fully rendered
+                    transform: 'none',
+                },
+            };
 
-            console.log("Canvas generated", canvas.width, canvas.height);
+            let dataUrl: string;
+            if (format === 'png') {
+                dataUrl = await domToPng(canvasElement, options);
+            } else {
+                dataUrl = await domToJpeg(canvasElement, { ...options, quality: 0.9 });
+            }
+
+            console.log("Screenshot generated successfully");
 
             const link = document.createElement('a');
             link.download = `SQM-Report-${new Date().getTime()}.${format}`;
-            link.href = canvas.toDataURL(`image/${format === 'png' ? 'png' : 'jpeg'}`, 0.9);
+            link.href = dataUrl;
             link.click();
             console.log("Download triggered");
         } catch (error) {
@@ -249,7 +246,7 @@ export default function ReportBuilderPage() {
     const canvasDimensions = canvasRatio === '16:9'
         ? { width: 960, height: 540 }
         : canvasRatio === 'A4'
-            ? { width: 842, height: 595 }
+            ? { width: 595, height: 842 } // A4 portrait
             : canvasRatio === '1:1'
                 ? { width: 900, height: 900 }
                 : canvasRatio === '9:16'
@@ -284,63 +281,90 @@ export default function ReportBuilderPage() {
                         {/* Canvas Settings */}
                         <div className="p-4 border-t border-white/5 bg-zinc-900 space-y-3">
                             <div className="text-xs text-zinc-400 font-medium">畫布比例</div>
+                            {/* Row 1: 16:9 and A4 */}
                             <div className="flex gap-2">
                                 <Button
                                     size="sm"
                                     variant={canvasRatio === '16:9' ? 'default' : 'outline'}
                                     onClick={() => setCanvasRatio('16:9')}
                                     className={cn(
-                                        "flex-1 text-xs",
+                                        "flex-1 h-12 flex-col gap-1",
                                         canvasRatio === '16:9' ? 'bg-violet-600' : 'border-zinc-700'
                                     )}
+                                    title="16:9 (簡報/影片)"
                                 >
-                                    16:9
+                                    <div className={cn(
+                                        "w-8 h-[18px] border-2",
+                                        canvasRatio === '16:9' ? 'border-white' : 'border-zinc-500'
+                                    )} />
+                                    <span className="text-[10px]">16:9</span>
                                 </Button>
                                 <Button
                                     size="sm"
                                     variant={canvasRatio === 'A4' ? 'default' : 'outline'}
                                     onClick={() => setCanvasRatio('A4')}
                                     className={cn(
-                                        "flex-1 text-xs",
+                                        "flex-1 h-12 flex-col gap-1",
                                         canvasRatio === 'A4' ? 'bg-violet-600' : 'border-zinc-700'
                                     )}
+                                    title="A4 (直式列印)"
                                 >
-                                    A4
+                                    <div className={cn(
+                                        "w-[14px] h-5 border-2",
+                                        canvasRatio === 'A4' ? 'border-white' : 'border-zinc-500'
+                                    )} />
+                                    <span className="text-[10px]">A4</span>
                                 </Button>
                             </div>
+                            {/* Row 2: 1:1, 9:16, 4:5 */}
                             <div className="flex gap-2">
                                 <Button
                                     size="sm"
                                     variant={canvasRatio === '1:1' ? 'default' : 'outline'}
                                     onClick={() => setCanvasRatio('1:1')}
                                     className={cn(
-                                        "flex-1 text-xs px-1",
+                                        "flex-1 h-12 flex-col gap-1",
                                         canvasRatio === '1:1' ? 'bg-violet-600' : 'border-zinc-700'
                                     )}
+                                    title="1:1 (IG/FB方圖)"
                                 >
-                                    1:1 (IG/FB方圖)
+                                    <div className={cn(
+                                        "w-4 h-4 border-2",
+                                        canvasRatio === '1:1' ? 'border-white' : 'border-zinc-500'
+                                    )} />
+                                    <span className="text-[10px]">1:1</span>
                                 </Button>
                                 <Button
                                     size="sm"
                                     variant={canvasRatio === '9:16' ? 'default' : 'outline'}
                                     onClick={() => setCanvasRatio('9:16')}
                                     className={cn(
-                                        "flex-1 text-xs px-1",
+                                        "flex-1 h-12 flex-col gap-1",
                                         canvasRatio === '9:16' ? 'bg-violet-600' : 'border-zinc-700'
                                     )}
+                                    title="9:16 (IG限動)"
                                 >
-                                    9:16 (IG限動)
+                                    <div className={cn(
+                                        "w-[11px] h-5 border-2",
+                                        canvasRatio === '9:16' ? 'border-white' : 'border-zinc-500'
+                                    )} />
+                                    <span className="text-[10px]">9:16</span>
                                 </Button>
                                 <Button
                                     size="sm"
                                     variant={canvasRatio === '4:5' ? 'default' : 'outline'}
                                     onClick={() => setCanvasRatio('4:5')}
                                     className={cn(
-                                        "flex-1 text-xs px-1",
+                                        "flex-1 h-12 flex-col gap-1",
                                         canvasRatio === '4:5' ? 'bg-violet-600' : 'border-zinc-700'
                                     )}
+                                    title="4:5 (FB/IG直式)"
                                 >
-                                    4:5 (FB/IG直式)
+                                    <div className={cn(
+                                        "w-4 h-5 border-2",
+                                        canvasRatio === '4:5' ? 'border-white' : 'border-zinc-500'
+                                    )} />
+                                    <span className="text-[10px]">4:5</span>
                                 </Button>
                             </div>
 
@@ -508,6 +532,20 @@ export default function ReportBuilderPage() {
                         </div>
                     </main>
                 </div>
+
+                {/* Drag Overlay - Shows a ghost preview when dragging */}
+                <DragOverlay dropAnimation={null}>
+                    {activeItemId ? (
+                        <div className="px-4 py-3 bg-violet-600/80 backdrop-blur-sm text-white rounded-lg shadow-2xl border border-violet-400/50 flex items-center gap-2 pointer-events-none">
+                            <div className="w-6 h-6 border-2 border-white/80 rounded flex items-center justify-center">
+                                <Plus className="w-4 h-4" />
+                            </div>
+                            <span className="text-sm font-medium">
+                                移動中... {selectedIds.length > 1 ? `(${selectedIds.length} 個元件)` : ''}
+                            </span>
+                        </div>
+                    ) : null}
+                </DragOverlay>
             </DndContext>
         </AppLayout>
     );

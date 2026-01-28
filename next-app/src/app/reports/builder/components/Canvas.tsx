@@ -64,8 +64,24 @@ export function Canvas({ width, height, children, items, onClickBackground, onMa
     }, [width, height]);
 
     const handleMouseDown = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-        // Only start marquee if clicking directly on canvas background (not on children)
-        if (e.target !== e.currentTarget) return;
+        // Only start marquee if clicking on canvas background or content container (not on chart items)
+        const target = e.target as HTMLElement;
+        const canvasContent = canvasRef.current?.querySelector('.report-canvas-content');
+
+        // Allow marquee to start if clicking on:
+        // 1. The canvas container itself (e.currentTarget)
+        // 2. The report-canvas-content div
+        // 3. The grid pattern overlay
+        // But NOT on draggable chart items (which have react-rnd classes)
+        const isClickOnItem = target.closest('.react-draggable') || target.closest('[data-chart-item]');
+        const isClickOnCanvasBackground =
+            e.target === e.currentTarget ||
+            target === canvasContent ||
+            target.classList.contains('report-canvas-content') ||
+            target.style.backgroundImage?.includes('linear-gradient'); // grid pattern
+
+        if (isClickOnItem) return;
+        if (!isClickOnCanvasBackground && !target.closest('.report-canvas-content')) return;
 
         const rect = e.currentTarget.getBoundingClientRect();
         const x = (e.clientX - rect.left) / scale;
