@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useCallback, useState } from "react";
+import Link from "next/link";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useAnalysisData } from "@/hooks/useAnalysisData";
 import { Button } from "@/components/ui/button";
@@ -491,7 +492,7 @@ export default function ReportBuilderPage() {
                                     <div>
                                         <h3 className="text-lg font-medium text-white">尚未載入數據</h3>
                                         <p className="text-zinc-500 text-sm mt-1">
-                                            請先至 <a href="/dashboard" className="text-violet-400 hover:underline">儀表板</a> 進行分析
+                                            請先至 <Link href="/dashboard" className="text-violet-400 hover:underline">儀表板</Link> 進行分析
                                         </p>
                                     </div>
                                 </div>
