@@ -744,6 +744,7 @@ export function DraggableChart({ item, isSelected, onSelect, onUpdate, onRemove,
                         }
                     });
                     dragStartPositions.current = positions;
+                    console.log("Group drag start:", positions);
                 } else {
                     isDraggingGroup.current = false;
                 }
@@ -766,6 +767,8 @@ export function DraggableChart({ item, isSelected, onSelect, onUpdate, onRemove,
                     if (Object.keys(updates).length > 0) {
                         batchUpdateItems(updates);
                     }
+                } else {
+                    // console.log("Single item drag or not group leader");
                 }
             }}
             onDragStop={(e, d) => {

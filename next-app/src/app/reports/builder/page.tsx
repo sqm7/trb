@@ -189,23 +189,53 @@ export default function ReportBuilderPage() {
     }, [canvasRatio]);
 
     // Export to Image (PNG/JPG)
+    // Export to Image (PNG/JPG)
     const handleExportImage = useCallback(async (format: 'png' | 'jpg') => {
-        const canvasElement = document.querySelector('.report-canvas-content') as HTMLElement;
-        if (!canvasElement) return;
+        try {
+            const canvasElement = document.querySelector('.report-canvas-content') as HTMLElement;
+            if (!canvasElement) {
+                console.error("Canvas element not found");
+                alert("找不到畫布元件");
+                return;
+            }
 
-        // Import html2canvas dynamically to avoid SSR issues if any
-        const html2canvas = (await import('html2canvas')).default;
+            console.log("Starting export...", format);
 
-        const canvas = await html2canvas(canvasElement, {
-            useCORS: true,
-            scale: 2, // Higher quality
-            backgroundColor: '#09090b',
-        });
+            // Import html2canvas dynamically to avoid SSR issues if any
+            const html2canvas = (await import('html2canvas')).default;
 
-        const link = document.createElement('a');
-        link.download = `SQM-Report-${new Date().getTime()}.${format}`;
-        link.href = canvas.toDataURL(`image/${format === 'png' ? 'png' : 'jpeg'}`, 0.9);
-        link.click();
+            // We need to handle the scaling issue. The canvas container is scaled using CSS transform.
+            // html2canvas might respect that transform, resulting in a small image.
+            // A common workaround is to temporarily reset transform, or use `scale` option to compensate.
+            // But since we want the full resolution (e.g. 960x540), we rely on window.devicePixelRatio or custom scale.
+
+            const canvas = await html2canvas(canvasElement, {
+                useCORS: true,
+                allowTaint: true, // Allow cross-origin images if possible
+                scale: 3, // Higher quality (3x standard)
+                backgroundColor: '#09090b', // Ensure background is captured
+                logging: true,
+                onclone: (clonedDoc) => {
+                    // Find the cloned canvas element and ensure it's visible/unscaled if needed
+                    // But usually html2canvas clone is good.
+                    // If the parent has transform: scale(), we might need to compensate?
+                    // Let's assume html2canvas handles the DOM tree.
+                    // If output is too small, we might need to adjust.
+                    console.log("DOM Cloned");
+                }
+            });
+
+            console.log("Canvas generated", canvas.width, canvas.height);
+
+            const link = document.createElement('a');
+            link.download = `SQM-Report-${new Date().getTime()}.${format}`;
+            link.href = canvas.toDataURL(`image/${format === 'png' ? 'png' : 'jpeg'}`, 0.9);
+            link.click();
+            console.log("Download triggered");
+        } catch (error) {
+            console.error("Export failed:", error);
+            alert("匯出失敗，請檢查控制台錯誤訊息。");
+        }
     }, []);
 
     // Clear canvas
@@ -288,7 +318,7 @@ export default function ReportBuilderPage() {
                                         canvasRatio === '1:1' ? 'bg-violet-600' : 'border-zinc-700'
                                     )}
                                 >
-                                    1:1 (方)
+                                    1:1 (IG/FB方圖)
                                 </Button>
                                 <Button
                                     size="sm"
@@ -299,7 +329,7 @@ export default function ReportBuilderPage() {
                                         canvasRatio === '9:16' ? 'bg-violet-600' : 'border-zinc-700'
                                     )}
                                 >
-                                    9:16 (限動)
+                                    9:16 (IG限動)
                                 </Button>
                                 <Button
                                     size="sm"
@@ -310,7 +340,7 @@ export default function ReportBuilderPage() {
                                         canvasRatio === '4:5' ? 'bg-violet-600' : 'border-zinc-700'
                                     )}
                                 >
-                                    4:5 (貼文)
+                                    4:5 (FB/IG直式)
                                 </Button>
                             </div>
 
