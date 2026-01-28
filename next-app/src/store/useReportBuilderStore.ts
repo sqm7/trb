@@ -16,6 +16,8 @@ export type ChartType =
     | 'heatmap'
     | 'data-list';
 
+export type ScaleMode = 'crop' | 'pan' | 'fit';
+
 export interface CanvasItem {
     id: string;
     type: ChartType;
@@ -23,6 +25,9 @@ export interface CanvasItem {
     y: number;
     width: number;
     height: number;
+    scaleMode: ScaleMode;
+    panOffset: { x: number; y: number };
+    contentScale: number;
 }
 
 export interface ReportPage {
@@ -57,11 +62,13 @@ interface ReportBuilderState {
     deletePage: (pageId: string) => void;
     setCurrentPage: (index: number) => void;
     renamePage: (pageId: string, name: string) => void;
+    reorderPages: (fromIndex: number, toIndex: number) => void;
 
     // Item Actions (operate on current page)
     addItem: (type: ChartType) => void;
     updateItem: (id: string, updates: Partial<CanvasItem>) => void;
     removeItem: (id: string) => void;
+    moveItemToPage: (itemId: string, targetPageIndex: number) => void;
     clearCanvas: () => void;
 
     // Canvas Actions
@@ -137,7 +144,30 @@ export const useReportBuilderStore = create<ReportBuilderState>()(
                 }));
             },
 
-            // Item Actions
+            reorderPages: (fromIndex: number, toIndex: number) => {
+                set(state => {
+                    if (fromIndex === toIndex) return state;
+                    const newPages = [...state.pages];
+                    const [removed] = newPages.splice(fromIndex, 1);
+                    newPages.splice(toIndex, 0, removed);
+                    // Update page names to reflect new order
+                    const renamedPages = newPages.map((p, i) => ({
+                        ...p,
+                        name: `第 ${i + 1} 頁`
+                    }));
+                    // Update currentPageIndex if needed
+                    let newCurrentIndex = state.currentPageIndex;
+                    if (state.currentPageIndex === fromIndex) {
+                        newCurrentIndex = toIndex;
+                    } else if (fromIndex < state.currentPageIndex && toIndex >= state.currentPageIndex) {
+                        newCurrentIndex = state.currentPageIndex - 1;
+                    } else if (fromIndex > state.currentPageIndex && toIndex <= state.currentPageIndex) {
+                        newCurrentIndex = state.currentPageIndex + 1;
+                    }
+                    return { pages: renamedPages, currentPageIndex: newCurrentIndex };
+                });
+            },
+
             addItem: (type: ChartType) => {
                 const defaultSize = DEFAULT_SIZES[type] || { width: 400, height: 300 };
 
@@ -153,6 +183,9 @@ export const useReportBuilderStore = create<ReportBuilderState>()(
                         y: 50 + offset,
                         width: defaultSize.width,
                         height: defaultSize.height,
+                        scaleMode: 'crop',
+                        panOffset: { x: 0, y: 0 },
+                        contentScale: 1,
                     };
 
                     const updatedPages = state.pages.map((page, i) =>
@@ -197,6 +230,27 @@ export const useReportBuilderStore = create<ReportBuilderState>()(
                         pages: updatedPages,
                         selectedId: state.selectedId === id ? null : state.selectedId,
                     };
+                });
+            },
+
+            moveItemToPage: (itemId: string, targetPageIndex: number) => {
+                set(state => {
+                    const currentPage = state.pages[state.currentPageIndex];
+                    const item = currentPage?.items.find(i => i.id === itemId);
+                    if (!item || targetPageIndex === state.currentPageIndex) return state;
+                    if (targetPageIndex < 0 || targetPageIndex >= state.pages.length) return state;
+
+                    const updatedPages = state.pages.map((page, i) => {
+                        if (i === state.currentPageIndex) {
+                            return { ...page, items: page.items.filter(it => it.id !== itemId) };
+                        }
+                        if (i === targetPageIndex) {
+                            return { ...page, items: [...page.items, { ...item, x: 50, y: 50 }] };
+                        }
+                        return page;
+                    });
+
+                    return { pages: updatedPages, selectedId: null };
                 });
             },
 

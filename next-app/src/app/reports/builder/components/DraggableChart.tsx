@@ -3,9 +3,16 @@
 import React from "react";
 import { Rnd } from "react-rnd";
 import { cn } from "@/lib/utils";
-import { Trash2, Move, Grid3X3, Table2, Info, Activity, Layers } from "lucide-react";
+import { Trash2, Move, Grid3X3, Table2, Info, Activity, Layers, Crop, Move3D, Maximize2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { CanvasItem, ChartType } from "../page";
+import type { ScaleMode } from "@/store/useReportBuilderStore";
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 // Chart Components (we'll render these dynamically)
 import { RankingChart } from "@/components/charts/RankingChart";
@@ -276,8 +283,47 @@ export function DraggableChart({ item, isSelected, onSelect, onUpdate, onRemove,
                     </span>
                 </div>
 
-                <div className="flex items-center gap-2">
-                    <span className="text-[9px] text-zinc-600 font-mono hidden sm:inline">
+                <div className="flex items-center gap-1">
+                    {/* Scale Mode Toggles */}
+                    <TooltipProvider delayDuration={0}>
+                        <div className="flex items-center bg-zinc-800 rounded p-0.5 gap-0.5">
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <button
+                                        onClick={(e) => { e.stopPropagation(); onUpdate({ scaleMode: 'crop' }); }}
+                                        className={cn("p-1 rounded transition-colors", item.scaleMode === 'crop' ? "bg-violet-600 text-white" : "text-zinc-500 hover:text-white")}
+                                    >
+                                        <Crop className="h-3 w-3" />
+                                    </button>
+                                </TooltipTrigger>
+                                <TooltipContent side="bottom" className="text-xs">裁剪模式</TooltipContent>
+                            </Tooltip>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <button
+                                        onClick={(e) => { e.stopPropagation(); onUpdate({ scaleMode: 'pan' }); }}
+                                        className={cn("p-1 rounded transition-colors", item.scaleMode === 'pan' ? "bg-cyan-600 text-white" : "text-zinc-500 hover:text-white")}
+                                    >
+                                        <Move3D className="h-3 w-3" />
+                                    </button>
+                                </TooltipTrigger>
+                                <TooltipContent side="bottom" className="text-xs">平移模式</TooltipContent>
+                            </Tooltip>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <button
+                                        onClick={(e) => { e.stopPropagation(); onUpdate({ scaleMode: 'fit' }); }}
+                                        className={cn("p-1 rounded transition-colors", item.scaleMode === 'fit' ? "bg-emerald-600 text-white" : "text-zinc-500 hover:text-white")}
+                                    >
+                                        <Maximize2 className="h-3 w-3" />
+                                    </button>
+                                </TooltipTrigger>
+                                <TooltipContent side="bottom" className="text-xs">縮放模式</TooltipContent>
+                            </Tooltip>
+                        </div>
+                    </TooltipProvider>
+
+                    <span className="text-[9px] text-zinc-600 font-mono hidden sm:inline ml-1">
                         {item.width}×{item.height}
                     </span>
                     <button
@@ -293,8 +339,29 @@ export function DraggableChart({ item, isSelected, onSelect, onUpdate, onRemove,
             </div>
 
             {/* Chart Content */}
-            <div className="p-2 relative group/content" style={{ height: 'calc(100% - 28px)' }}>
-                {renderChart()}
+            <div
+                className={cn(
+                    "p-2 relative group/content",
+                    item.scaleMode === 'crop' && "overflow-hidden",
+                    item.scaleMode === 'pan' && "overflow-auto cursor-grab active:cursor-grabbing",
+                    item.scaleMode === 'fit' && "overflow-hidden"
+                )}
+                style={{ height: 'calc(100% - 28px)' }}
+            >
+                <div
+                    style={{
+                        transform: item.scaleMode === 'pan'
+                            ? `translate(${item.panOffset?.x || 0}px, ${item.panOffset?.y || 0}px)`
+                            : item.scaleMode === 'fit'
+                                ? `scale(${item.contentScale || 1})`
+                                : undefined,
+                        transformOrigin: 'center center',
+                        height: '100%',
+                        width: '100%',
+                    }}
+                >
+                    {renderChart()}
+                </div>
 
                 {/* Overlay to catch clicks if not selected */}
                 {!isSelected && (
