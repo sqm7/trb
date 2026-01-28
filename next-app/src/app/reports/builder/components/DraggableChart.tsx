@@ -5,8 +5,7 @@ import { Rnd } from "react-rnd";
 import { cn } from "@/lib/utils";
 import { Trash2, Move, Grid3X3, Table2, Info, Activity, Layers, Crop, Move3D, Maximize2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import type { CanvasItem, ChartType } from "../page";
-import type { ScaleMode } from "@/store/useReportBuilderStore";
+import type { CanvasItem, ChartType, ScaleMode } from "@/store/useReportBuilderStore";
 import {
     Tooltip,
     TooltipContent,
@@ -17,6 +16,7 @@ import {
 // Chart Components (we'll render these dynamically)
 import { RankingChart } from "@/components/charts/RankingChart";
 import { PriceBandChart } from "@/components/charts/PriceBandChart";
+import { PriceBandLocationChart } from "@/components/charts/PriceBandLocationChart";
 import { BubbleChart } from "@/components/charts/BubbleChart";
 import { SalesVelocityChart } from "@/components/charts/SalesVelocityChart";
 import { ClientChart } from "@/components/charts/ClientChart";
@@ -27,14 +27,21 @@ interface DraggableChartProps {
     onSelect: () => void;
     onUpdate: (updates: Partial<CanvasItem>) => void;
     onRemove: () => void;
+    onMoveToPage?: (pageIndex: number) => void;
     analysisData: any;
 }
 
 const CHART_LABELS: Record<ChartType, string> = {
     'ranking-chart': '建案排名',
-    'price-band-chart': '總價帶分析',
+    'ranking-table': '建案排行列表',
+    'price-band-chart': '總價帶分佈',
+    'price-band-table': '總價帶詳細數據',
+    'price-band-location-table': '區域房型成交分佈',
+    'price-band-location-chart': '區域成交佔比',
     'unit-price-bubble': '單價泡泡圖',
+    'type-comparison-table': '產品類型單價比較',
     'sales-velocity-chart': '銷售速度',
+    'sales-velocity-table': '銷售速度明細',
     'parking-pie': '車位配比',
     'parking-price': '車位類型均價',
     'parking-scatter': '車位坪數分析',
@@ -43,7 +50,7 @@ const CHART_LABELS: Record<ChartType, string> = {
     'data-list': '交易明細表',
 };
 
-export function DraggableChart({ item, isSelected, onSelect, onUpdate, onRemove, analysisData }: DraggableChartProps) {
+export function DraggableChart({ item, isSelected, onSelect, onUpdate, onRemove, onMoveToPage, analysisData }: DraggableChartProps) {
     // Render the appropriate chart based on type
     const renderChart = () => {
         if (!analysisData) {
@@ -69,7 +76,121 @@ export function DraggableChart({ item, isSelected, onSelect, onUpdate, onRemove,
 
             case 'price-band-chart':
                 const priceBandData = analysisData.priceBandAnalysis?.details || [];
-                return <PriceBandChart data={priceBandData} />;
+                // If item has filtered data, use it; otherwise use global data
+                return <PriceBandChart data={(item as any).data || priceBandData} />;
+
+            case 'price-band-table':
+                // Use snapshot data IF available (even if empty array, it's better than raw fallback for merged states)
+                const tableData = item.data !== undefined ? item.data : (analysisData.priceBandAnalysis?.details || []);
+                return (
+                    <div className="h-full overflow-auto custom-scrollbar">
+                        <table className="w-full text-[10px] text-left">
+                            <thead className="bg-zinc-900 sticky top-0 text-zinc-500">
+                                <tr>
+                                    <th className="p-1">房型</th>
+                                    <th className="p-1">衛浴人</th>
+                                    <th className="p-1 text-right">平均總價</th>
+                                    <th className="p-1 text-right">中位數</th>
+                                    <th className="p-1 text-right">筆數</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-white/5">
+                                {tableData.map((row: any, i: number) => (
+                                    <tr key={i} className="text-zinc-300">
+                                        <td className="p-1">{row.roomType}</td>
+                                        <td className="p-1 text-zinc-500">{row.bathrooms ?? '-'}</td>
+                                        <td className="p-1 text-right text-zinc-300">{Math.round(row.avgPrice || 0).toLocaleString()}</td>
+                                        <td className="p-1 text-right text-violet-400">{Math.round(row.medianPrice || 0).toLocaleString()}</td>
+                                        <td className="p-1 text-right text-zinc-500">{row.count}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                );
+
+            case 'price-band-location-table':
+                // Snapshot might be the full object { locations, rows, locationTotals, grandTotal }
+                // or just the flat rows (legacy)
+                const snapshot = item.data;
+                if (!snapshot) return <div className="flex items-center justify-center h-full text-zinc-500 text-sm">無區域數據</div>;
+
+                const hasRichData = snapshot.locations && snapshot.rows;
+                const locKeys = hasRichData ? snapshot.locations : Object.keys(snapshot[0] || {}).filter(k => k !== '房型' && k !== '總計');
+                const displayRows = hasRichData ? snapshot.rows : snapshot;
+
+                if (!displayRows || displayRows.length === 0) return <div className="flex items-center justify-center h-full text-zinc-500 text-sm">無區域數據</div>;
+
+                return (
+                    <div className="h-full overflow-auto custom-scrollbar">
+                        <table className="w-full text-[10px] text-left border-collapse">
+                            <thead className="bg-zinc-900 sticky top-0 text-zinc-500">
+                                <tr>
+                                    <th className="p-1 sticky left-0 bg-zinc-900 z-10 border-r border-white/5">房型</th>
+                                    {locKeys.map((loc: string) => (
+                                        <th key={loc} className="p-1 text-center min-w-[40px]">{loc}</th>
+                                    ))}
+                                    <th className="p-1 text-center font-bold text-white border-l border-white/5">總計</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-white/5">
+                                {displayRows.map((row: any, i: number) => (
+                                    <tr key={i} className="text-zinc-300 hover:bg-zinc-800/30">
+                                        <td className="p-1 sticky left-0 bg-zinc-950/90 border-r border-white/5">{row.roomType || row['房型']}</td>
+                                        {locKeys.map((loc: string, lIdx: number) => {
+                                            const val = hasRichData ? row.cells[lIdx] : row[loc];
+                                            const intensity = typeof val === 'number' && val > 0 ? Math.min(val / 10, 1) : 0;
+                                            return (
+                                                <td key={loc} className="p-1 text-center text-zinc-400" style={val > 0 ? { backgroundColor: `rgba(6, 182, 212, ${intensity * 0.3})` } : {}}>
+                                                    {val > 0 ? val : '-'}
+                                                </td>
+                                            );
+                                        })}
+                                        <td className="p-1 text-center text-cyan-400 border-l border-white/5 font-bold">{row.rowTotal || row['總計']}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                );
+
+            case 'price-band-location-chart':
+                const locSnapshot = item.data;
+                if (!locSnapshot) return <div className="flex items-center justify-center h-full text-zinc-500 text-sm">無數據</div>;
+
+                const hasRichLocData = locSnapshot.locations && locSnapshot.rows;
+                const locKeysForChart = hasRichLocData ? locSnapshot.locations : Object.keys(locSnapshot[0] || {}).filter(k => k !== '房型' && k !== '總計');
+                const categories = hasRichLocData ? locSnapshot.rows.map((r: any) => r.roomType) : locSnapshot.map((d: any) => d['房型']);
+
+                if (categories.length === 0) return <div className="flex items-center justify-center h-full text-zinc-500 text-sm">無數據</div>;
+
+                const series = locKeysForChart.map((loc: string, idx: number) => ({
+                    name: loc,
+                    data: hasRichLocData
+                        ? locSnapshot.rows.map((r: any) => r.cells[idx] || 0)
+                        : locSnapshot.map((d: any) => d[loc] || 0)
+                }));
+
+                const barOptions: ApexCharts.ApexOptions = {
+                    chart: { type: 'bar', stacked: true, background: 'transparent', toolbar: { show: false } },
+                    plotOptions: { bar: { horizontal: false, borderRadius: 2 } },
+                    dataLabels: { enabled: false },
+                    xaxis: { categories: categories, labels: { style: { colors: '#71717a' } } },
+                    yaxis: { labels: { style: { colors: '#71717a' } } },
+                    grid: { borderColor: '#27272a' },
+                    legend: { position: 'bottom', labels: { colors: '#a1a1aa' } },
+                    theme: { mode: 'dark' },
+                    colors: ['#06b6d4', '#8b5cf6', '#f59e0b', '#10b981', '#ef4444', '#ec4899']
+                };
+
+                return (
+                    <ClientChart
+                        options={barOptions}
+                        series={series}
+                        type="bar"
+                        height="100%"
+                    />
+                );
 
             case 'unit-price-bubble':
                 const txDetails = analysisData.transactionDetails || [];
@@ -96,6 +217,88 @@ export function DraggableChart({ item, isSelected, onSelect, onUpdate, onRemove,
                         selectedRooms={['1房', '2房', '3房']}
                         metric="count"
                     />
+                );
+
+            case 'ranking-table':
+                const rankingTableData = (item as any).data || analysisData.projectRanking?.projectRanking || [];
+                return (
+                    <div className="h-full overflow-auto custom-scrollbar">
+                        <table className="w-full text-[10px] text-left">
+                            <thead className="bg-zinc-900 sticky top-0 text-zinc-500">
+                                <tr>
+                                    <th className="p-1">建案</th>
+                                    <th className="p-1 text-right">交易總價</th>
+                                    <th className="p-1 text-right">單價</th>
+                                    <th className="p-1 text-right">筆數</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-white/5">
+                                {rankingTableData.slice(0, 50).map((row: any, i: number) => (
+                                    <tr key={i} className="text-zinc-300">
+                                        <td className="p-1 truncate max-w-[80px]" title={row.projectName}>{row.projectName}</td>
+                                        <td className="p-1 text-right font-mono text-zinc-400">{(row.saleAmountSum / 10000).toFixed(0)}億</td>
+                                        <td className="p-1 text-right font-mono text-cyan-400">{row.averagePrice?.toFixed(1)}</td>
+                                        <td className="p-1 text-right font-mono text-zinc-500">{row.transactionCount}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                );
+
+            case 'sales-velocity-table':
+                const velocityTableData = (item as any).data || [];
+                if (!velocityTableData || velocityTableData.length === 0) return <div className="flex items-center justify-center h-full text-zinc-500 text-sm">無數據</div>;
+                return (
+                    <div className="h-full overflow-auto custom-scrollbar">
+                        <table className="w-full text-[10px] text-left">
+                            <thead className="bg-zinc-900 sticky top-0 text-zinc-500">
+                                <tr>
+                                    <th className="p-1">區間</th>
+                                    <th className="p-1 text-right">筆數</th>
+                                    <th className="p-1 text-right">總銷(億)</th>
+                                    <th className="p-1 text-right">坪數</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-white/5">
+                                {velocityTableData.map((row: any, i: number) => (
+                                    <tr key={i} className="text-zinc-300">
+                                        <td className="p-1 text-zinc-400">{row.period}</td>
+                                        <td className="p-1 text-right font-mono text-white">{row.total?.count || 0}</td>
+                                        <td className="p-1 text-right font-mono text-cyan-400">{((row.total?.priceSum || 0) / 10000).toFixed(1)}</td>
+                                        <td className="p-1 text-right font-mono text-zinc-500">{Math.round(row.total?.areaSum || 0)}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                );
+
+            case 'type-comparison-table':
+                const typeData = (item as any).data || analysisData.unitPriceAnalysis?.typeComparison || [];
+                return (
+                    <div className="h-full overflow-auto custom-scrollbar">
+                        <table className="w-full text-[10px] text-left">
+                            <thead className="bg-zinc-900 sticky top-0 text-zinc-500">
+                                <tr>
+                                    <th className="p-1">建案</th>
+                                    <th className="p-1 text-right">住宅</th>
+                                    <th className="p-1 text-right">店面</th>
+                                    <th className="p-1 text-right">辦公</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-white/5">
+                                {typeData.map((row: any, i: number) => (
+                                    <tr key={i} className="text-zinc-300">
+                                        <td className="p-1 truncate max-w-[80px]">{row.projectName}</td>
+                                        <td className="p-1 text-right font-mono text-cyan-400">{row.residentialAvg ? row.residentialAvg.toFixed(1) : '-'}</td>
+                                        <td className="p-1 text-right font-mono text-amber-400">{row.storeAvg ? row.storeAvg.toFixed(1) : '-'}</td>
+                                        <td className="p-1 text-right font-mono text-violet-400">{row.officeAvg ? row.officeAvg.toFixed(1) : '-'}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
                 );
 
             case 'parking-pie':
@@ -231,11 +434,80 @@ export function DraggableChart({ item, isSelected, onSelect, onUpdate, onRemove,
         }
     };
 
+    // Panning state
+    const [isPanning, setIsPanning] = React.useState(false);
+    const [lastPanPosition, setLastPanPosition] = React.useState({ x: 0, y: 0 });
+
+    const handlePanStart = (e: React.MouseEvent) => {
+        if (item.scaleMode !== 'pan') return;
+        e.stopPropagation();
+        setIsPanning(true);
+        setLastPanPosition({ x: e.clientX, y: e.clientY });
+    };
+
+    const handlePanMove = (e: React.MouseEvent) => {
+        if (!isPanning || item.scaleMode !== 'pan') return;
+        e.stopPropagation();
+        const dx = e.clientX - lastPanPosition.x;
+        const dy = e.clientY - lastPanPosition.y;
+
+        onUpdate({
+            panOffset: {
+                x: (item.panOffset?.x || 0) + dx,
+                y: (item.panOffset?.y || 0) + dy
+            }
+        });
+        setLastPanPosition({ x: e.clientX, y: e.clientY });
+    };
+
+    const handlePanEnd = (e: React.MouseEvent) => {
+        if (!isPanning) return;
+        e.stopPropagation();
+        setIsPanning(false);
+    };
+
+    // Calculate fit scale
+    // Assuming content base size is roughly 400x300 for calculation reference
+    const baseWidth = 400;
+    const baseHeight = 300;
+    const calculateFitScale = () => {
+        const scaleX = item.width / baseWidth;
+        const scaleY = item.height / baseHeight;
+        return Math.min(scaleX, scaleY);
+    };
+
+    // Auto-update content scale when in fit mode and resizing
+    React.useEffect(() => {
+        if (item.scaleMode === 'fit') {
+            onUpdate({ contentScale: calculateFitScale() });
+        }
+    }, [item.width, item.height, item.scaleMode]);
+
     return (
         <Rnd
             size={{ width: item.width, height: item.height }}
             position={{ x: item.x, y: item.y }}
             onDragStop={(e, d) => {
+                // Check if dropped on a page tab
+                // We use document.elementsFromPoint because the mouse event might be on the handler,
+                // and we need to check what's underneath at that screen coordinate.
+                // Using generic MouseEvent or TouchEvent from react-rnd
+                const clientX = (e as MouseEvent).clientX || (e as TouchEvent).changedTouches?.[0]?.clientX;
+                const clientY = (e as MouseEvent).clientY || (e as TouchEvent).changedTouches?.[0]?.clientY;
+
+                if (clientX !== undefined && clientY !== undefined) {
+                    const elements = document.elementsFromPoint(clientX, clientY);
+                    const dropTarget = elements.find(el => el.getAttribute('data-page-drop-target') === 'true');
+
+                    if (dropTarget) {
+                        const pageIndex = parseInt(dropTarget.getAttribute('data-page-index') || '-1', 10);
+                        if (pageIndex >= 0 && onMoveToPage) {
+                            onMoveToPage(pageIndex);
+                            return;
+                        }
+                    }
+                }
+
                 onUpdate({ x: d.x, y: d.y });
             }}
             onResizeStop={(e, direction, ref, delta, position) => {
@@ -343,10 +615,14 @@ export function DraggableChart({ item, isSelected, onSelect, onUpdate, onRemove,
                 className={cn(
                     "p-2 relative group/content",
                     item.scaleMode === 'crop' && "overflow-hidden",
-                    item.scaleMode === 'pan' && "overflow-auto cursor-grab active:cursor-grabbing",
+                    item.scaleMode === 'pan' && "overflow-hidden cursor-grab active:cursor-grabbing", // Pan needs hidden overflow too
                     item.scaleMode === 'fit' && "overflow-hidden"
                 )}
                 style={{ height: 'calc(100% - 28px)' }}
+                onMouseDown={handlePanStart}
+                onMouseMove={handlePanMove}
+                onMouseUp={handlePanEnd}
+                onMouseLeave={handlePanEnd}
             >
                 <div
                     style={{
@@ -355,16 +631,16 @@ export function DraggableChart({ item, isSelected, onSelect, onUpdate, onRemove,
                             : item.scaleMode === 'fit'
                                 ? `scale(${item.contentScale || 1})`
                                 : undefined,
-                        transformOrigin: 'center center',
-                        height: '100%',
-                        width: '100%',
+                        transformOrigin: 'top left', // Scale from top left for fit to fill
+                        width: item.scaleMode === 'fit' ? baseWidth : '100%', // Fixed base size for fit mode to scale from
+                        height: item.scaleMode === 'fit' ? baseHeight : '100%',
                     }}
                 >
                     {renderChart()}
                 </div>
 
                 {/* Overlay to catch clicks if not selected */}
-                {!isSelected && (
+                {!isSelected && !isPanning && (
                     <div
                         className="absolute inset-0 z-10 cursor-pointer"
                         onClick={(e) => {

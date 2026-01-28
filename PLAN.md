@@ -1,5 +1,13 @@
 # Implementation Plan
 
+## [Current Task] Standardize Price Band Report Export Buttons
+
+### Step 1: Implementation
+- [x] Rename "匯出圖表" to "匯出" in Price Band Chart section.
+- [x] Rename "匯出表格" to "匯出" in Detail Table section and add `chartType`.
+- [x] Rename "匯出分佈表" to "匯出" in Location Table section and add `chartType`.
+- [x] Add "匯出" button to Location Chart section with `price-band-location-chart` chartType.
+
 ## [Current Task] Deployment to Test Environment
 
 ### Step 1: Execution
@@ -279,3 +287,15 @@ User is unable to unbind LINE even after binding an email. We suspect a state sy
 - [x] Add toast notifications via `sonner`.
 - [x] Ensure all reports have "Add to Report Builder" functionality.
 - [x] Deploy to Test Environment (TRB).
+
+## [Completed Task] Global Export Button Unification
+### Step 1: Standardization
+- [x] Audit all reports for export button consistency.
+- [x] Update `useReportBuilderStore.ts` with new ChartTypes (`ranking-table`, `sales-velocity-table`, etc.).
+- [x] Update `DraggableChart.tsx` to support rendering new table types.
+- [x] Standardize `RankingReport` export buttons.
+- [x] Standardize `SalesVelocityReport` export buttons.
+- [x] Standardize `PriceBandReport` export buttons.
+- [x] Standardize `UnitPriceAnalysisReport`, `HeatmapReport`, `ParkingAnalysisReport` export buttons.
+- [x] Fix build errors (Type definitions).
+- [x] Deploy and Verify.

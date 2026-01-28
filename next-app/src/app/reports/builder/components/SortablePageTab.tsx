@@ -62,6 +62,8 @@ export function SortablePageTab({
                 isOver && !isActive && "ring-2 ring-cyan-500 bg-cyan-500/10"
             )}
             onClick={onClick}
+            data-page-drop-target="true"
+            data-page-index={index}
         >
             {/* Drag Handle */}
             <span

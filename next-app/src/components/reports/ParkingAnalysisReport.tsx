@@ -443,7 +443,7 @@ export function ParkingAnalysisReport({ data }: ParkingAnalysisReportProps) {
                                 { ratio: parkingRatio?.avgRatio }
                             ]}
                             filename="parking_ratio_data"
-                            label="匯出配比"
+                            label="匯出"
                             columns={{ type: '類別', count: '數量', percentage: '百分比', ratio: '比率' }}
                             chartType="parking-pie"
                         />
@@ -501,7 +501,7 @@ export function ParkingAnalysisReport({ data }: ParkingAnalysisReportProps) {
                         <ExportButton
                             data={avgPriceByType || []}
                             filename="parking_price_by_type"
-                            label="匯出均價"
+                            label="匯出"
                             columns={{ type: '車位類型', avgPrice: '平均價格', medianPrice: '中位數', count: '數量' }}
                             chartType="parking-price"
                         />
@@ -539,7 +539,7 @@ export function ParkingAnalysisReport({ data }: ParkingAnalysisReportProps) {
                     <ExportButton
                         data={parkingChartData || []}
                         filename="parking_area_scatter_data"
-                        label="匯出散佈數據"
+                        label="匯出"
                         columns={{ id: '建案名稱', label: '標籤', avgArea: '平均坪數', count: '車位數', avgPrice: '平均價格' }}
                         chartType="parking-scatter"
                     />
@@ -560,7 +560,7 @@ export function ParkingAnalysisReport({ data }: ParkingAnalysisReportProps) {
                     <ExportButton
                         data={filteredFloorData || []}
                         filename="parking_floor_analysis"
-                        label="匯出樓層統計"
+                        label="匯出"
                         columns={{ floor: '樓層', count: '數量', avgPrice: '平均價格', medianPrice: '中位數', maxPrice: '最高價', minPrice: '最低價', q3Price: '第三四分位數' }}
                         chartType="parking-floor"
                     />

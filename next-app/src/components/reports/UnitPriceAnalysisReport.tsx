@@ -105,7 +105,8 @@ export function UnitPriceAnalysisReport({ data, visibleSections = ['stats', 'com
                         <ExportButton
                             data={typeComparison}
                             filename="type_comparison_data"
-                            label="匯出比較表"
+                            label="匯出"
+                            chartType="type-comparison-table"
                             columns={{ projectName: '建案', residentialAvg: '住宅均價', officeAvg: '辦公均價', storeAvg: '店舖均價', officeRatio: '辦公倍數', storeRatio: '店舖倍數' }}
                         />
                     }
@@ -125,7 +126,7 @@ export function UnitPriceAnalysisReport({ data, visibleSections = ['stats', 'com
                             <ExportButton
                                 data={transactionDetails}
                                 filename="bubble_chart_source_data"
-                                label="匯出交易數據"
+                                label="匯出"
                                 chartType="unit-price-bubble"
                             />
                         }

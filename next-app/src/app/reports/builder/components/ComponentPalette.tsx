@@ -4,7 +4,7 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { BarChart3, PieChart, TrendingUp, Grid3X3, Activity } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { ChartType } from "../page";
+import type { ChartType } from "@/store/useReportBuilderStore";
 
 interface ComponentPaletteProps {
     onAddItem: (type: ChartType) => void;

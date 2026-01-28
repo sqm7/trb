@@ -51,7 +51,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="zh-Hant" className={`${inter.variable} ${notoSansTC.variable}`}>
+    <html lang="zh-Hant" className={`dark ${inter.variable} ${notoSansTC.variable}`}>
       <body className="antialiased bg-dark-bg text-text-primary font-sans">
         <ReactQueryProvider>
           {children}

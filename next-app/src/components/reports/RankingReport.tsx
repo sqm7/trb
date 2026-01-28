@@ -268,7 +268,8 @@ export function RankingReport({ data, visibleSections = ['metrics', 'chart', 'ta
                             <ExportButton
                                 data={sortedData}
                                 filename="ranking_table_data"
-                                label="匯出完整列表"
+                                label="匯出"
+                                chartType="ranking-table"
                                 columns={{ projectName: '建案名稱', county: '縣市', district: '行政區', saleAmountSum: '交易總價', houseAreaSum: '房屋面積', transactionCount: '資料筆數', marketShare: '市場佔比', averagePrice: '平均單價', minPrice: '最低單價', maxPrice: '最高單價', medianPrice: '中位數單價', avgParkingPrice: '車位均價' }}
                             />
                         }

@@ -3,10 +3,16 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-// Chart types available in the Report Builder
+// Chart types available in the Report Builder - Updated to support tables
 export type ChartType =
     | 'ranking-chart'
+    | 'ranking-table'
     | 'price-band-chart'
+    | 'type-comparison-table'
+    | 'sales-velocity-table'
+    | 'price-band-table'
+    | 'price-band-location-table'
+    | 'price-band-location-chart'
     | 'unit-price-bubble'
     | 'sales-velocity-chart'
     | 'parking-pie'
@@ -28,6 +34,7 @@ export interface CanvasItem {
     scaleMode: ScaleMode;
     panOffset: { x: number; y: number };
     contentScale: number;
+    data?: any; // Snapshot of data at the time of addition
 }
 
 export interface ReportPage {
@@ -38,9 +45,15 @@ export interface ReportPage {
 
 const DEFAULT_SIZES: Record<ChartType, { width: number; height: number }> = {
     'ranking-chart': { width: 400, height: 300 },
+    'ranking-table': { width: 600, height: 400 },
     'price-band-chart': { width: 450, height: 280 },
+    'price-band-table': { width: 600, height: 400 },
+    'price-band-location-table': { width: 600, height: 400 },
+    'price-band-location-chart': { width: 600, height: 400 },
     'unit-price-bubble': { width: 380, height: 320 },
+    'type-comparison-table': { width: 600, height: 350 },
     'sales-velocity-chart': { width: 420, height: 260 },
+    'sales-velocity-table': { width: 600, height: 400 },
     'parking-pie': { width: 300, height: 300 },
     'parking-price': { width: 400, height: 300 },
     'parking-scatter': { width: 450, height: 350 },
@@ -65,7 +78,7 @@ interface ReportBuilderState {
     reorderPages: (fromIndex: number, toIndex: number) => void;
 
     // Item Actions (operate on current page)
-    addItem: (type: ChartType) => void;
+    addItem: (type: ChartType, data?: any) => void;
     updateItem: (id: string, updates: Partial<CanvasItem>) => void;
     removeItem: (id: string) => void;
     moveItemToPage: (itemId: string, targetPageIndex: number) => void;
@@ -119,10 +132,15 @@ export const useReportBuilderStore = create<ReportBuilderState>()(
                     if (pageIndex === -1) return state;
 
                     const newPages = state.pages.filter(p => p.id !== pageId);
-                    const newIndex = Math.min(state.currentPageIndex, newPages.length - 1);
+                    // Rename all pages to reflect new order
+                    const renamedPages = newPages.map((p, i) => ({
+                        ...p,
+                        name: `第 ${i + 1} 頁`
+                    }));
+                    const newIndex = Math.min(state.currentPageIndex, renamedPages.length - 1);
 
                     return {
-                        pages: newPages,
+                        pages: renamedPages,
                         currentPageIndex: newIndex,
                         selectedId: null,
                     };
@@ -168,7 +186,7 @@ export const useReportBuilderStore = create<ReportBuilderState>()(
                 });
             },
 
-            addItem: (type: ChartType) => {
+            addItem: (type: ChartType, data?: any) => {
                 const defaultSize = DEFAULT_SIZES[type] || { width: 400, height: 300 };
 
                 set(state => {
@@ -186,6 +204,7 @@ export const useReportBuilderStore = create<ReportBuilderState>()(
                         scaleMode: 'crop',
                         panOffset: { x: 0, y: 0 },
                         contentScale: 1,
+                        data, // Store snapshot data
                     };
 
                     const updatedPages = state.pages.map((page, i) =>

@@ -427,7 +427,7 @@ export function DataListReport({ data: _triggerData, trigger }: DataListReportPr
                     <ExportButton
                         data={processedData}
                         filename="transaction_list_data"
-                        label="匯出明細表"
+                        label="匯出"
                         chartType="data-list"
                     />
                 }

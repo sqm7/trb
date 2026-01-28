@@ -373,6 +373,7 @@ export function PriceBandReport({ data, visibleSections = ['chart', 'table', 'lo
                             filename="price_band_chart_data"
                             label="匯出"
                             chartType="price-band-chart"
+                            snapshotData={tableData}
                             columns={{ roomType: '房型', bathrooms: '衛浴', minPrice: '最低價', q1Price: 'Q1', medianPrice: '中位數', q3Price: 'Q3', maxPrice: '最高價', avgPrice: '平均價', count: '筆數' }}
                         />
                     }
@@ -391,7 +392,9 @@ export function PriceBandReport({ data, visibleSections = ['chart', 'table', 'lo
                         <ExportButton
                             data={exportTableData}
                             filename="price_band_detail_data"
-                            label="匯出列表"
+                            label="匯出"
+                            chartType="price-band-table"
+                            snapshotData={exportTableData}
                             columns={{ roomType: '房型', bathrooms: '衛浴', minPrice: '最低價', q1Price: 'Q1', medianPrice: '中位數', q3Price: 'Q3', maxPrice: '最高價', avgPrice: '平均價', count: '筆數' }}
                         />
                     }
@@ -552,7 +555,9 @@ export function PriceBandReport({ data, visibleSections = ['chart', 'table', 'lo
                                 <ExportButton
                                     data={crossTableExportData}
                                     filename="price_band_location_cross_table"
-                                    label="匯出分佈表"
+                                    label="匯出"
+                                    chartType="price-band-location-table"
+                                    snapshotData={crossTableData}
                                 />
                             }
                         >
@@ -613,6 +618,15 @@ export function PriceBandReport({ data, visibleSections = ['chart', 'table', 'lo
                     {visibleSections.includes('location-chart') && (
                         <ReportWrapper
                             title="區域成交佔比圖表"
+                            headerAction={
+                                <ExportButton
+                                    data={crossTableExportData}
+                                    filename="price_band_location_chart_data"
+                                    label="匯出"
+                                    chartType="price-band-location-chart"
+                                    snapshotData={crossTableData}
+                                />
+                            }
                         >
                             {crossTableData && (
                                 <PriceBandLocationChart

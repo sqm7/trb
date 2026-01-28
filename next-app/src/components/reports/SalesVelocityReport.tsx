@@ -235,7 +235,8 @@ export function SalesVelocityReport({ data }: SalesVelocityReportProps) {
                     <ExportButton
                         data={salesVelocityAnalysis?.[velocityView] as any}
                         filename={`sales_velocity_table_${velocityView}`}
-                        label="匯出明細"
+                        label="匯出"
+                        chartType="sales-velocity-table"
                         columns={{ period: '時間區間', count: '交易筆數', priceSum: '總銷金額', areaSum: '總銷坪數' }}
                     />
                 }

@@ -54,7 +54,7 @@
 - **Binding Status**: Calculated from `user.email` (placeholder check) and `user.app_metadata` / `identities`.
 - **Global Search**: Integrated into `Sidebar.tsx`, replacing the previous Header search.
 - **Filter State**: Managed by `useFilterStore`, synchronized across full and compact `FilterBar` views.
-- **Report Builder State**: Managed by `useReportBuilderStore`, supports multiple pages and persists canvas items to `localStorage`.
+- **Report Builder State**: Managed by `useReportBuilderStore`, supports multiple pages, data snapshotting (捕捉當前視圖數據), and persists canvas items to `localStorage`.
 
 ## 5. 部署平台規則
 

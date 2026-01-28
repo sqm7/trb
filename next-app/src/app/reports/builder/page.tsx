@@ -28,8 +28,7 @@ import {
     arrayMove,
 } from "@dnd-kit/sortable";
 
-// Re-export types for components that import from this file
-export type { ChartType, CanvasItem };
+
 
 export default function ReportBuilderPage() {
     const { loading, analysisData } = useAnalysisData();
@@ -368,6 +367,7 @@ export default function ReportBuilderPage() {
                                             onSelect={() => setSelectedId(item.id)}
                                             onUpdate={(updates) => handleUpdateItem(item.id, updates)}
                                             onRemove={() => handleRemoveItem(item.id)}
+                                            onMoveToPage={(pageIndex) => moveItemToPage(item.id, pageIndex)}
                                             analysisData={analysisData}
                                         />
                                     ))}

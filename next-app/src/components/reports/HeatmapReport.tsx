@@ -305,7 +305,7 @@ export function HeatmapReport({ data }: HeatmapReportProps) {
                     <ExportButton
                         data={filteredProjectTx || []}
                         filename={`heatmap_tx_${selectedProject}`}
-                        label="匯出交易明細"
+                        label="匯出"
                         chartType="heatmap"
                     />
                 }

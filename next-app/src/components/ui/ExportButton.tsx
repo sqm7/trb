@@ -30,6 +30,7 @@ interface ExportButtonProps {
     disabled?: boolean;
     columns?: Record<string, string>;
     chartType?: ChartType; // For adding to Report Builder
+    snapshotData?: any;    // richer data for Report Builder (if data is not enough)
 }
 
 export function ExportButton({
@@ -39,7 +40,8 @@ export function ExportButton({
     className,
     disabled = false,
     columns,
-    chartType
+    chartType,
+    snapshotData
 }: ExportButtonProps) {
     const { role, isLoading } = useUserRole();
     const router = useRouter();
@@ -135,7 +137,10 @@ export function ExportButton({
     // Add to Report Builder
     const handleAddToBuilder = () => {
         if (!hasPermission || !chartType) return;
-        addItem(chartType);
+
+        // Use snapshotData if provided, otherwise fallback to the CSV-oriented 'data'
+        const finalSnapshot = snapshotData !== undefined ? snapshotData : data;
+        addItem(chartType, finalSnapshot);
 
         // Show toast notification
         toast.success("已新增至報表編輯器", {
