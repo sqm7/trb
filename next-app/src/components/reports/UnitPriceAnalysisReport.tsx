@@ -39,36 +39,49 @@ export function UnitPriceAnalysisReport({ data, visibleSections = ['stats', 'com
 
             {/* 1. Stats Blocks Section */}
             {visibleSections.includes('stats') && (
-                <div className="space-y-4">
-                    <div className="flex flex-wrap items-center justify-between gap-4">
-                        <h3 className="text-xl font-bold text-white pl-2 border-l-4 border-violet-500">各用途單價統計</h3>
-
-                        {/* Average Type Toggle */}
-                        <div className="flex items-center gap-2">
-                            <span className="text-zinc-400 text-sm">平均類型:</span>
-                            <div className="flex bg-zinc-950/50 rounded-md p-1 border border-white/5">
-                                <button
-                                    onClick={() => setAverageType('arithmetic')}
-                                    className={cn(
-                                        "px-3 py-1 text-xs rounded transition-colors",
-                                        averageType === 'arithmetic' ? "bg-violet-500 text-white" : "text-zinc-400 hover:text-white"
-                                    )}
-                                >
-                                    算術平均
-                                </button>
-                                <button
-                                    onClick={() => setAverageType('weighted')}
-                                    className={cn(
-                                        "px-3 py-1 text-xs rounded transition-colors",
-                                        averageType === 'weighted' ? "bg-violet-500 text-white" : "text-zinc-400 hover:text-white"
-                                    )}
-                                >
-                                    加權平均
-                                </button>
+                <ReportWrapper
+                    title="各用途單價統計"
+                    headerAction={
+                        <div className="flex items-center gap-4">
+                            {/* Average Type Toggle */}
+                            <div className="flex items-center gap-2">
+                                <span className="text-zinc-400 text-xs">平均類型:</span>
+                                <div className="flex bg-zinc-950/50 rounded-md p-1 border border-white/5">
+                                    <button
+                                        onClick={() => setAverageType('arithmetic')}
+                                        className={cn(
+                                            "px-2 py-0.5 text-[10px] rounded transition-colors",
+                                            averageType === 'arithmetic' ? "bg-violet-500 text-white" : "text-zinc-500 hover:text-white"
+                                        )}
+                                    >
+                                        算術
+                                    </button>
+                                    <button
+                                        onClick={() => setAverageType('weighted')}
+                                        className={cn(
+                                            "px-2 py-0.5 text-[10px] rounded transition-colors",
+                                            averageType === 'weighted' ? "bg-violet-500 text-white" : "text-zinc-500 hover:text-white"
+                                        )}
+                                    >
+                                        加權
+                                    </button>
+                                </div>
                             </div>
+                            <ExportButton
+                                data={[residentialStats, officeStats, storeStats]}
+                                filename="unit_price_stats"
+                                label="匯出"
+                                chartType="unit-price-stats"
+                                snapshotData={{
+                                    residentialStats,
+                                    officeStats,
+                                    storeStats,
+                                    averageType
+                                }}
+                            />
                         </div>
-                    </div>
-
+                    }
+                >
                     <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
                         <UnitPriceStatsBlock
                             title="住宅建案統計"
@@ -92,7 +105,7 @@ export function UnitPriceAnalysisReport({ data, visibleSections = ['stats', 'com
                             averageType={averageType}
                         />
                     </div>
-                </div>
+                </ReportWrapper>
             )}
 
 

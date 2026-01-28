@@ -95,58 +95,71 @@ export function RankingReport({ data, visibleSections = ['metrics', 'chart', 'ta
 
             {/* 1. Core Metrics */}
             {visibleSections.includes('metrics') && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-                    <MetricCard
-                        title="市場去化總銷售金額"
-                        value={coreMetrics.totalSaleAmount.toLocaleString()}
-                        unit="萬"
-                        sortKey="saleAmountSum"
-                    />
-                    <MetricCard
-                        title="總銷去化房屋坪數"
-                        value={coreMetrics.totalHouseArea.toLocaleString(undefined, { maximumFractionDigits: 2 })}
-                        unit="坪"
-                        sortKey="houseAreaSum"
-                    />
-                    <MetricCard
-                        title="總平均單價"
-                        value={coreMetrics.overallAveragePrice.toLocaleString(undefined, { maximumFractionDigits: 2 })}
-                        unit="萬/坪"
-                        sortKey="averagePrice"
-                    />
-                    <MetricCard
-                        title="總交易筆數"
-                        value={coreMetrics.transactionCount.toLocaleString()}
-                        unit="筆"
-                        sortKey="transactionCount"
-                    />
+                <ReportWrapper
+                    title="核心數據指標"
+                    headerAction={
+                        <ExportButton
+                            data={[coreMetrics, derivedMetrics]}
+                            filename="core_metrics"
+                            label="匯出"
+                            chartType="ranking-metrics"
+                            snapshotData={{ coreMetrics, derivedMetrics }}
+                        />
+                    }
+                >
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+                        <MetricCard
+                            title="市場去化總銷售金額"
+                            value={coreMetrics.totalSaleAmount.toLocaleString()}
+                            unit="萬"
+                            sortKey="saleAmountSum"
+                        />
+                        <MetricCard
+                            title="總銷去化房屋坪數"
+                            value={coreMetrics.totalHouseArea.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                            unit="坪"
+                            sortKey="houseAreaSum"
+                        />
+                        <MetricCard
+                            title="總平均單價"
+                            value={coreMetrics.overallAveragePrice.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                            unit="萬/坪"
+                            sortKey="averagePrice"
+                        />
+                        <MetricCard
+                            title="總交易筆數"
+                            value={coreMetrics.transactionCount.toLocaleString()}
+                            unit="筆"
+                            sortKey="transactionCount"
+                        />
 
-                    {/* Row 2: Price Indicators */}
-                    <MetricCard
-                        title="最低成交單價 (Min)"
-                        value={derivedMetrics.min.toLocaleString(undefined, { maximumFractionDigits: 1 })}
-                        unit="萬/坪"
-                        sortKey="minPrice"
-                    />
-                    <MetricCard
-                        title="最高成交單價 (Max)"
-                        value={derivedMetrics.max.toLocaleString(undefined, { maximumFractionDigits: 1 })}
-                        unit="萬/坪"
-                        sortKey="maxPrice"
-                    />
-                    <MetricCard
-                        title="平均中位數單價"
-                        value={derivedMetrics.median.toLocaleString(undefined, { maximumFractionDigits: 1 })}
-                        unit="萬/坪"
-                        sortKey="medianPrice"
-                    />
-                    <MetricCard
-                        title="平均車位價格"
-                        value={derivedMetrics.parking.toLocaleString(undefined, { maximumFractionDigits: 0 })}
-                        unit="萬"
-                        sortKey="avgParkingPrice"
-                    />
-                </div>
+                        {/* Row 2: Price Indicators */}
+                        <MetricCard
+                            title="最低成交單價 (Min)"
+                            value={derivedMetrics.min.toLocaleString(undefined, { maximumFractionDigits: 1 })}
+                            unit="萬/坪"
+                            sortKey="minPrice"
+                        />
+                        <MetricCard
+                            title="最高成交單價 (Max)"
+                            value={derivedMetrics.max.toLocaleString(undefined, { maximumFractionDigits: 1 })}
+                            unit="萬/坪"
+                            sortKey="maxPrice"
+                        />
+                        <MetricCard
+                            title="平均中位數單價"
+                            value={derivedMetrics.median.toLocaleString(undefined, { maximumFractionDigits: 1 })}
+                            unit="萬/坪"
+                            sortKey="medianPrice"
+                        />
+                        <MetricCard
+                            title="平均車位價格"
+                            value={derivedMetrics.parking.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                            unit="萬"
+                            sortKey="avgParkingPrice"
+                        />
+                    </div>
+                </ReportWrapper>
             )}
 
 

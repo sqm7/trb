@@ -20,6 +20,7 @@ import { PriceBandLocationChart } from "@/components/charts/PriceBandLocationCha
 import { BubbleChart } from "@/components/charts/BubbleChart";
 import { SalesVelocityChart } from "@/components/charts/SalesVelocityChart";
 import { ClientChart } from "@/components/charts/ClientChart";
+import { UnitPriceStatsBlock } from "@/components/reports/UnitPriceStatsBlock";
 
 interface DraggableChartProps {
     item: CanvasItem;
@@ -32,6 +33,8 @@ interface DraggableChartProps {
 }
 
 const CHART_LABELS: Record<ChartType, string> = {
+    'ranking-metrics': '核心數據指標',
+    'unit-price-stats': '各用途單價統計',
     'ranking-chart': '建案排名',
     'ranking-table': '建案排行列表',
     'price-band-chart': '總價帶分佈',
@@ -62,6 +65,78 @@ export function DraggableChart({ item, isSelected, onSelect, onUpdate, onRemove,
         }
 
         switch (item.type) {
+            case 'unit-price-stats': {
+                const stats = item.data || {
+                    residentialStats: analysisData.unitPriceAnalysis?.residentialStats,
+                    officeStats: analysisData.unitPriceAnalysis?.officeStats,
+                    storeStats: analysisData.unitPriceAnalysis?.storeStats,
+                    averageType: 'weighted'
+                };
+                return (
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 h-full p-2 overflow-y-auto custom-scrollbar">
+                        <UnitPriceStatsBlock
+                            title="住宅統計"
+                            stats={stats.residentialStats}
+                            noDataMessage="無數據"
+                            className="bg-zinc-900/40 border-violet-500/20 scale-[0.9] origin-top"
+                            averageType={stats.averageType || 'weighted'}
+                        />
+                        <UnitPriceStatsBlock
+                            title="辦公統計"
+                            stats={stats.officeStats}
+                            noDataMessage="無數據"
+                            className="bg-zinc-900/40 border-cyan-500/20 scale-[0.9] origin-top"
+                            averageType={stats.averageType || 'weighted'}
+                        />
+                        <UnitPriceStatsBlock
+                            title="店舖統計"
+                            stats={stats.storeStats}
+                            noDataMessage="無數據"
+                            className="bg-zinc-900/40 border-amber-500/20 lg:col-span-2 scale-[0.9] origin-top"
+                            averageType={stats.averageType || 'weighted'}
+                        />
+                    </div>
+                );
+            }
+            case 'ranking-metrics': {
+                const metrics = item.data || {
+                    coreMetrics: analysisData.rankingAnalysis?.coreMetrics,
+                    derivedMetrics: {
+                        min: Math.min(...(analysisData.rankingAnalysis?.projectRanking?.map((p: any) => p.minPrice).filter((v: number) => v > 0) || [0])),
+                        max: Math.max(...(analysisData.rankingAnalysis?.projectRanking?.map((p: any) => p.maxPrice) || [0])),
+                        median: analysisData.rankingAnalysis?.projectRanking?.length ? analysisData.rankingAnalysis.projectRanking.reduce((a: any, b: any) => a + (b.medianPrice || 0), 0) / analysisData.rankingAnalysis.projectRanking.length : 0,
+                        parking: analysisData.rankingAnalysis?.projectRanking?.length ? analysisData.rankingAnalysis.projectRanking.reduce((a: any, b: any) => a + (b.avgParkingPrice || 0), 0) / analysisData.rankingAnalysis.projectRanking.length : 0,
+                    }
+                };
+
+                const { coreMetrics, derivedMetrics } = metrics;
+                if (!coreMetrics) return <div className="p-4 text-zinc-500 text-xs">無指標數據</div>;
+
+                const cards = [
+                    { title: "市場去化總銷售金額", value: coreMetrics.totalSaleAmount?.toLocaleString(), unit: "萬" },
+                    { title: "總銷去化房屋坪數", value: coreMetrics.totalHouseArea?.toLocaleString(undefined, { maximumFractionDigits: 1 }), unit: "坪" },
+                    { title: "總平均單價", value: coreMetrics.overallAveragePrice?.toLocaleString(undefined, { maximumFractionDigits: 1 }), unit: "萬/坪" },
+                    { title: "總交易筆數", value: coreMetrics.transactionCount?.toLocaleString(), unit: "筆" },
+                    { title: "最低成交單價", value: derivedMetrics.min?.toLocaleString(undefined, { maximumFractionDigits: 1 }), unit: "萬/坪" },
+                    { title: "最高成交單價", value: derivedMetrics.max?.toLocaleString(undefined, { maximumFractionDigits: 1 }), unit: "萬/坪" },
+                    { title: "平均中位數單價", value: derivedMetrics.median?.toLocaleString(undefined, { maximumFractionDigits: 1 }), unit: "萬/坪" },
+                    { title: "平均車位價格", value: derivedMetrics.parking?.toLocaleString(undefined, { maximumFractionDigits: 0 }), unit: "萬" },
+                ];
+
+                return (
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 h-full p-1 overflow-y-auto custom-scrollbar">
+                        {cards.map((card, i) => (
+                            <div key={i} className="bg-zinc-800/40 rounded border border-white/5 p-2 flex flex-col items-center justify-center text-center">
+                                <div className="text-zinc-500 text-[10px] mb-1 truncate w-full">{card.title}</div>
+                                <div className="flex items-baseline gap-1">
+                                    <span className="text-sm font-bold text-white">{card.value}</span>
+                                    <span className="text-[8px] text-zinc-600">{card.unit}</span>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                );
+            }
             case 'ranking-chart':
                 const rankingData = analysisData.rankingAnalysis?.projectRanking || [];
                 return (

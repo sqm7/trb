@@ -16,6 +16,7 @@ const CHART_CATEGORIES = [
         id: 'ranking',
         title: '核心指標與排名',
         items: [
+            { type: 'ranking-metrics', label: '核心數據指標', icon: <Activity className="h-4 w-4" />, description: '8 項關鍵成交指標卡片' },
             { type: 'ranking-chart', label: '建案排名圖表', icon: <BarChart3 className="h-4 w-4" />, description: '總銷與各項指標排名' },
             { type: 'ranking-table', label: '建案排名列表', icon: <BarChart3 className="h-4 w-4" />, description: '詳細數據列表' },
         ]
@@ -34,6 +35,7 @@ const CHART_CATEGORIES = [
         id: 'unit-price',
         title: '單價分析',
         items: [
+            { type: 'unit-price-stats', label: '各用途單價統計', icon: <Activity className="h-4 w-4" />, description: '住宅/辦公/店面指標卡' },
             { type: 'unit-price-bubble', label: '單價泡泡圖', icon: <Activity className="h-4 w-4" />, description: '成交單價熱度分佈' },
             { type: 'type-comparison-table', label: '產品類型比較', icon: <Grid3X3 className="h-4 w-4" />, description: '住宅/店面/辦公均價' },
         ]

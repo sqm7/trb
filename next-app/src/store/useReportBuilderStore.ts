@@ -7,6 +7,7 @@ import { persist } from 'zustand/middleware';
 export type ChartType =
     | 'ranking-chart'
     | 'ranking-table'
+    | 'ranking-metrics'
     | 'price-band-chart'
     | 'type-comparison-table'
     | 'sales-velocity-table'
@@ -14,6 +15,7 @@ export type ChartType =
     | 'price-band-location-table'
     | 'price-band-location-chart'
     | 'unit-price-bubble'
+    | 'unit-price-stats'
     | 'sales-velocity-chart'
     | 'parking-pie'
     | 'parking-price'
@@ -46,11 +48,13 @@ export interface ReportPage {
 const DEFAULT_SIZES: Record<ChartType, { width: number; height: number }> = {
     'ranking-chart': { width: 400, height: 300 },
     'ranking-table': { width: 600, height: 400 },
+    'ranking-metrics': { width: 600, height: 200 },
     'price-band-chart': { width: 450, height: 280 },
     'price-band-table': { width: 600, height: 400 },
     'price-band-location-table': { width: 600, height: 400 },
     'price-band-location-chart': { width: 600, height: 400 },
     'unit-price-bubble': { width: 380, height: 320 },
+    'unit-price-stats': { width: 1000, height: 400 },
     'type-comparison-table': { width: 600, height: 350 },
     'sales-velocity-chart': { width: 420, height: 260 },
     'sales-velocity-table': { width: 600, height: 400 },
