@@ -113,3 +113,21 @@ The system allows users to access the platform using multiple identity providers
   - **State**: Managed via `useReportBuilderStore` (Zustand).
   - **Components**: Built with `react-rnd` for interactive manipulation.
   - **Chart Rendering**: Shared chart components used across both Dashboard and Builder for consistency.
+
+## 8. Data Alchemy Video Script (90s)
+- **Concept**: "Pingmi Internal Reference = Modern Alchemy Studio". Transforming raw data into decision-making gold.
+- **Visual Style**: "Data Alchemy".
+    - **Colors**: Cyan (#06b6d4), Violet (#8b5cf6), Gold (#f59e0b).
+    - **Particles**: Raw Data (White Circle), Filtered (Cyan Diamond), Insight (Gold Star).
+
+### Scene Breakdown
+| Scene | Time | Visuals | Audio/Text |
+|-------|------|---------|------------|
+| **1. Chaos Mine** | 0-15s | Dark mine, floating data particles (Icons/Numbers), Camera deep dive. Light beam @ 12s. | "在混沌的數據礦場中，隱藏著無價的商業寶藏..." |
+| **2. Alchemy Start** | 15-25s | Logo lights up as Alchemy Array (Cyan/Violet pulse). Funnel effect sucking particles. | "直到現代煉金術的誕生，改變了一切..." |
+| **3. Data Refinery** | 25-45s | Transparent furnace. Map projection (Taiwan). Impurities (Grey) separated, Pure Data (Cyan) drips. | (Visual Focus: Filtration/Scanning) |
+| **4. Crystal Room** | 45-60s | Cyan liquid -> Bar Chart Crystal -> Heatmap Crystal -> Radar Lock. "Target Locked" hologram. | (Visual Focus: Crystallization/Analysis) |
+| **5. Gold Casting** | 60-75s | Crystals melt to Gold Liquid. Injected into Gem Mold. Burst of light. | (Visual Focus: Value Creation) |
+| **6. Value Reveal** | 75-85s | Floating Decision Gem. Success indicators (growth curves) orbiting. | (Visual Focus: Decision Support) |
+| **7. Brand Imprint** | 85-90s | Close up on Gem. Reflection of "Pingmi" Logo. | "平米內參 - 讓數據煉成決策黃金" |
+

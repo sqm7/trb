@@ -1,236 +1,132 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
     AbsoluteFill,
     useCurrentFrame,
     useVideoConfig,
     spring,
     interpolate,
+    Easing,
+    Img,
+    staticFile
 } from 'remotion';
-import { TrendingUp, ArrowUpRight, Sparkles } from 'lucide-react';
+import { TrendingUp, ArrowUpRight, Sparkles, Target, BarChart2 } from 'lucide-react';
 import { COLORS } from '../DataAlchemyVideo';
 
 export const Scene6ValueReveal: React.FC = () => {
     const frame = useCurrentFrame();
-    const { fps } = useVideoConfig();
+    const { fps, width, height } = useVideoConfig();
 
-    // Gem floating and rotating
-    const gemFloat = Math.sin(frame * 0.05) * 10;
-    const gemRotate = interpolate(frame, [0, 10 * fps], [0, 15]);
+    // 1. Gem Physics (Bobbing and Rotating)
+    const gemY = Math.sin(frame * 0.05) * 20;
+    const gemRotate = Math.sin(frame * 0.03) * 5;
 
-    // Success indicators appearing
-    const indicator1 = spring({
-        frame: frame - 30,
-        fps,
-        config: { damping: 15 },
-    });
-    const indicator2 = spring({
-        frame: frame - 50,
-        fps,
-        config: { damping: 15 },
-    });
-    const indicator3 = spring({
-        frame: frame - 70,
-        fps,
-        config: { damping: 15 },
-    });
+    // 2. Orbital System
+    // Indicators orbit around the gem
+    const indicators = [
+        { icon: TrendingUp, label: "+150% ROI", color: COLORS.cyan, delay: 0 },
+        { icon: Target, label: "精準命中", color: COLORS.violet, delay: 5 },
+        { icon: BarChart2, label: "市場份額", color: COLORS.gold, delay: 10 },
+    ];
 
-    // Growth curve animation
-    const curveProgress = interpolate(frame, [2 * fps, 6 * fps], [0, 1], {
-        extrapolateLeft: 'clamp',
-        extrapolateRight: 'clamp',
-    });
-
-    // Caption timing
-    const captionOpacity = interpolate(frame, [fps, 2 * fps], [0, 1], {
-        extrapolateRight: 'clamp',
-    });
-    const captionFadeOut = interpolate(frame, [8 * fps, 9 * fps], [1, 0], {
-        extrapolateLeft: 'clamp',
-        extrapolateRight: 'clamp',
-    });
+    // 3. Background Data Grid
+    // Moving grid to show depth
+    const gridY = (frame * 0.5) % 50;
 
     return (
         <AbsoluteFill style={{ backgroundColor: COLORS.bg, overflow: 'hidden' }}>
-            {/* Ambient glow */}
-            <div
-                style={{
-                    position: 'absolute',
-                    left: '50%',
-                    top: '40%',
-                    transform: 'translate(-50%, -50%)',
-                    width: 500,
-                    height: 500,
-                    background: `radial-gradient(circle, ${COLORS.gold}15 0%, transparent 60%)`,
-                    borderRadius: '50%',
-                    filter: 'blur(40px)',
-                }}
-            />
 
-            {/* Floating Gold Gem */}
-            <div
-                style={{
-                    position: 'absolute',
-                    left: '50%',
-                    top: '40%',
-                    transform: `translate(-50%, -50%) translateY(${gemFloat}px) rotate(${gemRotate}deg)`,
-                }}
-            >
-                {/* Outer glow ring */}
-                <div
-                    style={{
-                        position: 'absolute',
-                        left: '50%',
-                        top: '50%',
-                        transform: 'translate(-50%, -50%)',
-                        width: 200,
-                        height: 200,
-                        border: `2px solid ${COLORS.gold}30`,
-                        borderRadius: '50%',
-                        opacity: interpolate(Math.sin(frame * 0.08), [-1, 1], [0.3, 0.7]),
-                    }}
-                />
+            {/* Background Moving Grid */}
+            <div style={{
+                position: 'absolute', inset: -100,
+                backgroundImage: `linear-gradient(${COLORS.cyan}20 1px, transparent 1px), linear-gradient(90deg, ${COLORS.cyan}20 1px, transparent 1px)`,
+                backgroundSize: '50px 50px',
+                transform: `perspective(500px) rotateX(60deg) translateY(${gridY}px)`,
+                opacity: 0.3,
+            }} />
 
-                {/* Main gem */}
-                <div
-                    style={{
-                        width: 100,
-                        height: 120,
-                        background: `linear-gradient(135deg, #fbbf24 0%, ${COLORS.gold} 50%, #b45309 100%)`,
+            {/* Central Glow */}
+            <div style={{
+                position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%, -50%)',
+                width: 600, height: 600,
+                background: `radial-gradient(circle, ${COLORS.gold}20 0%, transparent 70%)`,
+                borderRadius: '50%',
+                filter: 'blur(60px)',
+            }} />
+
+            {/* Floating Gem Container */}
+            <div style={{
+                position: 'absolute', left: '50%', top: '50%',
+                transform: `translate(-50%, -50%) translateY(${gemY}px) rotate(${gemRotate}deg)`,
+                zIndex: 10,
+            }}>
+                {/* Gem Shape */}
+                <div style={{
+                    width: 160, height: 220,
+                    background: `linear-gradient(135deg, ${COLORS.gold}, #FFF, ${COLORS.gold})`,
+                    clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)',
+                    boxShadow: `0 0 100px ${COLORS.gold}80`,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                    {/* Inner Reflection */}
+                    <div style={{
+                        width: '80%', height: '80%',
+                        background: 'rgba(255,255,255,0.4)',
                         clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)',
-                        boxShadow: `0 0 50px ${COLORS.gold}60`,
-                        position: 'relative',
-                    }}
-                >
-                    <div
-                        style={{
-                            position: 'absolute',
-                            left: '20%',
-                            top: '15%',
-                            width: '30%',
-                            height: '20%',
-                            background: 'linear-gradient(135deg, rgba(255,255,255,0.8) 0%, transparent 100%)',
-                            borderRadius: '50%',
-                        }}
-                    />
+                        mixBlendMode: 'overlay',
+                    }} />
                 </div>
             </div>
 
-            {/* Success Indicators orbiting */}
-            {/* Indicator 1: Trending Up */}
-            <div
-                style={{
-                    position: 'absolute',
-                    left: '30%',
-                    top: '30%',
-                    transform: `scale(${indicator1})`,
-                    opacity: indicator1,
-                }}
-            >
-                <div
-                    style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 8,
-                        background: `${COLORS.cyan}20`,
-                        border: `1px solid ${COLORS.cyan}40`,
-                        borderRadius: 12,
-                        padding: '10px 16px',
-                    }}
-                >
-                    <TrendingUp size={24} color={COLORS.cyan} />
-                    <span style={{ color: COLORS.cyan, fontSize: 18, fontWeight: 600 }}>
-                        +45%
-                    </span>
-                </div>
-            </div>
+            {/* Orbiting Indicators */}
+            {indicators.map((item, i) => {
+                const angle = (frame * 0.02) + (i * ((Math.PI * 2) / 3)); // Even separation
+                const radiusX = 350;
+                const radiusY = 100;
 
-            {/* Indicator 2: Arrow Up Right */}
-            <div
-                style={{
-                    position: 'absolute',
-                    right: '25%',
-                    top: '35%',
-                    transform: `scale(${indicator2})`,
-                    opacity: indicator2,
-                }}
-            >
-                <div
-                    style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 8,
-                        background: `${COLORS.gold}20`,
-                        border: `1px solid ${COLORS.gold}40`,
-                        borderRadius: 12,
-                        padding: '10px 16px',
-                    }}
-                >
-                    <ArrowUpRight size={24} color={COLORS.gold} />
-                    <span style={{ color: COLORS.gold, fontSize: 18, fontWeight: 600 }}>
-                        精準決策
-                    </span>
-                </div>
-            </div>
+                const x = Math.cos(angle) * radiusX;
+                const y = Math.sin(angle) * radiusY;
 
-            {/* Indicator 3: Sparkles */}
-            <div
-                style={{
-                    position: 'absolute',
-                    left: '35%',
-                    bottom: '35%',
-                    transform: `scale(${indicator3})`,
-                    opacity: indicator3,
-                }}
-            >
-                <div
-                    style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 8,
-                        background: `${COLORS.violet}20`,
-                        border: `1px solid ${COLORS.violet}40`,
-                        borderRadius: 12,
-                        padding: '10px 16px',
-                    }}
-                >
-                    <Sparkles size={24} color={COLORS.violet} />
-                    <span style={{ color: COLORS.violet, fontSize: 18, fontWeight: 600 }}>
-                        市場洞察
-                    </span>
-                </div>
-            </div>
+                // Depth sorting: if y < 0 (back), lower z-index
+                const isBack = Math.sin(angle) < 0;
+                const scale = interpolate(Math.sin(angle), [-1, 1], [0.8, 1.2]);
+                const opacity = interpolate(Math.sin(angle), [-1, 1], [0.5, 1]);
 
-            {/* Growth Curve */}
-            <svg
-                width="400"
-                height="150"
-                style={{
-                    position: 'absolute',
-                    right: '20%',
-                    bottom: '25%',
-                    opacity: curveProgress,
-                }}
-            >
-                <path
-                    d={`M 0 120 Q 100 100 200 60 T 400 ${interpolate(curveProgress, [0, 1], [120, 20])}`}
-                    fill="none"
-                    stroke={COLORS.cyan}
-                    strokeWidth="3"
-                    strokeDasharray="500"
-                    strokeDashoffset={interpolate(curveProgress, [0, 1], [500, 0])}
-                    style={{ filter: `drop-shadow(0 0 10px ${COLORS.cyan})` }}
-                />
-            </svg>
+                // Entrance
+                const ent = spring({ frame: frame - i * 10, fps, config: { damping: 12 } });
+
+                return (
+                    <div key={i} style={{
+                        position: 'absolute', left: '50%', top: '50%',
+                        transform: `translate(-50%, -50%) translate(${x}px, ${y}px) scale(${scale * ent})`,
+                        zIndex: isBack ? 5 : 15,
+                        opacity: opacity * ent,
+                    }}>
+                        <div style={{
+                            background: `rgba(0,0,0,0.6)`,
+                            border: `1px solid ${item.color}`,
+                            padding: '12px 24px',
+                            borderRadius: 16,
+                            display: 'flex', alignItems: 'center', gap: 12,
+                            backdropFilter: 'blur(8px)',
+                            boxShadow: `0 0 20px ${item.color}40`,
+                        }}>
+                            <item.icon color={item.color} size={24} />
+                            <span style={{ color: COLORS.white, fontSize: 18, fontWeight: 'bold' }}>{item.label}</span>
+                        </div>
+
+                        {/* Connecting Line to Gem (Optional, maybe too messy) */}
+                    </div>
+                );
+            })}
 
             {/* Caption */}
             <div
                 style={{
                     position: 'absolute',
-                    bottom: 80,
-                    left: 0,
-                    right: 0,
+                    bottom: 100,
+                    width: '100%',
                     textAlign: 'center',
-                    opacity: captionOpacity * captionFadeOut,
+                    opacity: interpolate(frame, [0, 2 * fps], [0, 1]),
                 }}
             >
                 <p
@@ -246,6 +142,7 @@ export const Scene6ValueReveal: React.FC = () => {
                     決策寶石散發光芒，指引成功方向...
                 </p>
             </div>
+
         </AbsoluteFill>
     );
 };

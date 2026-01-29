@@ -1,10 +1,10 @@
 # Implementation Plan
 
 ## [Current Task] Recovery and Test Deployment
-- [ ] Step 1: Commit uncommitted changes to local repository.
-- [ ] Step 2: Update ARCHITECTURE.md if necessary (added Remotion files).
-- [ ] Step 3: Execute `scripts/deploy_next_trb.sh` to deploy to test environment.
-- [ ] Step 4: Verify deployment at https://sqm7.github.io/trb
+- [x] Step 1: Commit uncommitted changes to local repository.
+- [x] Step 2: Update ARCHITECTURE.md if necessary (added Remotion files).
+- [x] Step 3: Execute `scripts/deploy_next_trb.sh` to deploy to test environment.
+- [x] Step 4: Verify deployment at https://sqm7.github.io/trb
 
 
 ## [Current Task] Report Builder Bug Fixes
@@ -62,3 +62,13 @@
 - [x] Implement keyboard "Delete/Backspace" to remove selected items
 - [x] Add visual feedback or confirmation for deletion
 - [x] Deploy to test environment (trb)
+
+## [Current Task] Refine Data Alchemy Video
+- [x] Step 1: **Scene 1 Refinement (Chaos Mine)** - Enhance particle types (icons), deep-dive camera effect, and light beam timing.
+- [x] Step 2: **Scene 2 Construction (Alchemy Start)** - Implement Alchemy Array logo animation, pulse effect, and particle suction funnel.
+- [x] Step 3: **Scene 3 Construction (Data Refinery)** - Build transparent furnace, Taiwan map projection, impurity separation (Grey vs Cyan).
+- [x] Step 4: **Scene 4 Construction (Crystal Room)** - Animate Liquid -> Bar Chart -> Heatmap -> Radar Lock transitions.
+- [x] Step 5: **Scene 5 Construction (Gold Casting)** - Melt crystals to gold liquid, mold injection, and light burst.
+- [x] Step 6: **Scene 6 Construction (Value Reveal)** - Floating Decision Gem with orbiting success indicators.
+- [x] Step 7: **Scene 7 Construction (Brand Imprint)** - Extreme close-up of Gem reflecting "Pingmi" logo.
+- [x] Step 8: **Verification** - Verify all transitions and render full video preview.

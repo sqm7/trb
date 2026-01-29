@@ -8,6 +8,15 @@
 ## 2. Directory Structure
 ```
 /
+├── .agent/             # AI Assistant Configuration (Source of Truth)
+│   ├── skills/         # Specialized Skill Modules
+│   ├── workflows/      # Slash Command Scripts
+│   └── rules/          # Project Guidelines & Rules
+├── .gemini/            # Global Agent Rules & Sync Protocols
+├── .cursor/            # IDE Specific (Sync from .agent)
+├── .claude/            # IDE Specific (Sync from .agent)
+├── .trae/              # IDE Specific (Sync from .agent)
+├── .windsurf/          # IDE Specific (Sync from .agent)
 ├── next-app/           # Next.js Application (Active Frontend)
 │   ├── src/
 │   │   ├── app/        # App Router Pages

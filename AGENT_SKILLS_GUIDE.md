@@ -29,6 +29,7 @@
 *   **/pptx / /xlsx / /docx / /pdf**：處理各種辦公文件格式。
 *   **/canvas-design**：生成海報、藝術設計。
 *   **/stitch-loop**：網站代碼迭代開發循環。
+*   **/vibe-coding-writer** (新)：撰寫具有 Vibe Coding 風格的文案與文章。
 
 ### 2. Modular Skills (模組化技能包)
 這些功能通常由系統後台或特定的「橋接指令」啟動：

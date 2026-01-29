@@ -7,173 +7,125 @@ import {
     interpolate,
     staticFile,
     Img,
+    Easing,
 } from 'remotion';
 import { COLORS } from '../DataAlchemyVideo';
 
 export const Scene7BrandImprint: React.FC = () => {
     const frame = useCurrentFrame();
-    const { fps } = useVideoConfig();
+    const { fps, width, height } = useVideoConfig();
 
-    // Logo entrance animation
-    const logoScale = spring({
-        frame,
-        fps,
-        config: { damping: 15, stiffness: 100 },
-    });
+    // 1. Extreme Zoom In into the Gem
+    // 0-2s: The scene starts inside/very close to the gem surface (gold background)
+    // 2-5s: Camera pulls back or focus clear to reveal the logo embedded
 
-    const logoOpacity = interpolate(frame, [0, 15], [0, 1], {
-        extrapolateRight: 'clamp',
-    });
+    // Zoom out effectively from Macro
+    const macroScale = interpolate(frame, [0, 3 * fps], [4, 1], { extrapolateRight: 'clamp', easing: Easing.out(Easing.exp) });
+    const bgBlur = interpolate(frame, [0, 3 * fps], [20, 0]);
 
-    // Text entrance (delayed)
-    const textEntrance = spring({
-        frame: frame - 20,
-        fps,
-        config: { damping: 200 },
-    });
+    // Logo Mechanics
+    const logoScale = spring({ frame: frame - 1 * fps, fps, config: { damping: 15, stiffness: 60 } });
+    const logoOpacity = interpolate(frame, [1 * fps, 2 * fps], [0, 1], { extrapolateRight: 'clamp' });
 
-    const textY = interpolate(textEntrance, [0, 1], [30, 0]);
+    // Text Assemble
+    const textSlide = spring({ frame: frame - 2 * fps, fps, config: { damping: 20 } });
+    const textOpacity = interpolate(frame, [2 * fps, 3 * fps], [0, 1]);
 
-    // Tagline entrance (more delayed)
-    const taglineEntrance = spring({
-        frame: frame - 40,
-        fps,
-        config: { damping: 200 },
-    });
-
-    // Underline animation
-    const underlineWidth = interpolate(frame, [60, 90], [0, 200], {
-        extrapolateLeft: 'clamp',
-        extrapolateRight: 'clamp',
-    });
-
-    // Glow pulse
-    const glowPulse = interpolate(
-        Math.sin(frame * 0.1),
-        [-1, 1],
-        [0.3, 0.6]
-    );
+    // Shine wipe over logo
+    const shineWipe = interpolate(frame, [3.5 * fps, 4.5 * fps], [-100, 200], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
 
     return (
-        <AbsoluteFill
-            style={{
-                backgroundColor: COLORS.bg,
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-            }}
-        >
-            {/* Background glow */}
-            <div
-                style={{
-                    position: 'absolute',
-                    width: 400,
-                    height: 400,
-                    background: `radial-gradient(circle, ${COLORS.cyan}30 0%, transparent 70%)`,
-                    borderRadius: '50%',
-                    filter: 'blur(60px)',
-                    opacity: glowPulse,
-                }}
-            />
+        <AbsoluteFill style={{ backgroundColor: COLORS.bg, overflow: 'hidden' }}>
 
-            {/* Logo */}
-            <div
-                style={{
+            {/* Background: Gold Texture (Inside Gem) */}
+            <div style={{
+                position: 'absolute', inset: 0,
+                background: `radial-gradient(circle at center, ${COLORS.gold}40 0%, ${COLORS.bg} 100%)`,
+                transform: `scale(${macroScale})`,
+                opacity: 0.5,
+            }}>
+                {/* Facets simulated */}
+                <div style={{
+                    position: 'absolute', inset: 0,
+                    backgroundImage: `repeating-linear-gradient(45deg, ${COLORS.gold}10 0px, transparent 2px, transparent 10px)`,
+                    filter: `blur(${bgBlur}px)`,
+                }} />
+            </div>
+
+            {/* Content Container */}
+            <AbsoluteFill style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+
+                {/* Logo with Glass/Gem Effect */}
+                <div style={{
                     position: 'relative',
+                    width: 200, height: 200,
                     marginBottom: 40,
                     transform: `scale(${logoScale})`,
                     opacity: logoOpacity,
-                }}
-            >
-                {/* Logo glow */}
-                <div
-                    style={{
-                        position: 'absolute',
-                        inset: -20,
-                        background: `radial-gradient(circle, ${COLORS.cyan}40 0%, transparent 70%)`,
-                        borderRadius: 32,
-                        filter: 'blur(20px)',
-                        opacity: glowPulse,
-                    }}
-                />
-                <Img
-                    src={staticFile('icon.png')}
-                    style={{
-                        width: 160,
-                        height: 160,
-                        borderRadius: 24,
-                        boxShadow: `0 0 40px ${COLORS.cyan}40`,
-                    }}
-                />
-            </div>
+                }}>
+                    {/* Shadow/Glow */}
+                    <div style={{
+                        position: 'absolute', inset: 0, borderRadius: 40,
+                        boxShadow: `0 0 80px ${COLORS.cyan}40`,
+                    }} />
 
-            {/* Brand Name */}
-            <div
-                style={{
-                    opacity: textEntrance,
-                    transform: `translateY(${textY}px)`,
+                    <Img
+                        src={staticFile('icon.png')}
+                        style={{
+                            width: '100%', height: '100%',
+                            borderRadius: 40,
+                            // Blend it to look like it's inside gold
+                            filter: 'brightness(1.1) contrast(1.1)',
+                        }}
+                    />
+
+                    {/* Interaction Shine */}
+                    <div style={{
+                        position: 'absolute', inset: 0, borderRadius: 40, overflow: 'hidden',
+                    }}>
+                        <div style={{
+                            position: 'absolute', top: 0, bottom: 0, width: 50,
+                            background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent)',
+                            transform: `skewX(-20deg) translateX(${shineWipe}%)`,
+                        }} />
+                    </div>
+                </div>
+
+                {/* Brand Text */}
+                <div style={{
+                    transform: `translateY(${interpolate(textSlide, [0, 1], [50, 0])}px)`,
+                    opacity: textOpacity,
                     textAlign: 'center',
-                }}
-            >
-                <h1
-                    style={{
+                }}>
+                    <h1 style={{
                         color: COLORS.white,
-                        fontSize: 72,
-                        fontWeight: 700,
-                        fontFamily: 'sans-serif',
-                        letterSpacing: '0.05em',
+                        fontSize: 64, fontWeight: 800,
+                        letterSpacing: '0.1em',
+                        background: `linear-gradient(to bottom, #fff, ${COLORS.gray})`,
+                        WebkitBackgroundClip: 'text',
+                        WebkitTextFillColor: 'transparent',
                         margin: 0,
-                        marginBottom: 16,
-                    }}
-                >
-                    平米內參
-                </h1>
-                <p
-                    style={{
-                        color: COLORS.gray,
-                        fontSize: 20,
-                        fontFamily: 'monospace',
-                        letterSpacing: '0.4em',
-                        margin: 0,
-                        opacity: taglineEntrance,
-                    }}
-                >
-                    SQMTALK.COM
-                </p>
-            </div>
+                    }}>
+                        平米內參
+                    </h1>
 
-            {/* Tagline */}
-            <div
-                style={{
-                    marginTop: 50,
-                    opacity: taglineEntrance,
-                    textAlign: 'center',
-                }}
-            >
-                <p
-                    style={{
-                        color: COLORS.gold,
-                        fontSize: 24,
-                        fontFamily: 'sans-serif',
-                        fontWeight: 500,
-                        letterSpacing: '0.15em',
-                        margin: 0,
-                    }}
-                >
-                    讓數據煉成決策黃金
-                </p>
-            </div>
+                    <div style={{ height: 2, width: 100, background: COLORS.cyan, margin: '20px auto' }} />
 
-            {/* Animated underline */}
-            <div
-                style={{
-                    width: underlineWidth,
-                    height: 2,
-                    marginTop: 40,
-                    background: `linear-gradient(90deg, transparent, ${COLORS.cyan}, transparent)`,
-                }}
-            />
+                    <p style={{
+                        color: COLORS.gold, fontSize: 24, letterSpacing: '0.2em', fontWeight: 500,
+                        textTransform: 'uppercase', margin: 0
+                    }}>
+                        Data Alchemy
+                    </p>
+                    <p style={{
+                        color: COLORS.gray, fontSize: 16, marginTop: 10, fontFamily: 'monospace'
+                    }}>
+                        SQMTALK.COM
+                    </p>
+                </div>
+
+            </AbsoluteFill>
+
         </AbsoluteFill>
     );
 };

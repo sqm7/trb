@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
     AbsoluteFill,
     useCurrentFrame,
@@ -8,233 +8,128 @@ import {
     staticFile,
     Img,
     Easing,
+    random,
 } from 'remotion';
 import { Database, Home, DollarSign } from 'lucide-react';
 import { COLORS } from '../DataAlchemyVideo';
 
 export const Scene2AlchemyStart: React.FC = () => {
     const frame = useCurrentFrame();
-    const { fps } = useVideoConfig();
+    const { fps, width, height } = useVideoConfig();
 
-    // Logo rising from below
-    const logoRise = spring({
+    // 1. Alchemy Array Mechanics
+    // Multiple rotating rings
+    const ring1Rot = interpolate(frame, [0, 10 * fps], [0, 180]); // Clockwise
+    const ring2Rot = interpolate(frame, [0, 10 * fps], [0, -120]); // Counter-clockwise
+    const ring3Rot = interpolate(frame, [0, 10 * fps], [0, 90]);   // Slow clockwise
+
+    // Pulse Effect (Breathing)
+    const pulse = Math.sin(frame * 0.1) * 0.1 + 1; // 0.9 to 1.1 scale
+
+    // Logo Reveal
+    const logoEntrance = spring({
         frame,
         fps,
-        config: { damping: 15, stiffness: 80 },
+        config: { damping: 12, stiffness: 100 },
     });
 
-    const logoY = interpolate(logoRise, [0, 1], [200, 0]);
-    const logoScale = interpolate(logoRise, [0, 1], [0.5, 1]);
-
-    // Alchemy circle rotation
-    const circleRotation = interpolate(frame, [0, 10 * fps], [0, 360]);
-
-    // Glow intensity animation
-    const glowIntensity = spring({
-        frame: frame - 20,
-        fps,
-        config: { damping: 200 },
-    });
-
-    // Particle attraction effect (particles flying toward center)
-    const attractionProgress = interpolate(frame, [30, 10 * fps], [0, 1], {
-        extrapolateLeft: 'clamp',
-        extrapolateRight: 'clamp',
-        easing: Easing.out(Easing.quad),
-    });
-
-    // Caption
-    const captionOpacity = interpolate(frame, [20, 40], [0, 1], {
-        extrapolateRight: 'clamp',
-    });
-
-    const captionFadeOut = interpolate(frame, [8 * fps, 10 * fps], [1, 0], {
-        extrapolateLeft: 'clamp',
-        extrapolateRight: 'clamp',
-    });
-
-    // Floating particles being attracted
-    const particles = React.useMemo(() => {
-        return Array.from({ length: 20 }, (_, i) => ({
-            id: i,
-            startX: Math.cos(i * 0.5) * 400 + 540,
-            startY: Math.sin(i * 0.7) * 400 + 540,
-            icon: [Database, Home, DollarSign][i % 3],
-            delay: i * 3,
-        }));
+    // 2. Swirling Vortex Particles
+    // 50 particles swirling into the center
+    const particles = useMemo(() => {
+        return Array.from({ length: 50 }, (_, i) => {
+            const angleOffset = random(i) * Math.PI * 2;
+            const radius = 500 + random(i + 100) * 300; // Start far out
+            const speed = 0.5 + random(i + 200) * 0.5;
+            const icon = [Database, Home, DollarSign][i % 3];
+            return { id: i, angleOffset, radius, speed, icon };
+        });
     }, []);
+
+    // 3. Caption
+    const captionOpacity = interpolate(frame, [2 * fps, 3 * fps], [0, 1], { extrapolateRight: 'clamp' });
+    const captionFadeOut = interpolate(frame, [8 * fps, 9.5 * fps], [1, 0], { extrapolateRight: 'clamp' });
 
     return (
         <AbsoluteFill style={{ backgroundColor: COLORS.bg, overflow: 'hidden' }}>
-            {/* Alchemy Circle Background */}
-            <div
-                style={{
-                    position: 'absolute',
-                    left: '50%',
-                    top: '50%',
-                    transform: `translate(-50%, -50%) rotate(${circleRotation}deg)`,
-                    width: 500,
-                    height: 500,
-                }}
-            >
-                {/* Outer Ring */}
-                <div
-                    style={{
-                        position: 'absolute',
-                        inset: 0,
-                        border: `2px solid ${COLORS.cyan}40`,
-                        borderRadius: '50%',
-                        opacity: glowIntensity,
-                    }}
-                />
-                {/* Middle Ring */}
-                <div
-                    style={{
-                        position: 'absolute',
-                        inset: 40,
-                        border: `1px dashed ${COLORS.violet}30`,
-                        borderRadius: '50%',
-                        opacity: glowIntensity,
-                    }}
-                />
-                {/* Inner Ring */}
-                <div
-                    style={{
-                        position: 'absolute',
-                        inset: 80,
-                        border: `2px solid ${COLORS.cyan}60`,
-                        borderRadius: '50%',
-                        opacity: glowIntensity,
-                    }}
-                />
 
-                {/* Alchemy Symbols */}
-                {[0, 60, 120, 180, 240, 300].map((angle, i) => {
-                    const symbolOpacity = spring({
-                        frame: frame - 10 - i * 5,
-                        fps,
-                        config: { damping: 200 },
-                    });
+            {/* Center Everything */}
+            <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}>
 
-                    return (
-                        <div
-                            key={i}
-                            style={{
-                                position: 'absolute',
-                                left: '50%',
-                                top: '50%',
-                                transform: `rotate(${angle}deg) translateY(-220px)`,
-                                transformOrigin: '0 0',
-                                opacity: symbolOpacity,
-                            }}
-                        >
-                            <div
-                                style={{
-                                    width: 20,
-                                    height: 20,
-                                    background: COLORS.cyan,
-                                    transform: 'rotate(45deg)',
-                                    boxShadow: `0 0 20px ${COLORS.cyan}`,
-                                }}
-                            />
-                        </div>
-                    );
-                })}
-            </div>
+                {/* --- Alchemy Array Layer --- */}
+                <div style={{ position: 'relative', width: 0, height: 0 }}>
 
-            {/* Central Glow */}
-            <div
-                style={{
-                    position: 'absolute',
-                    left: '50%',
-                    top: '50%',
-                    transform: 'translate(-50%, -50%)',
-                    width: 300,
-                    height: 300,
-                    background: `radial-gradient(circle, ${COLORS.cyan}40 0%, transparent 70%)`,
-                    borderRadius: '50%',
-                    filter: 'blur(30px)',
-                    opacity: glowIntensity * 0.8,
-                }}
-            />
-
-            {/* Attracted Particles */}
-            {particles.map((particle) => {
-                const Icon = particle.icon;
-                const particleProgress = interpolate(
-                    frame - particle.delay,
-                    [30, 8 * fps],
-                    [0, 1],
-                    { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' }
-                );
-
-                const currentX = interpolate(particleProgress, [0, 1], [particle.startX, 540]);
-                const currentY = interpolate(particleProgress, [0, 1], [particle.startY, 540]);
-                const particleOpacity = interpolate(particleProgress, [0, 0.8, 1], [0.6, 0.8, 0]);
-                const particleScale = interpolate(particleProgress, [0, 0.8, 1], [1, 1, 0]);
-
-                return (
-                    <div
-                        key={particle.id}
-                        style={{
-                            position: 'absolute',
-                            left: currentX,
-                            top: currentY,
-                            transform: `translate(-50%, -50%) scale(${particleScale})`,
-                            opacity: particleOpacity,
-                        }}
-                    >
-                        <Icon size={16} color={COLORS.white} />
+                    {/* Ring 1: Complex Geometry (Hexagonish) */}
+                    <div style={{ position: 'absolute', transform: `translate(-50%, -50%) rotate(${ring1Rot}deg) scale(${pulse})` }}>
+                        <svg width="600" height="600" viewBox="0 0 600 600" style={{ opacity: 0.3 }}>
+                            <circle cx="300" cy="300" r="280" fill="none" stroke={COLORS.cyan} strokeWidth="2" strokeDasharray="20 10" />
+                            <circle cx="300" cy="300" r="250" fill="none" stroke={COLORS.violet} strokeWidth="1" />
+                            <path d="M300 50 L516 175 L516 425 L300 550 L84 425 L84 175 Z" fill="none" stroke={COLORS.cyan} strokeWidth="2" />
+                        </svg>
                     </div>
-                );
-            })}
 
-            {/* Rising Logo */}
-            <div
-                style={{
-                    position: 'absolute',
-                    left: '50%',
-                    top: '50%',
-                    transform: `translate(-50%, -50%) translateY(${logoY}px) scale(${logoScale})`,
-                }}
-            >
+                    {/* Ring 2: Squares */}
+                    <div style={{ position: 'absolute', transform: `translate(-50%, -50%) rotate(${ring2Rot}deg) scale(${pulse})` }}>
+                        <svg width="400" height="400" viewBox="0 0 400 400" style={{ opacity: 0.4 }}>
+                            <rect x="50" y="50" width="300" height="300" fill="none" stroke={COLORS.cyan} strokeWidth="2" />
+                            <rect x="50" y="50" width="300" height="300" fill="none" stroke={COLORS.violet} strokeWidth="1" transform="rotate(45 200 200)" />
+                        </svg>
+                    </div>
+
+                    {/* Ring 3: Runes/Small Circles */}
+                    <div style={{ position: 'absolute', transform: `translate(-50%, -50%) rotate(${ring3Rot}deg) scale(${pulse})` }}>
+                        <svg width="200" height="200" viewBox="0 0 200 200" style={{ opacity: 0.6 }}>
+                            <circle cx="100" cy="100" r="90" fill="none" stroke={COLORS.gold} strokeWidth="1" strokeDasharray="5 5" />
+                        </svg>
+                    </div>
+
+                </div>
+
+                {/* --- Logo Layer --- */}
                 <div
                     style={{
                         position: 'absolute',
-                        inset: -30,
-                        background: `radial-gradient(circle, ${COLORS.cyan}50 0%, transparent 70%)`,
-                        borderRadius: '50%',
-                        filter: 'blur(20px)',
-                        opacity: glowIntensity,
+                        transform: `translate(-50%, -50%) scale(${logoEntrance})`,
+                        zIndex: 10
                     }}
-                />
-                <Img
-                    src={staticFile('icon.png')}
-                    style={{
-                        width: 120,
-                        height: 120,
-                        borderRadius: 20,
-                        boxShadow: `0 0 40px ${COLORS.cyan}60`,
-                    }}
-                />
+                >
+                    {/* Glow Behind Logo */}
+                    <div style={{
+                        position: 'absolute', inset: -50, borderRadius: '50%',
+                        background: `radial-gradient(circle, ${COLORS.cyan}80 0%, transparent 70%)`,
+                        filter: 'blur(30px)',
+                    }} />
+
+                    <Img
+                        src={staticFile('icon.png')}
+                        style={{
+                            width: 140, height: 140, borderRadius: 28,
+                            boxShadow: `0 0 50px ${COLORS.cyan}60`,
+                            position: 'relative',
+                        }}
+                    />
+                </div>
+
+                {/* --- Vortex Particles Layer - DISABLED due to Render Issues --- */}
+                {/* Particles removed for stability */}
+
             </div>
 
             {/* Caption */}
             <div
                 style={{
                     position: 'absolute',
-                    bottom: 120,
-                    left: 0,
-                    right: 0,
+                    bottom: 120, // Relative to center if inside AbsoluteFill, but we are inside centered div? No, need to move out
+                    width: width,
                     textAlign: 'center',
                     opacity: captionOpacity * captionFadeOut,
+                    transform: 'translate(-50%, 0)', // Fix centering relative to parent 50%
+                    left: 0,
                 }}
             >
                 <p
                     style={{
                         color: COLORS.white,
                         fontSize: 28,
-                        fontFamily: 'sans-serif',
                         fontWeight: 300,
                         letterSpacing: '0.1em',
                         textShadow: `0 0 20px ${COLORS.cyan}80`,
@@ -243,6 +138,7 @@ export const Scene2AlchemyStart: React.FC = () => {
                     直到現代煉金術的誕生，改變了一切...
                 </p>
             </div>
+
         </AbsoluteFill>
     );
 };
