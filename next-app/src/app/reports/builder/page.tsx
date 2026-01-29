@@ -4,6 +4,7 @@ import React, { useCallback, useState } from "react";
 import Link from "next/link";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useAnalysisData } from "@/hooks/useAnalysisData";
+import { withAdminAuth } from "@/hooks/useAdminAuth";
 import { Button } from "@/components/ui/button";
 import { Trash2, FileDown, Layers, Plus, ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -35,7 +36,7 @@ import {
 
 
 
-export default function ReportBuilderPage() {
+function ReportBuilderPage() {
     const { loading, analysisData } = useAnalysisData();
 
     const pages = useReportBuilderStore(state => state.pages);
@@ -843,3 +844,6 @@ export default function ReportBuilderPage() {
         </AppLayout>
     );
 }
+
+export default withAdminAuth(ReportBuilderPage);
+

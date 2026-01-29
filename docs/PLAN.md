@@ -9,6 +9,15 @@
 
 **🔥 進行中任務**: 框架遷移 (Vanilla JS → Next.js)
 
+### [Current Task] 報表編輯器權限控制 (Report Builder Access Control)
+- [x] **Step 1: Frontend Implementation**
+    - [x] Import `withAdminAuth` HOC or `useAdminAuth` hook in `ReportBuilderPage`.
+    - [x] Apply access control logic to block non-admins.
+- [x] **Step 2: Verification**
+    - [x] Verify `admin` / `super_admin` can access the page.
+    - [x] Verify `guest` / `user` / `pro` are blocked/redirected.
+
+
 ### [Current Task] 會員管理資訊增強 (Member Management Enhancements)
 - [x] **Step 1: Backend Implementation (Pivoted to Edge Function)**
     - [x] Create `supabase/functions/get-users/index.ts` (Static Export Compatible).
