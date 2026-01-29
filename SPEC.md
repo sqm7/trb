@@ -98,10 +98,12 @@ The system allows users to access the platform using multiple identity providers
 ## 7. Custom Report Builder
 - **Goal**: Allow users to create personalized report layouts by dragging and dropping dashboard charts onto a canvas.
 - **Features**:
-  - **Drag & Drop**: Reposition components freely on the canvas.
-  - **Resizing**: Adjust width and height of each chart.
+  - **Drag & Drop**: Reposition components freely on the canvas. Supports **multi-selection** via marquee (lasso) dragging and batch movement.
+  - **Cross-page Navigation**: Dragging items over page tabs allows moving elements between pages. Dropping on a tab **automatically switches** the view to the target page for immediate verification.
+  - **Resizing**: Adjust width and height of each chart with intuitive scale modes (Crop, Pan, Fit).
+  - **Component Palette**: A wide `w-80` sidebar featuring a **2-column grid** for better visibility and density of available components.
   - **Ratio Control**: Toggle between 16:9 and A4 Landscape canvas ratios.
-  - **Multi-page Support**: Add multiple pages to a single report, with easy navigation and management.
+  - **Multi-page Support**: Add multiple pages to a single report, with enhanced visual feedback (scale-up animation) on tab hover during drag operations.
   - **Persistence**: Layout automatically saves to `localStorage`.
   - **Direct Export**: PDF output via browser print dialog, maintaining "Vibe" aesthetic.
 - **Workflow**:
