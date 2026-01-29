@@ -47,6 +47,8 @@ export function Canvas({ width, height, children, items, onClickBackground, onMa
 
     const scale = zoomLevel / 100;
 
+    const hasInitialized = useRef(false);
+
     // Auto-fit on initial load or ratio change
     React.useEffect(() => {
         const fitToScreen = () => {
@@ -58,7 +60,13 @@ export function Canvas({ width, height, children, items, onClickBackground, onMa
                     const scaleX = availableWidth / width;
                     const scaleY = availableHeight / height;
                     const newScale = Math.min(scaleX, scaleY);
-                    setZoomLevel(Math.floor(newScale * 100));
+
+                    // Only auto-fit if we haven't initialized yet
+                    // OR if the width/height (canvas ratio) changed
+                    if (!hasInitialized.current) {
+                        setZoomLevel(Math.floor(newScale * 100));
+                        hasInitialized.current = true;
+                    }
                 }
             }
         };

@@ -13,6 +13,7 @@ import { ComponentPalette } from "./components/ComponentPalette";
 import { SortablePageTab } from "./components/SortablePageTab";
 import { PageDropZone } from "./components/PageDropZone";
 import { ZoomControls } from "./components/ZoomControls";
+import { ExportPageModal } from "./components/ExportPageModal";
 import { FloatingToolbar } from "./components/FloatingToolbar";
 import { useReportBuilderStore, ChartType, CanvasItem, ScaleMode } from "@/store/useReportBuilderStore";
 import {
@@ -68,6 +69,12 @@ export default function ReportBuilderPage() {
     const hoveredPageIndex = useReportBuilderStore(state => state.hoveredPageIndex);
     const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
     const [isMouseOverCanvas, setIsMouseOverCanvas] = useState(true);
+
+    // Image Export State
+    const [exportModalOpen, setExportModalOpen] = useState(false);
+    const [exportFormat, setExportFormat] = useState<'png' | 'jpg'>('png');
+    const [isExportingBatch, setIsExportingBatch] = useState(false);
+    const [exportProgress, setExportProgress] = useState({ current: 0, total: 0 });
 
     // Track mouse position global for drag feedback
     React.useEffect(() => {
@@ -265,58 +272,77 @@ export default function ReportBuilderPage() {
         printWindow.document.close();
     }, [canvasRatio]);
 
-    // Export to Image (PNG/JPG)
-    const handleExportImage = useCallback(async (format: 'png' | 'jpg') => {
+    // Export to Image (PNG/JPG) - Modified for Multi-page support
+    const handleExportImage = useCallback((format: 'png' | 'jpg') => {
+        setExportFormat(format);
+        setExportModalOpen(true);
+    }, []);
+
+    const handleBatchExport = useCallback(async (pageIndices: number[]) => {
+        setExportModalOpen(false);
+        setIsExportingBatch(true);
+        setExportProgress({ current: 0, total: pageIndices.length });
+
+        const originalPageIndex = useReportBuilderStore.getState().currentPageIndex;
+        const originalViewMode = useReportBuilderStore.getState().viewMode;
+
         try {
-            const canvasElement = document.querySelector('.report-canvas-content') as HTMLElement;
-            if (!canvasElement) {
-                console.error("Canvas element not found");
-                alert("找不到畫布元件");
-                return;
-            }
-
-            console.log("Starting export...", format);
-
-            // Use modern-screenshot instead of html2canvas (supports oklab/oklch colors)
             const { domToPng, domToJpeg } = await import('modern-screenshot');
 
-            console.log("Starting export with modern-screenshot...", format);
+            for (let i = 0; i < pageIndices.length; i++) {
+                const targetIdx = pageIndices[i];
+                setExportProgress({ current: i + 1, total: pageIndices.length });
 
-            // Get actual dimensions from canvasDimensions state
-            const width = canvasDimensions.width;
-            const height = canvasDimensions.height;
+                // Switch to target page and single mode to ensure it's rendered correctly for capture
+                // (or just switch page if in single mode)
+                useReportBuilderStore.getState().setCurrentPage(targetIdx);
 
-            const options = {
-                scale: 2,
-                backgroundColor: '#09090b',
-                width,
-                height,
-                style: {
-                    transform: 'none',
-                    width: `${width}px`,
-                    height: `${height}px`,
-                },
-            };
+                // Small delay for React to render the new page
+                await new Promise(resolve => setTimeout(resolve, 500));
 
-            let dataUrl: string;
-            if (format === 'png') {
-                dataUrl = await domToPng(canvasElement, options);
-            } else {
-                dataUrl = await domToJpeg(canvasElement, { ...options, quality: 0.95 });
+                const canvasElement = document.querySelector('.report-canvas-content') as HTMLElement;
+                if (!canvasElement) {
+                    console.error(`Canvas element not found for page ${targetIdx}`);
+                    continue;
+                }
+
+                const width = canvasDimensions.width;
+                const height = canvasDimensions.height;
+
+                const options = {
+                    scale: 2,
+                    backgroundColor: '#09090b',
+                    width,
+                    height,
+                    style: {
+                        transform: 'none',
+                        width: `${width}px`,
+                        height: `${height}px`,
+                    },
+                };
+
+                let dataUrl: string;
+                if (exportFormat === 'png') {
+                    dataUrl = await domToPng(canvasElement, options);
+                } else {
+                    dataUrl = await domToJpeg(canvasElement, { ...options, quality: 0.95 });
+                }
+
+                const link = document.createElement('a');
+                link.download = `SQM-Report-P${targetIdx + 1}-${new Date().getTime()}.${exportFormat}`;
+                link.href = dataUrl;
+                link.click();
             }
-
-            console.log("Screenshot generated successfully");
-
-            const link = document.createElement('a');
-            link.download = `SQM-Report-${new Date().getTime()}.${format}`;
-            link.href = dataUrl;
-            link.click();
-            console.log("Download triggered");
         } catch (error) {
-            console.error("Export failed:", error);
-            alert("匯出失敗，請檢查控制台錯誤訊息。");
+            console.error("Batch export failed:", error);
+            alert("批次匯出失敗，部分頁面可能未完成。");
+        } finally {
+            // Restore original state
+            useReportBuilderStore.getState().setCurrentPage(originalPageIndex);
+            useReportBuilderStore.getState().setViewMode(originalViewMode);
+            setIsExportingBatch(false);
         }
-    }, [canvasDimensions]);
+    }, [canvasDimensions, exportFormat]);
 
     // Clear canvas
     const handleClearCanvas = useCallback(() => {
@@ -607,7 +633,7 @@ export default function ReportBuilderPage() {
                                         /* Single Page Mode */
                                         pages[currentPageIndex] && (
                                             <PageDropZone
-                                                key={pages[currentPageIndex].id}
+                                                key="single-page-view"
                                                 pageIndex={currentPageIndex}
                                                 isActive={true}
                                                 onFocus={() => { }}
@@ -773,6 +799,47 @@ export default function ReportBuilderPage() {
                     )
                 }
             </DndContext >
-        </AppLayout >
+            {/* Export Page Selection Modal */}
+            <ExportPageModal
+                isOpen={exportModalOpen}
+                onClose={() => setExportModalOpen(false)}
+                onExport={handleBatchExport}
+                format={exportFormat}
+            />
+
+            {/* Batch Export Loading Overlay */}
+            {isExportingBatch && (
+                <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/80 backdrop-blur-md animate-in fade-in duration-300">
+                    <div className="text-center space-y-6 max-w-sm w-full px-6">
+                        <div className="relative mx-auto w-24 h-24">
+                            <div className="absolute inset-0 rounded-full border-4 border-emerald-500/20" />
+                            <div
+                                className="absolute inset-0 rounded-full border-4 border-emerald-500 border-t-transparent animate-spin"
+                                style={{ animationDuration: '1.5s' }}
+                            />
+                            <div className="absolute inset-0 flex items-center justify-center">
+                                <FileDown className="h-8 w-8 text-emerald-400" />
+                            </div>
+                        </div>
+
+                        <div className="space-y-2">
+                            <h3 className="text-xl font-bold text-white">正在處理匯出...</h3>
+                            <p className="text-emerald-400 font-mono text-sm tracking-widest">
+                                PAGE {exportProgress.current} OF {exportProgress.total}
+                            </p>
+                        </div>
+
+                        <div className="h-2 w-full bg-zinc-800 rounded-full overflow-hidden">
+                            <div
+                                className="h-full bg-emerald-500 transition-all duration-300 ease-out shadow-[0_0_10px_rgba(16,185,129,0.5)]"
+                                style={{ width: `${(exportProgress.current / exportProgress.total) * 100}%` }}
+                            />
+                        </div>
+
+                        <p className="text-zinc-500 text-xs italic">請勿關閉視窗，正在準備下載內容</p>
+                    </div>
+                </div>
+            )}
+        </AppLayout>
     );
 }

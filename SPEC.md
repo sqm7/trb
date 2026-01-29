@@ -116,7 +116,9 @@ The system allows users to access the platform using multiple identity providers
     - **Enhanced Tab Dragging**: The entire tab area (except the close 'X' button) must be a drag handle for reordering tabs.
     - **Visual Feedback**: Scale-up animations on tab hover during drag operations.
   - **Persistence**: Layout automatically saves to `localStorage`.
-  - **Direct Export**: PDF output via browser print dialog, maintaining "Vibe" aesthetic.
+  - **Direct Export**:
+    - **PDF**: Browser print dialog integration, maintaining "Vibe" aesthetic.
+    - **PNG/JPG**: Multi-page batch export with internal selection modal (All, Current, Range) and real-time progress overlay.
 - **Workflow**:
   - Users can add components via a sidebar palette.
   - Dashboard charts include an "Add to Report Builder" option in their export dropdown.

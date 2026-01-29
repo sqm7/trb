@@ -92,3 +92,6 @@
 - [x] Fix Drag-to-Tab ID conflicts.
 - [x] Enable direct Drag-to-Canvas in Continuous Mode.
 - [x] Add "Cross-Page Moving" visual feedback.
+- [x] Fix same-page drag snap-back issue.
+- [x] Fix auto-zoom reset on page switch.
+- [x] Implement multi-page batch image export with selection modal.
