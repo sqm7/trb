@@ -1,6 +1,7 @@
 'use client';
 
 import { AppLayout } from "@/components/layout/AppLayout";
+import { withAdminAuth } from "@/hooks/useAdminAuth";
 import dynamic from 'next/dynamic';
 
 // Dynamically import LeafletMap to avoid SSR issues (Leaflet requires window)
@@ -19,7 +20,7 @@ const LeafletMap = dynamic(
     }
 );
 
-export default function MapPage() {
+function MapPage() {
     return (
         <AppLayout>
             <div className="flex flex-col h-[calc(100vh-8rem)] gap-6 animate-in fade-in zoom-in-95 duration-500">
@@ -37,3 +38,5 @@ export default function MapPage() {
         </AppLayout>
     );
 }
+
+export default withAdminAuth(MapPage);

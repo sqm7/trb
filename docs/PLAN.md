@@ -17,6 +17,19 @@
     - [x] Verify `admin` / `super_admin` can access the page.
     - [x] Verify `guest` / `user` / `pro` are blocked/redirected.
 
+### [Current Task] 地圖模式權限與開發中標示 (Map Mode Access & Dev Badges)
+- [x] **Step 1: Map Mode Access Control**
+    - [x] Import `withAdminAuth` in `src/app/map/page.tsx`.
+    - [x] Wrap `MapPage` with `withAdminAuth`.
+- [x] **Step 2: Sidebar Enhancements**
+    - [x] Update `src/components/layout/Sidebar.tsx`.
+    - [x] Add "DEV" badge logic for "報表編輯器" and "地圖模式".
+    - [x] Ensure badges are visually distinct (e.g., amber/yellow for DEV).
+- [ ] **Step 3: Verification**
+    - [ ] Verify Map Mode access restriction.
+    - [ ] Verify Sidebar badges appearance.
+
+
 
 ### [Current Task] 會員管理資訊增強 (Member Management Enhancements)
 - [x] **Step 1: Backend Implementation (Pivoted to Edge Function)**

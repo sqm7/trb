@@ -56,7 +56,7 @@
 - **`line-auth` Edge Function**: Verifies LINE ID tokens, handles custom signup/login flows, references `line_user_id` in metadata.
 
 ### Protected Routes
-- **`withAdminAuth` HOC**: Used to restrict access to sensitive pages like `/admin/*` and `/reports/builder`. Redirects unauthorized users to home or dashboard.
+- **`withAdminAuth` HOC**: Used to restrict access to sensitive pages like `/admin/*`, `/reports/builder`, and `/map`. Redirects unauthorized users to home or dashboard.
 
 ### Frontend State
 - **User Context**: derived from `supabase.auth.getSession()`.

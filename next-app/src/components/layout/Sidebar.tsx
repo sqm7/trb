@@ -157,8 +157,7 @@ export function Sidebar() {
                         const isActive = pathname === item.href || (item.href === '/reports/builder' && pathname?.startsWith('/reports'));
                         // @ts-ignore
                         const isExternal = item.isExternal;
-                        const isMapItem = item.href === '/map';
-                        const isUnderDevelopment = isMapItem;
+                        const isUnderDevelopment = item.href === '/map' || item.href === '/reports/builder';
 
                         // Features under development - show badge but keep link clickable
                         if (isUnderDevelopment) {
