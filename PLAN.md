@@ -72,3 +72,17 @@
 - [x] Step 6: **Scene 6 Construction (Value Reveal)** - Floating Decision Gem with orbiting success indicators.
 - [x] Step 7: **Scene 7 Construction (Brand Imprint)** - Extreme close-up of Gem reflecting "Pingmi" logo.
 - [x] Step 8: **Verification** - Verify all transitions and render full video preview.
+
+### [Current Task] Enhance Report Builder UX
+- [ ] Step 1: Implement Canvas Zoom Logic in `useReportBuilderStore`.
+  - Add `zoomLevel` state (default 100%, range 25%-200%).
+  - Add `setZoomLevel` action.
+- [ ] Step 2: Update `EditorCanvas` component.
+  - Apply `transform: scale()` CSS based on zoom level.
+  - Implement Mouse Wheel event listener (Cmd/Ctrl + Scroll) for zooming.
+  - Ensure Drag & Drop coordinates are adjusted for the zoom factor.
+- [ ] Step 3: Add Zoom Controls UI.
+  - Create floating controls (bottom-right or top-right) with +, -, Reset buttons, and % display.
+- [ ] Step 4: Enhance Page Tab Draggability.
+  - Refactor `SortableTab` to make the wrapper the drag handle.
+  - Ensure the "Delete X" button has `data-no-dnd` or `onPointerDown` stop propagation to prevent dragging when deleting.

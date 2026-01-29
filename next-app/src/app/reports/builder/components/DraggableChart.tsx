@@ -732,8 +732,12 @@ export function DraggableChart({ item, isSelected, onSelect, onUpdate, onRemove,
         }
     }, [item.width, item.height, item.scaleMode]);
 
+    const zoomLevel = useReportBuilderStore(state => state.zoomLevel);
+    const scale = zoomLevel / 100;
+
     return (
         <Rnd
+            scale={scale}
             size={{ width: item.width, height: item.height }}
             position={{ x: item.x, y: item.y }}
             onDragStart={(e) => {

@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback, useRef } from "react";
 import { cn } from "@/lib/utils";
-import { CanvasItem } from "@/store/useReportBuilderStore";
+import { CanvasItem, useReportBuilderStore } from "@/store/useReportBuilderStore";
 
 interface CanvasProps {
     width: number;
@@ -40,28 +40,39 @@ function getIntersectingItems(marquee: MarqueeState, items: CanvasItem[]): strin
 export function Canvas({ width, height, children, items, onClickBackground, onMarqueeSelect }: CanvasProps) {
     const containerRef = useRef<HTMLDivElement>(null);
     const canvasRef = useRef<HTMLDivElement>(null);
-    const [scale, setScale] = useState(1);
+    const zoomLevel = useReportBuilderStore(state => state.zoomLevel);
+    const setZoomLevel = useReportBuilderStore(state => state.setZoomLevel);
     const [isMarqueeActive, setIsMarqueeActive] = useState(false);
     const [marquee, setMarquee] = useState<MarqueeState | null>(null);
 
+    const scale = zoomLevel / 100;
+
+    // Auto-fit on initial load or ratio change
     React.useEffect(() => {
-        const updateScale = () => {
+        const fitToScreen = () => {
             if (containerRef.current) {
                 const parent = containerRef.current.parentElement;
                 if (parent) {
-                    const availableWidth = parent.clientWidth - 64;
-                    const availableHeight = parent.clientHeight - 64;
+                    const availableWidth = parent.clientWidth - 100;
+                    const availableHeight = parent.clientHeight - 100;
                     const scaleX = availableWidth / width;
                     const scaleY = availableHeight / height;
-                    setScale(Math.min(scaleX, scaleY, 1));
+                    const newScale = Math.min(scaleX, scaleY);
+                    setZoomLevel(Math.floor(newScale * 100));
                 }
             }
         };
 
-        updateScale();
-        window.addEventListener('resize', updateScale);
-        return () => window.removeEventListener('resize', updateScale);
-    }, [width, height]);
+        fitToScreen();
+    }, [width, height, setZoomLevel]);
+
+    const handleWheel = useCallback((e: React.WheelEvent) => {
+        if (e.ctrlKey || e.metaKey) {
+            e.preventDefault();
+            const delta = e.deltaY > 0 ? -5 : 5;
+            setZoomLevel(zoomLevel + delta);
+        }
+    }, [zoomLevel, setZoomLevel]);
 
     const handleMouseDown = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
         // Only start marquee if clicking on canvas background or content container (not on chart items)
@@ -153,6 +164,7 @@ export function Canvas({ width, height, children, items, onClickBackground, onMa
                 onMouseMove={handleMouseMove}
                 onMouseUp={handleMouseUp}
                 onMouseLeave={handleMouseUp}
+                onWheel={handleWheel}
             >
                 {/* Grid Pattern */}
                 <div

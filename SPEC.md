@@ -103,7 +103,14 @@ The system allows users to access the platform using multiple identity providers
   - **Resizing**: Adjust width and height of each chart with intuitive scale modes (Crop, Pan, Fit).
   - **Component Palette**: A wide `w-80` sidebar featuring a **2-column grid** for better visibility and density of available components.
   - **Ratio Control**: Toggle between 16:9 and A4 Landscape canvas ratios.
-  - **Multi-page Support**: Add multiple pages to a single report, with enhanced visual feedback (scale-up animation) on tab hover during drag operations.
+  - **Canvas Zooming**:
+    - Support zoom via Mouse Wheel (Cmd/Ctrl + Wheel).
+    - Support UI buttons (+ / -) for easy scaling and "Reset" capability.
+    - Zooming should respect the aspect ratio and center on mouse or viewport center.
+    - **Visual Feedback**: Display current zoom percentage.
+  - **Multi-page Support**: Add multiple pages to a single report.
+    - **Enhanced Tab Dragging**: The entire tab area (except the close 'X' button) must be a drag handle for reordering tabs.
+    - **Visual Feedback**: Scale-up animations on tab hover during drag operations.
   - **Persistence**: Layout automatically saves to `localStorage`.
   - **Direct Export**: PDF output via browser print dialog, maintaining "Vibe" aesthetic.
 - **Workflow**:

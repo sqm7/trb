@@ -57,43 +57,45 @@ export function SortablePageTab({
                 setDropRef(node);
             }}
             style={style}
+            {...attributes}
+            {...listeners}
             className={cn(
-                "px-2 h-7 rounded text-xs font-medium flex items-center gap-1 transition-colors whitespace-nowrap group cursor-pointer select-none",
+                "px-3 h-8 rounded-lg text-xs font-semibold flex items-center gap-2 transition-all whitespace-nowrap group cursor-grab active:cursor-grabbing select-none border border-transparent shadow-sm",
                 isActive
-                    ? "bg-violet-600 text-white"
-                    : "text-zinc-400 hover:bg-zinc-800 hover:text-white",
-                isDragging && "opacity-50 shadow-lg",
+                    ? "bg-violet-600 text-white border-violet-400/30 shadow-violet-500/20"
+                    : "bg-zinc-900/50 text-zinc-400 border-white/5 hover:bg-zinc-800 hover:text-zinc-100 hover:border-white/10",
+                isDragging && "opacity-50 shadow-2xl z-50 scale-105",
                 (isOver || isHoveredGlobally) && !isActive && "ring-2 ring-violet-500 bg-violet-600 text-white shadow-lg scale-110 z-50 origin-bottom"
             )}
-            onClick={onClick}
+            onClick={(e) => {
+                // Prevent switching page if we were just dragging
+                if (!isDragging) {
+                    onClick();
+                }
+            }}
             data-page-drop-target="true"
             data-page-index={index}
         >
-            {/* Drag Handle */}
-            <span
-                {...attributes}
-                {...listeners}
-                className="cursor-grab active:cursor-grabbing p-0.5 -ml-1 hover:bg-white/10 rounded"
-                onClick={(e) => e.stopPropagation()}
-            >
-                <GripVertical className="h-3 w-3 text-zinc-500" />
-            </span>
+            <GripVertical className="h-3 w-3 text-zinc-600 group-hover:text-zinc-400 transition-colors flex-shrink-0" />
 
-            {name}
+            <span className="truncate max-w-[100px]">{name}</span>
 
             {canDelete && (
-                <span
+                <button
+                    onPointerDown={(e) => {
+                        e.stopPropagation(); // Prevent drag from starting when clicking X
+                    }}
                     onClick={(e) => {
                         e.stopPropagation();
                         onDelete();
                     }}
                     className={cn(
-                        "ml-1 p-0.5 rounded hover:bg-red-500/30 cursor-pointer transition-colors",
-                        isActive ? "opacity-70 hover:opacity-100" : "opacity-0 group-hover:opacity-70"
+                        "ml-auto p-1 rounded-md hover:bg-red-500/30 text-zinc-500 hover:text-red-400 transition-all focus:outline-none",
+                        isActive ? "opacity-70" : "opacity-0 group-hover:opacity-100"
                     )}
                 >
                     <X className="h-3 w-3" />
-                </span>
+                </button>
             )}
         </div>
     );

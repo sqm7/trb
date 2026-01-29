@@ -11,6 +11,7 @@ import { Canvas } from "./components/Canvas";
 import { DraggableChart } from "./components/DraggableChart";
 import { ComponentPalette } from "./components/ComponentPalette";
 import { SortablePageTab } from "./components/SortablePageTab";
+import { ZoomControls } from "./components/ZoomControls";
 import { useReportBuilderStore, ChartType, CanvasItem } from "@/store/useReportBuilderStore";
 import {
     DndContext,
@@ -466,7 +467,8 @@ export default function ReportBuilderPage() {
                             <span className="text-sm font-medium text-zinc-400">
                                 報表編輯器 • {canvasRatio} • 第 {currentPageIndex + 1}/{pages.length} 頁 • {items.length} 個元件
                             </span>
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-4">
+                                <ZoomControls />
                                 {selectedIds.length > 0 && (
                                     <Button
                                         size="sm"

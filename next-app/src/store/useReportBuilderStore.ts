@@ -109,6 +109,9 @@ interface ReportBuilderState {
 
     // Canvas Actions
     setCanvasRatio: (ratio: '16:9' | 'A4' | '1:1' | '9:16' | '4:5') => void;
+    zoomLevel: number;
+    setZoomLevel: (zoom: number) => void;
+    resetZoom: () => void;
 
     // Dragging State (Global)
     isDragging: boolean;
@@ -133,6 +136,7 @@ export const useReportBuilderStore = create<ReportBuilderState>()(
             pages: [createDefaultPage(0)],
             currentPageIndex: 0,
             canvasRatio: '16:9',
+            zoomLevel: 100,
             selectedIds: [],
 
             isDragging: false,
@@ -340,6 +344,12 @@ export const useReportBuilderStore = create<ReportBuilderState>()(
             },
 
             setCanvasRatio: (canvasRatio) => set({ canvasRatio }),
+
+            setZoomLevel: (zoom: number) => set({
+                zoomLevel: Math.max(25, Math.min(400, zoom))
+            }),
+
+            resetZoom: () => set({ zoomLevel: 100 }),
 
             // Multi-selection Actions
             setSelectedIds: (selectedIds) => set({ selectedIds }),
