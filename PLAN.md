@@ -99,5 +99,11 @@
 ## [Current Task] Report Builder and Map Access Control
 - [x] Implement Access Control for Report Builder (`useAdminAuth`).
 - [x] Implement Access Control for Map Mode (`useAdminAuth`).
+- [x] Update Sidebar UI with "開發中" (Dev) badges.
+- [x] Update Documentation (SPEC.md, ARCHITECTURE.md).
+
+## [Current Task] Report Builder and Map Access Control
+- [x] Implement Access Control for Report Builder (`useAdminAuth`).
+- [x] Implement Access Control for Map Mode (`useAdminAuth`).
 - [x] Update Sidebar UI with "開發中" badges.
 - [x] Update documentation (SPEC.md).
