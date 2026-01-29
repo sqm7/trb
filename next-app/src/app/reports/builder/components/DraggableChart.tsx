@@ -809,8 +809,13 @@ export function DraggableChart({ item, isSelected, onSelect, onUpdate, onRemove,
                             } else if (onMoveToPage) {
                                 onMoveToPage(pageIndex);
                             }
+                            // Auto switch to target page
+                            useReportBuilderStore.getState().setCurrentPage(pageIndex);
+
                             isDraggingGroup.current = false;
                             dragStartPositions.current = {};
+                            setDragging(false);
+                            useReportBuilderStore.getState().setHoveredPageIndex(null);
                             return;
                         }
                     }

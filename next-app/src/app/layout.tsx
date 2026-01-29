@@ -14,8 +14,8 @@ const notoSansTC = Noto_Sans_TC({
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  maximumScale: 5,
-  userScalable: true,
+  maximumScale: 1,
+  userScalable: false,
   viewportFit: "cover",
   themeColor: "#09090b",
 };
@@ -39,9 +39,18 @@ export const metadata: Metadata = {
     description: "獨家預售屋銷控表與調價熱力圖分析。透過視覺化數據，精準掌握房市趨勢與建案真實價值。",
   },
   icons: {
-    icon: "/icon.png",  // Updated to high-res PNG
+    icon: "/icon.png",
     shortcut: "/favicon.ico",
     apple: "/apple-icon.png",
+  },
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "平米內參",
+  },
+  formatDetection: {
+    telephone: false,
   },
 };
 

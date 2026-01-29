@@ -63,7 +63,7 @@ export function SortablePageTab({
                     ? "bg-violet-600 text-white"
                     : "text-zinc-400 hover:bg-zinc-800 hover:text-white",
                 isDragging && "opacity-50 shadow-lg",
-                (isOver || isHoveredGlobally) && !isActive && "ring-2 ring-violet-500 bg-violet-600 text-white shadow-lg scale-105"
+                (isOver || isHoveredGlobally) && !isActive && "ring-2 ring-violet-500 bg-violet-600 text-white shadow-lg scale-110 z-50 origin-bottom"
             )}
             onClick={onClick}
             data-page-drop-target="true"

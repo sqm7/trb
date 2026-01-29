@@ -150,9 +150,11 @@ export default function ReportBuilderPage() {
             const targetPageIndex = parseInt(String(over.id).replace('page-drop-', ''), 10);
             if (!isNaN(targetPageIndex)) {
                 moveItemToPage(String(active.id), targetPageIndex);
+                // Auto switch to target page
+                setCurrentPage(targetPageIndex);
             }
         }
-    }, [pages, reorderPages, moveItemToPage]);
+    }, [pages, reorderPages, moveItemToPage, setCurrentPage]);
 
     // Export to PDF
     const handleExport = useCallback(() => {
@@ -287,13 +289,13 @@ export default function ReportBuilderPage() {
                 <div className="flex h-[calc(100vh-theme(spacing.20))] gap-4">
 
                     {/* Left Sidebar: Component Palette */}
-                    <aside className="w-64 flex-shrink-0 bg-zinc-900/50 border border-white/5 rounded-xl overflow-hidden flex flex-col">
+                    <aside className="w-80 flex-shrink-0 bg-zinc-900/50 border border-white/5 rounded-xl overflow-hidden flex flex-col">
                         <div className="p-4 border-b border-white/5 bg-zinc-900">
                             <h2 className="font-semibold text-white flex items-center gap-2">
                                 <Layers className="h-5 w-5 text-violet-400" />
                                 元件面板
                             </h2>
-                            <p className="text-xs text-zinc-500 mt-1">點擊新增到畫布</p>
+                            <p className="text-xs text-zinc-500 mt-1">點擊或拖曳新增到畫布</p>
                         </div>
 
                         <ComponentPalette
@@ -505,11 +507,7 @@ export default function ReportBuilderPage() {
                         </div>
 
                         {/* Canvas Container */}
-                        <div
-                            className="flex-1 overflow-auto p-8 flex items-center justify-center bg-zinc-950/50"
-                            onMouseEnter={() => setIsMouseOverCanvas(true)}
-                            onMouseLeave={() => setIsMouseOverCanvas(false)}
-                        >
+                        <div className="flex-1 overflow-auto p-8 flex items-center justify-center bg-zinc-950/50">
                             {!analysisData && !loading ? (
                                 <div className="text-center space-y-4">
                                     <div className="p-6 rounded-full bg-zinc-900 border border-white/5 inline-block">
@@ -523,38 +521,44 @@ export default function ReportBuilderPage() {
                                     </div>
                                 </div>
                             ) : (
-                                <Canvas
-                                    width={canvasDimensions.width}
-                                    height={canvasDimensions.height}
-                                    items={items}
-                                    onClickBackground={() => clearSelection()}
-                                    onMarqueeSelect={(ids, isAdditive) => {
-                                        if (isAdditive) {
-                                            ids.forEach(id => addToSelection(id));
-                                        } else {
-                                            setSelectedIds(ids);
-                                        }
-                                    }}
+                                <div
+                                    onMouseEnter={() => setIsMouseOverCanvas(true)}
+                                    onMouseLeave={() => setIsMouseOverCanvas(false)}
+                                    className="inline-block" // Wrap key tracking area
                                 >
-                                    {items.map(item => (
-                                        <DraggableChart
-                                            key={item.id}
-                                            item={item}
-                                            isSelected={selectedIds.includes(item.id)}
-                                            onSelect={(e?: React.MouseEvent) => {
-                                                if (e?.ctrlKey || e?.metaKey) {
-                                                    toggleSelection(item.id);
-                                                } else {
-                                                    setSelectedIds([item.id]);
-                                                }
-                                            }}
-                                            onUpdate={(updates) => handleUpdateItem(item.id, updates)}
-                                            onRemove={() => handleRemoveItem(item.id)}
-                                            onMoveToPage={(pageIndex) => moveItemToPage(item.id, pageIndex)}
-                                            analysisData={analysisData}
-                                        />
-                                    ))}
-                                </Canvas>
+                                    <Canvas
+                                        width={canvasDimensions.width}
+                                        height={canvasDimensions.height}
+                                        items={items}
+                                        onClickBackground={() => clearSelection()}
+                                        onMarqueeSelect={(ids, isAdditive) => {
+                                            if (isAdditive) {
+                                                ids.forEach(id => addToSelection(id));
+                                            } else {
+                                                setSelectedIds(ids);
+                                            }
+                                        }}
+                                    >
+                                        {items.map(item => (
+                                            <DraggableChart
+                                                key={item.id}
+                                                item={item}
+                                                isSelected={selectedIds.includes(item.id)}
+                                                onSelect={(e?: React.MouseEvent) => {
+                                                    if (e?.ctrlKey || e?.metaKey) {
+                                                        toggleSelection(item.id);
+                                                    } else {
+                                                        setSelectedIds([item.id]);
+                                                    }
+                                                }}
+                                                onUpdate={(updates) => handleUpdateItem(item.id, updates)}
+                                                onRemove={() => handleRemoveItem(item.id)}
+                                                onMoveToPage={(pageIndex) => moveItemToPage(item.id, pageIndex)}
+                                                analysisData={analysisData}
+                                            />
+                                        ))}
+                                    </Canvas>
+                                </div>
                             )}
                         </div>
                     </main>

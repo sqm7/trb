@@ -191,6 +191,14 @@ body {
   color: var(--color-text-primary);
   font-family: 'Inter', 'Noto Sans TC', sans-serif;
   overflow-x: hidden;
+  touch-action: manipulation;
+  /* Improves tap response on mobile */
+  -webkit-tap-highlight-color: transparent;
+  /* Removes gray tap highlight */
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
   @apply antialiased selection:bg-violet-500/30 selection:text-violet-200;
 }
 
@@ -318,6 +326,7 @@ body {
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
   }

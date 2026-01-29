@@ -87,37 +87,37 @@ export function ComponentPalette({ onAddItem, hasData }: ComponentPaletteProps) 
                         <h3 className="text-xs font-bold text-zinc-500 uppercase tracking-wider pl-1">
                             {category.title}
                         </h3>
-                        <div className="space-y-1">
+                        <div className="grid grid-cols-2 gap-2">
                             {category.items.map((option) => (
                                 <button
                                     key={option.type}
                                     onClick={() => onAddItem(option.type as ChartType)}
                                     disabled={!hasData}
                                     className={cn(
-                                        "w-full p-2.5 rounded-lg border text-left transition-all group relative overflow-hidden",
+                                        "w-full p-2 rounded-lg border text-left transition-all group relative overflow-hidden flex flex-col items-center text-center gap-1.5 h-full",
                                         hasData
                                             ? "bg-zinc-800/40 border-white/5 hover:bg-zinc-700/60 hover:border-violet-500/30 cursor-pointer"
                                             : "bg-zinc-900/30 border-white/5 opacity-50 cursor-not-allowed"
                                     )}
                                 >
-                                    <div className="flex items-center gap-3 relative z-10">
-                                        <div className={cn(
-                                            "p-1.5 rounded-md transition-colors",
-                                            hasData ? "bg-zinc-700/50 group-hover:bg-violet-500/20 text-zinc-400 group-hover:text-violet-300" : "bg-zinc-800 text-zinc-600"
-                                        )}>
-                                            {option.icon}
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                            <div className="text-xs font-medium text-zinc-200 group-hover:text-white truncate">
-                                                {option.label}
-                                            </div>
-                                            <div className="text-[10px] text-zinc-500 group-hover:text-zinc-400 truncate">
-                                                {option.description}
-                                            </div>
-                                        </div>
+                                    <div className={cn(
+                                        "p-2 rounded-md transition-colors",
+                                        hasData ? "bg-zinc-700/50 group-hover:bg-violet-500/20 text-zinc-400 group-hover:text-violet-300" : "bg-zinc-800 text-zinc-600"
+                                    )}>
+                                        {option.icon}
                                     </div>
+                                    <div className="w-full min-w-0">
+                                        <div className="text-[11px] font-medium text-zinc-200 group-hover:text-white truncate w-full">
+                                            {option.label}
+                                        </div>
+                                        {/* Tooltip description could be improved, hidden for density */}
+                                        {/* <div className="text-[10px] text-zinc-500 group-hover:text-zinc-400 truncate hidden">
+                                                {option.description}
+                                            </div> */}
+                                    </div>
+
                                     {hasData && (
-                                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-white/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                        <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-white/5 opacity-0 group-hover:opacity-100 transition-opacity" />
                                     )}
                                 </button>
                             ))}

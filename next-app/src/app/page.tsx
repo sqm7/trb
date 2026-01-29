@@ -280,7 +280,7 @@ export default function LoginPage() {
 
       <div className={`min-h-fit relative font-sans selection:bg-cyan-500/30 -m-6 rounded-tl-2xl transition-all duration-1000 ${showIntro ? 'opacity-0 scale-105 filter blur-md' : 'opacity-100 scale-100 filter blur-0'}`}>
         {/* Background & Overlay - Fixed */}
-        <div className="fixed inset-0 z-0 bg-[#050A15] pointer-events-none">
+        <div className="fixed inset-0 z-0 bg-[#050A15] pointer-events-none overflow-hidden">
           <Image
             src="/images/loginbackground.jpg"
             alt="Background"
