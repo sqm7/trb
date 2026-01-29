@@ -814,20 +814,24 @@ export function DraggableChart({ item, isSelected, onSelect, onUpdate, onRemove,
                     if (dropTarget) {
                         const pageIndex = parseInt(dropTarget.getAttribute('data-page-index') || '-1', 10);
                         if (pageIndex >= 0) {
-                            if (isSelected) {
-                                // Use store action for batch move
-                                useReportBuilderStore.getState().moveSelectedItemsToPage(pageIndex);
-                            } else if (onMoveToPage) {
-                                onMoveToPage(pageIndex);
-                            }
-                            // Auto switch to target page
-                            useReportBuilderStore.getState().setCurrentPage(pageIndex);
+                            // Only trigger move if we are actually moving to a DIFFERENT page
+                            const currentPageIndex = useReportBuilderStore.getState().currentPageIndex;
+                            if (pageIndex !== currentPageIndex) {
+                                if (isSelected) {
+                                    // Use store action for batch move
+                                    useReportBuilderStore.getState().moveSelectedItemsToPage(pageIndex);
+                                } else if (onMoveToPage) {
+                                    onMoveToPage(pageIndex);
+                                }
+                                // Auto switch to target page
+                                useReportBuilderStore.getState().setCurrentPage(pageIndex);
 
-                            isDraggingGroup.current = false;
-                            dragStartPositions.current = {};
-                            setDragging(false);
-                            useReportBuilderStore.getState().setHoveredPageIndex(null);
-                            return;
+                                isDraggingGroup.current = false;
+                                dragStartPositions.current = {};
+                                setDragging(false);
+                                useReportBuilderStore.getState().setHoveredPageIndex(null);
+                                return;
+                            }
                         }
                     }
                 }
