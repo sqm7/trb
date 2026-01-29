@@ -15,7 +15,7 @@
 - **資料夾 (包含腳本/範例)** $\rightarrow$ 建議選項 [B]。
 
 ### 3. 安裝後同步
-完成安裝後，必須嚴格遵守「全 IDE 同步協議」，執行 `bash scripts/sync_ide_configs.sh`，確保新技能立即廣播到所有 IDE 環境。
+完成安裝或涉及 `.agent/`, `.cursor/`, `.claude/`, `.trae/`, 或 `.windsurf/` 目錄變動後，必須遵循「全 IDE 同步協議」執行 `bash scripts/sync_ide_configs.sh`，確保其廣播。
 
 ---
 > [!IMPORTANT]

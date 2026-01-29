@@ -33,8 +33,8 @@ globs: ["**/*"]
 1. **更新 PLAN.md**：在已完成的步驟前打鉤 [x]。
 2. **更新 ARCHITECTURE.md**：如果新增了文件、修改了數據庫字段或改變了組件依賴，必須同步更新此文件。
 3. **更新 AGENT_SKILLS_GUIDE.md**：如果涉及 Skill 或 Workflow 的變動。
-4. **執行同步**：若涉及 `.agent` 目錄變動，必須執行 `bash scripts/sync_ide_configs.sh` 以同步全 IDE 環境。
-5. **簡要總結**：告知用戶您修改了哪些文檔以及當前項目的最新狀態。
+4. **執行同步 (僅限必要)**：若且僅若涉及 `.agent/`, `.cursor/`, `.claude/`, `.trae/`, 或 `.windsurf/` 目錄內容變動時，才執行 `bash scripts/sync_ide_configs.sh`。
+5. **簡要總結**：告知用戶您修改了哪些文檔、代碼變更摘要，並列出待提交項目，等待用戶指令。**嚴禁在未獲授權前主動執行 git commit。**
 
 # 📝 文檔更新準則
 - **簡潔性**：文檔應易於人類和 AI 閱讀，多用列表，少用長篇大論。

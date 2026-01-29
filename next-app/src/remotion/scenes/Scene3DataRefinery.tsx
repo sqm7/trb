@@ -158,7 +158,8 @@ export const Scene3DataRefinery: React.FC = () => {
                 transformOrigin: 'center bottom',
                 boxShadow: `0 0 20px ${COLORS.cyan}`,
                 opacity: interpolate(frame, [12 * fps, 12.5 * fps], [0, 1]), // Show when falling starts
-            }} rotate="45deg" />
+                rotate: '45deg'
+            }} />
 
         </AbsoluteFill>
     );
