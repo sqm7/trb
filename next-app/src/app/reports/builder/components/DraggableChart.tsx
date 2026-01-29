@@ -768,7 +768,10 @@ export function DraggableChart({ item, isSelected, onSelect, onUpdate, onRemove,
                 const clientY = (e as MouseEvent).clientY || (e as TouchEvent).touches?.[0]?.clientY;
                 if (clientX !== undefined && clientY !== undefined) {
                     const elements = document.elementsFromPoint(clientX, clientY);
-                    const hoverTarget = elements.find(el => el.getAttribute('data-page-drop-target') === 'true');
+                    const hoverTarget = elements.find(el =>
+                        el.getAttribute('data-page-drop-target') === 'true' ||
+                        el.getAttribute('data-page-drop-zone') === 'true'
+                    );
                     const pageIndexStr = hoverTarget?.getAttribute('data-page-index');
                     const pageIndex = pageIndexStr !== null && pageIndexStr !== undefined ? parseInt(pageIndexStr, 10) : null;
                     useReportBuilderStore.getState().setHoveredPageIndex(pageIndex);
@@ -802,7 +805,11 @@ export function DraggableChart({ item, isSelected, onSelect, onUpdate, onRemove,
 
                 if (clientX !== undefined && clientY !== undefined) {
                     const elements = document.elementsFromPoint(clientX, clientY);
-                    const dropTarget = elements.find(el => el.getAttribute('data-page-drop-target') === 'true');
+                    // Check for either page tab or page drop zone (canvas)
+                    const dropTarget = elements.find(el =>
+                        el.getAttribute('data-page-drop-target') === 'true' ||
+                        el.getAttribute('data-page-drop-zone') === 'true'
+                    );
 
                     if (dropTarget) {
                         const pageIndex = parseInt(dropTarget.getAttribute('data-page-index') || '-1', 10);
@@ -883,10 +890,16 @@ export function DraggableChart({ item, isSelected, onSelect, onUpdate, onRemove,
                 topLeft: true,
             }}
             resizeHandleStyles={{
-                topRight: { cursor: 'ne-resize' },
-                bottomRight: { cursor: 'se-resize' },
-                bottomLeft: { cursor: 'sw-resize' },
-                topLeft: { cursor: 'nw-resize' },
+                // Corners - standard
+                topRight: { cursor: 'ne-resize', width: 20, height: 20, right: -10, top: -10 },
+                bottomRight: { cursor: 'se-resize', width: 20, height: 20, right: -10, bottom: -10 },
+                bottomLeft: { cursor: 'sw-resize', width: 20, height: 20, left: -10, bottom: -10 },
+                topLeft: { cursor: 'nw-resize', width: 20, height: 20, left: -10, top: -10 },
+                // Edges - larger hit area using negative margins/positioning
+                top: { cursor: 'n-resize', height: 20, top: -10 },
+                bottom: { cursor: 's-resize', height: 20, bottom: -10 },
+                left: { cursor: 'w-resize', width: 20, left: -10 },
+                right: { cursor: 'e-resize', width: 20, right: -10 },
             }}
         >
             {/* Header */}
@@ -898,47 +911,8 @@ export function DraggableChart({ item, isSelected, onSelect, onUpdate, onRemove,
                     </span>
                 </div>
 
-                <div className="flex items-center gap-1">
-                    {/* Scale Mode Toggles */}
-                    <TooltipProvider delayDuration={0}>
-                        <div className="flex items-center bg-zinc-800 rounded p-0.5 gap-0.5">
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <button
-                                        onClick={(e) => { e.stopPropagation(); onUpdate({ scaleMode: 'crop' }); }}
-                                        className={cn("p-1 rounded transition-colors", item.scaleMode === 'crop' ? "bg-violet-600 text-white" : "text-zinc-500 hover:text-white")}
-                                    >
-                                        <Crop className="h-3 w-3" />
-                                    </button>
-                                </TooltipTrigger>
-                                <TooltipContent side="bottom" className="text-xs">裁剪模式</TooltipContent>
-                            </Tooltip>
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <button
-                                        onClick={(e) => { e.stopPropagation(); onUpdate({ scaleMode: 'pan' }); }}
-                                        className={cn("p-1 rounded transition-colors", item.scaleMode === 'pan' ? "bg-cyan-600 text-white" : "text-zinc-500 hover:text-white")}
-                                    >
-                                        <Move3D className="h-3 w-3" />
-                                    </button>
-                                </TooltipTrigger>
-                                <TooltipContent side="bottom" className="text-xs">平移模式</TooltipContent>
-                            </Tooltip>
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <button
-                                        onClick={(e) => { e.stopPropagation(); onUpdate({ scaleMode: 'fit' }); }}
-                                        className={cn("p-1 rounded transition-colors", item.scaleMode === 'fit' ? "bg-emerald-600 text-white" : "text-zinc-500 hover:text-white")}
-                                    >
-                                        <Maximize2 className="h-3 w-3" />
-                                    </button>
-                                </TooltipTrigger>
-                                <TooltipContent side="bottom" className="text-xs">縮放模式</TooltipContent>
-                            </Tooltip>
-                        </div>
-                    </TooltipProvider>
-
-                    <span className="text-[9px] text-zinc-600 font-mono hidden sm:inline ml-1">
+                <div className="flex items-center gap-2">
+                    <span className="text-[9px] text-zinc-600 font-mono hidden sm:inline">
                         {item.width}×{item.height}
                     </span>
                     <button

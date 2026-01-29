@@ -11,8 +11,10 @@ import { Canvas } from "./components/Canvas";
 import { DraggableChart } from "./components/DraggableChart";
 import { ComponentPalette } from "./components/ComponentPalette";
 import { SortablePageTab } from "./components/SortablePageTab";
+import { PageDropZone } from "./components/PageDropZone";
 import { ZoomControls } from "./components/ZoomControls";
-import { useReportBuilderStore, ChartType, CanvasItem } from "@/store/useReportBuilderStore";
+import { FloatingToolbar } from "./components/FloatingToolbar";
+import { useReportBuilderStore, ChartType, CanvasItem, ScaleMode } from "@/store/useReportBuilderStore";
 import {
     DndContext,
     DragEndEvent,
@@ -35,10 +37,11 @@ import {
 export default function ReportBuilderPage() {
     const { loading, analysisData } = useAnalysisData();
 
-    // Get state and actions from Zustand store
     const pages = useReportBuilderStore(state => state.pages);
     const currentPageIndex = useReportBuilderStore(state => state.currentPageIndex);
     const canvasRatio = useReportBuilderStore(state => state.canvasRatio);
+    const viewMode = useReportBuilderStore(state => state.viewMode);
+    const setViewMode = useReportBuilderStore(state => state.setViewMode);
     const selectedIds = useReportBuilderStore(state => state.selectedIds);
     const addItem = useReportBuilderStore(state => state.addItem);
     const updateItem = useReportBuilderStore(state => state.updateItem);
@@ -56,11 +59,13 @@ export default function ReportBuilderPage() {
     const setCurrentPage = useReportBuilderStore(state => state.setCurrentPage);
     const reorderPages = useReportBuilderStore(state => state.reorderPages);
     const moveItemToPage = useReportBuilderStore(state => state.moveItemToPage);
+    const batchUpdateItems = useReportBuilderStore(state => state.batchUpdateItems);
 
     // Drag state
     const [activeItemId, setActiveItemId] = useState<string | null>(null);
     const isDragging = useReportBuilderStore(state => state.isDragging);
     const draggedItemCount = useReportBuilderStore(state => state.draggedItemCount);
+    const hoveredPageIndex = useReportBuilderStore(state => state.hoveredPageIndex);
     const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
     const [isMouseOverCanvas, setIsMouseOverCanvas] = useState(true);
 
@@ -97,6 +102,15 @@ export default function ReportBuilderPage() {
             window.removeEventListener('keydown', handleKeyDown);
         };
     }, [isDragging, selectedIds, removeSelectedItems]);
+
+    // Handler for scale mode change from floating toolbar
+    const handleScaleModeChange = useCallback((mode: ScaleMode) => {
+        const updates: Record<string, Partial<CanvasItem>> = {};
+        selectedIds.forEach(id => {
+            updates[id] = { scaleMode: mode };
+        });
+        batchUpdateItems(updates);
+    }, [selectedIds, batchUpdateItems]);
 
     // DnD sensors
     const sensors = useSensors(
@@ -169,10 +183,20 @@ export default function ReportBuilderPage() {
             }
         }
 
-        // Item dropped on page tab
-        if (String(active.id).startsWith('item-') && String(over.id).startsWith('page-drop-')) {
-            const targetPageIndex = parseInt(String(over.id).replace('page-drop-', ''), 10);
-            if (!isNaN(targetPageIndex)) {
+        // Item dropped on page tab OR page drop zone
+        const overId = String(over.id);
+        if (String(active.id).startsWith('item-')) {
+            let targetPageIndex = -1;
+
+            if (overId.startsWith('page-drop-')) {
+                // Drop on PageDropZone (Continuous Mode)
+                targetPageIndex = parseInt(overId.replace('page-drop-', ''), 10);
+            } else if (overId.startsWith('page-tab-drop-')) {
+                // Drop on Page Tab (Single Page Mode)
+                targetPageIndex = parseInt(overId.replace('page-tab-drop-', ''), 10);
+            }
+
+            if (targetPageIndex !== -1 && !isNaN(targetPageIndex)) {
                 moveItemToPage(String(active.id), targetPageIndex);
                 // Auto switch to target page
                 setCurrentPage(targetPageIndex);
@@ -304,6 +328,11 @@ export default function ReportBuilderPage() {
 
     return (
         <AppLayout>
+            <FloatingToolbar
+                selectedIds={selectedIds}
+                onScaleModeChange={handleScaleModeChange}
+                onDelete={removeSelectedItems}
+            />
             <DndContext
                 sensors={sensors}
                 collisionDetection={closestCenter}
@@ -467,20 +496,37 @@ export default function ReportBuilderPage() {
                             <span className="text-sm font-medium text-zinc-400">
                                 報表編輯器 • {canvasRatio} • 第 {currentPageIndex + 1}/{pages.length} 頁 • {items.length} 個元件
                             </span>
-                            <div className="flex items-center gap-4">
-                                <ZoomControls />
-                                {selectedIds.length > 0 && (
-                                    <Button
-                                        size="sm"
-                                        variant="ghost"
-                                        onClick={() => removeSelectedItems()}
-                                        className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
-                                    >
-                                        <Trash2 className="h-4 w-4 mr-1" />
-                                        刪除選中 ({selectedIds.length})
-                                    </Button>
-                                )}
+                            <div className="h-6 w-px bg-white/10 mx-2" />
+                            <div className="bg-zinc-900 border border-white/10 rounded-lg p-0.5 flex">
+                                <Button
+                                    size="icon"
+                                    variant="ghost"
+                                    onClick={() => setViewMode('single')}
+                                    className={cn(
+                                        "h-6 w-6 rounded-md",
+                                        viewMode === 'single' ? "bg-white/20 text-white" : "text-zinc-500 hover:text-white"
+                                    )}
+                                    title="單頁模式"
+                                >
+                                    <div className="w-3 h-4 border border-current rounded-[1px]" />
+                                </Button>
+                                <Button
+                                    size="icon"
+                                    variant="ghost"
+                                    onClick={() => setViewMode('continuous')}
+                                    className={cn(
+                                        "h-6 w-6 rounded-md",
+                                        viewMode === 'continuous' ? "bg-white/20 text-white" : "text-zinc-500 hover:text-white"
+                                    )}
+                                    title="多頁模式"
+                                >
+                                    <div className="flex flex-col gap-[1px]">
+                                        <div className="w-3 h-2 border border-current rounded-[1px]" />
+                                        <div className="w-3 h-2 border border-current rounded-[1px]" />
+                                    </div>
+                                </Button>
                             </div>
+                            <ZoomControls />
                         </div>
 
                         {/* Page Navigation Tabs */}
@@ -532,9 +578,19 @@ export default function ReportBuilderPage() {
                         </div>
 
                         {/* Canvas Container */}
-                        <div className="flex-1 overflow-auto p-8 flex items-center justify-center bg-zinc-950/50">
+                        <div
+                            className="flex-1 p-8 flex flex-col items-center bg-zinc-950/50 overflow-auto scroll-smooth"
+                            onWheel={(e) => {
+                                if (e.ctrlKey || e.metaKey) {
+                                    e.preventDefault();
+                                    const delta = e.deltaY > 0 ? -10 : 10;
+                                    const newZoom = Math.min(Math.max(useReportBuilderStore.getState().zoomLevel + delta, 10), 200);
+                                    useReportBuilderStore.getState().setZoomLevel(newZoom);
+                                }
+                            }}
+                        >
                             {!analysisData && !loading ? (
-                                <div className="text-center space-y-4">
+                                <div className="text-center space-y-4 mt-20">
                                     <div className="p-6 rounded-full bg-zinc-900 border border-white/5 inline-block">
                                         <Layers className="h-10 w-10 text-zinc-600" />
                                     </div>
@@ -546,43 +602,125 @@ export default function ReportBuilderPage() {
                                     </div>
                                 </div>
                             ) : (
-                                <div
-                                    onMouseEnter={() => setIsMouseOverCanvas(true)}
-                                    onMouseLeave={() => setIsMouseOverCanvas(false)}
-                                    className="inline-block" // Wrap key tracking area
-                                >
-                                    <Canvas
-                                        width={canvasDimensions.width}
-                                        height={canvasDimensions.height}
-                                        items={items}
-                                        onClickBackground={() => clearSelection()}
-                                        onMarqueeSelect={(ids, isAdditive) => {
-                                            if (isAdditive) {
-                                                ids.forEach(id => addToSelection(id));
-                                            } else {
-                                                setSelectedIds(ids);
-                                            }
-                                        }}
-                                    >
-                                        {items.map(item => (
-                                            <DraggableChart
-                                                key={item.id}
-                                                item={item}
-                                                isSelected={selectedIds.includes(item.id)}
-                                                onSelect={(e?: React.MouseEvent) => {
-                                                    if (e?.ctrlKey || e?.metaKey) {
-                                                        toggleSelection(item.id);
-                                                    } else {
-                                                        setSelectedIds([item.id]);
-                                                    }
-                                                }}
-                                                onUpdate={(updates) => handleUpdateItem(item.id, updates)}
-                                                onRemove={() => handleRemoveItem(item.id)}
-                                                onMoveToPage={(pageIndex) => moveItemToPage(item.id, pageIndex)}
-                                                analysisData={analysisData}
-                                            />
-                                        ))}
-                                    </Canvas>
+                                <div className="space-y-8 pb-20">
+                                    {viewMode === 'single' ? (
+                                        /* Single Page Mode */
+                                        pages[currentPageIndex] && (
+                                            <PageDropZone
+                                                key={pages[currentPageIndex].id}
+                                                pageIndex={currentPageIndex}
+                                                isActive={true}
+                                                onFocus={() => { }}
+                                                onClick={() => { }}
+                                            >
+                                                {/* Page Label */}
+                                                <div className="absolute -top-6 left-0 text-[10px] font-medium text-violet-300 bg-violet-500/10 border-t border-x border-violet-500/20 px-2 py-0.5 rounded-t-md">
+                                                    Page {currentPageIndex + 1} - {pages[currentPageIndex].name}
+                                                </div>
+
+                                                {/* Page Canvas */}
+                                                <div className="ring-2 ring-violet-500/30 shadow-2xl shadow-violet-900/10 transition-shadow duration-200">
+                                                    <Canvas
+                                                        width={canvasDimensions.width}
+                                                        height={canvasDimensions.height}
+                                                        items={pages[currentPageIndex].items}
+                                                        onClickBackground={() => clearSelection()}
+                                                        onMarqueeSelect={(ids, isAdditive) => {
+                                                            if (isAdditive) {
+                                                                ids.forEach(id => addToSelection(id));
+                                                            } else {
+                                                                setSelectedIds(ids);
+                                                            }
+                                                        }}
+                                                    >
+                                                        {pages[currentPageIndex].items.map(item => (
+                                                            <DraggableChart
+                                                                key={item.id}
+                                                                item={item}
+                                                                isSelected={selectedIds.includes(item.id)}
+                                                                onSelect={(e?: React.MouseEvent) => {
+                                                                    if (e?.ctrlKey || e?.metaKey) {
+                                                                        toggleSelection(item.id);
+                                                                    } else {
+                                                                        setSelectedIds([item.id]);
+                                                                    }
+                                                                }}
+                                                                onUpdate={(updates) => handleUpdateItem(item.id, updates)}
+                                                                onRemove={() => handleRemoveItem(item.id)}
+                                                                onMoveToPage={(targetIndex) => moveItemToPage(item.id, targetIndex)}
+                                                                analysisData={analysisData}
+                                                            />
+                                                        ))}
+                                                    </Canvas>
+                                                </div>
+                                            </PageDropZone>
+                                        )
+                                    ) : (
+                                        /* Continuous Mode */
+                                        pages.map((page, index) => (
+                                            <PageDropZone
+                                                key={page.id}
+                                                pageIndex={index}
+                                                isActive={index === currentPageIndex}
+                                                onFocus={() => setCurrentPage(index)}
+                                                onClick={() => setCurrentPage(index)}
+                                            >
+                                                {/* Page Label */}
+                                                <div className={cn(
+                                                    "absolute -top-6 left-0 text-[10px] font-medium transition-colors px-2 py-0.5 rounded-t-md",
+                                                    index === currentPageIndex
+                                                        ? "text-violet-300 bg-violet-500/10 border-t border-x border-violet-500/20"
+                                                        : "text-zinc-500"
+                                                )}>
+                                                    Page {index + 1} - {page.name}
+                                                </div>
+
+                                                {/* Page Canvas */}
+                                                <div className={cn(
+                                                    "transition-shadow duration-200",
+                                                    index === currentPageIndex ? "ring-2 ring-violet-500/30 shadow-2xl shadow-violet-900/10" : "opacity-90 hover:opacity-100"
+                                                )}>
+                                                    <Canvas
+                                                        width={canvasDimensions.width}
+                                                        height={canvasDimensions.height}
+                                                        items={page.items}
+                                                        onClickBackground={() => {
+                                                            clearSelection();
+                                                            setCurrentPage(index);
+                                                        }}
+                                                        onMarqueeSelect={(ids, isAdditive) => {
+                                                            setCurrentPage(index);
+                                                            if (isAdditive) {
+                                                                ids.forEach(id => addToSelection(id));
+                                                            } else {
+                                                                setSelectedIds(ids);
+                                                            }
+                                                        }}
+                                                    >
+                                                        {page.items.map(item => (
+                                                            <DraggableChart
+                                                                key={item.id}
+                                                                item={item}
+                                                                isSelected={selectedIds.includes(item.id)}
+                                                                onSelect={(e?: React.MouseEvent) => {
+                                                                    setCurrentPage(index);
+                                                                    if (e?.ctrlKey || e?.metaKey) {
+                                                                        toggleSelection(item.id);
+                                                                    } else {
+                                                                        setSelectedIds([item.id]);
+                                                                    }
+                                                                }}
+                                                                onUpdate={(updates) => handleUpdateItem(item.id, updates)}
+                                                                onRemove={() => handleRemoveItem(item.id)}
+                                                                onMoveToPage={(targetIndex) => moveItemToPage(item.id, targetIndex)}
+                                                                analysisData={analysisData}
+                                                            />
+                                                        ))}
+                                                    </Canvas>
+                                                </div>
+                                            </PageDropZone>
+                                        ))
+                                    )}
                                 </div>
                             )}
                         </div>
@@ -603,22 +741,38 @@ export default function ReportBuilderPage() {
                     ) : null}
                 </DragOverlay>
 
-                {/* Global Draggable Feedback (React-Rnd version) - Only show when NOT over canvas */}
-                {isDragging && !activeItemId && !isMouseOverCanvas && (
-                    <div
-                        className="fixed z-[9999] pointer-events-none px-2 py-1 bg-violet-600 text-white rounded shadow-lg border border-violet-400 flex items-center gap-1.5 transform -translate-x-1/2 -translate-y-[120%]"
-                        style={{
-                            left: mousePos.x,
-                            top: mousePos.y,
-                        }}
-                    >
-                        <Plus className="w-3 h-3" />
-                        <span className="text-[10px] font-bold">
-                            跨頁移動 {draggedItemCount > 1 ? `(${draggedItemCount})` : ''}
-                        </span>
-                    </div>
-                )}
-            </DndContext>
-        </AppLayout>
+                {/* Global Draggable Feedback (React-Rnd version) - Show when dragging across pages */}
+                {
+                    isDragging && !activeItemId && (
+                        (!isMouseOverCanvas || (hoveredPageIndex !== null && hoveredPageIndex !== currentPageIndex))
+                    ) && (
+                        <div
+                            className={cn(
+                                "fixed z-[9999] pointer-events-none px-3 py-1.5 bg-violet-600 text-white rounded-full shadow-xl border-2 border-white/20 flex items-center gap-2 transform -translate-x-1/2 -translate-y-[150%] transition-transform",
+                                hoveredPageIndex !== null && hoveredPageIndex !== currentPageIndex ? "scale-110 bg-violet-500" : ""
+                            )}
+                            style={{
+                                left: mousePos.x,
+                                top: mousePos.y,
+                            }}
+                        >
+                            <Plus className="w-4 h-4" />
+                            <div className="flex flex-col">
+                                <span className="text-xs font-bold leading-none">
+                                    {hoveredPageIndex !== null && hoveredPageIndex !== currentPageIndex
+                                        ? `移動至第 ${hoveredPageIndex + 1} 頁`
+                                        : '跨頁移動'}
+                                </span>
+                                {draggedItemCount > 1 && (
+                                    <span className="text-[9px] opacity-80 leading-none mt-0.5">
+                                        選取 {draggedItemCount} 個元件
+                                    </span>
+                                )}
+                            </div>
+                        </div>
+                    )
+                }
+            </DndContext >
+        </AppLayout >
     );
 }

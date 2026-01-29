@@ -109,6 +109,10 @@ The system allows users to access the platform using multiple identity providers
     - Zooming should respect the aspect ratio and center on mouse or viewport center.
     - **Visual Feedback**: Display current zoom percentage.
   - **Multi-page Support**: Add multiple pages to a single report.
+    - **View Mode Toggle**: Switch between **Continuous** (vertical scroll) and **Single Page** views.
+    - **Enhanced Dragging**: 
+      - **Cross-Page**: Drag items directly to another page's canvas (Continuous Mode) or onto Page Tabs (all modes).
+      - **Visual Feedback**: Dynamic "Move to Page X" label follows the cursor during cross-page drags.
     - **Enhanced Tab Dragging**: The entire tab area (except the close 'X' button) must be a drag handle for reordering tabs.
     - **Visual Feedback**: Scale-up animations on tab hover during drag operations.
   - **Persistence**: Layout automatically saves to `localStorage`.
