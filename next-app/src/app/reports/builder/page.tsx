@@ -70,9 +70,32 @@ export default function ReportBuilderPage() {
                 setMousePos({ x: e.clientX, y: e.clientY });
             }
         };
+
+        const handleKeyDown = (e: KeyboardEvent) => {
+            // Check if user is typing in an input or textarea
+            const isTyping = document.activeElement?.tagName === 'INPUT' ||
+                document.activeElement?.tagName === 'TEXTAREA' ||
+                (document.activeElement as HTMLElement)?.isContentEditable;
+
+            if (isTyping) return;
+
+            // Handle Delete or Backspace
+            if ((e.key === 'Delete' || e.key === 'Backspace') && selectedIds.length > 0) {
+                e.preventDefault();
+                // Confirm if deleting many items or complex ones?
+                // For now, just remove selected items as requested.
+                removeSelectedItems();
+            }
+        };
+
         window.addEventListener('mousemove', handleMouseMove);
-        return () => window.removeEventListener('mousemove', handleMouseMove);
-    }, [isDragging]);
+        window.addEventListener('keydown', handleKeyDown);
+
+        return () => {
+            window.removeEventListener('mousemove', handleMouseMove);
+            window.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [isDragging, selectedIds, removeSelectedItems]);
 
     // DnD sensors
     const sensors = useSensors(

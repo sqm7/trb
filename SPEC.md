@@ -93,7 +93,7 @@ The system allows users to access the platform using multiple identity providers
   - **Expanded State**: Displays a full-width search input with focus effects.
 - **Smart FilterBar**:
   - **Pill Transformation**: When scrolling down (> 100px), the FilterBar collapses into a compact "Pill" fixed at `top-3` (Header area).
-  - **Z-Index Strategy**: The compact pill and its parent container must use high z-indices (`z-[70]` and `z-[100]` respectively) to float above the `z-50` Header and other page elements.
+  - **Z-Index Strategy**: The compact pill and its parent container must use high z-indices (`z-[70]` and `z-[100]` respectively) to float above normal page elements, but MUST remain below the Header's mobile menu (`z-[110]+`) when it is active.
   - **Auto-Expansion**: Clicking the compact pill triggers a smooth scroll to the top of the page and expands the full filter panel.
 ## 7. Custom Report Builder
 - **Goal**: Allow users to create personalized report layouts by dragging and dropping dashboard charts onto a canvas.

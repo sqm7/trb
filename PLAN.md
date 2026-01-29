@@ -29,6 +29,13 @@
 - [x] Implement Mobile Optimizations (PWA, Viewport, Touch Targets)
 - [x] Verify Mobile Layout
 
+## [Current Task] Fix Mobile Sidebar Z-Index Conflict
+- [x] Identify z-index values in Header.tsx and FilterBar.tsx
+- [x] Increase Header z-index to z-[110] when open
+- [x] Ensure mobile menu overlay sits on top
+- [x] Adjust FilterBar compact mode to z-[100] (staying below menu)
+- [x] Verify fix on mobile viewport
+
 ## [Current Task] Report Builder UI/UX Optimizations
 - [x] Increase sidebar width to w-80.
 - [x] Change Component Palette to 2-column grid.
@@ -37,4 +44,7 @@
 - [x] Improve "Cross-page move" label trigger logic.
 - [x] Deploy to frontend test version (trb).
 
-
+## [Current Task] Report Builder Keyboard Shortcuts
+- [x] Implement keyboard "Delete/Backspace" to remove selected items
+- [x] Add visual feedback for deletion
+- [x] Deploy to test environment (trb)

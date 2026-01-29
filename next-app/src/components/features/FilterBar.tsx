@@ -234,7 +234,7 @@ export function FilterBar({ onAnalyze, isLoading }: FilterBarProps) {
                         animate={{ opacity: 1, y: 0, x: "-50%", scale: 1 }}
                         exit={{ opacity: 0, y: -20, x: "-50%", scale: 0.95 }}
                         transition={{ duration: 0.2, ease: "easeOut" }}
-                        className="fixed top-3 left-1/2 z-[70] p-1 glass-card rounded-full shadow-2xl flex items-center justify-between gap-1 transition-all mx-auto max-w-7xl backdrop-blur-2xl border border-white/20 origin-top"
+                        className="fixed top-3 left-1/2 z-[100] p-1 glass-card rounded-full shadow-2xl flex items-center justify-between gap-1 transition-all mx-auto max-w-7xl backdrop-blur-2xl border border-white/20 origin-top"
                     >
                         {/* Summary & Scroll Top */}
                         <div
@@ -263,8 +263,8 @@ export function FilterBar({ onAnalyze, isLoading }: FilterBarProps) {
                                         setActiveTab(tab.value);
                                     }}
                                     className={`px-3 py-1.5 rounded-full text-[11px] font-bold transition-all whitespace-nowrap ${activeTab === tab.value
-                                            ? 'bg-violet-500 text-white shadow-inner scale-105'
-                                            : 'text-zinc-400 hover:text-zinc-200 hover:bg-white/5'
+                                        ? 'bg-violet-500 text-white shadow-inner scale-105'
+                                        : 'text-zinc-400 hover:text-zinc-200 hover:bg-white/5'
                                         }`}
                                 >
                                     {tab.label}
