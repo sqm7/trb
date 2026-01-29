@@ -95,3 +95,9 @@
 - [x] Fix same-page drag snap-back issue.
 - [x] Fix auto-zoom reset on page switch.
 - [x] Implement multi-page batch image export with selection modal.
+
+## [Current Task] Report Builder and Map Access Control
+- [x] Implement Access Control for Report Builder (`useAdminAuth`).
+- [x] Implement Access Control for Map Mode (`useAdminAuth`).
+- [x] Update Sidebar UI with "開發中" badges.
+- [x] Update documentation (SPEC.md).

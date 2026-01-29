@@ -126,6 +126,10 @@ The system allows users to access the platform using multiple identity providers
   - **State**: Managed via `useReportBuilderStore` (Zustand).
   - **Components**: Built with `react-rnd` for interactive manipulation.
   - **Chart Rendering**: Shared chart components used across both Dashboard and Builder for consistency.
+  - **Access Control**:
+    - **Restricted Access**: Only `admin` and `super_admin` roles can access the Report Builder.
+    - **UI Indication**: Sidebar entry marked with "開發中" (Dev) badge.
+
 
 ## 8. Data Alchemy Video Script (90s)
 - **Concept**: "Pingmi Internal Reference = Modern Alchemy Studio". Transforming raw data into decision-making gold.
