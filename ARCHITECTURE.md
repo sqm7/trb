@@ -18,7 +18,8 @@
 │   │   ├── remotion/   # [New] Video Generation Components
 │   │   │   ├── AlchemyVideo.tsx  # Promotional Square Video (60FPS)
 │   │   │   ├── Root.tsx          # Remotion Composition Entry Point
-│   │   │   └── index.ts          # Remotion Register Root
+│   │   │   ├── index.ts          # Remotion Register Root
+│   │   │   └── scenes/           # [New] Video Scenes (Scene 1-7)
 │   │   └── ...
 ├── supabase/           # Supabase Configuration
 │   ├── functions/      # Deno Edge Functions (delete-user, line-auth, etc.)
