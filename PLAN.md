@@ -1,5 +1,12 @@
 # Implementation Plan
 
+## [Current Task] Recovery and Test Deployment
+- [ ] Step 1: Commit uncommitted changes to local repository.
+- [ ] Step 2: Update ARCHITECTURE.md if necessary (added Remotion files).
+- [ ] Step 3: Execute `scripts/deploy_next_trb.sh` to deploy to test environment.
+- [ ] Step 4: Verify deployment at https://sqm7.github.io/trb
+
+
 ## [Current Task] Report Builder Bug Fixes
 
 ### Step 1: Implementation
@@ -44,7 +51,14 @@
 - [x] Improve "Cross-page move" label trigger logic.
 - [x] Deploy to frontend test version (trb).
 
+## [Current Task] Data Alchemy Remotion Video (90秒)
+- [x] Phase 1: Base architecture + Scene 1 (Chaos Mine) + Scene 7 (Brand Imprint)
+- [x] Phase 2: Scene 2 (Alchemy Start) + Scene 3 (Data Refinery)
+- [x] Phase 3: Scene 4 (Crystal Room) + Scene 5 (Gold Casting) + Scene 6 (Value Reveal)
+- [x] Phase 4: Integration + Verification
+- [ ] Render final MP4 video
+
 ## [Current Task] Report Builder Keyboard Shortcuts
 - [x] Implement keyboard "Delete/Backspace" to remove selected items
-- [x] Add visual feedback for deletion
+- [x] Add visual feedback or confirmation for deletion
 - [x] Deploy to test environment (trb)

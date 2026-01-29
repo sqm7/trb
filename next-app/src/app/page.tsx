@@ -421,9 +421,9 @@ export default function LoginPage() {
                     <div className="w-20 h-20 bg-cyan-500/10 rounded-full flex items-center justify-center mx-auto border border-cyan-500/20">
                       <User className="w-10 h-10 text-cyan-400" />
                     </div>
-                    <div>
+                    <div className="max-w-full overflow-hidden">
                       <h3 className="text-xl font-bold text-white mb-2">歡迎回來</h3>
-                      <p className="text-zinc-400 text-sm">{user.email}</p>
+                      <p className="text-zinc-400 text-sm truncate max-w-[280px] mx-auto" title={user.email}>{user.email}</p>
                     </div>
                     <button
                       onClick={() => router.push('/dashboard')}
