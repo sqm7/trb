@@ -38,7 +38,7 @@ export function SortablePageTab({
 
     // Make the tab a drop target for items
     const { isOver, setNodeRef: setDropRef } = useDroppable({
-        id: `page-drop-${index}`,
+        id: `page-tab-drop-${index}`,
         data: { type: 'page-tab', pageIndex: index },
     });
 

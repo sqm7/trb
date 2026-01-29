@@ -24,12 +24,8 @@
 │   │   │   - `reports/builder/`: Custom Report Builder (Drag & Drop Canvas)
 │   │   ├── components/ # React Components
 │   │   │   - `ui/`: Reusable UI elements
-│   │   ├── remotion/   # [New] Video Generation Components
-│   │   │   ├── AlchemyVideo.tsx  # Promotional Square Video (60FPS)
-│   │   │   ├── Root.tsx          # Remotion Composition Entry Point
-│   │   │   ├── index.ts          # Remotion Register Root
-│   │   │   └── scenes/           # [New] Video Scenes (Scene 1-7)
-│   │   └── ...
+│   │   │   - `PageDropZone.tsx`: Handles cross-page drag-and-drop.
+│   │   │   - `FloatingToolbar.tsx`: Context-aware floating actions (Bottom-Center).
 ├── supabase/           # Supabase Configuration
 │   ├── functions/      # Deno Edge Functions (delete-user, line-auth, etc.)
 │   └── migrations/     # Database Schema

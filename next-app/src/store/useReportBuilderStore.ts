@@ -29,7 +29,7 @@ export type ChartType =
     | 'heatmap-comparison'
     | 'data-list';
 
-export type ScaleMode = 'crop' | 'pan' | 'fit';
+export type ScaleMode = 'select' | 'crop' | 'pan' | 'fit';
 
 export interface CanvasItem {
     id: string;
@@ -82,6 +82,7 @@ interface ReportBuilderState {
     currentPageIndex: number;
 
     canvasRatio: '16:9' | 'A4' | '1:1' | '9:16' | '4:5';
+    viewMode: 'single' | 'continuous';
     selectedIds: string[];
 
     // Page Actions
@@ -109,6 +110,7 @@ interface ReportBuilderState {
 
     // Canvas Actions
     setCanvasRatio: (ratio: '16:9' | 'A4' | '1:1' | '9:16' | '4:5') => void;
+    setViewMode: (mode: 'single' | 'continuous') => void;
     zoomLevel: number;
     setZoomLevel: (zoom: number) => void;
     resetZoom: () => void;
@@ -137,11 +139,13 @@ export const useReportBuilderStore = create<ReportBuilderState>()(
             currentPageIndex: 0,
             canvasRatio: '16:9',
             zoomLevel: 100,
+            viewMode: 'continuous',
             selectedIds: [],
 
             isDragging: false,
             draggedItemCount: 0,
             hoveredPageIndex: null,
+            setViewMode: (mode) => set({ viewMode: mode }),
             setDragging: (isDragging, count = 0) => set({ isDragging, draggedItemCount: count }),
             setHoveredPageIndex: (index) => set({ hoveredPageIndex: index }),
 
@@ -240,7 +244,7 @@ export const useReportBuilderStore = create<ReportBuilderState>()(
                         y: 50 + offset,
                         width: defaultSize.width,
                         height: defaultSize.height,
-                        scaleMode: 'crop',
+                        scaleMode: 'select',
                         panOffset: { x: 0, y: 0 },
                         contentScale: 1,
                         data, // Store snapshot data
