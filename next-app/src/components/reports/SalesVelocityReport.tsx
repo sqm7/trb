@@ -314,7 +314,7 @@ export function SalesVelocityReport({ data }: SalesVelocityReportProps) {
             >
                 <div className={cn(
                     "flex flex-col lg:flex-row gap-6 relative overflow-hidden items-stretch transition-all duration-300",
-                    heatmapModalMeta ? "lg:h-[800px]" : "min-h-[500px]"
+                    heatmapModalMeta ? "lg:h-[600px]" : "min-h-[500px]"
                 )}>
                     {/* Chart Section - Dynamic Width with Clipping Strategy */}
                     <motion.div

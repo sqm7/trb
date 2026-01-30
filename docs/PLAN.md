@@ -158,4 +158,4 @@
 - [x] Layout `UnitPriceStatsBlock` in a single row (3 cols).
 - [x] Implement layout-stable "Pill Mode" in `FilterBar` (using ResizeObserver).
 - [x] Remove redundant legend in `ParkingAnalysisReport`.
-- [x] Align Heatmap height to match 800px scrollable Detail Panel in Sales Velocity report.
+- [x] Align Heatmap height to match 600px scrollable Detail Panel in Sales Velocity report.
