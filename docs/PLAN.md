@@ -178,6 +178,6 @@
 - [x] Step 12: Final Stability Fixes (FilterBar persistence & DataList deep compare).
 
 ## [Current Task] Deploy to Test Version
-- [ ] Step 1: Check git status and ensure clean working directory.
-- [ ] Step 2: Execute `scripts/deploy_next_trb.sh`.
-- [ ] Step 3: Verify deployment at https://sqm7.github.io/trb.
+- [x] Step 1: Check git status and ensure clean working directory.
+- [x] Step 2: Execute `scripts/deploy_next_trb.sh`.
+- [x] Step 3: Verify deployment at https://sqm7.github.io/trb.
