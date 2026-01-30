@@ -161,3 +161,4 @@
 - [x] Align Heatmap height to match 600px scrollable Detail Panel in Sales Velocity report.
 - [x] Increase Sales Velocity detail transactions limit to 10.
 - [x] Optimize Export Button layout (Closer to input on left, Integrated in header on right).
+- [x] Heatmap UI Refinement: Hide 0 values, optimize Y-axis integer labels, and support 0.5 step intervals.
