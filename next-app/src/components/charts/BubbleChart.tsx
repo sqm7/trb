@@ -571,7 +571,7 @@ export function BubbleChart({
                 </div>
 
                 {/* Content Area */}
-                <div className="relative w-full h-full min-h-[300px]">
+                <div className="absolute inset-0">
 
                     {/* Natural Mode: Physics Simulation */}
                     {displayMode === 'natural' && (
