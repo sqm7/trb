@@ -3,7 +3,6 @@
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { Search } from "lucide-react";
 
 interface FloorData {
     floor: string;
@@ -48,18 +47,14 @@ export function ParkingStack3D({
         return getRank(a.floor) - getRank(b.floor);
     });
 
-    // Configuration
+    // Configuration - Enriched for more "wow"
     const BLOCK_SIZE = 240;
-    const BLOCK_THICKNESS = 20;
-    const BLOCK_GAP = 20;
+    const BLOCK_THICKNESS = 40; // Doubled thickness as requested
+    const BLOCK_GAP = 60;      // Wider gap to fill the canvas
 
-    // Calculate vertical step for 2D projection
-    // With rotateX(60deg), the vertical step per unit Z is sin(60) ~ 0.866
-    // But we are stacking DOWN in Z (negative Z).
-    // Visually, each step down in Z means step DOWN in Y screen.
+    // Calculate projected Y position step
     const STEP_Z = BLOCK_THICKNESS + BLOCK_GAP;
-    // Visually, the gap on screen pixels is approx:
-    const STEP_Y_PIXELS = STEP_Z * 0.9; // Tuned for visual match with 3D projection
+    const STEP_Y_PIXELS = STEP_Z * 0.85;
 
     return (
         <div className="w-full h-[600px] flex items-center justify-start relative perspective-container overflow-visible pl-12 lg:pl-24">
@@ -102,9 +97,6 @@ export function ParkingStack3D({
                                     onHover={() => onHover(floor.floor)}
                                     onLeave={() => onHover(null)}
                                     onClick={() => onToggle(floor.floor)}
-                                    // Stacking order: Top floor (B1) is last in Z-index logic? 
-                                    // Actually in 3D, z-buffer handles it, but for DOM layering...
-                                    // B1 is on top physically.
                                     zIndex={sortedData.length - idx}
                                     baseZ={zPosition}
                                     thickness={BLOCK_THICKNESS}
@@ -116,86 +108,75 @@ export function ParkingStack3D({
             </div>
 
             {/* 2. The 2D Label Overlay Layer */}
-            {/* Placed as a sibling, absolutely positioned to match the projected 3D coordinates.
-                This ensures text is 100% crisp, 2D, and upright. 
-            */}
             <div className="absolute inset-0 pointer-events-none z-20 flex items-center justify-start pl-12 lg:pl-24">
-                {/* 
-                    We need to match the center of the 3D container. 
-                    The container is BLOCK_SIZE x BLOCK_SIZE centered in the flex items.
-                */}
                 <div
                     className="relative"
                     style={{ width: BLOCK_SIZE, height: BLOCK_SIZE }}
                 >
-                    {sortedData.map((floor, idx) => {
-                        const isSelected = selectedFloors.includes(floor.floor);
-                        const isHovered = hoveredFloor === floor.floor;
+                    <AnimatePresence>
+                        {sortedData.map((floor, idx) => {
+                            const isSelected = selectedFloors.includes(floor.floor);
+                            const isHovered = hoveredFloor === floor.floor;
 
-                        if (!isSelected) return null;
+                            // ONLY show labels when hovered, as requested
+                            if (!isSelected || !isHovered) return null;
 
-                        // Calculate projected Y position
-                        // Start at some top offset
-                        // Each index adds STEP_Y_PIXELS
-                        // B1 (idx 0) is at top.
-                        // We also need to account for the "Hover Lift" (40px Z -> approx 35px Y)
-                        const hoverOffset = isHovered ? -35 : 0;
-                        const topPos = (idx * STEP_Y_PIXELS) + hoverOffset;
+                            const hoverOffset = -35; // Lift constant
+                            const topPos = (idx * STEP_Y_PIXELS) + hoverOffset;
 
-                        return (
-                            <div
-                                key={floor.floor}
-                                className="absolute left-full flex items-center"
-                                style={{
-                                    top: `calc(50% - 40px + ${topPos}px)`, // Start from middle-ish line
-                                    left: '80%', // Shift rightwards from center
-                                    // Only animate position/opacity
-                                    transition: 'top 0.3s ease-out',
-                                }}
-                            >
-                                {/* Leader Line (2D) */}
-                                <div className="w-16 h-px bg-white/50 shadow-[0_0_5px_white]" />
-
-                                {/* Text Content */}
+                            return (
                                 <motion.div
-                                    initial={{ opacity: 0, x: -20 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    exit={{ opacity: 0, x: -10 }}
-                                    className="pl-4 pointer-events-auto cursor-pointer flex items-center gap-3 whitespace-nowrap"
-                                    onMouseEnter={() => onHover(floor.floor)}
-                                    onMouseLeave={() => onHover(null)}
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        onDetail(floor.floor);
+                                    key={`label-${floor.floor}`}
+                                    className="absolute left-full flex items-center"
+                                    initial={{ opacity: 0, x: -20, filter: 'blur(5px)' }}
+                                    animate={{ opacity: 1, x: 0, filter: 'blur(0px)' }}
+                                    exit={{ opacity: 0, x: -10, filter: 'blur(5px)' }}
+                                    style={{
+                                        top: `calc(50% - 40px + ${topPos}px)`,
+                                        left: '85%',
+                                        transition: 'top 0.3s ease-out',
                                     }}
                                 >
-                                    <span className={cn(
-                                        "text-5xl font-black text-cyan-400 drop-shadow-[0_4px_4px_rgba(0,0,0,0.8)] leading-none",
-                                        "font-sans" // Ensure clean sans font
-                                    )}
-                                        style={{ textShadow: '0 0 20px rgba(34,211,238,0.5)' }}
-                                    >
-                                        {floor.floor}
-                                    </span>
+                                    {/* Leader Line (2D) */}
+                                    <div className="w-12 h-px bg-white/60 shadow-[0_0_8px_white]" />
 
-                                    <div className="bg-zinc-950/90 border-l-2 border-cyan-500 backdrop-blur-md px-3 py-1.5 rounded-r shadow-2xl flex items-center gap-4 transition-all hover:bg-black hover:scale-105">
-                                        <div>
-                                            <div className="text-[10px] text-zinc-500 uppercase font-bold leading-nonem mb-0.5">均價</div>
-                                            <div className="text-xl font-mono font-bold text-cyan-300 leading-none">
-                                                {Math.round(floor.avgPrice).toLocaleString()}
+                                    {/* Text Content */}
+                                    <div
+                                        className="pl-4 pointer-events-auto cursor-pointer flex items-center gap-3 whitespace-nowrap"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            onDetail(floor.floor);
+                                        }}
+                                    >
+                                        <span className={cn(
+                                            "text-6xl font-black text-white drop-shadow-[0_5px_8px_rgba(0,0,0,0.8)] leading-none",
+                                            "font-sans italic tracking-tighter"
+                                        )}
+                                            style={{ textShadow: '0 0 30px rgba(255,255,255,0.4)' }}
+                                        >
+                                            {floor.floor}
+                                        </span>
+
+                                        <div className="bg-zinc-950/95 border-l-4 border-cyan-500 backdrop-blur-xl px-4 py-2 rounded-r-lg shadow-[0_20px_50px_rgba(0,0,0,0.5)] flex items-center gap-6 border border-white/10">
+                                            <div>
+                                                <div className="text-[10px] text-zinc-500 uppercase font-black leading-none mb-1 tracking-widest">均價 (萬)</div>
+                                                <div className="text-2xl font-mono font-bold text-cyan-400 leading-none">
+                                                    {Math.round(floor.avgPrice).toLocaleString()}
+                                                </div>
                                             </div>
-                                        </div>
-                                        <div>
-                                            <div className="text-[10px] text-zinc-500 uppercase font-bold leading-none mb-0.5">數量</div>
-                                            <div className="text-sm font-mono text-zinc-300 leading-none">
-                                                {floor.count}
+                                            <div className="h-8 w-px bg-white/10" />
+                                            <div>
+                                                <div className="text-[10px] text-zinc-500 uppercase font-black leading-none mb-1 tracking-widest">成交量</div>
+                                                <div className="text-xl font-mono text-zinc-100 leading-none font-medium">
+                                                    {floor.count}
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
                                 </motion.div>
-                            </div>
-                        );
-                    })}
+                            );
+                        })}
+                    </AnimatePresence>
                 </div>
             </div>
         </div>
@@ -229,9 +210,14 @@ function Block3D({
     const hoverLift = isHovered ? 40 : 0;
     const finalZ = baseZ + hoverLift;
     const scale = active ? 1 : 0;
-    const opacity = active ? 1 : 0;
+    const opacity = active ? (isHovered ? 1 : 0.25) : 0; // Ghost state 0.25
 
-    const glossyGradient = `linear-gradient(135deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.1) 50%, rgba(0,0,0,0) 100%)`;
+    // Color Logic: Gray-ish when not hovered, real color when hovered
+    const displayColor = isHovered ? color : "#52525b"; // zinc-600 ghost color
+
+    const glossyGradient = isHovered
+        ? `linear-gradient(135deg, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0.1) 50%, rgba(0,0,0,0.2) 100%)`
+        : `linear-gradient(135deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.05) 50%, rgba(0,0,0,0.1) 100%)`;
 
     return (
         <motion.div
@@ -248,54 +234,61 @@ function Block3D({
                 scale: scale,
                 opacity: opacity
             }}
-            transition={{ type: "spring", stiffness: 300, damping: 20 }}
+            transition={{ type: "spring", stiffness: 350, damping: 25 }}
             style={{
                 transformStyle: "preserve-3d",
                 zIndex: zIndex
             }}
         >
-            {/* 1. TOP FACE - Fold Source */}
+            {/* 1. TOP FACE */}
             <div
-                className="absolute inset-0 rounded-sm"
+                className="absolute inset-0 rounded-sm overflow-hidden transition-all duration-500"
                 style={{
-                    backgroundColor: color,
+                    backgroundColor: displayColor,
                     backgroundImage: glossyGradient,
-                    boxShadow: `inset 0 0 0 1px rgba(255,255,255,0.2), 0 0 15px -5px ${color}`,
+                    boxShadow: isHovered
+                        ? `inset 0 0 0 1px rgba(255,255,255,0.4), 0 0 30px -5px ${color}`
+                        : `inset 0 0 0 1px rgba(255,255,255,0.1)`,
                 }}
             >
-                <div className="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-white/20 to-transparent pointer-events-none" />
+                {/* Surface Shine Animation */}
+                <motion.div
+                    initial={{ x: "-100%" }}
+                    animate={isHovered ? { x: "200%" } : { x: "-100%" }}
+                    transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 1 }}
+                    className="absolute top-0 left-0 w-1/2 h-full bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-12 pointer-events-none"
+                />
             </div>
 
-            {/* 2. RIGHT FACE - Folded Down */}
+            {/* 2. RIGHT FACE */}
             <div
-                className="absolute top-0 origin-top-right transition-colors duration-300"
+                className="absolute top-0 origin-top-right transition-all duration-500"
                 style={{
                     right: 0,
                     width: thickness,
                     height: '100%',
-                    backgroundColor: color,
-                    filter: 'brightness(0.6)',
+                    backgroundColor: displayColor,
+                    filter: isHovered ? 'brightness(0.6)' : 'brightness(0.4) grayscale(0.8)',
                     left: '100%',
                     transformOrigin: 'left center',
                     transform: 'rotateY(90deg)',
                 }}
             />
 
-            {/* 3. FRONT FACE - Folded Down */}
+            {/* 3. FRONT FACE */}
             <div
-                className="absolute left-0 origin-bottom-left transition-colors duration-300"
+                className="absolute left-0 origin-bottom-left transition-all duration-500"
                 style={{
                     bottom: 0,
                     width: '100%',
                     height: thickness,
-                    backgroundColor: color,
-                    filter: 'brightness(0.8)',
+                    backgroundColor: displayColor,
+                    filter: isHovered ? 'brightness(0.8)' : 'brightness(0.5) grayscale(0.8)',
                     top: '100%',
                     transformOrigin: 'top center',
                     transform: 'rotateX(-90deg)',
                 }}
             />
-            {/* Note: Labels removed from here, handled in 2D overlay layer */}
         </motion.div>
     );
 }
