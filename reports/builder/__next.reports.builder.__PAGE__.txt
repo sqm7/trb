@@ -1,9 +1,9 @@
 1:"$Sreact.fragment"
-2:I[2927,["/trb/_next/static/chunks/7d9fa02a827268bc.js","/trb/_next/static/chunks/5b0c3607ffc99d9b.js"],"ClientPageRoot"]
-3:I[28546,["/trb/_next/static/chunks/9f7ab8ab28c00d4b.js","/trb/_next/static/chunks/0dc5bed480584277.js","/trb/_next/static/chunks/955cb7b1df7115f2.js","/trb/_next/static/chunks/e55570b52934e0ee.js","/trb/_next/static/chunks/c1ceb5fe8fafec77.js","/trb/_next/static/chunks/b3c6f0e4350f8a0c.js","/trb/_next/static/chunks/715f54cf05e81f59.js","/trb/_next/static/chunks/c6e6940c8a21da4e.js"],"default"]
-6:I[88746,["/trb/_next/static/chunks/7d9fa02a827268bc.js","/trb/_next/static/chunks/5b0c3607ffc99d9b.js"],"OutletBoundary"]
+2:I[61304,[],"ClientPageRoot"]
+3:I[67048,["4764","static/chunks/4764-eeeb14b3dbdea999.js","3242","static/chunks/3242-eaa4bf32ded5526b.js","6119","static/chunks/6119-038923257a87abfb.js","4932","static/chunks/4932-40c4c5c8651181c5.js","9074","static/chunks/9074-b7f97b171566ff0f.js","5369","static/chunks/5369-0b33097c9a8bae88.js","8500","static/chunks/8500-171120da8dc25661.js","6134","static/chunks/6134-8f5a5fa619abaffb.js","3806","static/chunks/app/reports/builder/page-106fe777143041d4.js"],"default"]
+6:I[90484,[],"OutletBoundary"]
 7:"$Sreact.suspense"
-0:{"buildId":"2vjlAlsXnPva3lemJPS_V","rsc":["$","$1","c",{"children":[["$","$L2",null,{"Component":"$3","serverProvidedParams":{"searchParams":{},"params":{},"promises":["$@4","$@5"]}}],[["$","script","script-0",{"src":"/trb/_next/static/chunks/0dc5bed480584277.js","async":true}],["$","script","script-1",{"src":"/trb/_next/static/chunks/955cb7b1df7115f2.js","async":true}],["$","script","script-2",{"src":"/trb/_next/static/chunks/e55570b52934e0ee.js","async":true}],["$","script","script-3",{"src":"/trb/_next/static/chunks/c1ceb5fe8fafec77.js","async":true}],["$","script","script-4",{"src":"/trb/_next/static/chunks/b3c6f0e4350f8a0c.js","async":true}],["$","script","script-5",{"src":"/trb/_next/static/chunks/715f54cf05e81f59.js","async":true}],["$","script","script-6",{"src":"/trb/_next/static/chunks/c6e6940c8a21da4e.js","async":true}]],["$","$L6",null,{"children":["$","$7",null,{"name":"Next.MetadataOutlet","children":"$@8"}]}]]}],"loading":null,"isPartial":false}
+0:{"buildId":"e-yDZN4-EfRH0geO36K2u","rsc":["$","$1","c",{"children":[["$","$L2",null,{"Component":"$3","serverProvidedParams":{"searchParams":{},"params":{},"promises":["$@4","$@5"]}}],null,["$","$L6",null,{"children":["$","$7",null,{"name":"Next.MetadataOutlet","children":"$@8"}]}]]}],"loading":null,"isPartial":false}
 4:{}
 5:"$0:rsc:props:children:0:props:serverProvidedParams:params"
 8:null
