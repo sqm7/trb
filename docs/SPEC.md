@@ -105,6 +105,11 @@ The system allows users to access the platform using multiple identity providers
     - **Animation**: Uses `transition-all duration-500` for smooth expansion/collapse.
     - **Performance Optimization**: Implements a "Width Freezing" strategy (`chartContainerRef` lock) during transitions to bypass expensive ApexCharts resize calculations, ensuring 60fps smoothness.
     - **Mobile**: Stacks vertically on smaller screens (`flex-col lg:flex-row`).
+- **3D Parking Visualization Logic**:
+    - **Space Management**: Implements **Dynamic Scaling** (`scale = constant / floorCount`) to ensure the entire stack always fits within a 600px canvas regardless of the number of basement floors.
+    - **Isometric Perception**: Uses fixed lighting contrast ratios (Top: 1.1x, Side: 0.5x, Front: 0.3x) to guarantee a solid 3D cube appearance even in monochromatic "ghost" (unselected) states.
+    - **Interactive Tooltip**: Uses **React Portal** technology to render tooltips directly in `document.body`, bypassing CSS transform coordinate issues. 
+    - **High-Performance Tracking**: Utilizes direct Ref manipulation and `translate3d` to achieve zero-latency mouse following at 60+ FPS.
 ## 7. Custom Report Builder
 - **Goal**: Allow users to create personalized report layouts by dragging and dropping dashboard charts onto a canvas.
 - **Features**:
@@ -132,9 +137,13 @@ The system allows users to access the platform using multiple identity providers
 - **Workflow**:
   - Users can add components via a sidebar palette.
   - Dashboard charts include an "Add to Report Builder" option in their export dropdown.
-- **Architecture**:
-  - **State**: Managed via `useReportBuilderStore` (Zustand).
-  - **Components**: Built with `react-rnd` for interactive manipulation.
+- **坡道平面樓層價差分析**:
+  - **3D 互動堆疊圖**: 可視化 B1 ~ B4+ 各樓層的均價與數量。高對比光影設計確保立體感。
+  - **動態畫布適應**: 根據樓層數量自動調整縮放比例 (`Auto-Scale`)，確保完整顯示不破圈。
+  - **零延遲跟隨標籤**: 使用 Portal 技術實現滑鼠跟隨標籤，資訊讀取如影隨形且不偏移。
+  - **動態統計**: 點選不同樓層組合，即時計算已選樓層的平均價、中位數與分佈區間。
+  - **明細彈窗**: 點擊特定樓層可查看該樓層所有車位交易明細（支援精確匹配與模糊匹配）。
+  **Components**: Built with `react-rnd` for interactive manipulation.
   - **Chart Rendering**: Shared chart components used across both Dashboard and Builder for consistency.
   - **Access Control**:
     - **Restricted Access**: Only `admin` and `super_admin` roles can access the Report Builder.

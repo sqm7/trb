@@ -170,4 +170,5 @@
 - [x] Step 4: Fix 3D seam artifacts using overlapping face geometry.
 - [x] Step 5: Implement 2D Label Overlay for robust billboard text rendering.
 - [x] Step 6: Solve clipping issues by enabling `overflow-visible` in parent container.
-- [x] Step 7: Final Documentation sync and commit.
+- [x] Step 7: Refine Visuals (Dynamic Scaling, Portal Labels, Contrast Shading).
+- [x] Step 8: Final Documentation sync and commit.
