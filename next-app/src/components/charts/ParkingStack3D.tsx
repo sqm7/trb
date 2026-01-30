@@ -49,27 +49,50 @@ export function ParkingStack3D({
     });
 
     return (
-        <div className="w-full h-[500px] flex items-center justify-center relative perspective-container">
+        <div className="w-full h-[600px] flex items-center justify-center relative perspective-container overflow-visible">
             {/* CSS Perspective Container */}
             <div
-                className="relative w-full h-full flex flex-col items-center justify-center preserve-3d"
+                className="relative w-full h-full flex items-center justify-center preserve-3d"
                 style={{
-                    perspective: "1200px",
+                    perspective: "2000px", // Flatter perspective for isometric look
                     transformStyle: "preserve-3d"
                 }}
             >
-                {/* 3D Stack Group - Isometrically Rotated */}
+                {/* 
+                    Iso Group 
+                    Standard Isometric Projection usually involves rotating the world 45deg (spin) and then tilting X 60deg (or 54.7deg).
+                    To stack visually "up", we use negative Translate Z in the transformed space, or just stacked Y offsets.
+                    Let's use absolute positioning for precise overlap control.
+                */}
                 <motion.div
-                    className="relative preserve-3d flex flex-col items-center"
-                    initial={{ rotateX: 55, rotateZ: 45 }}
-                    animate={{ rotateX: 55, rotateZ: 45 }}
+                    className="relative preserve-3d"
+                    initial={{ rotateX: 60, rotateZ: 45 }}
+                    animate={{ rotateX: 60, rotateZ: 45 }}
                     transition={{ duration: 0.8, ease: "easeOut" }}
-                    style={{ transformStyle: "preserve-3d" }}
+                    style={{
+                        transformStyle: "preserve-3d",
+                        width: 200,
+                        height: 200
+                    }}
                 >
                     {sortedData.map((floor, idx) => {
                         const isSelected = selectedFloors.includes(floor.floor);
                         const isHovered = hoveredFloor === floor.floor;
                         const color = floorColors[floor.floor] || '#71717a';
+
+                        // Stack Calculation
+                        // In this rotation, "up" (Z) is visually "Up-Left" diagonal?
+                        // No, rotateX(60) tilts the ground plane.
+                        // We want to stack them physically on top of each other in the Z axis (height).
+                        // Let's use translateZ to stack them. Each block is 'height' units tall.
+                        // We want gaps between them.
+                        const blockHeight = 24;
+                        const gap = 15; // Gap between blocks
+                        const zPosition = -idx * (blockHeight + gap); // Stack downwards or upwards? 
+                        // B1 is top. B2 is below.
+                        // So B1 should be at Z = Highest.
+                        // B2 at Z = Lower.
+                        // Let's make B1 at 0, B2 at -50, etc.
 
                         return (
                             <Block3D
@@ -85,7 +108,8 @@ export function ParkingStack3D({
                                     e.stopPropagation();
                                     onDetail(floor.floor);
                                 }}
-                                index={idx}
+                                zIndex={sortedData.length - idx} // Higher floors render on top in DOM if needed, but preserve-3d handles visual
+                                baseZ={-idx * (blockHeight + gap)} // Real 3D stacking
                             />
                         );
                     })}
@@ -104,7 +128,8 @@ function Block3D({
     onLeave,
     onClick,
     onDetail,
-    index
+    zIndex,
+    baseZ
 }: {
     data: FloorData;
     color: string;
@@ -114,30 +139,30 @@ function Block3D({
     onLeave: () => void;
     onClick: () => void;
     onDetail: (e: React.MouseEvent) => void;
-    index: number;
+    zIndex: number;
+    baseZ: number;
 }) {
     // 3D Block Dimensions
-    const size = 160;
+    const size = 180;
     const height = 24;
 
     // Animation states
-    const zOffset = isHovered ? 30 : 0;
-    const scale = isHovered ? 1.05 : (isSelected ? 1 : 0.95);
+    // When hovered, lift the block UP (positive Z)
+    const hoverLift = isHovered ? 40 : 0;
+    const finalZ = baseZ + hoverLift;
+    const scale = isHovered ? 1.05 : (isSelected ? 1 : 1);
 
-    // Glossy Gradient Logic
-    // We can simulate a glossy reflection using a linear gradient overlay.
-    // Assuming 'color' is hex. Since we can't easily manipulate hex in JS without helper,
-    // we'll use a semi-transparent white gradient over the base color.
-    const glossyGradient = `linear-gradient(135deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.1) 50%, rgba(0,0,0,0.1) 100%)`;
+    // Glossy Gradient
+    const glossyGradient = `linear-gradient(135deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.1) 50%, rgba(0,0,0,0) 100%)`;
 
     return (
         <motion.div
-            className="relative preserve-3d cursor-pointer mb-2" // margin-bottom creates gap
+            className="absolute top-0 left-0 preserve-3d cursor-pointer"
             onMouseEnter={onHover}
             onMouseLeave={onLeave}
             onClick={onClick}
             animate={{
-                translateZ: zOffset,
+                translateZ: finalZ,
                 scale: scale
             }}
             transition={{ type: "spring", stiffness: 300, damping: 20 }}
@@ -145,6 +170,7 @@ function Block3D({
                 width: size,
                 height: size,
                 transformStyle: "preserve-3d",
+                zIndex: zIndex // Help react reconcile, though 3d controls visibility
             }}
         >
             {/* 1. TOP FACE (Main Surface) */}
@@ -156,54 +182,54 @@ function Block3D({
                 style={{
                     backgroundColor: color,
                     backgroundImage: glossyGradient,
-                    boxShadow: isSelected ? `0 0 15px ${color}` : 'none',
-                    transform: `translateZ(${height}px)` // Top face sits up
+                    boxShadow: isSelected ? `0 0 20px -5px ${color}` : 'none',
+                    transform: `translateZ(${height}px)`
                 }}
             >
-                {/* Internal sheen or highlight */}
-                <div className="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-white/20 to-transparent pointer-events-none" />
+                <div className="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-white/30 to-transparent pointer-events-none" />
             </div>
 
-            {/* 2. RIGHT FACE (Thickness) */}
+            {/* 2. SIDE FACE 1 (Right) */}
             <div
                 className="absolute top-0 right-0 origin-right transition-colors duration-300 border border-black/20"
                 style={{
                     width: height,
                     height: '100%',
                     backgroundColor: color,
-                    filter: 'brightness(0.7)', // Darker side
+                    filter: 'brightness(0.6)',
                     transform: `rotateY(90deg) translateZ(0px)`,
                 }}
             />
 
-            {/* 3. FRONT FACE (Thickness) */}
+            {/* 3. SIDE FACE 2 (Bottom/Front) */}
             <div
                 className="absolute bottom-0 left-0 origin-bottom transition-colors duration-300 border border-black/20"
                 style={{
                     width: '100%',
                     height: height,
                     backgroundColor: color,
-                    filter: 'brightness(0.85)', // Slightly darker front
+                    filter: 'brightness(0.8)',
                     transform: `rotateX(90deg) translateZ(0px)`,
                 }}
             />
 
             {/* --- LEADER LINE & LABEL --- */}
+            {/* Anchor to Top-Right Corner */}
             <div
-                className="absolute bottom-4 right-4 preserve-3d pointer-events-none"
+                className="absolute top-0 right-0 preserve-3d pointer-events-none"
                 style={{
-                    transform: "translateZ(24px)" // Lift to top surface level
+                    transform: "translateZ(24px) translate(2px, -2px)"
                 }}
             >
-                {/* Visual Line: Extends OUT from the corner */}
+                {/* Visual Line */}
                 <div
                     className="h-px bg-white/60 origin-left shadow-[0_0_5px_rgba(255,255,255,0.5)]"
                     style={{
-                        width: 100,
+                        width: 120, // Longer line
                         position: 'absolute',
                         top: 0,
                         left: 0,
-                        transform: "rotateZ(-45deg)" // Points "Right" relative to screen
+                        transform: "rotateZ(-45deg)"
                     }}
                 />
 
@@ -211,24 +237,24 @@ function Block3D({
                 <div
                     className="absolute"
                     style={{
-                        transform: "rotateZ(-45deg) translate(100px, 0)" // Move along the line
+                        transform: "rotateZ(-45deg) translate(120px, 0)"
                     }}
                 >
-                    {/* Counter-Rotate to Face Camera */}
+                    {/* Counter-Rotate */}
                     <div
                         className="flex flex-col items-start gap-1 p-2 min-w-[140px] pointer-events-auto"
                         style={{
-                            transform: "rotateX(-55deg) translateY(-50%)", // Counter tilt + center vertically relative to line end
+                            transform: "rotateX(-60deg) translateY(-50%)",
                             transformOrigin: "left center"
                         }}
                     >
                         {/* Label Content */}
                         <div className="flex items-center gap-2">
                             <span className={cn(
-                                "text-xl font-bold drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] tracking-wider",
+                                "text-3xl font-black drop-shadow-[0_2px_4px_rgba(0,0,0,1)] tracking-widest",
                                 isSelected ? "text-cyan-400" : "text-zinc-300"
                             )}
-                                style={{ textShadow: '0 0 10px rgba(0,0,0,0.5)' }}
+                                style={{ textShadow: '0 0 10px rgba(0,0,0,0.8)' }}
                             >
                                 {data.floor}
                             </span>
@@ -236,28 +262,28 @@ function Block3D({
                                 <motion.span
                                     initial={{ scale: 0 }}
                                     animate={{ scale: 1 }}
-                                    className="w-5 h-5 rounded-full bg-cyan-500 border border-white flex items-center justify-center shadow-[0_0_10px_rgba(34,211,238,0.5)]"
+                                    className="w-6 h-6 rounded-full bg-cyan-500 border border-white flex items-center justify-center shadow-[0_0_10px_rgba(34,211,238,1)]"
                                 >
-                                    <Search size={10} className="text-black" strokeWidth={3} />
+                                    <Search size={12} className="text-black" strokeWidth={3} />
                                 </motion.span>
                             )}
                         </div>
 
                         {/* Detail Box */}
                         <div
-                            className="bg-black/60 backdrop-blur-md rounded border border-white/20 p-2 text-xs shadow-2xl hover:bg-black/80 transition-colors w-32 group-hover/card:border-cyan-500/30"
+                            className="bg-zinc-900/90 backdrop-blur-xl rounded-lg border border-white/20 p-3 text-xs shadow-2xl hover:bg-black transition-colors min-w-[140px] group-hover/card:border-cyan-500/50"
                             onClick={(e) => {
                                 e.stopPropagation();
                                 onDetail(e);
                             }}
                         >
-                            <div className="flex justify-between items-center mb-1 pb-1 border-b border-white/10">
-                                <span className="text-zinc-400">均價</span>
-                                <span className="font-mono text-cyan-300 font-bold">{Math.round(data.avgPrice).toLocaleString()} 萬</span>
+                            <div className="flex justify-between items-center mb-2 pb-2 border-b border-white/10">
+                                <span className="text-zinc-400 font-medium text-[10px] uppercase tracking-wider">AVG PRICE</span>
+                                <span className="font-mono text-cyan-300 font-bold text-base">{Math.round(data.avgPrice).toLocaleString()} <span className="text-[10px] text-zinc-500">萬</span></span>
                             </div>
                             <div className="flex justify-between items-center">
-                                <span className="text-zinc-500">車位</span>
-                                <span className="font-mono text-white">{data.count}</span>
+                                <span className="text-zinc-500 font-medium text-[10px] uppercase tracking-wider">COUNT</span>
+                                <span className="font-mono text-white text-sm">{data.count}</span>
                             </div>
                         </div>
 
