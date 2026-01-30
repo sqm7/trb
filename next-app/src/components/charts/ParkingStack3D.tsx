@@ -86,6 +86,7 @@ export function ParkingStack3D({
                                 color={color}
                                 isSelected={isSelected}
                                 isHovered={isHovered}
+                                active={isSelected} // Controls explicit visibility/active state
                                 onHover={() => onHover(floor.floor)}
                                 onLeave={() => onHover(null)}
                                 onClick={() => onToggle(floor.floor)}
@@ -109,6 +110,7 @@ function Block3D({
     color,
     isSelected,
     isHovered,
+    active,
     onHover,
     onLeave,
     onClick,
@@ -120,6 +122,7 @@ function Block3D({
     color: string;
     isSelected: boolean;
     isHovered: boolean;
+    active: boolean; // New prop for visibility
     onHover: () => void;
     onLeave: () => void;
     onClick: () => void;
@@ -134,20 +137,29 @@ function Block3D({
     // Animation states
     const hoverLift = isHovered ? 40 : 0;
     const finalZ = baseZ + hoverLift;
-    const scale = isHovered ? 1.05 : (isSelected ? 1 : 1);
+
+    // If NOT active (not selected), scale to 0 and fade out.
+    // If active, normal scale logic.
+    const scale = active ? (isHovered ? 1.05 : 1) : 0;
+    const opacity = active ? 1 : 0;
 
     // Glossy Gradient
     const glossyGradient = `linear-gradient(135deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.1) 50%, rgba(0,0,0,0) 100%)`;
 
     return (
         <motion.div
-            className="absolute top-0 left-0 preserve-3d cursor-pointer"
+            className={cn(
+                "absolute top-0 left-0 preserve-3d cursor-pointer",
+                !active && "pointer-events-none" // Disable interaction when invisible
+            )}
             onMouseEnter={onHover}
             onMouseLeave={onLeave}
             onClick={onClick}
+            initial={{ scale: 0, opacity: 0 }}
             animate={{
                 translateZ: finalZ,
-                scale: scale
+                scale: scale,
+                opacity: opacity
             }}
             transition={{ type: "spring", stiffness: 300, damping: 20 }}
             style={{
@@ -165,10 +177,8 @@ function Block3D({
                 style={{
                     backgroundColor: color,
                     backgroundImage: glossyGradient,
-                    // Subtle inner shadow instead of border to define edge
-                    boxShadow: isSelected
-                        ? `0 0 20px -5px ${color}, inset 0 0 0 1px rgba(255,255,255,0.3)`
-                        : 'inset 0 0 0 1px rgba(255,255,255,0.1)',
+                    // Always use "active" looking shadow when visible
+                    boxShadow: `0 0 20px -5px ${color}, inset 0 0 0 1px rgba(255,255,255,0.3)`,
                     transform: `translateZ(${height}px)` // Top face sits up
                 }}
             >
@@ -186,7 +196,6 @@ function Block3D({
                     backgroundColor: color,
                     filter: 'brightness(0.6)',
                     transform: `rotateY(90deg)`, // Pivot on right edge
-                    // Remove border, let the color fill
                 }}
             />
 
@@ -259,25 +268,22 @@ function Block3D({
                         {/* Label Header */}
                         <div className="flex items-center gap-3">
                             <span className={cn(
-                                "text-4xl font-black tracking-widest leading-none filter drop-shadow-lg",
-                                isSelected ? "text-cyan-400" : "text-zinc-500"
+                                "text-4xl font-black tracking-widest leading-none filter drop-shadow-lg text-cyan-400"
                             )}>
                                 {data.floor}
                             </span>
-                            {isSelected && (
-                                <motion.div
-                                    initial={{ scale: 0 }}
-                                    animate={{ scale: 1 }}
-                                    className="w-6 h-6 rounded-full bg-cyan-500 text-black flex items-center justify-center shadow-[0_0_15px_rgba(34,211,238,0.8)]"
-                                >
-                                    <Search size={14} strokeWidth={3} />
-                                </motion.div>
-                            )}
+                            <motion.div
+                                initial={{ scale: 0 }}
+                                animate={{ scale: 1 }}
+                                className="w-6 h-6 rounded-full bg-cyan-500 text-black flex items-center justify-center shadow-[0_0_15px_rgba(34,211,238,0.8)]"
+                            >
+                                <Search size={14} strokeWidth={3} />
+                            </motion.div>
                         </div>
 
                         {/* Detail Box - Floating Glass Card */}
                         <div
-                            className="w-full bg-zinc-950/80 backdrop-blur-md rounded-lg border-l-4 border-cyan-500/80 p-3 shadow-2xl transition-all group-hover/card:bg-black group-hover/card:border-cyan-400"
+                            className="w-full bg-zinc-950/80 backdrop-blur-md rounded-lg border-l-4 border-cyan-500/80 p-3 shadow-2xl transition-all hover:bg-black hover:border-cyan-400 group-hover/card:bg-black"
                             style={{
                                 boxShadow: '0 10px 30px -10px rgba(0,0,0,0.8)'
                             }}
