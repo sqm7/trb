@@ -109,57 +109,64 @@ export function UnitPriceAnalysisReport({ data, visibleSections = ['stats', 'com
             )}
 
 
-            {/* 2. Type Comparison Section */}
-            {visibleSections.includes('comparison') && typeComparison && typeComparison.length > 0 && (
-                <ReportWrapper
-                    title="建案產品類型單價比較"
-                    description="同一建案內不同用途（住宅/店面/事務所）的單價與倍數比較"
-                    headerAction={
-                        <ExportButton
-                            data={typeComparison}
-                            filename="type_comparison_data"
-                            label="匯出"
-                            chartType="type-comparison-table"
-                            snapshotData={typeComparison}
-                            columns={{ projectName: '建案', residentialAvg: '住宅均價', officeAvg: '辦公均價', storeAvg: '店舖均價', officeRatio: '辦公倍數', storeRatio: '店舖倍數' }}
-                        />
-                    }
-                >
-                    <TypeComparisonTable data={typeComparison} />
-                </ReportWrapper>
-            )}
+            {/* 2. & 3. Side-by-Side: Comparison & Bubble Chart */}
+            <div className="flex flex-col lg:flex-row gap-6">
+                {/* 2. Type Comparison Section */}
+                {visibleSections.includes('comparison') && typeComparison && typeComparison.length > 0 && (
+                    <div className="flex-1 min-w-0">
+                        <ReportWrapper
+                            title="建案產品類型單價比較"
+                            description="同一建案內不同用途（住宅/店面/事務所）的單價與倍數比較"
+                            headerAction={
+                                <ExportButton
+                                    data={typeComparison}
+                                    filename="type_comparison_data"
+                                    label="匯出"
+                                    chartType="type-comparison-table"
+                                    snapshotData={typeComparison}
+                                    columns={{ projectName: '建案', residentialAvg: '住宅均價', officeAvg: '辦公均價', storeAvg: '店舖均價', officeRatio: '辦公倍數', storeRatio: '店舖倍數' }}
+                                />
+                            }
+                            className="h-full"
+                        >
+                            <TypeComparisonTable data={typeComparison} />
+                        </ReportWrapper>
+                    </div>
+                )}
 
-            {/* 3. Bubble Chart Controls & Chart */}
-            {visibleSections.includes('chart') && (
-                <div className="space-y-4">
-                    {/* Bubble Chart with Integrated Controls */}
-                    <ReportWrapper
-                        title="單價分佈泡泡圖"
-                        description="分析各單價區間的成交熱度與分佈密集區"
-                        headerAction={
-                            <ExportButton
+                {/* 3. Bubble Chart Controls & Chart */}
+                {visibleSections.includes('chart') && (
+                    <div className="flex-1 min-w-0 space-y-4">
+                        {/* Bubble Chart with Integrated Controls */}
+                        <ReportWrapper
+                            title="單價分佈泡泡圖"
+                            description="分析各單價區間的成交熱度與分佈密集區"
+                            headerAction={
+                                <ExportButton
+                                    data={transactionDetails}
+                                    filename="bubble_chart_source_data"
+                                    label="匯出"
+                                    chartType="unit-price-bubble"
+                                    snapshotData={transactionDetails} // Bubble chart uses raw tx details
+                                />
+                            }
+                            className="h-full"
+                        >
+                            <BubbleChart
                                 data={transactionDetails}
-                                filename="bubble_chart_source_data"
-                                label="匯出"
-                                chartType="unit-price-bubble"
-                                snapshotData={transactionDetails} // Bubble chart uses raw tx details
+                                minPrice={minPrice}
+                                maxPrice={maxPrice}
+                                interval={interval}
+                                sizeMetric={sizeMetric}
+                                onMinPriceChange={setMinPrice}
+                                onMaxPriceChange={setMaxPrice}
+                                onIntervalChange={setInterval}
+                                onSizeMetricChange={setSizeMetric}
                             />
-                        }
-                    >
-                        <BubbleChart
-                            data={transactionDetails}
-                            minPrice={minPrice}
-                            maxPrice={maxPrice}
-                            interval={interval}
-                            sizeMetric={sizeMetric}
-                            onMinPriceChange={setMinPrice}
-                            onMaxPriceChange={setMaxPrice}
-                            onIntervalChange={setInterval}
-                            onSizeMetricChange={setSizeMetric}
-                        />
-                    </ReportWrapper>
-                </div>
-            )}
+                        </ReportWrapper>
+                    </div>
+                )}
+            </div>
 
         </div>
     );

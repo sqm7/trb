@@ -456,7 +456,7 @@ export function BubbleChart({
             </TooltipPortal>
 
             {/* Header Control Bar */}
-            <div className="flex flex-col xl:flex-row items-start xl:items-center justify-between gap-4 p-4 bg-zinc-900/30 border border-white/5 rounded-xl">
+            <div className="flex flex-wrap items-center justify-between gap-4 p-4 bg-zinc-900/30 border border-white/5 rounded-xl">
                 {/* Left: Data Controls */}
                 <div className="flex flex-wrap items-center gap-4">
                     {/* Range */}
@@ -514,7 +514,7 @@ export function BubbleChart({
                 </div>
 
                 {/* Right: Mode Toggle */}
-                <div className="bg-zinc-950/50 p-1 rounded-lg border border-white/5 flex gap-1 self-end xl:self-auto">
+                <div className="bg-zinc-950/50 p-1 rounded-lg border border-white/5 flex gap-1">
                     <button
                         onClick={() => setDisplayMode('natural')}
                         className={cn(
@@ -560,7 +560,7 @@ export function BubbleChart({
                 className={cn(
                     "relative rounded-3xl overflow-hidden border border-white/5 transition-all duration-500",
                     "bg-gradient-to-b from-zinc-900 via-zinc-900 to-zinc-950",
-                    "h-full min-h-[300px]"
+                    "h-full min-h-[500px]"
                 )}
             >
                 {/* Background Ambient Effects */}
@@ -636,9 +636,9 @@ export function BubbleChart({
 
                     {/* Coordinate Mode: Precise Layout */}
                     {displayMode === 'coordinate' && (
-                        <div className="absolute inset-0 p-8">
+                        <div className="absolute inset-0 py-6 px-4">
                             {/* Y-axis Labels */}
-                            <div className="flex flex-col justify-between py-6 pr-6 text-right w-[60px] border-r border-white/5 relative z-10 h-full float-left">
+                            <div className="flex flex-col justify-between py-6 pr-2 text-right w-[46px] border-r border-white/5 relative z-10 h-full float-left">
                                 {[...Array(6)].map((_, i) => (
                                     <span key={i} className="text-xs font-mono text-zinc-600 block">
                                         {Math.round(maxPrice - ((maxPrice - minPrice) / 5) * i)}
@@ -646,7 +646,7 @@ export function BubbleChart({
                                 ))}
                             </div>
 
-                            <div className="relative ml-[76px] h-full">
+                            <div className="relative ml-[46px] h-full">
                                 {/* Grid Lines */}
                                 <div className="absolute inset-0 flex flex-col justify-between pointer-events-none">
                                     {[...Array(6)].map((_, i) => (

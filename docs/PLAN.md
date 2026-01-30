@@ -142,3 +142,9 @@
 - [x] Fix page crash caused by global resize event loop.
 - [x] Update documentation (SPEC.md).
 - [x] Final commit.
+
+## [Current Task] Refactor Unit Price Analysis Layout
+- [x] Modify `UnitPriceAnalysisReport.tsx` to use grid/flex layout for side-by-side charts.
+- [x] Ensure "Project Type Comparison" and "Bubble Chart" are adjacent.
+- [x] Verify responsiveness.
+- [x] Refine UI: Reduce table column width (140px) & Increase chart height (500px).
