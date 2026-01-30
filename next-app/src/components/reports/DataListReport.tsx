@@ -170,7 +170,7 @@ export function DataListReport({ data: _triggerData, trigger }: DataListReportPr
     const handleFetchSubTable = async (record: TransactionRecord) => {
         if (!record.編號 || !record.縣市代碼) return;
 
-        const type = record['交易類型'] || filters.transactionType;
+        const type = record['交易類型'] || transactionType;
 
         setSubTableTitle(`車位/附表明細 - ${record['建案名稱'] || record['編號']}`);
         setSubTableLoading(true);

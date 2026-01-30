@@ -172,3 +172,5 @@
 - [x] Step 6: Solve clipping issues by enabling `overflow-visible` in parent container.
 - [x] Step 7: Refine Visuals (Dynamic Scaling, Portal Labels, Contrast Shading).
 - [x] Step 8: Final Documentation sync and commit.
+- [x] Step 9: Deploy to Test Version (trb) and Backup.
+- [x] Step 10: Fix DataList infinite reload loop mechanism.
