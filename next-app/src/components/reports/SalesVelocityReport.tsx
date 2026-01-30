@@ -12,6 +12,8 @@ import { getRoomType } from "@/lib/room-utils";
 import { ExportButton } from "@/components/ui/ExportButton";
 
 import { AnalysisData } from "@/lib/types";
+import { useFilterStore, ROOM_TYPE_OPTIONS } from "@/store/useFilterStore";
+import { FloatingRoomFilter } from "@/components/features/FloatingRoomFilter";
 
 interface SalesVelocityReportProps {
     data: AnalysisData | null;
@@ -44,14 +46,17 @@ export function SalesVelocityReport({ data }: SalesVelocityReportProps) {
     } | null>(null);
 
     // Common Room Selection
-    const defaultRooms = ['2房', '3房'];
-    const [selectedRooms, setSelectedRooms] = useState<string[]>(defaultRooms);
+    // Common Room Selection (Global)
+    const { selectedRoomTypes, setSelectedRoomTypes } = useFilterStore();
+    // Rename for local clarity if needed, or just use selectedRoomTypes
+    const selectedRooms = selectedRoomTypes;
+    const setSelectedRooms = setSelectedRoomTypes;
 
     if (!data) return null;
     const { salesVelocityAnalysis, areaDistributionAnalysis } = data;
 
     const toggleRoom = (r: string) => {
-        setSelectedRooms(prev => prev.includes(r) ? prev.filter(x => x !== r) : [...prev, r]);
+        setSelectedRooms(selectedRooms.includes(r) ? selectedRooms.filter(x => x !== r) : [...selectedRooms, r]);
     };
 
     // Helper for formatting
@@ -171,15 +176,15 @@ export function SalesVelocityReport({ data }: SalesVelocityReportProps) {
         });
     };
 
-    const availableRooms = ['套房', '1房', '2房', '3房', '4房', '毛胚', '店舖', '辦公/事務所'];
+
 
     return (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
 
             {/* Room Filter Toolbar */}
-            <div className="p-4 bg-zinc-900/30 border border-white/5 rounded-lg flex flex-wrap gap-2 items-center sticky top-0 z-40 backdrop-blur-md">
+            <div id="room-type-filter-anchor" className="p-4 bg-zinc-900/30 border border-white/5 rounded-lg flex flex-wrap gap-2 items-center sticky top-0 z-40 backdrop-blur-md scroll-mt-24">
                 <span className="text-zinc-400 text-sm mr-2">分析房型:</span>
-                {availableRooms.map(r => (
+                {ROOM_TYPE_OPTIONS.map(r => (
                     <button
                         key={r}
                         onClick={() => toggleRoom(r)}
@@ -464,6 +469,7 @@ export function SalesVelocityReport({ data }: SalesVelocityReportProps) {
             </ReportWrapper>
 
 
+            <FloatingRoomFilter />
         </div>
     );
 }

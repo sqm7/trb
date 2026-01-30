@@ -120,3 +120,17 @@
 - [x] Step 4: Verify Multi-IDE synchronization protocol (`sync_ide_configs.sh`).
 
 
+## [Current Task] Synchronize Room Type Filters
+- [x] Standardize `ROOM_TYPE_OPTIONS` in `useFilterStore`.
+- [x] Update `PriceBandReport` to use shared options.
+- [x] Update `SalesVelocityReport` to use shared options.
+- [x] Add "厂辦/工廠" to filter options.
+- [x] Unify filter UI label "分析房型:".
+
+## [Current Task] Floating Room Filter Implementation
+- [x] Create `FloatingRoomFilter` component (Vertical stack, left-aligned).
+- [x] Integrate with `PriceBandReport` (Add Anchor ID).
+- [x] Integrate with `SalesVelocityReport` (Add Anchor ID).
+- [x] Implement Intersection Observer logic for auto-show/hide.
+- [x] Verify UI/UX (Avoid sidebar overlap, compact styling).
+- [x] Verify build and deploy readiness.

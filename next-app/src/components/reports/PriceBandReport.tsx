@@ -11,6 +11,8 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ExportButton } from "@/components/ui/ExportButton";
 
 import { PriceBandItem, PriceBandAnalysis } from "@/lib/types";
+import { useFilterStore, ROOM_TYPE_OPTIONS } from "@/store/useFilterStore";
+import { FloatingRoomFilter } from "@/components/features/FloatingRoomFilter";
 
 interface PriceBandReportProps {
     data: PriceBandAnalysis | null;
@@ -18,9 +20,11 @@ interface PriceBandReportProps {
 }
 
 export function PriceBandReport({ data, visibleSections = ['chart', 'table', 'location-table', 'location-chart'] }: PriceBandReportProps) {
-    // Local filter for room types visibility in this report
+    // Global filter for room types visibility
+    const { selectedRoomTypes, setSelectedRoomTypes } = useFilterStore();
+    // Default sorting order reference
     const defaultTypes = ['套房', '1房', '2房', '3房', '4房', '毛胚'];
-    const [selectedRoomTypes, setSelectedRoomTypes] = useState<string[]>(defaultTypes);
+
     const [locationDimension, setLocationDimension] = useState<'district' | 'county'>('district');
     // Modal state for project list
     const [modalOpen, setModalOpen] = useState(false);
@@ -58,9 +62,6 @@ export function PriceBandReport({ data, visibleSections = ['chart', 'table', 'lo
 
     const { details, locationCrossTable, allDistricts, transactionDetails } = data;
 
-    // All available room types in data (for filters)
-    const allAvailableTypes = useMemo(() => Array.from(new Set(details.map(d => d.roomType))), [details]);
-
     // Filter main table data for Chart (keep independent or synced?)
     // Chart usually renders what is visible. If we merge bathrooms, Chart might want merged data too?
     // Let's keep filteredData as BASE for now, and tableData for Table.
@@ -71,8 +72,10 @@ export function PriceBandReport({ data, visibleSections = ['chart', 'table', 'lo
     const [mergeBathrooms, setMergeBathrooms] = useState(true);
 
     const toggleRoomType = (type: string) => {
-        setSelectedRoomTypes(prev =>
-            prev.includes(type) ? prev.filter(t => t !== type) : [...prev, type]
+        setSelectedRoomTypes(
+            selectedRoomTypes.includes(type)
+                ? selectedRoomTypes.filter(t => t !== type)
+                : [...selectedRoomTypes, type]
         );
     };
 
@@ -328,9 +331,10 @@ export function PriceBandReport({ data, visibleSections = ['chart', 'table', 'lo
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
 
             {/* 1. Filter Toggles */}
-            <div className="flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center justify-between gap-3 sm:gap-4">
-                <div className="flex flex-wrap gap-1.5 sm:gap-2">
-                    {allAvailableTypes.map(type => (
+            <div id="room-type-filter-anchor" className="flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center justify-between gap-3 sm:gap-4 scroll-mt-24">
+                <div className="flex flex-wrap gap-1.5 sm:gap-2 items-center">
+                    <span className="text-zinc-400 text-sm mr-2">分析房型:</span>
+                    {ROOM_TYPE_OPTIONS.map(type => (
                         <button
                             key={type}
                             onClick={() => toggleRoomType(type)}
@@ -656,6 +660,13 @@ export function PriceBandReport({ data, visibleSections = ['chart', 'table', 'lo
                 title={modalTitle}
                 projects={modalProjects}
             />
+            <ProjectListModal
+                isOpen={modalOpen}
+                onClose={() => setModalOpen(false)}
+                title={modalTitle}
+                projects={modalProjects}
+            />
+            <FloatingRoomFilter />
         </div>
     );
 }

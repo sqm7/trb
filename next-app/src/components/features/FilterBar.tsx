@@ -50,7 +50,9 @@ export function FilterBar({ onAnalyze, isLoading }: FilterBarProps) {
         setCustomDate,
         setExcludeCommercial,
         setActiveTab,
-        resetFilters
+        resetFilters,
+        isFilterBarCompact,
+        setIsFilterBarCompact
     } = useFilterStore();
 
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -186,7 +188,7 @@ export function FilterBar({ onAnalyze, isLoading }: FilterBarProps) {
     }, []);
 
     // Scroll Detection
-    const [isCompact, setIsCompact] = useState(false);
+    // const [isCompact, setIsCompact] = useState(false); // Moved to store
     const filterRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -197,15 +199,15 @@ export function FilterBar({ onAnalyze, isLoading }: FilterBarProps) {
             // - Exit compact mode when scrolling up above 120px (approaching top)
             // - 130px gap prevents layout jump oscillation
             if (currentScroll > 250) {
-                setIsCompact(true);
+                if (!isFilterBarCompact) setIsFilterBarCompact(true);
             } else if (currentScroll < 120) {
-                setIsCompact(false);
+                if (isFilterBarCompact) setIsFilterBarCompact(false);
             }
         };
 
         window.addEventListener('scroll', handleScroll);
         return () => window.removeEventListener('scroll', handleScroll);
-    }, []);
+    }, [isFilterBarCompact, setIsFilterBarCompact]);
 
     // Summary Text Generation
     const getSummaryText = () => {
@@ -227,7 +229,7 @@ export function FilterBar({ onAnalyze, isLoading }: FilterBarProps) {
     return (
         <>
             <AnimatePresence mode="wait">
-                {isCompact ? (
+                {isFilterBarCompact ? (
                     <motion.div
                         key="compact-pill"
                         initial={{ opacity: 0, y: -20, x: "-50%", scale: 0.95 }}
@@ -240,7 +242,7 @@ export function FilterBar({ onAnalyze, isLoading }: FilterBarProps) {
                         <div
                             className="flex items-center gap-2 px-3 py-1 hover:bg-white/5 rounded-full transition-colors cursor-pointer shrink-0"
                             onClick={() => {
-                                setIsCompact(false);
+                                setIsFilterBarCompact(false);
                                 window.scrollTo({ top: 0, behavior: 'smooth' });
                             }}
                         >

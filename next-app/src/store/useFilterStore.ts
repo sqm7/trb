@@ -13,6 +13,7 @@ interface FilterState {
     excludeCommercial: boolean;
     floorPremium: number;
     activeTab: string;
+    isFilterBarCompact: boolean;
 
     setCounties: (counties: string[]) => void;
     setDistricts: (districts: string[]) => void;
@@ -24,6 +25,7 @@ interface FilterState {
     setExcludeCommercial: (exclude: boolean) => void;
     setFloorPremium: (value: number) => void;
     setActiveTab: (tab: string) => void;
+    setIsFilterBarCompact: (isCompact: boolean) => void;
 
     // UI / Report State
     rankingCurrentPage: number;
@@ -43,6 +45,10 @@ interface FilterState {
     // Data Persistence
     analysisData: AnalysisData | null;
     setAnalysisData: (data: AnalysisData | null) => void;
+
+    // Synchronized Room Type Filter
+    selectedRoomTypes: string[];
+    setSelectedRoomTypes: (types: string[]) => void;
 
     resetFilters: () => void;
 }
@@ -67,9 +73,15 @@ const DEFAULT_FILTERS = {
     velocityView: 'monthly' as 'monthly' | 'quarterly',
     velocityMetric: 'count' as 'count' | 'priceSum' | 'areaSum',
     activeTab: 'ranking',
+    isFilterBarCompact: false,
 
-    analysisData: null
+    analysisData: null,
+
+    // Default Room Types (Standardized across all reports)
+    selectedRoomTypes: ['套房', '1房', '2房', '3房', '4房', '毛胚']
 };
+
+export const ROOM_TYPE_OPTIONS = ['套房', '1房', '2房', '3房', '4房', '毛胚', '店舖', '辦公/事務所', '廠辦/工廠', '其他'];
 
 export const useFilterStore = create<FilterState>((set) => ({
     ...DEFAULT_FILTERS,
@@ -96,8 +108,11 @@ export const useFilterStore = create<FilterState>((set) => ({
     setVelocityView: (velocityView) => set({ velocityView }),
     setVelocityMetric: (velocityMetric) => set({ velocityMetric }),
     setActiveTab: (activeTab) => set({ activeTab }),
+    setIsFilterBarCompact: (isFilterBarCompact) => set({ isFilterBarCompact }),
 
     setAnalysisData: (analysisData) => set({ analysisData }),
+
+    setSelectedRoomTypes: (selectedRoomTypes) => set({ selectedRoomTypes }),
 
     resetFilters: () => set(DEFAULT_FILTERS)
 }));
