@@ -120,7 +120,7 @@ export function ParkingStack3D({
                             const isSelected = selectedFloors.includes(floor.floor);
                             const isHovered = hoveredFloor === floor.floor;
 
-                            if (!isSelected || !isHovered) return null;
+                            if (!isSelected) return null;
 
                             const hoverOffset = -35;
                             const topPos = (idx * STEP_Y_PIXELS) + hoverOffset;
@@ -130,13 +130,19 @@ export function ParkingStack3D({
                                     key={`label-${floor.floor}`}
                                     className="absolute left-full flex items-center"
                                     initial={{ opacity: 0, x: -5, scale: 0.9 }}
-                                    animate={{ opacity: 1, x: 0, scale: 1 }}
+                                    animate={{
+                                        opacity: isHovered ? 1 : 0.3, // Dim when not hovered
+                                        x: 0,
+                                        scale: isHovered ? 1.05 : 1,
+                                        filter: isHovered ? 'blur(0px)' : 'blur(0px) grayscale(100%)' // Optional: grayscale non-active
+                                    }}
                                     exit={{ opacity: 0, x: -5, transition: { duration: 0.05 } }}
-                                    transition={{ duration: 0.05 }}
+                                    transition={{ duration: 0.2 }} // Smooth transition for dimming
                                     style={{
                                         top: `calc(50% - 40px + ${topPos}px)`,
                                         left: '55%',
-                                        transition: 'top 0.1s ease-out',
+                                        transition: 'top 0.1s ease-out', // Faster top transition too
+                                        zIndex: isHovered ? 50 : 20 // Bring hovered label to front
                                     }}
                                 >
                                     <div className="w-12 h-px bg-white/60 shadow-[0_0_8px_white]" />
@@ -209,12 +215,12 @@ function Block3D({
     thickness: number;
 }) {
     // Animation states
-    const hoverLift = isHovered ? 40 : 0;
+    const hoverLift = 0; // STABLE: No Z-movement on hover
     const finalZ = baseZ + hoverLift;
     const scale = active ? 1 : 0;
 
-    // Increased base opacity to 0.6 for better hit target visibility and "ghost" feel
-    const opacity = active ? (isHovered ? 1 : 0.6) : 0;
+    // Solid Ghost: 0.9 opacity for very solid feel
+    const opacity = active ? (isHovered ? 1 : 0.9) : 0;
 
     // Color Logic: Use displayColor for all faces.
     // Ghost state: zinc-700 for better visibility than zinc-600
@@ -285,7 +291,7 @@ function Block3D({
                     backgroundColor: displayColor,
                     // Remove grayscale(0.8) which was killing the side visibility.
                     // Just use fixed brightness ratios for 3D definition.
-                    filter: isHovered ? 'brightness(0.6)' : 'brightness(0.5)',
+                    filter: isHovered ? 'brightness(0.6)' : 'brightness(0.7)', // Brighter ghost
                     left: '100%',
                     transformOrigin: 'left center',
                     transform: 'rotateY(90deg)',
@@ -306,7 +312,7 @@ function Block3D({
                     width: '100%',
                     height: thickness,
                     backgroundColor: displayColor,
-                    filter: isHovered ? 'brightness(0.8)' : 'brightness(0.7)',
+                    filter: isHovered ? 'brightness(0.8)' : 'brightness(0.85)', // Brighter ghost
                     top: '100%',
                     transformOrigin: 'top center',
                     transform: 'rotateX(-90deg)',
