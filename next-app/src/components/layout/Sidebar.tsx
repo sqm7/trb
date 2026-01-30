@@ -108,7 +108,7 @@ export function Sidebar() {
             <Link href="/" className="flex h-16 items-center justify-center px-4 border-b border-white/5 overflow-hidden whitespace-nowrap transition-all duration-300 gap-1.5 flex-shrink-0 hover:bg-zinc-900/50">
                 <div className="relative h-8 w-8 flex-shrink-0 rounded-full overflow-hidden">
                     <Image
-                        src={`${process.env.NEXT_PUBLIC_BASE_PATH || ''}/icon.png`}
+                        src={`${process.env.NEXT_PUBLIC_BASE_PATH || ''}/logo-type-a.jpg`}
                         alt="Logo"
                         fill
                         className="object-cover"

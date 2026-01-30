@@ -28,9 +28,9 @@ export function TypeComparisonTable({ data }: TypeComparisonTableProps) {
     const maxOfficeMultiple = Math.max(...data.map(d => d.officeMultiple), 1);
 
     return (
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto max-h-[600px] overflow-y-auto relative scrollbar-thin scrollbar-thumb-zinc-700 scrollbar-track-transparent">
             <table className="w-full text-sm text-left">
-                <thead className="bg-zinc-900/80 text-zinc-400 font-semibold uppercase text-xs">
+                <thead className="sticky top-0 z-10 bg-zinc-900 text-zinc-400 font-semibold uppercase text-xs shadow-md">
                     <tr>
                         <th className="px-4 py-3 whitespace-nowrap">建案名稱</th>
                         <th className="px-4 py-3 text-right">住宅均價</th>
