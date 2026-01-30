@@ -396,7 +396,12 @@ function recalculateUnitPriceStats(unitAnalysis: any, transactions: any[]) {
 
     // Sort by project name
     newTypeComparison.sort((a, b) => a.projectName.localeCompare(b.projectName));
-    unitAnalysis.typeComparison = newTypeComparison;
+
+    // FIX: Do not overwrite typeComparison with recalculated data from transactions.
+    // When fetching multiple counties, the API might not return all transaction details (or partial),
+    // causing this recalculation to drop projects that exist in the pre-aggregated analysis but are missing raw transactions.
+    // Since aggregateUnitPriceAnalysis already merges typeComparison arrays correctly, we should trust that.
+    // unitAnalysis.typeComparison = newTypeComparison;
 }
 
 function updateQuantiles(statsObj: any, prices: number[]) {

@@ -186,4 +186,10 @@
 - [x] Step 1: Verify `LOGO/type a.jpg` exists and copy to public assets.
 - [x] Step 2: Update Opening Animation (`BrandImageIntro.tsx`).
 - [x] Step 3: Update Login Header Logo (`page.tsx`).
+- [x] Step 4: Deploy to Test Version.
+
+## [Current Task] Fix Multi-City Type Comparison Bug
+- [x] Step 1: Diagnose why `TypeComparisonTable` disappears when multiple cities selected.
+- [x] Step 2: Fix the filtering/aggregation logic in `UnitPriceAnalysisReport` or `TypeComparisonTable`.
+- [x] Step 3: Verify fix with multi-city selection.
 - [ ] Step 4: Deploy to Test Version.
