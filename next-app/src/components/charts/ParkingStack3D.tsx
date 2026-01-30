@@ -226,23 +226,23 @@ function Block3D({
     return (
         <motion.div
             className={cn(
-                "absolute top-0 left-0 w-full h-full preserve-3d cursor-pointer",
+                "absolute top-0 left-0 w-full h-full preserve-3d pointer-events-none",
                 !active && "pointer-events-none"
             )}
-            onMouseEnter={onHover}
-            onMouseLeave={onLeave}
-            onClick={(e) => {
-                e.stopPropagation();
-                onDetail();
-            }}
+            // onMouseEnter={onHover} // Handled by faces
+            // onMouseLeave={onLeave} // Handled by faces
+            // onClick={(e) => { // Handled by faces
+            //     e.stopPropagation();
+            //     onDetail();
+            // }}
             initial={{ scale: 0, opacity: 0 }}
             animate={{
                 translateZ: finalZ,
                 scale: scale,
                 opacity: opacity
             }}
-            // FASTER: increased stiffness, reduced damping for snappy response
-            transition={{ type: "spring", stiffness: 500, damping: 20 }}
+            // FASTER: Snappier spring
+            transition={{ type: "spring", stiffness: 600, damping: 15 }}
             style={{
                 transformStyle: "preserve-3d",
                 zIndex: zIndex
@@ -250,13 +250,19 @@ function Block3D({
         >
             {/* 1. TOP FACE */}
             <div
-                className="absolute inset-0 rounded-sm overflow-hidden transition-all duration-200"
+                className="absolute inset-0 rounded-sm overflow-hidden transition-all duration-75 pointer-events-auto cursor-pointer"
                 style={{
                     backgroundColor: displayColor,
                     backgroundImage: glossyGradient,
                     boxShadow: isHovered
                         ? `inset 0 0 0 1px rgba(255,255,255,0.4), 0 0 30px -5px ${color}`
                         : `inset 0 0 0 1px rgba(255,255,255,0.15)`,
+                }}
+                onMouseEnter={onHover}
+                onMouseLeave={onLeave}
+                onClick={(e) => {
+                    e.stopPropagation();
+                    onDetail();
                 }}
             >
                 {/* Surface Shine Animation */}
@@ -270,7 +276,7 @@ function Block3D({
 
             {/* 2. RIGHT FACE - Fixed visibility in ghost mode */}
             <div
-                className="absolute top-0 origin-top-right transition-all duration-200"
+                className="absolute top-0 origin-top-right transition-all duration-75 pointer-events-auto cursor-pointer"
                 style={{
                     right: 0,
                     width: thickness,
@@ -283,11 +289,17 @@ function Block3D({
                     transformOrigin: 'left center',
                     transform: 'rotateY(90deg)',
                 }}
+                onMouseEnter={onHover}
+                onMouseLeave={onLeave}
+                onClick={(e) => {
+                    e.stopPropagation();
+                    onDetail();
+                }}
             />
 
             {/* 3. FRONT FACE - Fixed visibility in ghost mode */}
             <div
-                className="absolute left-0 origin-bottom-left transition-all duration-200"
+                className="absolute left-0 origin-bottom-left transition-all duration-75 pointer-events-auto cursor-pointer"
                 style={{
                     bottom: 0,
                     width: '100%',
@@ -297,6 +309,12 @@ function Block3D({
                     top: '100%',
                     transformOrigin: 'top center',
                     transform: 'rotateX(-90deg)',
+                }}
+                onMouseEnter={onHover}
+                onMouseLeave={onLeave}
+                onClick={(e) => {
+                    e.stopPropagation();
+                    onDetail();
                 }}
             />
         </motion.div>
