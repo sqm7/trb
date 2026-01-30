@@ -57,7 +57,7 @@ export function ParkingStack3D({
     const STEP_Y_PIXELS = STEP_Z * 0.85;
 
     return (
-        <div className="w-full h-[600px] flex items-start justify-start relative perspective-container overflow-visible pl-12 lg:pl-24 pt-20">
+        <div className="w-full h-[600px] flex items-start justify-start relative perspective-container overflow-visible pl-12 lg:pl-24 -mt-12">
             {/* 1. The 3D Scene Layer */}
             <div
                 className="relative flex items-center justify-center preserve-3d"
@@ -212,10 +212,10 @@ function Block3D({
     const finalZ = baseZ + hoverLift;
     const scale = active ? 1 : 0;
 
-    // Increased base opacity for ghost mode (0.45) to ensure side faces are visible
-    const opacity = active ? (isHovered ? 1 : 0.45) : 0;
+    // Increased base opacity to 0.6 for better hit target visibility and "ghost" feel
+    const opacity = active ? (isHovered ? 1 : 0.6) : 0;
 
-    // Color Logic: Use displayColor for all faces. 
+    // Color Logic: Use displayColor for all faces.
     // Ghost state: zinc-700 for better visibility than zinc-600
     const displayColor = isHovered ? color : "#3f3f46";
 
@@ -241,7 +241,8 @@ function Block3D({
                 scale: scale,
                 opacity: opacity
             }}
-            transition={{ type: "spring", stiffness: 350, damping: 25 }}
+            // FASTER: increased stiffness, reduced damping for snappy response
+            transition={{ type: "spring", stiffness: 500, damping: 20 }}
             style={{
                 transformStyle: "preserve-3d",
                 zIndex: zIndex
@@ -249,7 +250,7 @@ function Block3D({
         >
             {/* 1. TOP FACE */}
             <div
-                className="absolute inset-0 rounded-sm overflow-hidden transition-all duration-500"
+                className="absolute inset-0 rounded-sm overflow-hidden transition-all duration-200"
                 style={{
                     backgroundColor: displayColor,
                     backgroundImage: glossyGradient,
@@ -269,7 +270,7 @@ function Block3D({
 
             {/* 2. RIGHT FACE - Fixed visibility in ghost mode */}
             <div
-                className="absolute top-0 origin-top-right transition-all duration-500"
+                className="absolute top-0 origin-top-right transition-all duration-200"
                 style={{
                     right: 0,
                     width: thickness,
@@ -286,7 +287,7 @@ function Block3D({
 
             {/* 3. FRONT FACE - Fixed visibility in ghost mode */}
             <div
-                className="absolute left-0 origin-bottom-left transition-all duration-500"
+                className="absolute left-0 origin-bottom-left transition-all duration-200"
                 style={{
                     bottom: 0,
                     width: '100%',
