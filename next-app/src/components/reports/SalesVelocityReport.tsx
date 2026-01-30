@@ -300,172 +300,188 @@ export function SalesVelocityReport({ data }: SalesVelocityReportProps) {
                     </div>
                 }
             >
-                <AreaHeatmapChart
-                    data={areaDistributionAnalysis || {}}
-                    selectedRooms={selectedRooms}
-                    minArea={minArea}
-                    maxArea={maxArea}
-                    interval={interval}
-                    onDataPointClick={handleHeatmapClick}
-                />
+                <div className="flex flex-col lg:flex-row gap-6">
+                    {/* Chart Section - Dynamic Width */}
+                    {/* Isolated Resize Logic for Heatmap Animation */}
+                    <div
+                        ref={(node) => {
+                            if (!node) return;
+                            // We use a callback ref to attach observer when node mounts
+                            const resizeObserver = new ResizeObserver(() => {
+                                // Dispatch resize event to force ApexCharts to update width
+                                // This is scoped to this component's effect, but window.dispatchEvent is global.
+                                // However, since we only do this when THIS specific div resizes, it shouldn't cause global loop
+                                // unless THIS div is resized by the chart resizing (cyclic dependency).
+                                // Given the flex layout, the div width is controlled by the parent class (w-full vs w-60%),
+                                // so chart resize shouldn't change div width. This should be safe.
+                                requestAnimationFrame(() => {
+                                    window.dispatchEvent(new Event('resize'));
+                                });
+                            });
+                            resizeObserver.observe(node);
+                            return () => resizeObserver.disconnect();
+                        }}
+                        className={cn(
+                            "transition-all duration-500 ease-in-out",
+                            heatmapModalMeta ? "w-full lg:w-[60%]" : "w-full"
+                        )}
+                    >
+                        <AreaHeatmapChart
+                            data={areaDistributionAnalysis || {}}
+                            selectedRooms={selectedRooms}
+                            minArea={minArea}
+                            maxArea={maxArea}
+                            interval={interval}
+                            onDataPointClick={handleHeatmapClick}
+                        />
+                    </div>
 
-                {/* Aggregated Heatmap Detail Modal */}
-                {heatmapModalMeta && (
-                    <div className="mt-4 p-4 bg-zinc-900/50 border border-white/10 rounded-lg">
-                        <div className="flex justify-between items-center mb-3">
-                            <div>
-                                <h4 className="text-white font-medium flex items-center gap-2">
-                                    <span className="text-cyan-400">{heatmapModalMeta.roomType}</span>
-                                    <span className="text-zinc-500">|</span>
-                                    <span>{heatmapModalMeta.areaRange} 坪</span>
-                                </h4>
-                                <p className="text-zinc-400 text-xs mt-1">
-                                    共找到 {aggregatedDetails.length} 個建案，合計 {heatmapModalMeta.totalCount} 筆交易
-                                </p>
-                            </div>
-                            <div className="flex gap-2">
-                                <ExportButton
-                                    data={aggregatedDetails}
-                                    filename={`heatmap_aggregated_${heatmapModalMeta.roomType}_${heatmapModalMeta.areaRange}`}
-                                    label="匯出統計"
-                                    chartType="sales-heatmap-detail"
-                                    snapshotData={aggregatedDetails}
-                                />
-                                <ExportButton
-                                    data={aggregatedDetails.flatMap(d => d.transactions)}
-                                    filename={`heatmap_details_${heatmapModalMeta.roomType}_${heatmapModalMeta.areaRange}`}
-                                    label="匯出明細"
-                                />
-                                <button
-                                    onClick={() => setHeatmapModalMeta(null)}
-                                    className="text-zinc-400 hover:text-white text-sm bg-zinc-800/50 px-3 py-1 rounded-full hover:bg-zinc-700 transition-colors"
-                                >
-                                    ✕ 關閉
-                                </button>
-                            </div>
-                        </div>
+                    {/* Aggregated Heatmap Detail Modal - Side Panel */}
+                    <div className={cn(
+                        "overflow-hidden transition-all duration-300 ease-in-out",
+                        heatmapModalMeta ? "w-full lg:w-[40%] opacity-100 scale-100" : "w-0 opacity-0 scale-95 h-0 lg:h-auto overflow-hidden"
+                    )}>
+                        {heatmapModalMeta && (
+                            <div className="p-4 bg-zinc-900/50 border border-white/10 rounded-lg h-full max-h-[600px] flex flex-col">
+                                <div className="flex justify-between items-start mb-4 pb-4 border-b border-white/5">
+                                    <div>
+                                        <h4 className="text-white font-medium flex items-center gap-2 text-lg">
+                                            <span className="text-cyan-400">{heatmapModalMeta.roomType}</span>
+                                            <span className="text-zinc-500">|</span>
+                                            <span>{heatmapModalMeta.areaRange} 坪</span>
+                                        </h4>
+                                        <p className="text-zinc-400 text-xs mt-1">
+                                            共找到 <span className="text-white font-mono">{aggregatedDetails.length}</span> 個建案
+                                            <br />
+                                            合計 <span className="text-white font-mono">{heatmapModalMeta.totalCount}</span> 筆交易
+                                        </p>
+                                    </div>
+                                    <button
+                                        onClick={() => setHeatmapModalMeta(null)}
+                                        className="text-zinc-400 hover:text-white p-1 hover:bg-zinc-800 rounded transition-colors"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                            <path d="M18 6 6 18" />
+                                            <path d="m6 6 12 12" />
+                                        </svg>
+                                    </button>
+                                </div>
 
-                        {aggregatedDetails.length > 0 ? (
-                            <div className="max-h-[500px] overflow-y-auto pr-1 custom-scrollbar">
-                                <table className="w-full text-xs border-collapse">
-                                    <thead className="bg-zinc-800 text-zinc-300 sticky top-0 z-10 shadow-sm">
-                                        <tr>
-                                            <th className="p-3 text-left w-[25%]">建案名稱 (戶數)</th>
-                                            <th className="p-3 text-center w-[25%]">成交單價範圍 (萬/坪)</th>
-                                            <th className="p-3 text-center w-[15%]">總價中位數</th>
-                                            <th className="p-3 text-center w-[35%]">成交總價範圍 (萬)</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-white/5">
-                                        {aggregatedDetails.map((item, idx) => (
-                                            <React.Fragment key={idx}>
-                                                {/* Summary Row */}
-                                                <tr
-                                                    className={cn(
-                                                        "group transition-colors cursor-pointer select-none",
-                                                        item.isExpanded ? "bg-zinc-800/60" : "hover:bg-zinc-800/30"
-                                                    )}
-                                                    onClick={() => toggleProjectExpand(idx)}
-                                                >
-                                                    <td className="p-3 font-medium text-white flex items-center gap-2">
-                                                        <span className={cn("text-zinc-500 transition-transform duration-200", item.isExpanded ? "rotate-90" : "")}>▶</span>
-                                                        {item.projectName}
-                                                        <span className="px-1.5 py-0.5 rounded-full bg-zinc-700 text-zinc-300 text-[10px] min-w-[24px] text-center">
-                                                            {item.count}
-                                                        </span>
-                                                    </td>
-                                                    <td className="p-3 text-center font-mono text-cyan-400">
-                                                        {item.unitPriceRange.min === item.unitPriceRange.max
-                                                            ? item.unitPriceRange.min.toFixed(1)
-                                                            : `${item.unitPriceRange.min.toFixed(1)} ~ ${item.unitPriceRange.max.toFixed(1)}`
-                                                        }
-                                                    </td>
-                                                    <td className="p-3 text-center font-mono text-violet-400">
-                                                        {formatPrice((item.priceRange as any).median || 0)}
-                                                    </td>
-                                                    <td className="p-3 text-center font-mono text-zinc-300">
-                                                        {item.priceRange.min === item.priceRange.max
-                                                            ? formatPrice(item.priceRange.min)
-                                                            : `${formatPrice(item.priceRange.min)} ~ ${formatPrice(item.priceRange.max)}`
-                                                        }
-                                                    </td>
-                                                </tr>
+                                <div className="flex gap-2 mb-4 shrink-0 overflow-x-auto pb-2 custom-scrollbar">
+                                    <ExportButton
+                                        data={aggregatedDetails}
+                                        filename={`heatmap_aggregated_${heatmapModalMeta.roomType}_${heatmapModalMeta.areaRange}`}
+                                        label="匯出統計"
+                                        chartType="sales-heatmap-detail"
+                                        snapshotData={aggregatedDetails}
+                                        className="flex-1 whitespace-nowrap"
+                                    />
+                                    <ExportButton
+                                        data={aggregatedDetails.flatMap(d => d.transactions)}
+                                        filename={`heatmap_details_${heatmapModalMeta.roomType}_${heatmapModalMeta.areaRange}`}
+                                        label="匯出明細"
+                                        className="flex-1 whitespace-nowrap"
+                                    />
+                                </div>
 
-                                                {/* Expanded Details Row */}
-                                                {item.isExpanded && (
-                                                    <tr>
-                                                        <td colSpan={4} className="p-0 bg-zinc-950/30 inset-shadow">
-                                                            <div className="p-2 pl-8 border-l-2 border-zinc-700/50 ml-4 my-1">
-                                                                <table className="w-full text-xs bg-transparent opacity-80">
-                                                                    <thead className="text-zinc-500 border-b border-white/5">
-                                                                        <tr>
-                                                                            <th className="py-1 text-left font-normal pl-2">樓層</th>
-                                                                            <th className="py-1 text-left font-normal">戶型</th>
-                                                                            <th className="py-1 text-right font-normal">坪數</th>
-                                                                            <th className="py-1 text-right font-normal">單價</th>
-                                                                            <th className="py-1 text-right font-normal pr-2">總價</th>
-                                                                        </tr>
-                                                                    </thead>
-                                                                    <tbody>
-                                                                        {item.transactions.slice(0, (item as any).showAll ? undefined : 10).map((tx: any, ti: number) => (
-                                                                            <tr key={ti} className="hover:text-white">
-                                                                                <td className="py-1 pl-2">{tx['樓層'] || tx.floor || '-'}</td>
-                                                                                <td className="py-1 text-left text-zinc-400">
-                                                                                    {tx['戶型'] || '-'}
-                                                                                </td>
-                                                                                <td className="py-1 text-right font-mono">{(tx['房屋面積(坪)'] || tx.houseArea || 0).toFixed(1)}</td>
-                                                                                <td className="py-1 text-right font-mono text-cyan-500">{(tx['房屋單價(萬)'] || tx.unitPrice || 0).toFixed(1)}</td>
-                                                                                <td className="py-1 text-right font-mono pr-2">{formatPrice(tx['交易總價(萬)'] || tx.totalPrice || 0)}</td>
-                                                                            </tr>
-                                                                        ))}
-                                                                        {item.transactions.length > 10 && !(item as any).showAll && (
-                                                                            <tr>
-                                                                                <td colSpan={5} className="py-2 text-center">
-                                                                                    <button
-                                                                                        onClick={(e) => {
-                                                                                            e.stopPropagation();
-                                                                                            setAggregatedDetails(prev => prev.map((p, i) => i === idx ? { ...p, showAll: true } : p));
-                                                                                        }}
-                                                                                        className="text-zinc-500 hover:text-zinc-300 italic text-xs hover:underline"
-                                                                                    >
-                                                                                        ... 還有 {item.transactions.length - 10} 筆 (點擊展開) ...
-                                                                                    </button>
-                                                                                </td>
-                                                                            </tr>
-                                                                        )}
-                                                                        {item.transactions.length > 10 && (item as any).showAll && (
-                                                                            <tr>
-                                                                                <td colSpan={5} className="py-2 text-center">
-                                                                                    <button
-                                                                                        onClick={(e) => {
-                                                                                            e.stopPropagation();
-                                                                                            setAggregatedDetails(prev => prev.map((p, i) => i === idx ? { ...p, showAll: false } : p));
-                                                                                        }}
-                                                                                        className="text-zinc-500 hover:text-zinc-300 italic text-xs hover:underline"
-                                                                                    >
-                                                                                        ... 收合 ...
-                                                                                    </button>
-                                                                                </td>
-                                                                            </tr>
-                                                                        )}
-                                                                    </tbody>
-                                                                </table>
+                                {aggregatedDetails.length > 0 ? (
+                                    <div className="flex-1 overflow-y-auto custom-scrollbar pr-1 -mr-1">
+                                        <div className="space-y-3">
+                                            {aggregatedDetails.map((item, idx) => (
+                                                <div key={idx} className="bg-zinc-950/30 rounded border border-white/5 overflow-hidden">
+                                                    {/* Card Header */}
+                                                    <div
+                                                        className={cn(
+                                                            "p-3 cursor-pointer transition-colors flex justify-between items-center",
+                                                            item.isExpanded ? "bg-zinc-800/80" : "hover:bg-zinc-800/40"
+                                                        )}
+                                                        onClick={() => toggleProjectExpand(idx)}
+                                                    >
+                                                        <div className="flex items-center gap-2">
+                                                            <div className={cn(
+                                                                "w-4 h-4 rounded-full bg-zinc-800 flex items-center justify-center text-[10px] text-zinc-400 transition-transform duration-200",
+                                                                item.isExpanded ? "rotate-90 bg-violet-500/20 text-violet-300" : ""
+                                                            )}>
+                                                                ▶
                                                             </div>
-                                                        </td>
-                                                    </tr>
-                                                )}
-                                            </React.Fragment>
-                                        ))}
-                                    </tbody>
-                                </table>
+                                                            <span className="font-medium text-sm text-zinc-200">{item.projectName}</span>
+                                                            <span className="px-1.5 py-0.5 rounded text-[10px] bg-zinc-800 text-zinc-400 border border-white/5">
+                                                                {item.count}戶
+                                                            </span>
+                                                        </div>
+                                                        <div className="text-right">
+                                                            <div className="text-xs font-mono text-cyan-400">
+                                                                {item.unitPriceRange.min === item.unitPriceRange.max
+                                                                    ? item.unitPriceRange.min.toFixed(1)
+                                                                    : `${item.unitPriceRange.min.toFixed(1)}~${item.unitPriceRange.max.toFixed(1)}`
+                                                                } <span className="text-zinc-500 text-[10px]">萬/坪</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Card Details (Expanded) */}
+                                                    {item.isExpanded && (
+                                                        <div className="p-3 bg-black/20 border-t border-white/5">
+                                                            <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs mb-3 text-zinc-400">
+                                                                <div className="flex justify-between border-b border-white/5 pb-1">
+                                                                    <span>總價範圍</span>
+                                                                    <span className="font-mono text-zinc-300">
+                                                                        {item.priceRange.min === item.priceRange.max
+                                                                            ? formatPrice(item.priceRange.min)
+                                                                            : `${formatPrice(item.priceRange.min)}~${formatPrice(item.priceRange.max)}`
+                                                                        }
+                                                                    </span>
+                                                                </div>
+                                                                <div className="flex justify-between border-b border-white/5 pb-1">
+                                                                    <span>總價中位數</span>
+                                                                    <span className="font-mono text-violet-300">
+                                                                        {formatPrice((item.priceRange as any).median || 0)}
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+
+                                                            <div className="space-y-1">
+                                                                <div className="grid grid-cols-5 text-[10px] text-zinc-500 pb-1 border-b border-white/5">
+                                                                    <div className="col-span-1">樓層</div>
+                                                                    <div className="col-span-1">坪數</div>
+                                                                    <div className="col-span-1 text-right">單價</div>
+                                                                    <div className="col-span-2 text-right">總價</div>
+                                                                </div>
+                                                                {item.transactions.slice(0, (item as any).showAll ? undefined : 5).map((tx: any, ti: number) => (
+                                                                    <div key={ti} className="grid grid-cols-5 text-xs py-1 hover:bg-white/5 rounded px-1 -mx-1 transition-colors">
+                                                                        <div className="col-span-1 text-zinc-300">{tx['樓層'] || tx.floor || '-'}</div>
+                                                                        <div className="col-span-1 text-zinc-400">{(tx['房屋面積(坪)'] || tx.houseArea || 0).toFixed(1)}</div>
+                                                                        <div className="col-span-1 text-right text-cyan-400">{(tx['房屋單價(萬)'] || tx.unitPrice || 0).toFixed(0)}</div>
+                                                                        <div className="col-span-2 text-right text-zinc-300 font-mono">{formatPrice(tx['交易總價(萬)'] || tx.totalPrice || 0)}</div>
+                                                                    </div>
+                                                                ))}
+                                                                {item.transactions.length > 5 && (
+                                                                    <button
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation();
+                                                                            setAggregatedDetails(prev => prev.map((p, i) => i === idx ? { ...p, showAll: !(p as any).showAll } : p));
+                                                                        }}
+                                                                        className="w-full text-center text-[10px] text-zinc-500 hover:text-cyan-400 py-1.5 mt-1 border-t border-white/5 transition-colors"
+                                                                    >
+                                                                        {(item as any).showAll ? "收合內容" : `還有 ${item.transactions.length - 5} 筆交易...`}
+                                                                    </button>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="flex-1 flex flex-col items-center justify-center text-zinc-500 border border-dashed border-zinc-800 rounded bg-zinc-900/30">
+                                        <p>無詳細資料</p>
+                                    </div>
+                                )}
                             </div>
-                        ) : (
-                            <p className="text-zinc-500 text-center py-8 bg-zinc-900/30 rounded border border-dashed border-zinc-800">
-                                無詳細資料
-                            </p>
                         )}
                     </div>
-                )}
+                </div>
             </ReportWrapper>
 
 

@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import dynamic from 'next/dynamic';
 import { Card } from '@/components/ui/card';
 import { ApexOptions } from 'apexcharts';
@@ -92,7 +93,6 @@ export default function ChartWrapper({ type, series, options, height = 350, titl
             {loading ? (
                 <div className="flex items-center justify-center" style={{ height }}>
                     <div className="loader"></div>
-                    {/* Need global css loader or use svg */}
                 </div>
             ) : (
                 <Chart options={mergedOptions} series={series} type={type} height={height} width="100%" />

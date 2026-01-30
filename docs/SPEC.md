@@ -100,6 +100,11 @@ The system allows users to access the platform using multiple identity providers
     - **UI**: Vertical stack of compact buttons (10px text).
     - **Context**: Only active on "Price Band" and "Sales Velocity" reports.
     - **Sync**: Fully synchronized with the global filter state.
+- **Heatmap Side-Panel Layout**:
+    - **Interaction**: Clicking a heatmap cell transforms the layout from full-width to side-by-side (`60% Chart` / `40% Details`).
+    - **Animation**: Uses `transition-all duration-500` for smooth expansion/collapse.
+    - **Resize Handling**: Implements a `ResizeObserver` on the local container to trigger ApexCharts updates during transitions, preventing layout breakage.
+    - **Mobile**: Stacks vertically on smaller screens (`flex-col lg:flex-row`).
 ## 7. Custom Report Builder
 - **Goal**: Allow users to create personalized report layouts by dragging and dropping dashboard charts onto a canvas.
 - **Features**:

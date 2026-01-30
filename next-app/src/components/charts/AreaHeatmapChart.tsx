@@ -119,6 +119,11 @@ export function AreaHeatmapChart({ data, selectedRooms, minArea, maxArea, interv
         return <div className="text-zinc-500 text-center p-8">無面積分佈資料</div>;
     }
 
+    // Force chart update on window resize or container resize
+    // ApexCharts usually handles window resize, but CSS transition might need a nudge
+    // We can use a ResizeObserver or just rely on key prop changing in parent if needed
+    // But passing a unique key based on layout state is often the simplest "React" way to force strict resize
+
     return (
         <ChartWrapper
             type="heatmap"
