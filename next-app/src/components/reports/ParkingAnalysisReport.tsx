@@ -565,7 +565,8 @@ export function ParkingAnalysisReport({ data }: ParkingAnalysisReportProps) {
             >
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                     {/* 3D Visual Stack */}
-                    <div className="flex flex-col items-center justify-center p-8 bg-zinc-900/10 rounded-xl relative overflow-hidden min-h-[450px]">
+                    {/* 3D Visual Stack */}
+                    <div className="flex flex-col items-center justify-center p-8 bg-zinc-900/10 rounded-xl relative overflow-visible min-h-[450px]">
                         {/* Background Decor */}
                         <div className="absolute inset-0 bg-gradient-to-b from-zinc-900/0 via-zinc-900/20 to-zinc-900/0 pointer-events-none" />
 
