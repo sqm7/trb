@@ -1,11 +1,12 @@
 # Implementation Plan
 
-## [Current Task] Comprehensive Database Schema Documentation
+## [Current Task] Comprehensive Database Schema Documentation & Backup
 - [x] Step 1: Enumerate all tables and views from SQL dump and live DB. <!-- id: db-1 -->
 - [x] Step 2: Analyze column definitions, constraints, and sample data. <!-- id: db-2 -->
 - [x] Step 3: Create `docs/DATABASE_SCHEMA.md` with detailed table descriptions. <!-- id: db-3 -->
 - [x] Step 4: Update `ARCHITECTURE.md` to link to the new specialized document. <!-- id: db-4 -->
 - [x] Step 5: Update `SPEC.md` to include database architecture as a core technical reference. <!-- id: db-5 -->
+- [x] Step 6: Execute database backup via script (Docker and Docker-less fallback). <!-- id: db-6 -->
 
 
 ## [Current Task] Database Schema Research & Documentation (Original Request)
