@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Search } from "lucide-react";
 
@@ -48,68 +48,161 @@ export function ParkingStack3D({
         return getRank(a.floor) - getRank(b.floor);
     });
 
+    // Configuration
+    const BLOCK_SIZE = 240;
+    const BLOCK_THICKNESS = 20;
+    const BLOCK_GAP = 20;
+
+    // Calculate vertical step for 2D projection
+    // With rotateX(60deg), the vertical step per unit Z is sin(60) ~ 0.866
+    // But we are stacking DOWN in Z (negative Z).
+    // Visually, each step down in Z means step DOWN in Y screen.
+    const STEP_Z = BLOCK_THICKNESS + BLOCK_GAP;
+    // Visually, the gap on screen pixels is approx:
+    const STEP_Y_PIXELS = STEP_Z * 0.9; // Tuned for visual match with 3D projection
+
     return (
-        <div className="w-full h-[600px] flex items-center justify-center relative perspective-container overflow-visible">
-            {/* CSS Perspective Container */}
+        <div className="w-full h-[600px] flex items-center justify-start relative perspective-container overflow-visible pl-12 lg:pl-24">
+            {/* 1. The 3D Scene Layer */}
             <div
-                className="relative w-full h-full flex items-center justify-center preserve-3d"
+                className="relative flex items-center justify-center preserve-3d"
                 style={{
+                    width: BLOCK_SIZE,
+                    height: BLOCK_SIZE,
                     perspective: "3000px",
-                    transformStyle: "preserve-3d"
+                    transformStyle: "preserve-3d",
+                    zIndex: 10
                 }}
             >
                 <motion.div
                     className="relative preserve-3d"
-                    // Parent Rotation: Tilted 60deg X, Spun 45deg Z
                     initial={{ rotateX: 60, rotateZ: 45 }}
                     animate={{ rotateX: 60, rotateZ: 45 }}
                     transition={{ duration: 0.8, ease: "easeOut" }}
                     style={{
                         transformStyle: "preserve-3d",
-                        width: 240,
-                        height: 240
+                        width: "100%",
+                        height: "100%"
                     }}
+                >
+                    <AnimatePresence>
+                        {sortedData.map((floor, idx) => {
+                            const isSelected = selectedFloors.includes(floor.floor);
+                            const isHovered = hoveredFloor === floor.floor;
+                            const color = floorColors[floor.floor] || '#71717a';
+                            const zPosition = -idx * STEP_Z;
+
+                            return (
+                                <Block3D
+                                    key={floor.floor}
+                                    color={color}
+                                    isSelected={isSelected}
+                                    isHovered={isHovered}
+                                    active={isSelected}
+                                    onHover={() => onHover(floor.floor)}
+                                    onLeave={() => onHover(null)}
+                                    onClick={() => onToggle(floor.floor)}
+                                    // Stacking order: Top floor (B1) is last in Z-index logic? 
+                                    // Actually in 3D, z-buffer handles it, but for DOM layering...
+                                    // B1 is on top physically.
+                                    zIndex={sortedData.length - idx}
+                                    baseZ={zPosition}
+                                    thickness={BLOCK_THICKNESS}
+                                />
+                            );
+                        })}
+                    </AnimatePresence>
+                </motion.div>
+            </div>
+
+            {/* 2. The 2D Label Overlay Layer */}
+            {/* Placed as a sibling, absolutely positioned to match the projected 3D coordinates.
+                This ensures text is 100% crisp, 2D, and upright. 
+            */}
+            <div className="absolute inset-0 pointer-events-none z-20 flex items-center justify-start pl-12 lg:pl-24">
+                {/* 
+                    We need to match the center of the 3D container. 
+                    The container is BLOCK_SIZE x BLOCK_SIZE centered in the flex items.
+                */}
+                <div
+                    className="relative"
+                    style={{ width: BLOCK_SIZE, height: BLOCK_SIZE }}
                 >
                     {sortedData.map((floor, idx) => {
                         const isSelected = selectedFloors.includes(floor.floor);
                         const isHovered = hoveredFloor === floor.floor;
-                        const color = floorColors[floor.floor] || '#71717a';
 
-                        // Vertical Stacking
-                        const blockThickness = 20;
-                        const gap = 20;
-                        // Stack downwards (negative Z)
-                        const zPosition = -idx * (blockThickness + gap);
+                        if (!isSelected) return null;
+
+                        // Calculate projected Y position
+                        // Start at some top offset
+                        // Each index adds STEP_Y_PIXELS
+                        // B1 (idx 0) is at top.
+                        // We also need to account for the "Hover Lift" (40px Z -> approx 35px Y)
+                        const hoverOffset = isHovered ? -35 : 0;
+                        const topPos = (idx * STEP_Y_PIXELS) + hoverOffset;
 
                         return (
-                            <Block3D
+                            <div
                                 key={floor.floor}
-                                data={floor}
-                                color={color}
-                                isSelected={isSelected}
-                                isHovered={isHovered}
-                                active={isSelected}
-                                onHover={() => onHover(floor.floor)}
-                                onLeave={() => onHover(null)}
-                                onClick={() => onToggle(floor.floor)}
-                                onDetail={(e) => {
-                                    e.stopPropagation();
-                                    onDetail(floor.floor);
+                                className="absolute left-full flex items-center"
+                                style={{
+                                    top: `calc(50% - 40px + ${topPos}px)`, // Start from middle-ish line
+                                    left: '80%', // Shift rightwards from center
+                                    // Only animate position/opacity
+                                    transition: 'top 0.3s ease-out',
                                 }}
-                                zIndex={sortedData.length - idx}
-                                baseZ={zPosition}
-                                thickness={blockThickness}
-                            />
+                            >
+                                {/* Leader Line (2D) */}
+                                <div className="w-16 h-px bg-white/50 shadow-[0_0_5px_white]" />
+
+                                {/* Text Content */}
+                                <motion.div
+                                    initial={{ opacity: 0, x: -20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    exit={{ opacity: 0, x: -10 }}
+                                    className="pl-4 pointer-events-auto cursor-pointer flex items-center gap-3 whitespace-nowrap"
+                                    onMouseEnter={() => onHover(floor.floor)}
+                                    onMouseLeave={() => onHover(null)}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        onDetail(floor.floor);
+                                    }}
+                                >
+                                    <span className={cn(
+                                        "text-5xl font-black text-cyan-400 drop-shadow-[0_4px_4px_rgba(0,0,0,0.8)] leading-none",
+                                        "font-sans" // Ensure clean sans font
+                                    )}
+                                        style={{ textShadow: '0 0 20px rgba(34,211,238,0.5)' }}
+                                    >
+                                        {floor.floor}
+                                    </span>
+
+                                    <div className="bg-zinc-950/90 border-l-2 border-cyan-500 backdrop-blur-md px-3 py-1.5 rounded-r shadow-2xl flex items-center gap-4 transition-all hover:bg-black hover:scale-105">
+                                        <div>
+                                            <div className="text-[10px] text-zinc-500 uppercase font-bold leading-nonem mb-0.5">均價</div>
+                                            <div className="text-xl font-mono font-bold text-cyan-300 leading-none">
+                                                {Math.round(floor.avgPrice).toLocaleString()}
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <div className="text-[10px] text-zinc-500 uppercase font-bold leading-none mb-0.5">數量</div>
+                                            <div className="text-sm font-mono text-zinc-300 leading-none">
+                                                {floor.count}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            </div>
                         );
                     })}
-                </motion.div>
+                </div>
             </div>
         </div>
     );
 }
 
 function Block3D({
-    data,
     color,
     isSelected,
     isHovered,
@@ -117,12 +210,10 @@ function Block3D({
     onHover,
     onLeave,
     onClick,
-    onDetail,
     zIndex,
     baseZ,
     thickness
 }: {
-    data: FloorData;
     color: string;
     isSelected: boolean;
     isHovered: boolean;
@@ -130,7 +221,6 @@ function Block3D({
     onHover: () => void;
     onLeave: () => void;
     onClick: () => void;
-    onDetail: (e: React.MouseEvent) => void;
     zIndex: number;
     baseZ: number;
     thickness: number;
@@ -138,10 +228,9 @@ function Block3D({
     // Animation states
     const hoverLift = isHovered ? 40 : 0;
     const finalZ = baseZ + hoverLift;
-    const scale = active ? (isHovered ? 1.05 : 1) : 0;
+    const scale = active ? 1 : 0;
     const opacity = active ? 1 : 0;
 
-    // Glossy Gradient
     const glossyGradient = `linear-gradient(135deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.1) 50%, rgba(0,0,0,0) 100%)`;
 
     return (
@@ -165,50 +254,34 @@ function Block3D({
                 zIndex: zIndex
             }}
         >
-            {/* 
-                GEOMETRY STRATEGY: "Fold Down" from TOP Face
-                The main div is the Container.
-                The TOP FACE is 'absolute inset-0'.
-            */}
-
-            {/* 1. TOP FACE */}
+            {/* 1. TOP FACE - Fold Source */}
             <div
                 className="absolute inset-0 rounded-sm"
                 style={{
                     backgroundColor: color,
                     backgroundImage: glossyGradient,
                     boxShadow: `inset 0 0 0 1px rgba(255,255,255,0.2), 0 0 15px -5px ${color}`,
-                    // It sits at Z = thickness/2 relative to the layer center, or just 0 if we consider layer=top.
-                    // Let's say zPosition is the TOP surface level.
-                    // So faces fold DOWN from here.
                 }}
             >
-                {/* Surface Shine */}
                 <div className="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-white/20 to-transparent pointer-events-none" />
             </div>
 
-            {/* 2. RIGHT FACE (Folded Down from Right Edge) */}
+            {/* 2. RIGHT FACE - Folded Down */}
             <div
                 className="absolute top-0 origin-top-right transition-colors duration-300"
                 style={{
                     right: 0,
-                    width: thickness,     // The 'height' of the block becomes width of this strip
+                    width: thickness,
                     height: '100%',
                     backgroundColor: color,
                     filter: 'brightness(0.6)',
-                    // Rotate Y 90 deg?
-                    // Right Edge axis. simple RotateY(90) folds it BACK. 
-                    // We want it DOWN.
-                    // Actually, standard Fold:
-                    // Attach to Right Edge: left: 100%. Origin: left. RotateY(90).
                     left: '100%',
                     transformOrigin: 'left center',
                     transform: 'rotateY(90deg)',
-                    // Wait, RotateY(90) makes it perpendicular to X axis. Good.
                 }}
             />
 
-            {/* 3. FRONT FACE (Folded Down from Bottom Edge) */}
+            {/* 3. FRONT FACE - Folded Down */}
             <div
                 className="absolute left-0 origin-bottom-left transition-colors duration-300"
                 style={{
@@ -217,97 +290,12 @@ function Block3D({
                     height: thickness,
                     backgroundColor: color,
                     filter: 'brightness(0.8)',
-                    // Attach to Bottom Edge: top: 100%. Origin: top. RotateX(-90).
                     top: '100%',
                     transformOrigin: 'top center',
                     transform: 'rotateX(-90deg)',
                 }}
             />
-
-            {/* 
-                Visual Debugging Note:
-                If Front Face is "detached", it means Top:100% gap.
-                We can add -1px margin or overlapping size.
-                Let's use 100.5% width on faces to cover corners.
-             */}
-
-
-            {/* --- LABELS --- */}
-            {/* Anchor: Top Right Corner of the Block */}
-            <div
-                className="absolute top-0 right-0 pointer-events-none preserve-3d"
-                style={{
-                    transform: 'translateZ(0px)' // Already at top level
-                }}
-            >
-                {/* Leader Line */}
-                <div
-                    className="absolute bg-white/50 h-px origin-center shadow-[0_0_5px_white]"
-                    style={{
-                        width: 100,
-                        top: 0,
-                        left: 0,
-                        // Line direction. We want it extending visually RIGHT.
-                        // Parent RotZ(45). Visual Right is -45 relative to that.
-                        transformOrigin: 'left center',
-                        transform: 'rotateZ(-45deg)'
-                    }}
-                />
-
-                {/* Text Container at End of Line */}
-                <div
-                    className="absolute box-border"
-                    style={{
-                        transform: 'rotateZ(-45deg) translate(100px, 0)'
-                    }}
-                >
-                    {/* BILLBOARD TRANSFORMATION
-                        We need to cancel Parent: RotX(60) RotZ(45).
-                        Current chain up to here: RotZ(45) -> (Inside Block) -> RotZ(-45) (Line).
-                        So effectively we have cancelled Z. Net Rotation is just RotX(60).
-                        To Billboard: RotateX(-60).
-                    */}
-                    <div
-                        className="pointer-events-auto flex items-center gap-3 origin-center pl-2"
-                        style={{
-                            transform: 'rotateX(-60deg) translateY(-50%)', // Center text vertically on line
-                        }}
-                    >
-                        <span className={cn(
-                            "text-5xl font-black text-cyan-400 drop-shadow-[0_5px_5px_rgba(0,0,0,0.8)] tracking-tighter"
-                        )}
-                            style={{ textShadow: '0 0 20px rgba(34,211,238,0.5)' }}
-                        >
-                            {data.floor}
-                        </span>
-
-                        {/* Info Card */}
-                        <div
-                            className="bg-black/80 border border-cyan-500/30 backdrop-blur-md px-3 py-2 rounded flex flex-col min-w-[120px]"
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                onDetail(e);
-                            }}
-                        >
-                            <div className="flex justify-between items-end border-b border-white/10 pb-1 mb-1">
-                                <span className="text-[10px] text-zinc-400 uppercase font-bold">AVG</span>
-                                <span className="text-lg font-mono font-bold text-cyan-300 leading-none">
-                                    {Math.round(data.avgPrice).toLocaleString()}
-                                </span>
-                            </div>
-                            <div className="flex justify-between items-end">
-                                <span className="text-[10px] text-zinc-500 uppercase font-bold">CNT</span>
-                                <span className="text-sm font-mono text-white leading-none">
-                                    {data.count}
-                                </span>
-                            </div>
-                        </div>
-
-                    </div>
-                </div>
-
-            </div>
-
+            {/* Note: Labels removed from here, handled in 2D overlay layer */}
         </motion.div>
     );
 }
