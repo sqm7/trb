@@ -82,7 +82,7 @@ export function UnitPriceAnalysisReport({ data, visibleSections = ['stats', 'com
                         </div>
                     }
                 >
-                    <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <UnitPriceStatsBlock
                             title="住宅建案統計"
                             stats={residentialStats}
@@ -101,7 +101,7 @@ export function UnitPriceAnalysisReport({ data, visibleSections = ['stats', 'com
                             title="店舖統計"
                             stats={storeStats}
                             noDataMessage="無店舖交易數據"
-                            className="border-amber-500/20 xl:col-span-2"
+                            className="border-amber-500/20"
                             averageType={averageType}
                         />
                     </div>

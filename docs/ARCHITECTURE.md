@@ -1,7 +1,7 @@
 # Technical Architecture
 
 ## 1. Stack Overview
-- **Frontend**: Next.js 14 (App Router), React, TailwindCSS, Shadcn UI.
+- **Frontend**: Next.js 14 (App Router), React, TailwindCSS, Shadcn UI. (Note: Build stability fix using `--webpack` for dev/build scripts).
 - **Backend / BaaS**: Supabase (Auth, Database, Edge Functions).
 - **Hosting**: GitHub Pages (靜態輸出), Supabase (Edge Functions).
 

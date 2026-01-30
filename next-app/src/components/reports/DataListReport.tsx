@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { ReportWrapper } from "./ReportWrapper";
 import { ChevronLeft, ChevronRight, ChevronDown, ChevronUp, ArrowUpDown, Search, X, Loader2, Table2 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -82,8 +82,40 @@ export function DataListReport({ data: _triggerData, trigger }: DataListReportPr
     const [subTableLoading, setSubTableLoading] = useState(false);
     const [subTableTitle, setSubTableTitle] = useState('');
 
-    // Fetch data logic
+    // 1. Maintain a ref to the latest filters so fetchByType can be stable
+    const filtersRef = useRef({
+        counties,
+        districts,
+        transactionType,
+        buildingType,
+        projectNames,
+        dateRange,
+        startDate,
+        endDate
+    });
+
+    // Update ref on every render
+    useEffect(() => {
+        filtersRef.current = {
+            counties,
+            districts,
+            transactionType,
+            buildingType,
+            projectNames,
+            dateRange,
+            startDate,
+            endDate
+        };
+    });
+
+    // 2. Stable fetch function (no dependencies)
     const fetchByType = useCallback(async () => {
+        // Use the ref values
+        const currentFilters = filtersRef.current;
+        const {
+            counties, districts, transactionType, buildingType, projectNames, dateRange, startDate, endDate
+        } = currentFilters;
+
         setIsLoading(true);
         setError(null);
         setDataList([]);
@@ -107,10 +139,9 @@ export function DataListReport({ data: _triggerData, trigger }: DataListReportPr
             const promises = counties.map(async (countyName) => {
                 const countyCode = COUNTY_CODE_MAP[countyName];
 
-                // Logic to filter districts for this county
-                // Only send districts belonging to this county
                 const countyDistricts = DISTRICT_DATA[countyName] || [];
-                const targetDistricts = districts.filter(d => countyDistricts.includes(d));
+                // Defensive copy or check
+                const targetDistricts = districts ? districts.filter(d => countyDistricts.includes(d)) : [];
 
                 const payload = {
                     countyCode,
@@ -123,8 +154,6 @@ export function DataListReport({ data: _triggerData, trigger }: DataListReportPr
                 };
 
                 try {
-                    // Backend expects 'limit', but PaginationState type has 'pageSize'. 
-                    // We cast to any to pass 'limit' correctly.
                     const pagination = { page: 1, limit: 1000 } as any;
                     return await api.fetchData(payload, pagination);
                 } catch (e) {
@@ -142,7 +171,6 @@ export function DataListReport({ data: _triggerData, trigger }: DataListReportPr
                 }
             });
 
-            // Default sort by Date desc
             merged.sort((a, b) => {
                 const da = a['交易日'] || '';
                 const db = b['交易日'] || '';
@@ -157,7 +185,24 @@ export function DataListReport({ data: _triggerData, trigger }: DataListReportPr
         } finally {
             setIsLoading(false);
         }
-    }, [counties, districts, transactionType, buildingType, projectNames, dateRange, startDate, endDate]);
+    }, []); // Empty dependency array = Stable Reference
+
+    // 3. Effect triggering fetch ONLY when deep-compared values change
+    const filterHash = JSON.stringify({
+        counties,
+        districts,
+        transactionType,
+        buildingType,
+        projectNames,
+        dateRange,
+        startDate,
+        endDate
+    });
+
+    useEffect(() => {
+        fetchByType();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [filterHash]); // Only run when the stringified hash changes
 
     // Trigger fetch when trigger prop updates
     useEffect(() => {
