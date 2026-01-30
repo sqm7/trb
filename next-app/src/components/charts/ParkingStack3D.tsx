@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useRef } from "react";
+import React from "react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { Search, Check } from "lucide-react";
+import { Search } from "lucide-react";
 
 interface FloorData {
     floor: string;
@@ -35,10 +35,8 @@ export function ParkingStack3D({
     floorColors
 }: ParkingStack3DProps) {
 
-    // Sort data to stack correctly: B1 on top, B5 on bottom
-    // Assuming data usually comes in order or we sort manually
+    // Sort: B1 top, B5 bottom.
     const sortedData = [...data].sort((a, b) => {
-        // Custom sort for floors B1...B5
         const getRank = (f: string) => {
             if (f === 'B1') return 1;
             if (f === 'B2') return 2;
@@ -51,20 +49,20 @@ export function ParkingStack3D({
     });
 
     return (
-        <div className="w-full h-[400px] flex items-center justify-center relative perspective-container">
+        <div className="w-full h-[500px] flex items-center justify-center relative perspective-container">
             {/* CSS Perspective Container */}
             <div
-                className="relative w-64 h-full flex flex-col items-center justify-center preserve-3d"
+                className="relative w-full h-full flex flex-col items-center justify-center preserve-3d"
                 style={{
-                    perspective: "1000px",
+                    perspective: "1200px",
                     transformStyle: "preserve-3d"
                 }}
             >
-                {/* 3D Stack Group */}
+                {/* 3D Stack Group - Isometrically Rotated */}
                 <motion.div
-                    className="relative w-full preserve-3d flex flex-col items-center gap-1"
-                    initial={{ rotateX: 60, rotateZ: -45 }}
-                    animate={{ rotateX: 60, rotateZ: -45 }}
+                    className="relative preserve-3d flex flex-col items-center"
+                    initial={{ rotateX: 55, rotateZ: 45 }}
+                    animate={{ rotateX: 55, rotateZ: 45 }}
                     transition={{ duration: 0.8, ease: "easeOut" }}
                     style={{ transformStyle: "preserve-3d" }}
                 >
@@ -72,12 +70,6 @@ export function ParkingStack3D({
                         const isSelected = selectedFloors.includes(floor.floor);
                         const isHovered = hoveredFloor === floor.floor;
                         const color = floorColors[floor.floor] || '#71717a';
-
-                        // Z-index trick: Lower floors should usually be below, but in this rotated view 
-                        // we need to be careful. DOM order (bottom last) draws on top.
-                        // B1 top (idx 0), B5 bottom (idx 4). 
-                        // In DOM, later elements are "closer" typically. 
-                        // Reversed map? No, let's keep simple.
 
                         return (
                             <Block3D
@@ -93,22 +85,12 @@ export function ParkingStack3D({
                                     e.stopPropagation();
                                     onDetail(floor.floor);
                                 }}
+                                index={idx}
                             />
                         );
                     })}
                 </motion.div>
-
-                {/* Base Plate Shadow */}
-                <div
-                    className="absolute bottom-10 w-48 h-48 bg-black/40 blur-xl rounded-full"
-                    style={{
-                        transform: "rotateX(60deg) translateZ(-60px) scale(1.5)",
-                        filter: "blur(20px)"
-                    }}
-                />
             </div>
-
-            <FloatingTooltip data={data} hoveredFloor={hoveredFloor} />
         </div>
     );
 }
@@ -121,7 +103,8 @@ function Block3D({
     onHover,
     onLeave,
     onClick,
-    onDetail
+    onDetail,
+    index
 }: {
     data: FloorData;
     color: string;
@@ -131,139 +114,157 @@ function Block3D({
     onLeave: () => void;
     onClick: () => void;
     onDetail: (e: React.MouseEvent) => void;
+    index: number;
 }) {
-    // Determine visual states
-    const opacity = isSelected ? 1 : 0.4;
-    const hoverLift = isHovered ? 20 : 0;
+    // 3D Block Dimensions
+    const size = 160;
+    const height = 24;
 
-    // Convert hex to rgba for glass effect if needed
-    // Simple block construction: Top, Front, Side faces
+    // Animation states
+    const zOffset = isHovered ? 30 : 0;
+    const scale = isHovered ? 1.05 : (isSelected ? 1 : 0.95);
+
+    // Glossy Gradient Logic
+    // We can simulate a glossy reflection using a linear gradient overlay.
+    // Assuming 'color' is hex. Since we can't easily manipulate hex in JS without helper,
+    // we'll use a semi-transparent white gradient over the base color.
+    const glossyGradient = `linear-gradient(135deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.1) 50%, rgba(0,0,0,0.1) 100%)`;
 
     return (
         <motion.div
-            className="relative w-48 h-12 cursor-pointer preserve-3d group"
+            className="relative preserve-3d cursor-pointer mb-2" // margin-bottom creates gap
             onMouseEnter={onHover}
             onMouseLeave={onLeave}
             onClick={onClick}
             animate={{
-                translateZ: hoverLift,
-                scale: isHovered ? 1.05 : 1
+                translateZ: zOffset,
+                scale: scale
             }}
             transition={{ type: "spring", stiffness: 300, damping: 20 }}
-            style={{ transformStyle: "preserve-3d" }}
+            style={{
+                width: size,
+                height: size,
+                transformStyle: "preserve-3d",
+            }}
         >
-            {/* Top Face (The "Floor") */}
+            {/* 1. TOP FACE (Main Surface) */}
             <div
                 className={cn(
-                    "absolute top-0 left-0 w-full h-full border border-white/20 transition-all duration-300 flex items-center justify-between px-4",
-                    isSelected ? "brightness-110" : "grayscale-[0.5]"
+                    "absolute inset-0 border border-white/20 transition-all duration-300 rounded-sm",
+                    isSelected ? "brightness-110" : "grayscale-[0.3]"
                 )}
                 style={{
                     backgroundColor: color,
-                    // Typically 'top' face in CSS cube would be rotated X 90deg? 
-                    // Actually, since we rotated the PARENT container, we can just stack divs flat 
-                    // and give them "thickness" via pseudo elements.
-                    // But simpler: Just stacking divs in a flex-col in a rotated container works well 
-                    // for "isometric layers". 
-                    // Let's add thickness manually.
-                    fontSize: '10px'
+                    backgroundImage: glossyGradient,
+                    boxShadow: isSelected ? `0 0 15px ${color}` : 'none',
+                    transform: `translateZ(${height}px)` // Top face sits up
                 }}
             >
-                <div className="flex items-center gap-2 transform -rotate-45 rotate-x-0" style={{ transform: 'rotate(45deg)' }}>
-                    {/* Counter-rotate text to be readable? No, let's keep it stylized */}
-                </div>
+                {/* Internal sheen or highlight */}
+                <div className="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-white/20 to-transparent pointer-events-none" />
             </div>
 
-            {/* Thickness (Side Face Pseudo-3D) */}
+            {/* 2. RIGHT FACE (Thickness) */}
             <div
-                className="absolute top-full left-0 w-full h-4 origin-top brightness-75 border-l border-b border-r border-black/20 transition-all duration-300"
+                className="absolute top-0 right-0 origin-right transition-colors duration-300 border border-black/20"
                 style={{
+                    width: height,
+                    height: '100%',
                     backgroundColor: color,
-                    transform: "rotateX(-90deg)",
-                    opacity: opacity
-                }}
-            />
-            <div
-                className="absolute top-0 right-0 w-4 h-full origin-right brightness-50 border-t border-r border-b border-black/20 transition-all duration-300"
-                style={{
-                    backgroundColor: color,
-                    transform: "rotateY(-90deg)",
-                    opacity: opacity
+                    filter: 'brightness(0.7)', // Darker side
+                    transform: `rotateY(90deg) translateZ(0px)`,
                 }}
             />
 
-            {/* Content Overlay (Floating above the block for readability) */}
+            {/* 3. FRONT FACE (Thickness) */}
             <div
-                className="absolute inset-0 flex items-center justify-between px-4 z-20 pointer-events-none"
+                className="absolute bottom-0 left-0 origin-bottom transition-colors duration-300 border border-black/20"
                 style={{
-                    transform: "translateZ(1px)" // Lift text slightly
+                    width: '100%',
+                    height: height,
+                    backgroundColor: color,
+                    filter: 'brightness(0.85)', // Slightly darker front
+                    transform: `rotateX(90deg) translateZ(0px)`,
+                }}
+            />
+
+            {/* --- LEADER LINE & LABEL --- */}
+            <div
+                className="absolute bottom-4 right-4 preserve-3d pointer-events-none"
+                style={{
+                    transform: "translateZ(24px)" // Lift to top surface level
                 }}
             >
-                <div className="flex items-center gap-2">
-                    <span className={cn(
-                        "w-5 h-5 rounded-md border flex items-center justify-center bg-black/20 backdrop-blur-sm transition-colors",
-                        isSelected ? "border-white text-white" : "border-white/30 text-transparent"
-                    )}>
-                        <Check size={12} strokeWidth={4} />
-                    </span>
-                    <span className="font-bold text-white text-lg drop-shadow-md">{data.floor}</span>
-                </div>
+                {/* Visual Line: Extends OUT from the corner */}
+                <div
+                    className="h-px bg-white/60 origin-left shadow-[0_0_5px_rgba(255,255,255,0.5)]"
+                    style={{
+                        width: 100,
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        transform: "rotateZ(-45deg)" // Points "Right" relative to screen
+                    }}
+                />
 
-                <div className="text-right">
-                    <div className="font-mono text-white text-sm font-bold drop-shadow-md">{Math.round(data.avgPrice).toLocaleString()} 萬</div>
-                    <div className="text-white/80 text-[10px]">{data.count} 位</div>
+                {/* The Label Group */}
+                <div
+                    className="absolute"
+                    style={{
+                        transform: "rotateZ(-45deg) translate(100px, 0)" // Move along the line
+                    }}
+                >
+                    {/* Counter-Rotate to Face Camera */}
+                    <div
+                        className="flex flex-col items-start gap-1 p-2 min-w-[140px] pointer-events-auto"
+                        style={{
+                            transform: "rotateX(-55deg) translateY(-50%)", // Counter tilt + center vertically relative to line end
+                            transformOrigin: "left center"
+                        }}
+                    >
+                        {/* Label Content */}
+                        <div className="flex items-center gap-2">
+                            <span className={cn(
+                                "text-xl font-bold drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] tracking-wider",
+                                isSelected ? "text-cyan-400" : "text-zinc-300"
+                            )}
+                                style={{ textShadow: '0 0 10px rgba(0,0,0,0.5)' }}
+                            >
+                                {data.floor}
+                            </span>
+                            {isSelected && (
+                                <motion.span
+                                    initial={{ scale: 0 }}
+                                    animate={{ scale: 1 }}
+                                    className="w-5 h-5 rounded-full bg-cyan-500 border border-white flex items-center justify-center shadow-[0_0_10px_rgba(34,211,238,0.5)]"
+                                >
+                                    <Search size={10} className="text-black" strokeWidth={3} />
+                                </motion.span>
+                            )}
+                        </div>
+
+                        {/* Detail Box */}
+                        <div
+                            className="bg-black/60 backdrop-blur-md rounded border border-white/20 p-2 text-xs shadow-2xl hover:bg-black/80 transition-colors w-32 group-hover/card:border-cyan-500/30"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onDetail(e);
+                            }}
+                        >
+                            <div className="flex justify-between items-center mb-1 pb-1 border-b border-white/10">
+                                <span className="text-zinc-400">均價</span>
+                                <span className="font-mono text-cyan-300 font-bold">{Math.round(data.avgPrice).toLocaleString()} 萬</span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                                <span className="text-zinc-500">車位</span>
+                                <span className="font-mono text-white">{data.count}</span>
+                            </div>
+                        </div>
+
+                    </div>
                 </div>
             </div>
 
-            {/* Detail Button (Only visible on hover) */}
-            <motion.button
-                initial={{ opacity: 0, scale: 0 }}
-                animate={{ opacity: isHovered ? 1 : 0, scale: isHovered ? 1 : 0 }}
-                className="absolute -right-8 top-1/2 -translate-y-1/2 p-2 bg-white text-zinc-900 rounded-full shadow-lg hover:bg-cyan-400 transition-colors pointer-events-auto z-30"
-                onClick={onDetail}
-                title="查看明細"
-            >
-                <Search size={14} />
-            </motion.button>
-
-        </motion.div>
-    );
-}
-
-
-function FloatingTooltip({ data, hoveredFloor }: { data: FloorData[], hoveredFloor: string | null }) {
-    if (!hoveredFloor) return null;
-    const floor = data.find(f => f.floor === hoveredFloor);
-    if (!floor) return null;
-
-    return (
-        <motion.div
-            className="absolute top-4 right-4 w-48 bg-zinc-900/90 border border-white/10 backdrop-blur-md rounded-lg p-3 shadow-2xl pointer-events-none z-50 text-xs"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 20 }}
-        >
-            <div className="flex justify-between items-center mb-2 border-b border-white/10 pb-1">
-                <span className="font-bold text-cyan-400 text-sm">{floor.floor} 樓層資訊</span>
-            </div>
-            <div className="space-y-1">
-                <div className="flex justify-between">
-                    <span className="text-zinc-500">平均價格</span>
-                    <span className="text-white font-mono">{Math.round(floor.avgPrice).toLocaleString()} 萬</span>
-                </div>
-                <div className="flex justify-between">
-                    <span className="text-zinc-500">中位數</span>
-                    <span className="text-zinc-300 font-mono">{Math.round(floor.medianPrice).toLocaleString()} 萬</span>
-                </div>
-                <div className="flex justify-between">
-                    <span className="text-zinc-500">極值</span>
-                    <span className="text-zinc-400 font-mono">{Math.round(floor.minPrice).toLocaleString()} - {Math.round(floor.maxPrice).toLocaleString()}</span>
-                </div>
-                <div className="flex justify-between mt-1 pt-1 border-t border-white/5">
-                    <span className="text-zinc-500">車位數量</span>
-                    <span className="text-white font-mono">{floor.count} 個</span>
-                </div>
-            </div>
         </motion.div>
     );
 }
