@@ -54,7 +54,17 @@ type SortDirection = 'asc' | 'desc' | null;
 type SortConfig = { key: string; direction: SortDirection };
 
 export function DataListReport({ data: _triggerData, trigger }: DataListReportProps) {
-    const filters = useFilterStore();
+    const {
+        counties,
+        districts,
+        transactionType,
+        buildingType,
+        projectNames,
+        dateRange,
+        startDate,
+        endDate
+    } = useFilterStore();
+
     const [dataList, setDataList] = useState<TransactionRecord[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -79,8 +89,6 @@ export function DataListReport({ data: _triggerData, trigger }: DataListReportPr
         setDataList([]);
 
         try {
-            const { counties, districts, transactionType, dateRange, startDate, endDate, projectNames, buildingType } = filters;
-
             if (counties.length === 0) {
                 setIsLoading(false);
                 return;
@@ -149,7 +157,7 @@ export function DataListReport({ data: _triggerData, trigger }: DataListReportPr
         } finally {
             setIsLoading(false);
         }
-    }, [filters]);
+    }, [counties, districts, transactionType, buildingType, projectNames, dateRange, startDate, endDate]);
 
     // Trigger fetch when trigger prop updates
     useEffect(() => {
