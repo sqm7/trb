@@ -103,7 +103,7 @@ The system allows users to access the platform using multiple identity providers
 - **Heatmap Side-Panel Layout**:
     - **Interaction**: Clicking a heatmap cell transforms the layout from full-width to side-by-side (`60% Chart` / `40% Details`).
     - **Animation**: Uses `transition-all duration-500` for smooth expansion/collapse.
-    - **Resize Handling**: Implements a `ResizeObserver` on the local container to trigger ApexCharts updates during transitions, preventing layout breakage.
+    - **Performance Optimization**: Implements a "Width Freezing" strategy (`chartContainerRef` lock) during transitions to bypass expensive ApexCharts resize calculations, ensuring 60fps smoothness.
     - **Mobile**: Stacks vertically on smaller screens (`flex-col lg:flex-row`).
 ## 7. Custom Report Builder
 - **Goal**: Allow users to create personalized report layouts by dragging and dropping dashboard charts onto a canvas.

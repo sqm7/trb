@@ -138,7 +138,7 @@
 ## [Current Task] Heatmap Side-Panel Layout & Optimization
 - [x] Implement side-by-side layout in `SalesVelocityReport.tsx`.
 - [x] Refactor heatmap details into compact card-based UI.
-- [x] Implement isolated `ResizeObserver` for smooth chart transitions.
+- [x] Implement "Width Freezing" strategy to prevent ApexCharts resize lag during transitions.
 - [x] Fix page crash caused by global resize event loop.
 - [x] Update documentation (SPEC.md).
 - [x] Final commit.
