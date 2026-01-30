@@ -4,6 +4,7 @@ import React, { useState, useMemo, useCallback } from "react";
 import { ReportWrapper } from "./ReportWrapper";
 import { ParkingRatioChart } from "@/components/charts/ParkingRatioChart";
 import { ParkingScatterChart } from "@/components/charts/ParkingScatterChart";
+import { ParkingStack3D } from "@/components/charts/ParkingStack3D";
 import { cn } from "@/lib/utils";
 import { Check, Search, Calendar, HelpCircle } from "lucide-react";
 import { Modal } from "@/components/ui/Modal";
@@ -482,18 +483,6 @@ export function ParkingAnalysisReport({ data }: ParkingAnalysisReportProps) {
                                     </tr>
                                 </tbody>
                             </table>
-
-                            {/* Custom Legend */}
-                            <div className="flex gap-6 justify-center md:justify-start px-2 text-sm text-zinc-400">
-                                <div className="flex items-center gap-2">
-                                    <span className="w-3 h-3 rounded-full bg-indigo-300"></span>
-                                    <span>有搭車位</span>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <span className="w-3 h-3 rounded-full bg-gray-600"></span>
-                                    <span>無車位</span>
-                                </div>
-                            </div>
                         </div>
                     </div>
                 </ReportWrapper>
@@ -576,54 +565,24 @@ export function ParkingAnalysisReport({ data }: ParkingAnalysisReportProps) {
             >
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                     {/* 3D Visual Stack */}
-                    <div className="flex flex-col gap-2 items-center justify-center p-8 bg-zinc-900/30 rounded-xl relative">
-                        {filteredFloorData.map((floor, idx) => {
-                            const isSelected = selectedFloors.includes(floor.floor);
-                            const isHovered = hoveredFloor === floor.floor;
+                    <div className="flex flex-col items-center justify-center p-8 bg-zinc-900/10 rounded-xl relative overflow-hidden min-h-[450px]">
+                        {/* Background Decor */}
+                        <div className="absolute inset-0 bg-gradient-to-b from-zinc-900/0 via-zinc-900/20 to-zinc-900/0 pointer-events-none" />
 
-                            return (
-                                <div
-                                    key={floor.floor}
-                                    onMouseEnter={() => setHoveredFloor(floor.floor)}
-                                    onMouseLeave={() => setHoveredFloor(null)}
-                                    className={cn(
-                                        "w-52 h-14 rounded-lg flex items-center justify-between px-4 shadow-lg transition-all duration-200 cursor-pointer group relative",
-                                        isHovered && "ring-2 ring-white scale-105",
-                                        !isSelected && "opacity-30"
-                                    )}
-                                    style={{
-                                        backgroundColor: floorColors[floor.floor] || '#4b5563',
-                                    }}
-                                    onClick={() => toggleFloor(floor.floor)}
-                                >
-                                    <div className="flex items-center gap-2">
-                                        <span className={cn(
-                                            "w-5 h-5 rounded border-2 flex items-center justify-center",
-                                            isSelected ? "bg-white border-white" : "border-white/50"
-                                        )}>
-                                            {isSelected && <Check size={14} className="text-zinc-900" />}
-                                        </span>
-                                        <span className="font-bold text-white">{floor.floor}</span>
-                                    </div>
-                                    <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                                        <button
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                openFloorDetail(floor.floor);
-                                            }}
-                                            className="p-1.5 bg-black/40 hover:bg-black/80 rounded-full text-white backdrop-blur-sm transition-colors ring-1 ring-white/20"
-                                            title={`查看 ${floor.floor} 建案明細`}
-                                        >
-                                            <Search size={14} />
-                                        </button>
-                                    </div>
-                                    <div className="text-right mt-1">
-                                        <div className="font-mono text-white text-sm">{Math.round(floor.avgPrice).toLocaleString()} 萬</div>
-                                        <div className="text-white/70 text-xs">{floor.count} 位</div>
-                                    </div>
-                                </div>
-                            )
-                        })}
+                        <ParkingStack3D
+                            data={filteredFloorData}
+                            selectedFloors={selectedFloors}
+                            hoveredFloor={hoveredFloor}
+                            onHover={setHoveredFloor}
+                            onToggle={toggleFloor}
+                            onDetail={openFloorDetail}
+                            floorColors={floorColors}
+                        />
+
+                        {/* Instruction Hint */}
+                        <div className="absolute bottom-4 left-0 w-full text-center text-zinc-600 text-xs pointer-events-none">
+                            點擊方塊選取 • 懸停查看詳情
+                        </div>
                     </div>
 
                     <Modal
