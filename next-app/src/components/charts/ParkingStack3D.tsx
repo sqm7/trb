@@ -54,16 +54,10 @@ export function ParkingStack3D({
             <div
                 className="relative w-full h-full flex items-center justify-center preserve-3d"
                 style={{
-                    perspective: "2000px", // Flatter perspective for isometric look
+                    perspective: "3000px", // Flatter perspective (nearly isometric orthographic)
                     transformStyle: "preserve-3d"
                 }}
             >
-                {/* 
-                    Iso Group 
-                    Standard Isometric Projection usually involves rotating the world 45deg (spin) and then tilting X 60deg (or 54.7deg).
-                    To stack visually "up", we use negative Translate Z in the transformed space, or just stacked Y offsets.
-                    Let's use absolute positioning for precise overlap control.
-                */}
                 <motion.div
                     className="relative preserve-3d"
                     initial={{ rotateX: 60, rotateZ: 45 }}
@@ -80,19 +74,10 @@ export function ParkingStack3D({
                         const isHovered = hoveredFloor === floor.floor;
                         const color = floorColors[floor.floor] || '#71717a';
 
-                        // Stack Calculation
-                        // In this rotation, "up" (Z) is visually "Up-Left" diagonal?
-                        // No, rotateX(60) tilts the ground plane.
-                        // We want to stack them physically on top of each other in the Z axis (height).
-                        // Let's use translateZ to stack them. Each block is 'height' units tall.
-                        // We want gaps between them.
+                        // Stack Logic
                         const blockHeight = 24;
-                        const gap = 15; // Gap between blocks
-                        const zPosition = -idx * (blockHeight + gap); // Stack downwards or upwards? 
-                        // B1 is top. B2 is below.
-                        // So B1 should be at Z = Highest.
-                        // B2 at Z = Lower.
-                        // Let's make B1 at 0, B2 at -50, etc.
+                        const gap = 15;
+                        const zPosition = -idx * (blockHeight + gap);
 
                         return (
                             <Block3D
@@ -108,8 +93,8 @@ export function ParkingStack3D({
                                     e.stopPropagation();
                                     onDetail(floor.floor);
                                 }}
-                                zIndex={sortedData.length - idx} // Higher floors render on top in DOM if needed, but preserve-3d handles visual
-                                baseZ={-idx * (blockHeight + gap)} // Real 3D stacking
+                                zIndex={sortedData.length - idx}
+                                baseZ={zPosition}
                             />
                         );
                     })}
@@ -147,7 +132,6 @@ function Block3D({
     const height = 24;
 
     // Animation states
-    // When hovered, lift the block UP (positive Z)
     const hoverLift = isHovered ? 40 : 0;
     const finalZ = baseZ + hoverLift;
     const scale = isHovered ? 1.05 : (isSelected ? 1 : 1);
@@ -170,46 +154,63 @@ function Block3D({
                 width: size,
                 height: size,
                 transformStyle: "preserve-3d",
-                zIndex: zIndex // Help react reconcile, though 3d controls visibility
+                zIndex: zIndex
             }}
         >
             {/* 1. TOP FACE (Main Surface) */}
             <div
                 className={cn(
-                    "absolute inset-0 border border-white/20 transition-all duration-300 rounded-sm",
-                    isSelected ? "brightness-110" : "grayscale-[0.3]"
+                    "absolute inset-0 transition-all duration-300 rounded-sm",
                 )}
                 style={{
                     backgroundColor: color,
                     backgroundImage: glossyGradient,
-                    boxShadow: isSelected ? `0 0 20px -5px ${color}` : 'none',
-                    transform: `translateZ(${height}px)`
+                    // Subtle inner shadow instead of border to define edge
+                    boxShadow: isSelected
+                        ? `0 0 20px -5px ${color}, inset 0 0 0 1px rgba(255,255,255,0.3)`
+                        : 'inset 0 0 0 1px rgba(255,255,255,0.1)',
+                    transform: `translateZ(${height}px)` // Top face sits up
                 }}
             >
+                {/* Shine highlight */}
                 <div className="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-white/30 to-transparent pointer-events-none" />
             </div>
 
-            {/* 2. SIDE FACE 1 (Right) */}
+            {/* 2. RIGHT FACE (Side) - Overlapping Dimensions to Fix Seams */}
             <div
-                className="absolute top-0 right-0 origin-right transition-colors duration-300 border border-black/20"
+                className="absolute top-0 right-0 origin-right transition-colors duration-300"
                 style={{
-                    width: height,
-                    height: '100%',
+                    width: height,         // Thickness
+                    height: '100.5%',      // Slight vertical overlap to fix Z-fighting or subpixel gaps
+                    top: '-0.25%',         // Center the overlap
                     backgroundColor: color,
                     filter: 'brightness(0.6)',
-                    transform: `rotateY(90deg) translateZ(0px)`,
+                    transform: `rotateY(90deg)`, // Pivot on right edge
+                    // Remove border, let the color fill
                 }}
             />
 
-            {/* 3. SIDE FACE 2 (Bottom/Front) */}
+            {/* 3. FRONT FACE (Bottom) - Overlapping Dimensions to Fix Seams */}
             <div
-                className="absolute bottom-0 left-0 origin-bottom transition-colors duration-300 border border-black/20"
+                className="absolute bottom-0 left-0 origin-bottom transition-colors duration-300"
                 style={{
-                    width: '100%',
-                    height: height,
+                    width: '100.5%',       // Slight horizontal overlap
+                    height: height,        // Thickness 
+                    left: '-0.25%',        // Center the overlap
                     backgroundColor: color,
                     filter: 'brightness(0.8)',
-                    transform: `rotateX(90deg) translateZ(0px)`,
+                    transform: `rotateX(90deg)`, // Pivot on bottom edge
+                }}
+            />
+
+            {/* Corner Filler (Internal Cube to block light leaks at the corner) */}
+            <div
+                className="absolute bottom-0 right-0 w-1 h-full origin-bottom-right"
+                style={{
+                    height: height,
+                    transform: 'rotateX(90deg) rotateY(90deg)',
+                    backgroundColor: color,
+                    filter: 'brightness(0.5)'
                 }}
             />
 
@@ -218,18 +219,18 @@ function Block3D({
             <div
                 className="absolute top-0 right-0 preserve-3d pointer-events-none"
                 style={{
-                    transform: "translateZ(24px) translate(2px, -2px)"
+                    transform: "translateZ(24px)" // Lift to top surface level
                 }}
             >
-                {/* Visual Line */}
+                {/* Visual Line: Extends OUT from the corner */}
                 <div
-                    className="h-px bg-white/60 origin-left shadow-[0_0_5px_rgba(255,255,255,0.5)]"
+                    className="h-px bg-white/40 origin-left"
                     style={{
-                        width: 120, // Longer line
+                        width: 130,
                         position: 'absolute',
                         top: 0,
                         left: 0,
-                        transform: "rotateZ(-45deg)"
+                        transform: "rotateZ(-45deg)" // Points Visual Right
                     }}
                 />
 
@@ -237,53 +238,66 @@ function Block3D({
                 <div
                     className="absolute"
                     style={{
-                        transform: "rotateZ(-45deg) translate(120px, 0)"
+                        // Move to end of line
+                        transform: "rotateZ(-45deg) translate(130px, 0)"
                     }}
                 >
-                    {/* Counter-Rotate */}
+                    {/* 
+                        TEXT ROTATION FIX:
+                        Parent Stack: RotateX(60) -> RotateZ(45)
+                        Line Anchor: TranslateZ(24) -> RotateZ(-45) (Cancels parent spin) -> TranslateX(130)
+                        Current Local Frame: Effectively RotateX(60) relative to Screen Vertical.
+                        To face screen vertical: RotateX(-60).
+                    */}
                     <div
-                        className="flex flex-col items-start gap-1 p-2 min-w-[140px] pointer-events-auto"
+                        className="flex flex-col items-start gap-2 p-2 min-w-[180px] pointer-events-auto"
                         style={{
                             transform: "rotateX(-60deg) translateY(-50%)",
                             transformOrigin: "left center"
                         }}
                     >
-                        {/* Label Content */}
-                        <div className="flex items-center gap-2">
+                        {/* Label Header */}
+                        <div className="flex items-center gap-3">
                             <span className={cn(
-                                "text-3xl font-black drop-shadow-[0_2px_4px_rgba(0,0,0,1)] tracking-widest",
-                                isSelected ? "text-cyan-400" : "text-zinc-300"
-                            )}
-                                style={{ textShadow: '0 0 10px rgba(0,0,0,0.8)' }}
-                            >
+                                "text-4xl font-black tracking-widest leading-none filter drop-shadow-lg",
+                                isSelected ? "text-cyan-400" : "text-zinc-500"
+                            )}>
                                 {data.floor}
                             </span>
                             {isSelected && (
-                                <motion.span
+                                <motion.div
                                     initial={{ scale: 0 }}
                                     animate={{ scale: 1 }}
-                                    className="w-6 h-6 rounded-full bg-cyan-500 border border-white flex items-center justify-center shadow-[0_0_10px_rgba(34,211,238,1)]"
+                                    className="w-6 h-6 rounded-full bg-cyan-500 text-black flex items-center justify-center shadow-[0_0_15px_rgba(34,211,238,0.8)]"
                                 >
-                                    <Search size={12} className="text-black" strokeWidth={3} />
-                                </motion.span>
+                                    <Search size={14} strokeWidth={3} />
+                                </motion.div>
                             )}
                         </div>
 
-                        {/* Detail Box */}
+                        {/* Detail Box - Floating Glass Card */}
                         <div
-                            className="bg-zinc-900/90 backdrop-blur-xl rounded-lg border border-white/20 p-3 text-xs shadow-2xl hover:bg-black transition-colors min-w-[140px] group-hover/card:border-cyan-500/50"
+                            className="w-full bg-zinc-950/80 backdrop-blur-md rounded-lg border-l-4 border-cyan-500/80 p-3 shadow-2xl transition-all group-hover/card:bg-black group-hover/card:border-cyan-400"
+                            style={{
+                                boxShadow: '0 10px 30px -10px rgba(0,0,0,0.8)'
+                            }}
                             onClick={(e) => {
                                 e.stopPropagation();
                                 onDetail(e);
                             }}
                         >
-                            <div className="flex justify-between items-center mb-2 pb-2 border-b border-white/10">
-                                <span className="text-zinc-400 font-medium text-[10px] uppercase tracking-wider">AVG PRICE</span>
-                                <span className="font-mono text-cyan-300 font-bold text-base">{Math.round(data.avgPrice).toLocaleString()} <span className="text-[10px] text-zinc-500">萬</span></span>
-                            </div>
-                            <div className="flex justify-between items-center">
-                                <span className="text-zinc-500 font-medium text-[10px] uppercase tracking-wider">COUNT</span>
-                                <span className="font-mono text-white text-sm">{data.count}</span>
+                            <div className="flex items-center justify-between gap-4">
+                                <div>
+                                    <div className="text-[9px] text-zinc-500 uppercase tracking-widest font-bold mb-0.5">AVG Price</div>
+                                    <div className="font-mono text-cyan-300 font-bold text-xl leading-none tracking-tight">
+                                        {Math.round(data.avgPrice).toLocaleString()}
+                                        <span className="text-sm ml-1 text-zinc-600 font-normal">萬</span>
+                                    </div>
+                                </div>
+                                <div className="text-right">
+                                    <div className="text-[9px] text-zinc-500 uppercase tracking-widest font-bold mb-0.5">Count</div>
+                                    <div className="font-mono text-zinc-300 font-bold text-lg leading-none">{data.count}</div>
+                                </div>
                             </div>
                         </div>
 
