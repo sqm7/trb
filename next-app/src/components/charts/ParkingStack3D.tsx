@@ -144,8 +144,8 @@ export function ParkingStack3D({
                                     transition={{ duration: 0 }}
                                     style={{
                                         top: `calc(50% - 40px + ${topPos}px)`,
-                                        // 3. User said "not too far" -> 50% is very close to the block edge
-                                        left: '50%',
+                                        // 3. Move to right side (75% to clear the diamond shape)
+                                        left: '75%',
                                         transition: 'top 0.1s ease-out',
                                         zIndex: 50
                                     }}
