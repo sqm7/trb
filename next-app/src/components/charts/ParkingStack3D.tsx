@@ -47,10 +47,10 @@ export function ParkingStack3D({
         return getRank(a.floor) - getRank(b.floor);
     });
 
-    // Configuration - Enriched for more "wow"
+    // Configuration - Tuned for vertical expansion
     const BLOCK_SIZE = 240;
-    const BLOCK_THICKNESS = 40; // Doubled thickness as requested
-    const BLOCK_GAP = 60;      // Wider gap to fill the canvas
+    const BLOCK_THICKNESS = 40;
+    const BLOCK_GAP = 90;      // Even wider gap per user request
 
     // Calculate projected Y position step
     const STEP_Z = BLOCK_THICKNESS + BLOCK_GAP;
@@ -90,13 +90,15 @@ export function ParkingStack3D({
                             return (
                                 <Block3D
                                     key={floor.floor}
+                                    data={floor}
                                     color={color}
                                     isSelected={isSelected}
                                     isHovered={isHovered}
                                     active={isSelected}
                                     onHover={() => onHover(floor.floor)}
                                     onLeave={() => onHover(null)}
-                                    onClick={() => onToggle(floor.floor)}
+                                    // Clicking now opens details instead of toggling off
+                                    onDetail={() => onDetail(floor.floor)}
                                     zIndex={sortedData.length - idx}
                                     baseZ={zPosition}
                                     thickness={BLOCK_THICKNESS}
@@ -118,10 +120,9 @@ export function ParkingStack3D({
                             const isSelected = selectedFloors.includes(floor.floor);
                             const isHovered = hoveredFloor === floor.floor;
 
-                            // ONLY show labels when hovered, as requested
                             if (!isSelected || !isHovered) return null;
 
-                            const hoverOffset = -35; // Lift constant
+                            const hoverOffset = -35;
                             const topPos = (idx * STEP_Y_PIXELS) + hoverOffset;
 
                             return (
@@ -137,10 +138,8 @@ export function ParkingStack3D({
                                         transition: 'top 0.3s ease-out',
                                     }}
                                 >
-                                    {/* Leader Line (2D) */}
                                     <div className="w-12 h-px bg-white/60 shadow-[0_0_8px_white]" />
 
-                                    {/* Text Content */}
                                     <div
                                         className="pl-4 pointer-events-auto cursor-pointer flex items-center gap-3 whitespace-nowrap"
                                         onClick={(e) => {
@@ -184,24 +183,26 @@ export function ParkingStack3D({
 }
 
 function Block3D({
+    data,
     color,
     isSelected,
     isHovered,
     active,
     onHover,
     onLeave,
-    onClick,
+    onDetail,
     zIndex,
     baseZ,
     thickness
 }: {
+    data: FloorData;
     color: string;
     isSelected: boolean;
     isHovered: boolean;
     active: boolean;
     onHover: () => void;
     onLeave: () => void;
-    onClick: () => void;
+    onDetail: () => void;
     zIndex: number;
     baseZ: number;
     thickness: number;
@@ -210,10 +211,13 @@ function Block3D({
     const hoverLift = isHovered ? 40 : 0;
     const finalZ = baseZ + hoverLift;
     const scale = active ? 1 : 0;
-    const opacity = active ? (isHovered ? 1 : 0.25) : 0; // Ghost state 0.25
 
-    // Color Logic: Gray-ish when not hovered, real color when hovered
-    const displayColor = isHovered ? color : "#52525b"; // zinc-600 ghost color
+    // Increased base opacity for ghost mode (0.45) to ensure side faces are visible
+    const opacity = active ? (isHovered ? 1 : 0.45) : 0;
+
+    // Color Logic: Use displayColor for all faces. 
+    // Ghost state: zinc-700 for better visibility than zinc-600
+    const displayColor = isHovered ? color : "#3f3f46";
 
     const glossyGradient = isHovered
         ? `linear-gradient(135deg, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0.1) 50%, rgba(0,0,0,0.2) 100%)`
@@ -227,7 +231,10 @@ function Block3D({
             )}
             onMouseEnter={onHover}
             onMouseLeave={onLeave}
-            onClick={onClick}
+            onClick={(e) => {
+                e.stopPropagation();
+                onDetail();
+            }}
             initial={{ scale: 0, opacity: 0 }}
             animate={{
                 translateZ: finalZ,
@@ -248,7 +255,7 @@ function Block3D({
                     backgroundImage: glossyGradient,
                     boxShadow: isHovered
                         ? `inset 0 0 0 1px rgba(255,255,255,0.4), 0 0 30px -5px ${color}`
-                        : `inset 0 0 0 1px rgba(255,255,255,0.1)`,
+                        : `inset 0 0 0 1px rgba(255,255,255,0.15)`,
                 }}
             >
                 {/* Surface Shine Animation */}
@@ -260,7 +267,7 @@ function Block3D({
                 />
             </div>
 
-            {/* 2. RIGHT FACE */}
+            {/* 2. RIGHT FACE - Fixed visibility in ghost mode */}
             <div
                 className="absolute top-0 origin-top-right transition-all duration-500"
                 style={{
@@ -268,14 +275,16 @@ function Block3D({
                     width: thickness,
                     height: '100%',
                     backgroundColor: displayColor,
-                    filter: isHovered ? 'brightness(0.6)' : 'brightness(0.4) grayscale(0.8)',
+                    // Remove grayscale(0.8) which was killing the side visibility.
+                    // Just use fixed brightness ratios for 3D definition.
+                    filter: isHovered ? 'brightness(0.6)' : 'brightness(0.5)',
                     left: '100%',
                     transformOrigin: 'left center',
                     transform: 'rotateY(90deg)',
                 }}
             />
 
-            {/* 3. FRONT FACE */}
+            {/* 3. FRONT FACE - Fixed visibility in ghost mode */}
             <div
                 className="absolute left-0 origin-bottom-left transition-all duration-500"
                 style={{
@@ -283,7 +292,7 @@ function Block3D({
                     width: '100%',
                     height: thickness,
                     backgroundColor: displayColor,
-                    filter: isHovered ? 'brightness(0.8)' : 'brightness(0.5) grayscale(0.8)',
+                    filter: isHovered ? 'brightness(0.8)' : 'brightness(0.7)',
                     top: '100%',
                     transformOrigin: 'top center',
                     transform: 'rotateX(-90deg)',
