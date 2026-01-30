@@ -129,13 +129,14 @@ export function ParkingStack3D({
                                 <motion.div
                                     key={`label-${floor.floor}`}
                                     className="absolute left-full flex items-center"
-                                    initial={{ opacity: 0, x: -20, filter: 'blur(5px)' }}
-                                    animate={{ opacity: 1, x: 0, filter: 'blur(0px)' }}
-                                    exit={{ opacity: 0, x: -10, filter: 'blur(5px)' }}
+                                    initial={{ opacity: 0, x: -5, scale: 0.9 }}
+                                    animate={{ opacity: 1, x: 0, scale: 1 }}
+                                    exit={{ opacity: 0, x: -5, transition: { duration: 0.05 } }}
+                                    transition={{ duration: 0.05 }}
                                     style={{
                                         top: `calc(50% - 40px + ${topPos}px)`,
-                                        left: '85%',
-                                        transition: 'top 0.3s ease-out',
+                                        left: '55%',
+                                        transition: 'top 0.1s ease-out',
                                     }}
                                 >
                                     <div className="w-12 h-px bg-white/60 shadow-[0_0_8px_white]" />
