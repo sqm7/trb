@@ -636,11 +636,11 @@ export function BubbleChart({
 
                     {/* Coordinate Mode: Precise Layout */}
                     {displayMode === 'coordinate' && (
-                        <div className="absolute inset-0 py-6 px-4">
+                        <div className="absolute inset-0 pt-6 pb-8 px-0">
                             {/* Y-axis Labels */}
-                            <div className="flex flex-col justify-between py-6 pr-2 text-right w-[46px] border-r border-white/5 relative z-10 h-full float-left">
+                            <div className="flex flex-col justify-between h-full py-0 pr-1 text-right w-[46px] border-r border-white/5 relative z-10 float-left">
                                 {[...Array(6)].map((_, i) => (
-                                    <span key={i} className="text-xs font-mono text-zinc-600 block">
+                                    <span key={i} className="text-xs font-mono text-zinc-600 block leading-none transform -translate-y-1/2 first:translate-y-0 last:-translate-y-full">
                                         {Math.round(maxPrice - ((maxPrice - minPrice) / 5) * i)}
                                     </span>
                                 ))}
@@ -698,7 +698,7 @@ export function BubbleChart({
                                 </div>
 
                                 {/* X-axis Labels */}
-                                <div className="absolute bottom-0 inset-x-0 flex justify-between text-xs text-zinc-600 font-mono translate-y-full pt-2">
+                                <div className="absolute bottom-0 inset-x-0 flex justify-between text-xs text-zinc-600 font-mono translate-y-full pt-1 px-2">
                                     <span>Low Price</span>
                                     <span>High Price</span>
                                 </div>
