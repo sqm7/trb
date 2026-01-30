@@ -67,7 +67,7 @@
 - **Filter State**: Managed by `useFilterStore`, synchronized across full and compact `FilterBar` views.
 - **Report Builder State**: Managed by `useReportBuilderStore`, supports multiple pages, data snapshotting (捕捉當前視圖數據), and persists canvas items to `localStorage`.
     - **Selection**: Supports multi-selection via marquee (lasso) dragging and Ctrl/Cmd+Click. Supports keyboard **Delete/Backspace** for item removal.
-    - **Current Supported Components**: Ranking, Price Band, Unit Price Analysis, Sales Velocity (Trends, Heatmaps, Detail Tables), Heatmap (Grid, Stats, Comparison), Parking Analysis.
+    - **Current Supported Components**: Ranking, Price Band, Unit Price Analysis, Sales Velocity (Trends, Heatmaps, Detail Tables), Heatmap (Grid, Stats, Comparison), Parking Stack 3D (Hybrid CSS 3D/2D Layering).
     - **Image Generation**: Uses `modern-screenshot` (replacing `html2canvas`) for better CSS support (oklab/oklch).
 
 ## 5. 部署平台規則

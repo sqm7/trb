@@ -149,7 +149,7 @@ Detailed development documentation for each analysis report module is maintained
 | **Sales Velocity** | [SalesVelocityReport.md](docs/reports/SalesVelocityReport.md) | Sales speed analysis combined with area distribution heatmap. |
 | **Price Band** | [PriceBandReport.md](docs/reports/PriceBandReport.md) | Total price distribution analysis by room type. |
 | **Heatmap** | [HeatmapReport.md](docs/reports/HeatmapReport.md) | Unit pricing grid and floor premium consistency analysis. |
-| **Parking** | [ParkingAnalysisReport.md](docs/reports/ParkingAnalysisReport.md) | Parking price, ratio, and floor spread analysis. |
+| **Parking** | [ParkingAnalysisReport.md](docs/reports/ParkingAnalysisReport.md) | Parking price, ratio, and 3D floor stack visualization analysis. |
 | **Ranking** | [RankingReport.md](docs/reports/RankingReport.md) | Project-level performance ranking (Sales, Price, Velocity). |
 | **Unit Price** | [UnitPriceAnalysisReport.md](docs/reports/UnitPriceAnalysisReport.md) | Price analysis by usage type (Residential/Office/Store). |
 | **Policy Timeline** | [PolicyTimelineReport.md](docs/reports/PolicyTimelineReport.md) | Sales period visualization overlaying policy events. |
