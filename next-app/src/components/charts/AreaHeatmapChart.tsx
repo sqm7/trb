@@ -10,10 +10,11 @@ interface AreaHeatmapChartProps {
     minArea: number;
     maxArea: number;
     interval: number;
+    height?: number | string;
     onDataPointClick?: (roomType: string, areaRange: string) => void;
 }
 
-export function AreaHeatmapChart({ data, selectedRooms, minArea, maxArea, interval, onDataPointClick }: AreaHeatmapChartProps) {
+export function AreaHeatmapChart({ data, selectedRooms, minArea, maxArea, interval, onDataPointClick, height: passedHeight }: AreaHeatmapChartProps) {
 
     // Helper to generate color ranges
     const colorRanges = useMemo(() => {
@@ -60,7 +61,7 @@ export function AreaHeatmapChart({ data, selectedRooms, minArea, maxArea, interv
 
     const options: ApexOptions = useMemo(() => {
         // Dynamic height
-        const height = Math.max(400, series.length * 22);
+        const height = passedHeight || Math.max(400, series.length * 22);
 
         return {
             chart: {
@@ -130,7 +131,7 @@ export function AreaHeatmapChart({ data, selectedRooms, minArea, maxArea, interv
             series={series}
             options={options}
             height={options.chart?.height || 400}
-            className="w-full"
+            className="w-full h-full"
         />
     );
 }

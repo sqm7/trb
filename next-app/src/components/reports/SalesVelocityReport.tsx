@@ -312,7 +312,10 @@ export function SalesVelocityReport({ data }: SalesVelocityReportProps) {
                     </div>
                 }
             >
-                <div className="flex flex-col lg:flex-row gap-6 relative overflow-hidden min-h-[500px]">
+                <div className={cn(
+                    "flex flex-col lg:flex-row gap-6 relative overflow-hidden items-stretch transition-all duration-300",
+                    heatmapModalMeta ? "lg:h-[600px]" : "min-h-[500px]"
+                )}>
                     {/* Chart Section - Dynamic Width with Clipping Strategy */}
                     <motion.div
                         layout
@@ -336,9 +339,9 @@ export function SalesVelocityReport({ data }: SalesVelocityReportProps) {
                                 window.dispatchEvent(new Event('resize'));
                             }
                         }}
-                        className="min-w-0 overflow-hidden"
+                        className="min-w-0 overflow-hidden h-full flex flex-col"
                     >
-                        <div ref={chartContainerRef} className="w-full h-full">
+                        <div ref={chartContainerRef} className="w-full h-full flex flex-col">
                             <AreaHeatmapChart
                                 data={areaDistributionAnalysis || {}}
                                 selectedRooms={selectedRooms}
@@ -346,6 +349,7 @@ export function SalesVelocityReport({ data }: SalesVelocityReportProps) {
                                 maxArea={maxArea}
                                 interval={interval}
                                 onDataPointClick={handleHeatmapClick}
+                                height="100%"
                             />
                         </div>
                     </motion.div>
@@ -362,7 +366,7 @@ export function SalesVelocityReport({ data }: SalesVelocityReportProps) {
                                     stiffness: 300,
                                     damping: 35
                                 }}
-                                className="flex-1 min-w-0 bg-zinc-900/50 border border-white/10 rounded-lg h-full max-h-[600px] flex flex-col p-4"
+                                className="flex-1 min-w-0 bg-zinc-900/50 border border-white/10 rounded-lg h-full flex flex-col p-4 overflow-hidden"
                             >
                                 <div className="flex justify-between items-start mb-4 pb-4 border-b border-white/5">
                                     <div>

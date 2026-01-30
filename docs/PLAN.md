@@ -148,3 +148,14 @@
 - [x] Ensure "Project Type Comparison" and "Bubble Chart" are adjacent.
 - [x] Verify responsiveness.
 - [x] Refine UI: Reduce table column width (140px) & Increase chart height (500px).
+- [x] Fix Y-axis alignment and height coverage in coordinate mode.
+
+## [Current Task] Sidebar & Table UI Refinement
+- [x] Update Sidebar Logo to new version and link to `/`.
+- [x] Ensure "Member Login" nav item is persistent in sidebar.
+- [x] Limit `TypeComparisonTable` to 10 rows with scroll and sticky header.
+- [x] Align Comparison Table and Bubble Chart heights.
+- [x] Layout `UnitPriceStatsBlock` in a single row (3 cols).
+- [x] Implement layout-stable "Pill Mode" in `FilterBar` (using ResizeObserver).
+- [x] Remove redundant legend in `ParkingAnalysisReport`.
+- [x] Align Heatmap height to match 600px scrollable Detail Panel in Sales Velocity report.
