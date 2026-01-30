@@ -50,11 +50,16 @@ export function ParkingStack3D({
     // Configuration - Tuned for vertical expansion
     const BLOCK_SIZE = 240;
     const BLOCK_THICKNESS = 40;
-    const BLOCK_GAP = 90;      // Even wider gap per user request
+    // Reduce gap slightly to fit more layers (90 -> 70)
+    const BLOCK_GAP = 70;
 
     // Calculate projected Y position step
     const STEP_Z = BLOCK_THICKNESS + BLOCK_GAP;
     const STEP_Y_PIXELS = STEP_Z * 0.85;
+
+    // Dynamic Scaling: If more than 4 floors, shrink strictly to fit 600px canvas
+    // 5 floors * 110 (gap+thick) approx 550px. 6 floors = 660px.
+    const scaleFactor = sortedData.length > 4 ? Math.max(0.7, 4 / sortedData.length) : 1;
 
     return (
         <div className="w-full h-[600px] flex items-start justify-start relative perspective-container overflow-visible pl-12 lg:pl-24 -mt-12">
@@ -66,7 +71,9 @@ export function ParkingStack3D({
                     height: BLOCK_SIZE,
                     perspective: "3000px",
                     transformStyle: "preserve-3d",
-                    zIndex: 10
+                    zIndex: 10,
+                    // Apply dynamic scale to the whole group
+                    transform: `scale(${scaleFactor})`
                 }}
             >
                 <motion.div
