@@ -273,46 +273,43 @@ export function SalesVelocityReport({ data }: SalesVelocityReportProps) {
                 title="房型面積分佈熱力圖"
                 description="分析不同坪數區間的產品供給與去化分佈"
                 headerAction={
-                    <div className="flex gap-4 items-center text-zinc-400 text-xs w-full">
-                        <div className="flex gap-2 items-center">
-                            <span>範圍:</span>
-                            <Input
-                                type="number"
-                                value={minArea}
-                                onChange={e => setMinArea(Number(e.target.value))}
-                                className="w-16 h-8 text-xs bg-zinc-950/50"
-                            />
-                            <span>-</span>
-                            <Input
-                                type="number"
-                                value={maxArea}
-                                onChange={e => setMaxArea(Number(e.target.value))}
-                                className="w-16 h-8 text-xs bg-zinc-950/50"
-                            />
-                            <span className="ml-2">級距:</span>
-                            <Input
-                                type="number"
-                                value={interval}
-                                onChange={e => setInterval(Number(e.target.value))}
-                                className="w-16 h-8 text-xs bg-zinc-950/50"
-                            />
-                        </div>
-                        <div className="ml-auto">
-                            <ExportButton
-                                data={areaDistributionAnalysis ? Object.entries(areaDistributionAnalysis).map(([k, v]) => ({ key: k, value: JSON.stringify(v) })) : []}
-                                filename="area_distribution_heatmap"
-                                label="匯出"
-                                chartType="sales-heatmap"
-                                snapshotData={{
-                                    distribution: areaDistributionAnalysis,
-                                    selectedRooms,
-                                    min: minArea,
-                                    max: maxArea,
-                                    interval
-                                }}
-                                columns={{ key: '坪數區間', value: '分佈數據' }}
-                            />
-                        </div>
+                    <div className="flex gap-2 items-center text-zinc-400 text-xs">
+                        <span>範圍:</span>
+                        <Input
+                            type="number"
+                            value={minArea}
+                            onChange={e => setMinArea(Number(e.target.value))}
+                            className="w-16 h-8 text-xs bg-zinc-950/50"
+                        />
+                        <span>-</span>
+                        <Input
+                            type="number"
+                            value={maxArea}
+                            onChange={e => setMaxArea(Number(e.target.value))}
+                            className="w-16 h-8 text-xs bg-zinc-950/50"
+                        />
+                        <span className="ml-2">級距:</span>
+                        <Input
+                            type="number"
+                            value={interval}
+                            onChange={e => setInterval(Number(e.target.value))}
+                            className="w-16 h-8 text-xs bg-zinc-950/50"
+                        />
+                        <div className="border-l border-white/10 h-4 mx-1" />
+                        <ExportButton
+                            data={areaDistributionAnalysis ? Object.entries(areaDistributionAnalysis).map(([k, v]) => ({ key: k, value: JSON.stringify(v) })) : []}
+                            filename="area_distribution_heatmap"
+                            label="匯出"
+                            chartType="sales-heatmap"
+                            snapshotData={{
+                                distribution: areaDistributionAnalysis,
+                                selectedRooms,
+                                min: minArea,
+                                max: maxArea,
+                                interval
+                            }}
+                            columns={{ key: '坪數區間', value: '分佈數據' }}
+                        />
                     </div>
                 }
             >
@@ -385,32 +382,34 @@ export function SalesVelocityReport({ data }: SalesVelocityReportProps) {
                                             合計 <span className="text-white font-mono">{heatmapModalMeta.totalCount}</span> 筆交易
                                         </p>
                                     </div>
-                                    <button
-                                        onClick={handleCloseDetail}
-                                        className="text-zinc-400 hover:text-white p-1 hover:bg-zinc-800 rounded transition-colors"
-                                    >
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                            <path d="M18 6 6 18" />
-                                            <path d="m6 6 12 12" />
-                                        </svg>
-                                    </button>
-                                </div>
-
-                                <div className="flex gap-2 mb-4 shrink-0 overflow-x-auto pb-2 custom-scrollbar">
-                                    <ExportButton
-                                        data={aggregatedDetails}
-                                        filename={`heatmap_aggregated_${heatmapModalMeta.roomType}_${heatmapModalMeta.areaRange}`}
-                                        label="匯出統計"
-                                        chartType="sales-heatmap-detail"
-                                        snapshotData={aggregatedDetails}
-                                        className="flex-1 whitespace-nowrap"
-                                    />
-                                    <ExportButton
-                                        data={aggregatedDetails.flatMap(d => d.transactions)}
-                                        filename={`heatmap_details_${heatmapModalMeta.roomType}_${heatmapModalMeta.areaRange}`}
-                                        label="匯出明細"
-                                        className="flex-1 whitespace-nowrap"
-                                    />
+                                    <div className="flex gap-2 items-center">
+                                        <div className="flex gap-1 mr-2">
+                                            <ExportButton
+                                                data={aggregatedDetails}
+                                                filename={`heatmap_aggregated_${heatmapModalMeta.roomType}_${heatmapModalMeta.areaRange}`}
+                                                label="統計"
+                                                chartType="sales-heatmap-detail"
+                                                snapshotData={aggregatedDetails}
+                                                className="whitespace-nowrap px-3 py-1 text-xs h-7 min-w-0"
+                                            />
+                                            <ExportButton
+                                                data={aggregatedDetails.flatMap(d => d.transactions)}
+                                                filename={`heatmap_details_${heatmapModalMeta.roomType}_${heatmapModalMeta.areaRange}`}
+                                                label="明細"
+                                                className="whitespace-nowrap px-3 py-1 text-xs h-7 min-w-0"
+                                            />
+                                        </div>
+                                        <div className="w-px h-4 bg-white/10 mx-1" />
+                                        <button
+                                            onClick={handleCloseDetail}
+                                            className="text-zinc-400 hover:text-white p-1 hover:bg-zinc-800 rounded transition-colors"
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                <path d="M18 6 6 18" />
+                                                <path d="m6 6 12 12" />
+                                            </svg>
+                                        </button>
+                                    </div>
                                 </div>
 
                                 {aggregatedDetails.length > 0 ? (
