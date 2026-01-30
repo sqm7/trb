@@ -38,7 +38,11 @@ export function AreaHeatmapChart({ data, selectedRooms, minArea, maxArea, interv
 
         const yCategories: string[] = [];
         for (let i = minArea; i < maxArea; i += interval) {
-            yCategories.push(`${i.toFixed(1)}-${(i + interval).toFixed(1)}`);
+            // Check if interval is integer to determine formatting
+            const isInt = Number.isInteger(interval) && Number.isInteger(minArea);
+            const lower = isInt ? i.toFixed(0) : i.toFixed(1);
+            const upper = isInt ? (i + interval).toFixed(0) : (i + interval).toFixed(1);
+            yCategories.push(`${lower}-${upper}`);
         }
 
         let max = 0;
@@ -95,6 +99,9 @@ export function AreaHeatmapChart({ data, selectedRooms, minArea, maxArea, interv
                 enabled: true,
                 style: {
                     colors: [({ value }: any) => value === 0 ? 'transparent' : '#e5e7eb']
+                },
+                formatter: function (val: number) {
+                    return val === 0 ? "" : val;
                 }
             },
             xaxis: {

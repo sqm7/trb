@@ -293,6 +293,7 @@ export function SalesVelocityReport({ data }: SalesVelocityReportProps) {
                             type="number"
                             value={interval}
                             onChange={e => setInterval(Number(e.target.value))}
+                            step="0.5"
                             className="w-16 h-8 text-xs bg-zinc-950/50"
                         />
                         <div className="border-l border-white/10 h-4 mx-1" />
