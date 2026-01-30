@@ -22,6 +22,7 @@
 │   │   ├── app/        # App Router Pages
 │   │   │   - `pricing/`: Membership Pricing & Upgrade Page
 │   │   │   - `reports/builder/`: Custom Report Builder (Drag & Drop Canvas)
+│   │   │   - `icon.png`: Main site icon / logo
 │   │   ├── components/ # React Components
 │   │   │   - `ui/`: Reusable UI elements
 │   │   │   - `PageDropZone.tsx`: Handles cross-page drag-and-drop.

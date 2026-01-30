@@ -161,6 +161,7 @@ Detailed development documentation for each analysis report module is maintained
 | **Parking** | [ParkingAnalysisReport.md](docs/reports/ParkingAnalysisReport.md) | Parking price, ratio, and 3D floor stack visualization analysis. |
 | **Ranking** | [RankingReport.md](docs/reports/RankingReport.md) | Project-level performance ranking (Sales, Price, Velocity). |
 | **Unit Price** | [UnitPriceAnalysisReport.md](docs/reports/UnitPriceAnalysisReport.md) | Price analysis by usage type (Residential/Office/Store). |
+| **Multi-City Logic**| N/A | Logic in `aggregator.ts` to prioritize backend-aggregated data over partial client-side recalculation during multi-city selection. |
 | **Policy Timeline** | [PolicyTimelineReport.md](docs/reports/PolicyTimelineReport.md) | Sales period visualization overlaying policy events. |
 
 
