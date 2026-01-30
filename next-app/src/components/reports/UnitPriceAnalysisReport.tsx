@@ -110,10 +110,10 @@ export function UnitPriceAnalysisReport({ data, visibleSections = ['stats', 'com
 
 
             {/* 2. & 3. Side-by-Side: Comparison & Bubble Chart */}
-            <div className="flex flex-col lg:flex-row gap-6">
+            <div className="flex flex-col lg:flex-row gap-6 items-stretch">
                 {/* 2. Type Comparison Section */}
                 {visibleSections.includes('comparison') && typeComparison && typeComparison.length > 0 && (
-                    <div className="flex-1 min-w-0">
+                    <div className="flex-1 min-w-0 flex flex-col">
                         <ReportWrapper
                             title="建案產品類型單價比較"
                             description="同一建案內不同用途（住宅/店面/事務所）的單價與倍數比較"
@@ -136,7 +136,7 @@ export function UnitPriceAnalysisReport({ data, visibleSections = ['stats', 'com
 
                 {/* 3. Bubble Chart Controls & Chart */}
                 {visibleSections.includes('chart') && (
-                    <div className="flex-1 min-w-0 space-y-4">
+                    <div className="flex-1 min-w-0 flex flex-col">
                         {/* Bubble Chart with Integrated Controls */}
                         <ReportWrapper
                             title="單價分佈泡泡圖"
