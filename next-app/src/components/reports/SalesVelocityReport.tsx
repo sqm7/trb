@@ -349,7 +349,7 @@ export function SalesVelocityReport({ data }: SalesVelocityReportProps) {
                                 maxArea={maxArea}
                                 interval={interval}
                                 onDataPointClick={handleHeatmapClick}
-                                height="100%"
+                                height={heatmapModalMeta ? "100%" : undefined}
                             />
                         </div>
                     </motion.div>
@@ -472,7 +472,7 @@ export function SalesVelocityReport({ data }: SalesVelocityReportProps) {
                                                                     <div className="col-span-1 text-right">單價</div>
                                                                     <div className="col-span-2 text-right">總價</div>
                                                                 </div>
-                                                                {item.transactions.slice(0, (item as any).showAll ? undefined : 5).map((tx: any, ti: number) => (
+                                                                {item.transactions.slice(0, (item as any).showAll ? undefined : 10).map((tx: any, ti: number) => (
                                                                     <div key={ti} className="grid grid-cols-5 text-xs py-1 hover:bg-white/5 rounded px-1 -mx-1 transition-colors">
                                                                         <div className="col-span-1 text-zinc-300">{tx['樓層'] || tx.floor || '-'}</div>
                                                                         <div className="col-span-1 text-zinc-400">{(tx['房屋面積(坪)'] || tx.houseArea || 0).toFixed(1)}</div>
@@ -480,7 +480,7 @@ export function SalesVelocityReport({ data }: SalesVelocityReportProps) {
                                                                         <div className="col-span-2 text-right text-zinc-300 font-mono">{formatPrice(tx['交易總價(萬)'] || tx.totalPrice || 0)}</div>
                                                                     </div>
                                                                 ))}
-                                                                {item.transactions.length > 5 && (
+                                                                {item.transactions.length > 10 && (
                                                                     <button
                                                                         onClick={(e) => {
                                                                             e.stopPropagation();
@@ -488,7 +488,7 @@ export function SalesVelocityReport({ data }: SalesVelocityReportProps) {
                                                                         }}
                                                                         className="w-full text-center text-[10px] text-zinc-500 hover:text-cyan-400 py-1.5 mt-1 border-t border-white/5 transition-colors"
                                                                     >
-                                                                        {(item as any).showAll ? "收合內容" : `還有 ${item.transactions.length - 5} 筆交易...`}
+                                                                        {(item as any).showAll ? "收合內容" : `還有 ${item.transactions.length - 10} 筆交易...`}
                                                                     </button>
                                                                 )}
                                                             </div>
