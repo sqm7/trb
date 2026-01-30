@@ -140,8 +140,8 @@ export function ParkingStack3D({
                             transition={{ type: "spring", stiffness: 400, damping: 20 }}
                             className="absolute flex items-center justify-start pointer-events-none"
                             style={{
-                                left: mousePos.x + 40,
-                                top: mousePos.y - 60,
+                                left: mousePos.x + 15,
+                                top: mousePos.y - 25,
                             }}
                         >
                             <div className="flex items-center gap-3 whitespace-nowrap">
