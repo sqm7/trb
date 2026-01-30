@@ -731,6 +731,7 @@ export function ParkingAnalysisReport({ data }: ParkingAnalysisReportProps) {
                                         <th className="p-2 text-right">最高</th>
                                         <th className="p-2 text-right">最低</th>
                                         <th className="p-2 text-right">車位數</th>
+                                        <th className="p-2 text-center">操作</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-white/5">
@@ -773,6 +774,18 @@ export function ParkingAnalysisReport({ data }: ParkingAnalysisReportProps) {
                                                 <td className="p-2 text-right font-mono text-zinc-500">{Math.round(floor.maxPrice).toLocaleString()}</td>
                                                 <td className="p-2 text-right font-mono text-zinc-500">{Math.round(floor.minPrice).toLocaleString()}</td>
                                                 <td className="p-2 text-right font-mono text-zinc-500">{floor.count.toLocaleString()}</td>
+                                                <td className="p-2 text-center">
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            openFloorDetail(floor.floor);
+                                                        }}
+                                                        className="p-1.5 rounded-full hover:bg-cyan-500/20 text-zinc-400 hover:text-cyan-400 transition-colors"
+                                                        title="查看明細"
+                                                    >
+                                                        <Search size={14} />
+                                                    </button>
+                                                </td>
                                             </tr>
                                         );
                                     })}

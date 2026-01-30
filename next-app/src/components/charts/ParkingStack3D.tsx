@@ -57,7 +57,7 @@ export function ParkingStack3D({
     const STEP_Y_PIXELS = STEP_Z * 0.85;
 
     return (
-        <div className="w-full h-[600px] flex items-center justify-start relative perspective-container overflow-visible pl-12 lg:pl-24">
+        <div className="w-full h-[600px] flex items-start justify-start relative perspective-container overflow-visible pl-12 lg:pl-24 pt-20">
             {/* 1. The 3D Scene Layer */}
             <div
                 className="relative flex items-center justify-center preserve-3d"
