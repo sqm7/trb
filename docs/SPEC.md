@@ -1,351 +1,164 @@
-# 📋 SPEC.md - 平米內參需求真理源
+# System Specification: Access Control & Authentication
+
+## 1. Overview
+The system allows users to access the platform using multiple identity providers (LINE, Email). It supports account linking/unlinking to ensure users can transition between login methods while maintaining their profile data.
+
+### 3.4 Admin Features
+- **User Management**:
+    - **List Users**: View all registered users, their email, roles, and status.
+    - **Edit Role**: Promote/Demote users (Admin/Super Admin access required).
+    - **Delete User**: Remove user account completely.
+        - **Constraint**: Only 'super_admin' and 'admin' can delete users.
+        - **Action**: Must remove data from both `auth.users` and `public.profiles`.
+
+## 2. Authentication Methods
+- **LINE Login**: Primary method for many users. Uses Supabase Auth with custom OpenID Connect flow via Edge Function (`line-auth`).
+- **Email/Password**: Standard Supabase Auth (Identity).
+- **Hybrid**: Users can have both LINE and Email bound to the same account.
+
+## 3. Account Binding Rules
+- **At least one provider required**: A user cannot unbind a provider if it is their ONLY method of authentication.
+- **Email Binding**:
+    - Users created via LINE have a placeholder email (`{line_user_id}@line.workaround`).
+    - Binding an email replaces this placeholder with a real email address and verifies it immediately (bypassing email confirmation link for better UX in this specific flow).
+    - Requires setting a password.
+- **LINE Binding**:
+    - Can link an existing LINE account to an Email-only user.
+    - Can link a new LINE account (if not already used).
+- **Unbinding**:
+    - **Unbind LINE**: Allowed ONLY if the user has a valid (real) email address.
+    - **Unbind Email**: Allowed ONLY if the user has LINE linked. Reverts the account to use the placeholder email.
+
+## 4. User Flows
+### 4.1. Unbind LINE
+1. User clicks "Unlink" in settings.
+2. Frontend checks if `isEmailBound`. Verification needed: `user.email` is not placeholder.
+3. Backend (`line-auth`):
+    - Validates request token.
+    - Checks user's current email.
+    - If email is placeholder or missing, RED REJECT ("Must have email bound first").
+    - Removes `line_user_id` from metadata.
+    - Removes `avatar_url` (optional).
+    - Removes LINE identity from `auth.identities`.
+    - Updates `app_metadata.providers` to remove 'line'.
+    - Returns success.
+4. Frontend:
+    - Clears LIFF session.
+    - Signs out.
+    - Redirects to login.
+
+### 4.2. Bind Email
+1. User enters Email + Password + Confirm Password.
+2. Frontend calls `bind-email` function.
+3. Backend `bind-email`:
+    - Validates inputs.
+    - Updates `auth.users` with new email and password.
+    - Sets `email_confirm` to true.
+    - Syncs email to `public.profiles`.
+4. Frontend refreshes session.
+    
+## 5. Data Export Features
+- **Goal**: Enable users to analyze data in external tools (Google Sheets, Excel).
+- **Format**: CSV (Comma Separated Values) with BOM (\uFEFF) for UTF-8 compatibility in Excel.
+- **Coverage**: All major charts and data tables on the dashboard must offer an export option.
+- **Implementation**:
+    - **Format**: CSV with UTF-8 BOM for Excel compatibility.
+- **Coverage**: All data tables and key charts must include an "Export to CSV" button.
+- **Naming**: Files should be named descriptively (e.g., `sales_velocity_monthly_2024-01-23.csv`).
+- **Headers**: Column headers must be localized to Chinese (e.g., "建案名稱" instead of "projectName").
+- **View State**: Exported data must mirror the current UI view state (WYSIWYG).
+  - If a table row is expanded to show details, the export must include those details inline.
+  - If collapsed, the export should only show the summary row.
+  - If a chart is showing "Top 30", the export should contain the top 30 items.
+- **Permissions**: Feature is restricted to `Pro`, `Pro Max`, `Admin`, and `Super Admin` roles.
+  - Non-pro users will see a locked button or permission denied alert.
+    - **Content**: Visible data points or underlying dataset for the specific view.
+
+## 6. Report Generation Architecture
+- **Philosophy**: "Data -> Template -> Output".
+- **Constraint**: DO NOT use client-side screen scraping (e.g., `html2canvas`, DOM cloning).
+- **PDF Generation**:
+  - Must use a dedicated **Print Template** component.
+  - Rendered in a detached context (iframe or new window) using the raw `AnalysisData`.
+  - Optimized for **A4 Landscape**.
+  - Must not contain UI controls (buttons, scrollbars).
+- **PPTX Generation**:
+  - Must rely on `PptxGenJS` with a **Strict Template System**.
+  - Visuals must be defined in a "Design System" config (Colors, Fonts), separate from logic.
+  - Output must contain **Native Editable Charts** (no images of charts).
+
+## 6. Dashboard UX Logic
+- **Global Search**: Moved to the left Sidebar to free up Header space.
+  - **Collapsed State**: Displays only a Search icon.
+  - **Expanded State**: Displays a full-width search input with focus effects.
+- **Smart FilterBar**:
+  - **Pill Transformation**: When scrolling down (> 100px), the FilterBar collapses into a compact "Pill" fixed at `top-3` (Header area).
+  - **Z-Index Strategy**: The compact pill and its parent container must use high z-indices (`z-[70]` and `z-[100]` respectively) to float above normal page elements, but MUST remain below the Header's mobile menu (`z-[110]+`) when it is active.
+  - **Auto-Expansion**: Clicking the compact pill triggers a smooth scroll to the top of the page and expands the full filter panel.
+## 7. Custom Report Builder
+- **Goal**: Allow users to create personalized report layouts by dragging and dropping dashboard charts onto a canvas.
+- **Features**:
+  - **Drag & Drop**: Reposition components freely on the canvas. Supports **multi-selection** via marquee (lasso) dragging and batch movement.
+  - **Cross-page Navigation**: Dragging items over page tabs allows moving elements between pages. Dropping on a tab **automatically switches** the view to the target page for immediate verification.
+  - **Resizing**: Adjust width and height of each chart with intuitive scale modes (Crop, Pan, Fit).
+  - **Component Palette**: A wide `w-80` sidebar featuring a **2-column grid** for better visibility and density of available components.
+  - **Ratio Control**: Toggle between 16:9 and A4 Landscape canvas ratios.
+  - **Canvas Zooming**:
+    - Support zoom via Mouse Wheel (Cmd/Ctrl + Wheel).
+    - Support UI buttons (+ / -) for easy scaling and "Reset" capability.
+    - Zooming should respect the aspect ratio and center on mouse or viewport center.
+    - **Visual Feedback**: Display current zoom percentage.
+  - **Multi-page Support**: Add multiple pages to a single report.
+    - **View Mode Toggle**: Switch between **Continuous** (vertical scroll) and **Single Page** views.
+    - **Enhanced Dragging**: 
+      - **Cross-Page**: Drag items directly to another page's canvas (Continuous Mode) or onto Page Tabs (all modes).
+      - **Visual Feedback**: Dynamic "Move to Page X" label follows the cursor during cross-page drags.
+    - **Enhanced Tab Dragging**: The entire tab area (except the close 'X' button) must be a drag handle for reordering tabs.
+    - **Visual Feedback**: Scale-up animations on tab hover during drag operations.
+  - **Persistence**: Layout automatically saves to `localStorage`.
+  - **Direct Export**:
+    - **PDF**: Browser print dialog integration, maintaining "Vibe" aesthetic.
+    - **PNG/JPG**: Multi-page batch export with internal selection modal (All, Current, Range) and real-time progress overlay.
+- **Workflow**:
+  - Users can add components via a sidebar palette.
+  - Dashboard charts include an "Add to Report Builder" option in their export dropdown.
+- **Architecture**:
+  - **State**: Managed via `useReportBuilderStore` (Zustand).
+  - **Components**: Built with `react-rnd` for interactive manipulation.
+  - **Chart Rendering**: Shared chart components used across both Dashboard and Builder for consistency.
+  - **Access Control**:
+    - **Restricted Access**: Only `admin` and `super_admin` roles can access the Report Builder.
+    - **UI Indication**: Sidebar entry marked with "開發中" (Dev) badge.
+
+## 8. Analysis Report Specifications
+Detailed development documentation for each analysis report module is maintained in the `docs/reports/` directory. Refer to these files for specific logic, props, and data structures:
+
+| Report Module | Documentation Path | Description |
+|--------------|-------------------|-------------|
+| **Data List** | [DataListReport.md](docs/reports/DataListReport.md) | Transaction details list with raw data view and export. |
+| **Sales Velocity** | [SalesVelocityReport.md](docs/reports/SalesVelocityReport.md) | Sales speed analysis combined with area distribution heatmap. |
+| **Price Band** | [PriceBandReport.md](docs/reports/PriceBandReport.md) | Total price distribution analysis by room type. |
+| **Heatmap** | [HeatmapReport.md](docs/reports/HeatmapReport.md) | Unit pricing grid and floor premium consistency analysis. |
+| **Parking** | [ParkingAnalysisReport.md](docs/reports/ParkingAnalysisReport.md) | Parking price, ratio, and floor spread analysis. |
+| **Ranking** | [RankingReport.md](docs/reports/RankingReport.md) | Project-level performance ranking (Sales, Price, Velocity). |
+| **Unit Price** | [UnitPriceAnalysisReport.md](docs/reports/UnitPriceAnalysisReport.md) | Price analysis by usage type (Residential/Office/Store). |
+| **Policy Timeline** | [PolicyTimelineReport.md](docs/reports/PolicyTimelineReport.md) | Sales period visualization overlaying policy events. |
+
+
+## 9. Data Alchemy Video Script (90s)
+- **Concept**: "Pingmi Internal Reference = Modern Alchemy Studio". Transforming raw data into decision-making gold.
+- **Visual Style**: "Data Alchemy".
+    - **Colors**: Cyan (#06b6d4), Violet (#8b5cf6), Gold (#f59e0b).
+    - **Particles**: Raw Data (White Circle), Filtered (Cyan Diamond), Insight (Gold Star).
+
+### Scene Breakdown
+| Scene | Time | Visuals | Audio/Text |
+|-------|------|---------|------------|
+| **1. Chaos Mine** | 0-15s | Dark mine, floating data particles (Icons/Numbers), Camera deep dive. Light beam @ 12s. | "在混沌的數據礦場中，隱藏著無價的商業寶藏..." |
+| **2. Alchemy Start** | 15-25s | Logo lights up as Alchemy Array (Cyan/Violet pulse). Funnel effect sucking particles. | "直到現代煉金術的誕生，改變了一切..." |
+| **3. Data Refinery** | 25-45s | Transparent furnace. Map projection (Taiwan). Impurities (Grey) separated, Pure Data (Cyan) drips. | (Visual Focus: Filtration/Scanning) |
+| **4. Crystal Room** | 45-60s | Cyan liquid -> Bar Chart Crystal -> Heatmap Crystal -> Radar Lock. "Target Locked" hologram. | (Visual Focus: Crystallization/Analysis) |
+| **5. Gold Casting** | 60-75s | Crystals melt to Gold Liquid. Injected into Gem Mold. Burst of light. | (Visual Focus: Value Creation) |
+| **6. Value Reveal** | 75-85s | Floating Decision Gem. Success indicators (growth curves) orbiting. | (Visual Focus: Decision Support) |
+| **7. Brand Imprint** | 85-90s | Close up on Gem. Reflection of "Pingmi" Logo. | "平米內參 - 讓數據煉成決策黃金" |
 
-- **Report Generator**: Custom PDF report builder allowing users to select specific modules (charts, tables) from various analysis tabs (Ranking, Price Band, etc.) based on current dashboard filters.
-
-**版本**: 3.0.0  
-**最後更新**: 2026-01-15
-
----
-
-## 🎯 產品定位
-
-**「平米內參」是一個不動產數據分析平台**，將台灣實價登錄數據轉化為可視化的決策支援系統。
-
-### 目標用戶
-- 代銷人員
-- 房仲業者
-- 建商
-- 估價師
-- 投資者
-
----
-
-## 🧠 核心業務邏輯
-
-### 1. 建案分析功能
-
-| 功能 | 說明 | 核心指標 |
-|------|------|----------|
-| 核心指標與排名 | 區域建案的綜合排名分析 (含行政區標籤) | 總銷金額、成交件數、坪數統計、市佔率、行政區 |
-| 總價帶分析 | 不同價格區間的分佈分析 | 價格區間、成交比例、箱型圖統計、**依房型合併 (Merge Bathrooms)** |
-| 房屋單價分析 | 無車位房屋單價的類型分析 | 住宅/店舖/商辦倍數比較、**單價泡泡圖** |
-| 房型去化分析 | 各戶型的銷售速度與定價策略 | 基準戶、樓層價差、熱力圖、**區域房型交叉表** |
-| 車位單價分析 | 車位定價與3D樓層視覺化 | 車位均價、樓層分佈、房車配比 |
-| 垂直水平分析 | 樓層溢價與水平比較 | 樓層價差百分比、水平比較表 |
-
-### 2. 關鍵計算公式
-
-```
-房屋單價(萬) = (交易總價 - 車位總價) / (房屋面積 ÷ 3.30579) / 10000
-```
-
-### 3. 車位附表邏輯 (Data Fallback)
-
-由於部分實價登錄資料存在「主表有紀錄、附表缺漏」的情況，前端需實作以下容錯機制：
-
-1.  **優先讀取附表**：嘗試調用 `query-sub-data` 獲取詳細車位資料（含樓層）。
-2.  **智慧補償 (Fallback)**：若附表回傳為空，但主表 (`TransactionRecord`) 中 `車位數 > 0`，則自動從主表讀取：
-    -   車位價格：使用主表 `車位總價`
-    -   車位面積：使用主表 `車位總面積`
-    -   車位類型：使用主表 `車位類別`
-    -   車位樓層：顯示 `-` (因主表無此欄位)
-
----
-
-## 🔍 數據篩選邏輯
-
-### 1. 主要篩選條件
-
-| 篩選項 | 說明 | 欄位對應 |
-|--------|------|----------|
-| 縣市 | **可多選**縣市範圍 | `selectedCounties` → 資料表名稱 |
-| 區域 | 可多選行政區 | `districts` → `行政區` |
-| 交易類型 | 預售交易 / 中古交易 | `type` → 表名後綴 `_b` / `_a` |
-| 日期範圍 | 交易日期區間 | `dateStart`, `dateEnd` → `交易日` |
-| 建物型態 | 住宅大樓/華廈/店面等 | `buildingType` → `建物型態` |
-| 建案名稱 | 可多選指定建案 | `projectNames` → `建案名稱` |
-| 排除商辦店面 | 開關控制 | `excludeCommercial` |
-
-### 2. 建物型態特殊篩選：店面(店鋪)
-
-當 `buildingType === '店面(店鋪)'` 時，使用 OR 組合查詢：
-```sql
-"建物型態" ILIKE '%店面%' OR
-"建物型態" ILIKE '%店舖%' OR
-"建物型態" ILIKE '%店鋪%' OR
-("主要用途" = '商業用' AND "樓層" = 1) OR
-("主要用途" = '住商用' AND "樓層" = 1) OR
-"備註" ILIKE '%店面%' OR
-"戶別" ILIKE '%店面%' OR
-("建物型態" ILIKE '%住宅大樓%' AND "樓層" = 1 AND "房數" = 0)
-```
-
-### 3. 房型分類邏輯（互斥優先級）
-
-```
-優先級 1: 店舖
-├── building_type 包含 "店舖" / "店面" / "店鋪"
-├── 戶別 包含 "店舖" / "店面" / "店鋪"
-├── 備註 包含 "店面" / "店舖" / "店鋪"
-├── (主要用途 = '商業用' AND 樓層 = 1)
-├── (主要用途 = '住商用' AND 樓層 = 1)
-├── (建物型態 = 住宅大樓 AND 戶別含 'S')
-└── (建物型態 = 住宅大樓 AND 樓層 = 1 AND 房數 = 0)
-
-優先級 2: 辦公/事務所
-├── 戶別 包含 "事務所" 或 "辦公"
-├── 主要用途 包含 "商業"
-└── 建物型態 包含 "辦公" 或 "事務所"
-
-優先級 3: 廠辦/工廠
-└── 建物型態 包含 "工廠" / "倉庫" / "廠辦"
-
-優先級 4: 特殊住宅 (0房)
-├── 住宅大樓/華廈 且 房數 = 0 且 面積 > 35坪 → 毛胚
-└── 住宅大樓/華廈 且 房數 = 0 且 面積 ≤ 35坪 → 套房
-
-優先級 5: 標準住宅
-├── 房數 = 1 → 1房
-├── 房數 = 2 → 2房
-├── 房數 = 3 → 3房
-├── 房數 = 4 → 4房
-└── 房數 ≥ 5 → 5房以上
-
-優先級 6: 其他
-└── 無法分類 → 其他
-```
-
----
-
-## 📊 新增功能規格 (2026-01-15)
-
-### 1. 區域房型成交筆數交叉表格
-
-**位置**：房型去化分析頁籤底部
-
-**功能**：
-- 顯示各行政區/縣市的房型成交筆數
-- 支援維度切換（行政區 / 縣市）
-- 支援縣市篩選（行政區維度時）
-- 與房型篩選器連動
-
-**UI 控制項**：
-- 分組維度切換按鈕
-- 顯示範圍下拉選單（僅行政區維度時顯示）
-- 交叉表格（行=房型, 列=區域）
-- 堆疊橫向長條圖
-
-### 2. 單價分佈泡泡圖
-
-**位置**：房屋單價分析頁籤底部
-
-**功能**：
-- 顯示不同單價區間的成交分佈
-- 泡泡大小 = 影響力（成交件數或總坪數）
-- 漸層色彩 = 單價高低
-- 支援自訂單價區間
-
-**UI 控制項**：
-- 最低單價輸入框
-- 最高單價輸入框
-- 單價級距輸入框
-- 影響力指標切換按鈕（成交件數 / 房屋坪數）
-- 更新圖表按鈕
-- 影響力指標切換按鈕（成交件數 / 房屋坪數）
-- **顯示模式切換**：座標模式 (Coordinate) / 自然模式 (Natural)
-- **視覺呈現**：需具備質感 (Premium Aesthetics)，使用漸層與光影效果
-
-### 3. 建案搜尋增強 (2026-01-16)
-
-**位置**：頂部篩選器 (FilterBar)
-
-**功能**：
-- 下拉選單顯示詳細資訊
-- 包含：建案名稱、縣市行政區標籤、首筆成交年月
-- 支援模糊搜尋與中文輸入
-
-### 4. 外部連結整合 (Sidebar)
-- 新增「開發者日誌」：連結至 Medium
-- 新增「Threads」：連結至 Threads 社群
-
-### 5. 樓層區間均價試算 (2026-01-17)
-
-**位置**：熱力圖報告上方
-
-**功能**：
-- 用戶輸入起始樓層與結束樓層（如 5~10樓）
-- 計算該區間內所有成交的加權平均單價
-- **公式**：`Sum(房屋總價) / Sum(房屋面積)`
-- 顯示：平均單價 (加權) 與 參考筆數
-
-### 6. 首頁與登入整合 (2026-01-18)
-- **路徑重構**：
-    - `/` (Root): 顯示登入頁面 (Login)
-    - `/dashboard`: 顯示總覽儀表板 (Dashboard)
-- **Sidebar 整合**：
-    - 登入頁面需保留 Sidebar 佈局
-    - Sidebar 新增「會員登入」連結指向 `/`
-    - Sidebar「總覽儀表板」連結指向 `/dashboard`
-
-### 7. 房市政策時光機增強 (2026-01-18)
-
-**位置**：分析報告 > 房市政策時光機 (Timeline)
-
-**功能**：
-- **多建案可視化 (Multi-Project)**：支援同時顯示多個建案的銷售期，以堆疊 (Stacked) 方式呈現。
-- **動態高度調整**：時間軸高度隨建案數量自動增長。
-- **政策細節展開**：完整收錄 2012-2025 年政策/金融事件，支援展開查看完整規範。
-- **顯示邏輯**：
-    - 僅當 FilterBar 選擇「建案名稱」時顯示銷售條。
-    - 時間軸固定從 2012 年 (實價登錄 1.0) 開始。
-
-
-
----
-
-## 🔄 多縣市分析邏輯
-
-### 數據聚合策略
-
-當用戶選擇多個縣市時：
-1. 對每個縣市並行發送 API 請求
-2. 使用 `aggregator.js` 合併分析結果
-3. 核心指標直接相加
-4. 分位數在前端使用 `transactionDetails` 重新計算
-5. 排名、總價帶分析等合併顯示
-
-### 標籤顯示規則
-
-- 單縣市：不顯示縣市標籤
-- 多縣市：顯示縣市標籤協助區分
-
----
-
-## 📱 響應式設計規格
-
-| 斷點 | 說明 |
-|------|------|
-| `< 640px` | 行動版：單欄佈局 |
-| `640px - 1024px` | 平板：兩欄佈局 |
-| `> 1024px` | 桌面版：完整佈局 |
-
----
-
-## 📤 PDF 導出規格
-
-### 包含內容
-1. 核心指標摘要
-2. 建案排名表格
-3. 總價帶分析圖表
-4. 房屋單價分析表格
-5. 車位分析報表
-
-### 格式
-- A4 縱向
-- 深色主題
-- 自動分頁
-
----
-
-## 🔐 權限規格
-
-### 目前狀態
-- 用戶認證：**停用**（開發階段）
-- 所有功能公開可用
-
-### 未來規劃
-- Supabase Auth 整合
-- Line 登入整合 (New)
-- 付費會員分級
-- API 限流機制
-
-### 8. 建案排名報表優化 (2026-01-20)
-- **表頭圖示優化**：表格排序圖示改為水平排列，解決垂直堆疊不直觀的問題。
-- **圖表類型自主權**：新增圖表類型切換按鈕 (Bar/Treemap)，降低自動切換帶來的困惑感。
-
-### 9. 排名報表交互優化 (2026-01-20)
-- **指標切換按鈕**：在圖表上方增加明確的指標切換按鈕群（如：交易總價、房屋坪數...），不需依賴表格排序即可切換圖表維度。
-- **圖表佈局優化**：Top 10 等少量數據時，圖表應自然展開填滿容器，而非擠在左側。
-### 10. 調價熱力圖邏輯精進 (2026-01-20)
-- **基準戶 (Anchor) 選擇邏輯**：
-    1. **鎖定戶型**：針對每一戶型獨立計算。
-    2. **時間優先**：抓取該戶型時間軸上最早的一筆交易作為起點。
-    3. **基準視窗**：設定 `initialWindowDays` (預設14天) 視窗。
-    4. **標準化比價**：在視窗內，扣除樓層價差 (`Val - Floor * Premium`) 後，取 **標準化價格最低** 者為基準。
-- **嚴格排除機制**：
-    系統在計算基準戶及建議價差時，強制排除以下非標準交易：
-    - 用途/型態：`商業`, `店`, `辦公`, `事務所`
-    - 備註：`特殊`, `親友`, `員工`, `關係人`, `毛胚`
-
-### 11. 車位分析交互優化 (2026-01-20)
-- **建案搜尋**：
-    - 點擊搜尋框即顯示所有可用建案 (Show All on Focus)，無需輸入關鍵字。
-    - 保持現有的模糊搜尋與多選功能。
-- **散佈圖 Tooltip**：
-    - **位置**：跟隨滑鼠右下角 (Bottom-Right of Cursor)，避免遮擋資料點。
-    - **鎖定機制**：點擊資料點後 Tooltip 固定 (Lock)，再次點擊背景或其他點解除鎖定。
-    - **過濾顯示**：當有「建案亮點標示」時，滑鼠滑過非選中點 (Grey Dots) **不顯示** Tooltip，僅顯示亮點建案 (Yellow Dots)。
-
-### 12. Line 登入整合 (2026-01-21)
-- **技術架構**：Client-side LIFF + Server-side Edge Function
-- **登入流程**：
-    1. 前端：初始化 LIFF SDK，呼叫 `liff.login()` 取得 `idToken`。
-    2. 後端：Edge Function (`line-auth`) 接收 `idToken`。
-    3. 驗證：呼叫 Line API 驗證 Token 合法性。
-    4. 授權：使用 Supabase Admin API 查找或建立使用者，並簽發 Session JWT。
-    5. 回傳：前端接收 JWT 並透過 `supabase.auth.setSession` 建立登入狀態。
-
-
-### 13. 會員管理增強 (2026-01-21)
-- **顯示綁定資訊**：
-    - 在會員列表中新增「帳號綁定」欄位。
-    - 顯示 Line 圖示 (若 `app_metadata.provider === 'line'` 或 identities 包含 line)。
-    - 顯示 Email 圖示 (若 `app_metadata.provider === 'email'` 或 identities 包含 email)。
-- **顯示最後登入**：
-    - 新增「最後登入」欄位，顯示 `last_sign_in_at` 時間。
-- **顯示帳號狀態**：
-    - 新增「狀態」欄位，依據 `banned_until` 判斷顯示「正常」或「停用」。
-
-### 14. 系統設定：帳號綁定管理 (2026-01-22)
-- **需求目標**：用戶可自由管理 Email 與 Line 的綁定狀態。
-- **核心限制**：**必須保留至少一種登入方式** (Email 或 Line)，不可同時解除綁定。
-- **功能細節**：
-    1.  **修改 Email**：
-        - 允許已綁定 Email 的用戶輸入新信箱。
-        - 需驗證密碼以確認身份。
-        - (Optional) 發送確認信至新信箱。
-    2.  **解除 Email 綁定**：
-        - **前提**：必須 **已經綁定 Line** 帳號。
-        - 若未綁定 Line，則「解除綁定」按鈕為禁用狀態 (Disabled)。
-        - 解除後，將 Email 重置為系統生成的 `line.workaround` 格式，或移除 Email 登入身份 (視實作而定)。
-    3.  **解除 Line 綁定**：
-        - **前提**：必須 **已經綁定 Email** (且非 `line.workaround`)。
-        - 若未綁定 Email，則「解除綁定」按鈕為禁用狀態 (Disabled)。
-
-### 15. 會員分級與用字規範 (2026-01-23)
-- **一般會員 (General Member)**: 免費註冊用戶，享有基本查詢功能。（統一用字，不使用「標準會員」）
-- **PRO 會員**: 付費訂閱用戶，解鎖匯出與進階圖表。
-- **PRO MAX 會員**: 企業或高級訂閱用戶，享有客製化服務或更多 API 權限。
-- **管理員 (Admin)**: 系統後台管理者。
-- **超級管理員 (Super Admin)**: 擁有最高權限。
-
-### 16. 管理者私訊系統 (2026-01-23)
-- **需求目標**: 賦予管理者透過公告系統發送私訊給特定會員的能力。
-- **資料庫變更**: `announcements` 表新增 `target_user_id` 欄位。
-- **權限控制 (RLS)**:
-    - 公告預設為 `is_active = true` 且 `target_user_id IS NULL` (全員可見)。
-    - 若 `target_user_id` 有值，僅該 User ID 等於 `auth.uid()` 的用戶可見。
-- **後台與前台行為**:
-    - **後台**: 新增公告時可選擇「全員推播」或「指定會員」（搜尋 Email/Name）。
-    - **前台**: 列表自動過濾，顯示「全員公告」+「指名給自己的私訊」。私訊會帶有特殊標記。
-
-
-### 17. 報表編輯器權限控制 (2026-01-29)
-- **限制存取**: 僅 `admin` 與 `super_admin` 可進入 `/reports/builder`。
-- **其他用戶**: 包含一般會員、PRO 會員、訪客，均無法存取，應顯示權限不足或重新導向。
-
-### 18. 地圖模式權限控制與開發中標示 (2026-01-29)
-- **限制存取**: 地圖模式 (`/map`) 僅 `admin` 與 `super_admin` 可進入，比照報表編輯器辦理。
-- **Sidebar 標示**: 
-    - 「報表編輯器」與「地圖模式」需加上「開發中」或「DEV」標籤。
-    - 標籤樣式參考現有的「NEW」或其他醒目樣式。
