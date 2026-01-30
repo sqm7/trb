@@ -187,17 +187,31 @@ export function FilterBar({ onAnalyze, isLoading }: FilterBarProps) {
         };
     }, []);
 
-    // Scroll Detection
-    // const [isCompact, setIsCompact] = useState(false); // Moved to store
+    // Scroll Detection & Layout Stability
     const filterRef = useRef<HTMLDivElement>(null);
+    const [barHeight, setBarHeight] = useState<number>(0);
 
+    // Measure height to prevent layout jump
+    useEffect(() => {
+        if (!filterRef.current) return;
+
+        const observer = new ResizeObserver((entries) => {
+            for (const entry of entries) {
+                setBarHeight(entry.contentRect.height);
+            }
+        });
+
+        observer.observe(filterRef.current);
+        return () => observer.disconnect();
+    }, [isFilterBarCompact]); // Re-attach when mode changes? No, only when full bar is mounted.
+
+    // Scroll Listener
     useEffect(() => {
         const handleScroll = () => {
             const currentScroll = window.scrollY;
             // Enhanced Hysteresis logic: 
-            // - Enter compact mode when scrolling down beyond 250px (bar is mostly gone)
-            // - Exit compact mode when scrolling up above 120px (approaching top)
-            // - 130px gap prevents layout jump oscillation
+            // - Enter compact mode when scrolling down beyond 250px
+            // - Exit compact mode when scrolling up above 120px
             if (currentScroll > 250) {
                 if (!isFilterBarCompact) setIsFilterBarCompact(true);
             } else if (currentScroll < 120) {
@@ -205,7 +219,7 @@ export function FilterBar({ onAnalyze, isLoading }: FilterBarProps) {
             }
         };
 
-        window.addEventListener('scroll', handleScroll);
+        window.addEventListener('scroll', handleScroll, { passive: true });
         return () => window.removeEventListener('scroll', handleScroll);
     }, [isFilterBarCompact, setIsFilterBarCompact]);
 
@@ -227,8 +241,8 @@ export function FilterBar({ onAnalyze, isLoading }: FilterBarProps) {
     };
 
     return (
-        <>
-            <AnimatePresence mode="wait">
+        <div style={{ minHeight: isFilterBarCompact ? barHeight : 'auto' }} className="relative transition-[min-height] duration-200">
+            <AnimatePresence>
                 {isFilterBarCompact ? (
                     <motion.div
                         key="compact-pill"
@@ -282,10 +296,11 @@ export function FilterBar({ onAnalyze, isLoading }: FilterBarProps) {
                     <motion.div
                         key="full-filterbar"
                         ref={filterRef}
-                        initial={{ opacity: 0, y: 10 }}
+                        // User requested "no effect" on restore, so strict opacity 1, y 0
+                        initial={{ opacity: 1, y: 0 }}
                         animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.3 }}
+                        exit={{ opacity: 0, pointerEvents: 'none' }}
+                        transition={{ duration: 0.2 }}
                         className="p-4 md:p-6 glass-card rounded-xl shadow-lg"
                     >
                         {/* Mobile Header & Toggle */}
@@ -492,6 +507,6 @@ export function FilterBar({ onAnalyze, isLoading }: FilterBarProps) {
                     </motion.div>
                 )}
             </AnimatePresence>
-        </>
+        </div>
     );
 }
