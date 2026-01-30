@@ -61,8 +61,20 @@ export function ParkingStack3D({
     // 5 floors * 110 (gap+thick) approx 550px. 6 floors = 660px.
     const scaleFactor = sortedData.length > 4 ? Math.max(0.7, 4 / sortedData.length) : 1;
 
+    // Mouse tracking for tooltip
+    const [mousePos, setMousePos] = React.useState({ x: 0, y: 0 });
+
+    const handleMouseMove = (e: React.MouseEvent) => {
+        setMousePos({ x: e.clientX, y: e.clientY });
+    };
+
+    const activeTooltipData = sortedData.find(d => d.floor === hoveredFloor);
+
     return (
-        <div className="w-full h-[600px] flex items-start justify-start relative perspective-container overflow-visible pl-12 lg:pl-24 -mt-12">
+        <div
+            className="w-full h-[600px] flex items-start justify-start relative perspective-container overflow-visible pl-12 lg:pl-24 -mt-12"
+            onMouseMove={handleMouseMove}
+        >
             {/* 1. The 3D Scene Layer */}
             <div
                 className="relative flex items-center justify-center preserve-3d"
@@ -116,79 +128,51 @@ export function ParkingStack3D({
                 </motion.div>
             </div>
 
-            {/* 2. The 2D Label Overlay Layer */}
-            <div className="absolute inset-0 pointer-events-none z-20 flex items-center justify-start pl-12 lg:pl-24">
-                <div
-                    className="relative"
-                    style={{ width: BLOCK_SIZE, height: BLOCK_SIZE }}
-                >
-                    <AnimatePresence>
-                        {sortedData.map((floor, idx) => {
-                            const isSelected = selectedFloors.includes(floor.floor);
-                            const isHovered = hoveredFloor === floor.floor;
-
-                            // 1. Revert: Only show when hovered
-                            if (!isSelected || !isHovered) return null;
-
-                            const hoverOffset = -35;
-                            const topPos = (idx * STEP_Y_PIXELS) + hoverOffset;
-
-                            return (
-                                <motion.div
-                                    key={`label-${floor.floor}`}
-                                    className="absolute left-full flex items-center"
-                                    // 2. Instant appearance, no sliding (x:0), no scaling
-                                    initial={{ opacity: 0, x: 0 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    exit={{ opacity: 0, x: 0, transition: { duration: 0 } }}
-                                    transition={{ duration: 0 }}
-                                    style={{
-                                        top: `calc(50% - 40px + ${topPos}px)`,
-                                        // 3. Move to right side (75% to clear the diamond shape)
-                                        left: '75%',
-                                        transition: 'top 0.1s ease-out',
-                                        zIndex: 50
-                                    }}
+            {/* 2. Floating Mouse-Following Tooltip */}
+            <div className="fixed inset-0 pointer-events-none z-50">
+                <AnimatePresence>
+                    {activeTooltipData && (
+                        <motion.div
+                            key="tooltip"
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.1 } }}
+                            transition={{ type: "spring", stiffness: 400, damping: 20 }}
+                            className="absolute flex items-center justify-start pointer-events-none"
+                            style={{
+                                left: mousePos.x + 40,
+                                top: mousePos.y - 60,
+                            }}
+                        >
+                            <div className="flex items-center gap-3 whitespace-nowrap">
+                                <span className={cn(
+                                    "text-6xl font-black text-white drop-shadow-[0_5px_8px_rgba(0,0,0,0.8)] leading-none",
+                                    "font-sans italic tracking-tighter"
+                                )}
+                                    style={{ textShadow: '0 0 30px rgba(255,255,255,0.4)' }}
                                 >
-                                    <div className="w-12 h-px bg-white/60 shadow-[0_0_8px_white]" />
+                                    {activeTooltipData.floor}
+                                </span>
 
-                                    <div
-                                        className="pl-4 pointer-events-auto cursor-pointer flex items-center gap-3 whitespace-nowrap"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            onDetail(floor.floor);
-                                        }}
-                                    >
-                                        <span className={cn(
-                                            "text-6xl font-black text-white drop-shadow-[0_5px_8px_rgba(0,0,0,0.8)] leading-none",
-                                            "font-sans italic tracking-tighter"
-                                        )}
-                                            style={{ textShadow: '0 0 30px rgba(255,255,255,0.4)' }}
-                                        >
-                                            {floor.floor}
-                                        </span>
-
-                                        <div className="bg-zinc-950/95 border-l-4 border-cyan-500 backdrop-blur-xl px-4 py-2 rounded-r-lg shadow-[0_20px_50px_rgba(0,0,0,0.5)] flex items-center gap-6 border border-white/10">
-                                            <div>
-                                                <div className="text-[10px] text-zinc-500 uppercase font-black leading-none mb-1 tracking-widest">均價 (萬)</div>
-                                                <div className="text-2xl font-mono font-bold text-cyan-400 leading-none">
-                                                    {Math.round(floor.avgPrice).toLocaleString()}
-                                                </div>
-                                            </div>
-                                            <div className="h-8 w-px bg-white/10" />
-                                            <div>
-                                                <div className="text-[10px] text-zinc-500 uppercase font-black leading-none mb-1 tracking-widest">成交量</div>
-                                                <div className="text-xl font-mono text-zinc-100 leading-none font-medium">
-                                                    {floor.count}
-                                                </div>
-                                            </div>
+                                <div className="bg-zinc-950/95 border-l-4 border-cyan-500 backdrop-blur-xl px-4 py-2 rounded-r-lg shadow-[0_20px_50px_rgba(0,0,0,0.5)] flex items-center gap-6 border border-white/10">
+                                    <div>
+                                        <div className="text-[10px] text-zinc-500 uppercase font-black leading-none mb-1 tracking-widest">均價 (萬)</div>
+                                        <div className="text-2xl font-mono font-bold text-cyan-400 leading-none">
+                                            {Math.round(activeTooltipData.avgPrice).toLocaleString()}
                                         </div>
                                     </div>
-                                </motion.div>
-                            );
-                        })}
-                    </AnimatePresence>
-                </div>
+                                    <div className="h-8 w-px bg-white/10" />
+                                    <div>
+                                        <div className="text-[10px] text-zinc-500 uppercase font-black leading-none mb-1 tracking-widest">成交量</div>
+                                        <div className="text-xl font-mono text-zinc-100 leading-none font-medium">
+                                            {activeTooltipData.count}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
             </div>
         </div>
     );
