@@ -14,6 +14,7 @@ import { ExportButton } from "@/components/ui/ExportButton";
 import { AnalysisData } from "@/lib/types";
 import { useFilterStore, ROOM_TYPE_OPTIONS } from "@/store/useFilterStore";
 import { FloatingRoomFilter } from "@/components/features/FloatingRoomFilter";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface SalesVelocityReportProps {
     data: AnalysisData | null;
@@ -71,11 +72,20 @@ export function SalesVelocityReport({ data }: SalesVelocityReportProps) {
         ));
     };
 
+    // Ref for the chart container inner div to manually control width during animation
+    const chartContainerRef = React.useRef<HTMLDivElement>(null);
+
     // Handle heatmap cell click
     const handleHeatmapClick = (roomType: string, areaRange: string) => {
+        // Freeze the chart container width before state update triggers layout animation
+        if (chartContainerRef.current) {
+            chartContainerRef.current.style.width = `${chartContainerRef.current.offsetWidth}px`;
+        }
+
         // Parse range using regex to handle "< 15", "> 65", "15-20"
         let minA = 0;
         let maxA = Infinity;
+        // ... (rest of parsing logic remains same)
 
         if (areaRange.includes('<')) {
             maxA = parseFloat(areaRange.replace('<', '').trim());
@@ -88,11 +98,6 @@ export function SalesVelocityReport({ data }: SalesVelocityReportProps) {
         }
 
         const transactionDetails = data.transactionDetails || [];
-
-        // Import the utility function (we need to import it at file level usually, but for this edit we assume it's imported)
-        // Note: I will add the import statement in a separate edit or ensure it's here.
-        // Actually, let's use the helper logic here directly or if I can't add import easily.
-        // Best practice: Use the imported function.
 
         const filtered = transactionDetails.filter((tx: any) => {
             // Use our robust room classification logic
@@ -176,7 +181,14 @@ export function SalesVelocityReport({ data }: SalesVelocityReportProps) {
         });
     };
 
-
+    // Handle closing detail panel
+    const handleCloseDetail = () => {
+        // Freeze width for expansion too (though less critical, prevents immediate reflow)
+        if (chartContainerRef.current) {
+            chartContainerRef.current.style.width = `${chartContainerRef.current.offsetWidth}px`;
+        }
+        setHeatmapModalMeta(null);
+    };
 
     return (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -300,49 +312,58 @@ export function SalesVelocityReport({ data }: SalesVelocityReportProps) {
                     </div>
                 }
             >
-                <div className="flex flex-col lg:flex-row gap-6">
-                    {/* Chart Section - Dynamic Width */}
-                    {/* Isolated Resize Logic for Heatmap Animation */}
-                    <div
-                        ref={(node) => {
-                            if (!node) return;
-                            // We use a callback ref to attach observer when node mounts
-                            const resizeObserver = new ResizeObserver(() => {
-                                // Dispatch resize event to force ApexCharts to update width
-                                // This is scoped to this component's effect, but window.dispatchEvent is global.
-                                // However, since we only do this when THIS specific div resizes, it shouldn't cause global loop
-                                // unless THIS div is resized by the chart resizing (cyclic dependency).
-                                // Given the flex layout, the div width is controlled by the parent class (w-full vs w-60%),
-                                // so chart resize shouldn't change div width. This should be safe.
-                                requestAnimationFrame(() => {
-                                    window.dispatchEvent(new Event('resize'));
-                                });
-                            });
-                            resizeObserver.observe(node);
-                            return () => resizeObserver.disconnect();
+                <div className="flex flex-col lg:flex-row gap-6 relative overflow-hidden min-h-[500px]">
+                    {/* Chart Section - Dynamic Width with Clipping Strategy */}
+                    <motion.div
+                        layout
+                        initial={false}
+                        animate={{
+                            flex: heatmapModalMeta ? "0 0 60%" : "0 0 100%"
                         }}
-                        className={cn(
-                            "transition-all duration-500 ease-in-out",
-                            heatmapModalMeta ? "w-full lg:w-[60%]" : "w-full"
-                        )}
+                        transition={{
+                            type: "spring",
+                            stiffness: 300,
+                            damping: 35,
+                            mass: 1
+                        }}
+                        onAnimationStart={() => {
+                            // No manual resize trigger needed at start, we WANT it to be frozen
+                        }}
+                        onAnimationComplete={() => {
+                            // Unfreeze width and trigger resize to snap to new size
+                            if (chartContainerRef.current) {
+                                chartContainerRef.current.style.width = '100%';
+                                window.dispatchEvent(new Event('resize'));
+                            }
+                        }}
+                        className="min-w-0 overflow-hidden"
                     >
-                        <AreaHeatmapChart
-                            data={areaDistributionAnalysis || {}}
-                            selectedRooms={selectedRooms}
-                            minArea={minArea}
-                            maxArea={maxArea}
-                            interval={interval}
-                            onDataPointClick={handleHeatmapClick}
-                        />
-                    </div>
+                        <div ref={chartContainerRef} className="w-full h-full">
+                            <AreaHeatmapChart
+                                data={areaDistributionAnalysis || {}}
+                                selectedRooms={selectedRooms}
+                                minArea={minArea}
+                                maxArea={maxArea}
+                                interval={interval}
+                                onDataPointClick={handleHeatmapClick}
+                            />
+                        </div>
+                    </motion.div>
 
                     {/* Aggregated Heatmap Detail Modal - Side Panel */}
-                    <div className={cn(
-                        "overflow-hidden transition-all duration-300 ease-in-out",
-                        heatmapModalMeta ? "w-full lg:w-[40%] opacity-100 scale-100" : "w-0 opacity-0 scale-95 h-0 lg:h-auto overflow-hidden"
-                    )}>
+                    <AnimatePresence mode="wait">
                         {heatmapModalMeta && (
-                            <div className="p-4 bg-zinc-900/50 border border-white/10 rounded-lg h-full max-h-[600px] flex flex-col">
+                            <motion.div
+                                initial={{ opacity: 0, x: 50, width: 0 }}
+                                animate={{ opacity: 1, x: 0, width: "40%" }}
+                                exit={{ opacity: 0, x: 50, width: 0 }}
+                                transition={{
+                                    type: "spring",
+                                    stiffness: 300,
+                                    damping: 35
+                                }}
+                                className="flex-1 min-w-0 bg-zinc-900/50 border border-white/10 rounded-lg h-full max-h-[600px] flex flex-col p-4"
+                            >
                                 <div className="flex justify-between items-start mb-4 pb-4 border-b border-white/5">
                                     <div>
                                         <h4 className="text-white font-medium flex items-center gap-2 text-lg">
@@ -357,7 +378,7 @@ export function SalesVelocityReport({ data }: SalesVelocityReportProps) {
                                         </p>
                                     </div>
                                     <button
-                                        onClick={() => setHeatmapModalMeta(null)}
+                                        onClick={handleCloseDetail}
                                         className="text-zinc-400 hover:text-white p-1 hover:bg-zinc-800 rounded transition-colors"
                                     >
                                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -478,9 +499,9 @@ export function SalesVelocityReport({ data }: SalesVelocityReportProps) {
                                         <p>無詳細資料</p>
                                     </div>
                                 )}
-                            </div>
+                            </motion.div>
                         )}
-                    </div>
+                    </AnimatePresence>
                 </div>
             </ReportWrapper>
 
