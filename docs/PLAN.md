@@ -176,3 +176,8 @@
 - [x] Step 10: Fix DataList infinite reload loop mechanism.
 - [x] Step 11: Stabilize Build (Force Webpack to bypass Turbopack panic).
 - [x] Step 12: Final Stability Fixes (FilterBar persistence & DataList deep compare).
+
+## [Current Task] Deploy to Test Version
+- [ ] Step 1: Check git status and ensure clean working directory.
+- [ ] Step 2: Execute `scripts/deploy_next_trb.sh`.
+- [ ] Step 3: Verify deployment at https://sqm7.github.io/trb.
