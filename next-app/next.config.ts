@@ -8,6 +8,10 @@ const nextConfig: NextConfig = {
   images: {
     unoptimized: true,
   },
+  // Force Webpack to avoid Turbopack panic in this environment
+  webpack: (config) => {
+    return config;
+  },
 };
 
 export default nextConfig;
