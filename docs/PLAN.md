@@ -159,3 +159,5 @@
 - [x] Implement layout-stable "Pill Mode" in `FilterBar` (using ResizeObserver).
 - [x] Remove redundant legend in `ParkingAnalysisReport`.
 - [x] Align Heatmap height to match 600px scrollable Detail Panel in Sales Velocity report.
+- [x] Increase Sales Velocity detail transactions limit to 10.
+- [x] Optimize Export Button layout (Closer to input on left, Integrated in header on right).
