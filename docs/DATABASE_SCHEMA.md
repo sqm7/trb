@@ -1,0 +1,75 @@
+# Database Schema Documentation
+
+本文檔記錄了 Supabase 資料庫各表格的功能、結構與用途。
+
+## 1. 系統與用戶 (System & Users)
+
+### `public.profiles`
+- **用途**: 擴充 Supabase Auth 的用戶資料。
+- **關鍵欄位**:
+    - `id`: 關聯至 `auth.users.id`。
+    - `full_name`: 用戶名稱。
+    - `email`: 備份 Email（便於查詢）。
+
+### `public.announcements`
+- **用途**: 全站公告系統。
+- **內容**: 包含公告標題、格式化內容及發布權限。
+
+### `public.shared_reports`
+- **用途**: 儲存報表分享連結的狀態快照。
+- **關鍵欄位**:
+    - `token`: 唯一隨機碼，用於 URL。
+    - `filters`: 當時的篩選條件 JSON。
+    - `report_type`: 報表模組類型。
+
+---
+
+## 2. 房地產交易核心數據 (LVR Land)
+
+這類表格遵循內政部實價登錄的原始命名慣例，主要分為「主表」、「建物」、「土地」及「車位」子表。
+
+### 命名慣例 (Prefix Legend)
+- 前綴字元 (如 `a`, `b`, `c`, `i`, `j`, `t` 等) 通常代表不同的資料批次、地區或交易性質（如買賣、預售、租賃）。
+- `*_build`: 建物明細（構造、完工日、移轉情形）。
+- `*_land`: 土地明細（使用分區、地號、持分）。
+- `*_park`: 車位明細（單價、面積、樓層）。
+
+### 範例：預售屋交易 (`t_lvr_land_b`)
+- **功能**: 紀錄預售屋成交紀錄。
+- **欄位**: `交易總價(萬)`, `建案名稱`, `單價`, `樓層` 等。
+
+---
+
+## 3. 資料處理與智能規則 (Data Intelligence & Rules)
+
+### `public.project_name_mappings`
+- **用途**: **建案名稱標準化**。將實價登錄中混亂的原始名稱（如「甲山林帝寶」）映射到系統統一的標準名稱。
+
+### `public.project_parsing_rules_v2`
+- **用途**: **建案解析引擎核心**。儲存正規表達式 (Regex) 與解析邏輯。
+- **欄位**: `extraction_regex`, `parser_logic`, `confidence_score` (置信度)。
+
+### `public.parsing_exceptions_v15`
+- **用途**: 特殊案例例外規則，用於處理通用引擎無法正確解析的極端情況。
+
+### `public.county_codes`
+- **用途**: 縣市行政區代碼對照表。
+
+---
+
+## 4. 資料分析視圖 (Analysis Views)
+
+### `public.all_transactions_view`
+- **用途**: 整合所有 `lvr_land` 系列表格的 **Union View**。
+- **功能**: 供前端 Dashboard 與報表生成器統一呼叫，避免複雜的聯集查詢。
+
+---
+
+## 5. 其他補助表格
+
+包含各種統計用的輔助資料：
+- `land_usage_types`: 土地使用分區定義。
+- `building_material_codes`: 建物結構代碼。
+
+> [!NOTE]
+> 各表詳細的欄位定義與類型，請參考自動生成的 [DATABASE_SCHEMA_TEMP.txt](DATABASE_SCHEMA_TEMP.txt) 或使用 `scripts/fetch-full-schema.js` 重新獲取。

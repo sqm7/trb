@@ -182,3 +182,8 @@ Detailed development documentation for each analysis report module is maintained
 | **6. Value Reveal** | 75-85s | Floating Decision Gem. Success indicators (growth curves) orbiting. | (Visual Focus: Decision Support) |
 | **7. Brand Imprint** | 85-90s | Close up on Gem. Reflection of "Pingmi" Logo. | "平米內參 - 讓數據煉成決策黃金" |
 
+
+## 11. Technical Reference
+- [ARCHITECTURE.md](docs/ARCHITECTURE.md)
+- [DATABASE_SCHEMA.md](docs/DATABASE_SCHEMA.md)
+- [AGENT_SKILLS_GUIDE.md](docs/AGENT_SKILLS_GUIDE.md)

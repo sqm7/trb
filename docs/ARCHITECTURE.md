@@ -37,7 +37,9 @@
 ├── _legacy_backup/     # Archive of old Vanilla JS/HTML files
 ├── SPEC.md             # Functional Specification
 ├── PLAN.md             # Execution Plan
-└── ARCHITECTURE.md     # This file
+├── ARCHITECTURE.md     # Technical Overview
+├── DATABASE_SCHEMA.md  # Detailed Database Documentation
+└── docs/               # Project Documentation
 ```
 
 ## 3. Database Schema (Key Tables)
@@ -52,6 +54,26 @@
 - `full_name`: Display name.
 - `email`: Synced copy of user email for easier querying.
 - `created_at`, `updated_at`.
+
+### `public.shared_reports`
+- 儲存分享報表的設定與狀態。
+- Key Columns: `token` (唯一存取碼), `report_type`, `filters` (JSON), `view_mode`.
+
+### `public.announcements`
+- 系統公告表，用於發布全站通知。
+
+### `public.project_parsing_rules_v2`
+- 建案名稱與地址的解析規則庫 (新版)。
+- Key Columns: `parser_logic`, `confidence_score`.
+
+### `public.project_name_mappings`
+- 建案名稱標準化映射表 (Raw Name -> Standard Name)。
+
+### `public.county_codes`
+- 縣市代碼對照表 (e.g. A=臺北市)。
+
+### `public.all_transactions_view`
+- 整合實價登錄交易資料的視圖 (View)，用於查詢與分析。
 
 ## 4. Key Components
 ### Authentication

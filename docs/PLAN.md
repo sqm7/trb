@@ -1,5 +1,19 @@
 # Implementation Plan
 
+## [Current Task] Comprehensive Database Schema Documentation
+- [x] Step 1: Enumerate all tables and views from SQL dump and live DB. <!-- id: db-1 -->
+- [x] Step 2: Analyze column definitions, constraints, and sample data. <!-- id: db-2 -->
+- [x] Step 3: Create `docs/DATABASE_SCHEMA.md` with detailed table descriptions. <!-- id: db-3 -->
+- [x] Step 4: Update `ARCHITECTURE.md` to link to the new specialized document. <!-- id: db-4 -->
+- [x] Step 5: Update `SPEC.md` to include database architecture as a core technical reference. <!-- id: db-5 -->
+
+
+## [Current Task] Database Schema Research & Documentation (Original Request)
+- [x] Step 1: Inspect database schema using Supabase API script.
+- [x] Step 2: Correlate with `schema.sql` and `ARCHITECTURE.md`.
+- [x] Step 3: Document findings for User.
+- [x] Step 4: Update `ARCHITECTURE.md` with table details (optional).
+
 ## [Current Task] Recovery and Test Deployment
 - [x] Step 1: Commit uncommitted changes to local repository.
 - [x] Step 2: Update ARCHITECTURE.md if necessary (added Remotion files).
@@ -192,4 +206,4 @@
 - [x] Step 1: Diagnose why `TypeComparisonTable` disappears when multiple cities selected.
 - [x] Step 2: Fix the filtering/aggregation logic in `UnitPriceAnalysisReport` or `TypeComparisonTable`.
 - [x] Step 3: Verify fix with multi-city selection.
-- [ ] Step 4: Deploy to Test Version.
+- [x] Step 4: Deploy to Test Version.

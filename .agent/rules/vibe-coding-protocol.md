@@ -10,7 +10,8 @@ globs: ["**/*"]
 # 📋 核心文檔庫
 - **docs/SPEC.md (需求真理源)**：定義「做什麼」。包含核心邏輯、業務規則、用戶流程。
 - **docs/PLAN.md (執行路線圖)**：定義「怎麼做」。包含當前任務拆解、步驟清單、完成狀態。
-- **docs/ARCHITECTURE.md (技術架構)**：定義「在哪做」。包含目錄結構、數據庫 Schema、組件關係。
+- **docs/ARCHITECTURE.md (技術架構)**：定義「在哪做」。包含目錄結構、數據庫高階設計、組件關係。
+- **docs/DATABASE_SCHEMA.md (數據庫詳情)**：定義「存什麼」。包含所有 Table、Column、View 的詳細說明與用途。
 - **docs/AGENT_SKILLS_GUIDE.md (技能說明)**：定義「AI 能力」。包含已安裝的 Skills 與 Workflows 指南。
 
 # 🔄 執行工作流程 (必須嚴格執行)
@@ -36,6 +37,7 @@ globs: ["**/*"]
 4. **更新開發文檔**：
    - 若修改了 **前端模組**（如 `src/components/reports/`），同步更新 `docs/reports/`。
    - 若修改了 **Edge Functions** (`supabase/functions/`)，同步更新 `docs/edge-functions/`。
+   - **若修改了數據庫表格或 View (Supabase Schema)**，必須同步更新 `docs/DATABASE_SCHEMA.md` 及 `docs/ARCHITECTURE.md` 的相關章節。
 5. **執行同步 (僅限必要)**：若且僅若涉及 `.agent/`, `.cursor/`, `.claude/`, `.trae/`, 或 `.windsurf/` 目錄內容變動時，才執行 `bash scripts/sync_ide_configs.sh`。
 6. **簡要總結**：告知用戶您修改了哪些文檔、代碼變更摘要，並列出待提交項目，等待用戶指令。**嚴禁在未獲授權前主動執行 git commit。**
 
