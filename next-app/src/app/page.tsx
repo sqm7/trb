@@ -325,7 +325,7 @@ export default function LoginPage() {
               >
                 <div className="relative h-4 w-4 mr-1 rounded-full overflow-hidden shadow-[0_0_10px_rgba(6,182,212,0.5)]">
                   <Image
-                    src={`${process.env.NEXT_PUBLIC_BASE_PATH || ''}/icon.png`}
+                    src={`${process.env.NEXT_PUBLIC_BASE_PATH || ''}/logo-type-a.jpg`}
                     alt="Logo"
                     fill
                     className="object-cover"

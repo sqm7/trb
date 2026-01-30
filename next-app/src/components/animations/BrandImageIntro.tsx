@@ -72,7 +72,7 @@ export const BrandImageIntro = ({ onComplete }: { onComplete: () => void }) => {
                     className="relative w-24 h-24 mb-4"
                 >
                     <Image
-                        src={`${process.env.NEXT_PUBLIC_BASE_PATH || ''}/icon.png`}
+                        src={`${process.env.NEXT_PUBLIC_BASE_PATH || ''}/logo-type-a.jpg`}
                         alt="Logo"
                         fill
                         className="object-cover rounded-2xl"

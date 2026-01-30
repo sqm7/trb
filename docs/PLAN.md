@@ -181,3 +181,9 @@
 - [x] Step 1: Check git status and ensure clean working directory.
 - [x] Step 2: Execute `scripts/deploy_next_trb.sh`.
 - [x] Step 3: Verify deployment at https://sqm7.github.io/trb.
+
+## [Current Task] Update Logo to Type A (Brand Alignment)
+- [x] Step 1: Verify `LOGO/type a.jpg` exists and copy to public assets.
+- [x] Step 2: Update Opening Animation (`BrandImageIntro.tsx`).
+- [x] Step 3: Update Login Header Logo (`page.tsx`).
+- [ ] Step 4: Deploy to Test Version.
