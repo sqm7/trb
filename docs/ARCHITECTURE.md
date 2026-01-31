@@ -171,13 +171,11 @@ supabase functions deploy --all
 
 #### 運作邏輯 (Logic Flow):
 1.  **分頁掃描 (Scan)**: 遍歷全台 22 縣市成交紀錄，提取 `建案名稱`。
-2.  **回溯清理 (Retroactive Cleanup)**: 
-    *   比對現有建案表與 `project_name_mappings`。
-    *   若發現已存建案 (如 `Win?`) 現在出現在 Mapping 的 `old_name` 欄位，系統會**先刪除該舊紀錄**。
-    *   這確保後續存入正確名稱 (`WinMax`) 時不會產生重複或衝突。
-3.  **智慧清洗 (Standardize)**:
-    *   若案名有 Mapping 規則：轉換為標準化名稱。
-    *   若案名正常 (不在 Mapping 表)：保留原樣直通。
+2.  **智慧清洗 (Standardize)**: 轉換為標準化名稱。
+3.  **深度補全與管理 (Enrich & Manage)**:
+    *   **Admin UI**: 管理者在 `/admin/projects` 篩選建案。
+    *   **三階狀態**: 標記為 `requested` (代辦) 時觸發 Agent 補全，`pending` (待補) 留供人工，`done` (完備) 為結束。
+    *   **Agent Workflow**: 利用 Agent 搜尋工具抓取 16 個詳細欄位（基地、規劃、建商等）。
 4.  **自動建檔 (Upsert)**:
     *   新案名：新增紀錄並標記 `is_new_case = true`。
-    *   舊案名：更新 `last_seen_at` 紀錄活躍狀態。
+    *   舊案名：更新活跃狀態與補全內容。
