@@ -15,6 +15,13 @@
 - [x] Step 3: Document findings for User.
 - [x] Step 4: Update `ARCHITECTURE.md` with table details (optional).
 
+## [Current Task] Project Indexing System (Auto-Discovery)
+- [x] Step 1: Create `public.projects` table via SQL migration. <!-- id: idx-1 -->
+- [x] Step 2: Implement `sync-projects` Edge Function (Logic: Scan -> Map -> Upsert). <!-- id: idx-2 -->
+- [x] Step 3: Deploy Edge Function to Supabase (Verified with Full Scan Script). <!-- id: idx-3 -->
+- [ ] Step 4: Configure Cron Job (pg_cron) to run sync hourly. <!-- id: idx-4 -->
+- [x] Step 5: Verify data populate in `projects` table (Final: 7,751 records). <!-- id: idx-5 -->
+
 ## [Current Task] Recovery and Test Deployment
 - [x] Step 1: Commit uncommitted changes to local repository.
 - [x] Step 2: Update ARCHITECTURE.md if necessary (added Remotion files).

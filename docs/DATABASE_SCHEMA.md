@@ -45,6 +45,15 @@
 ### `public.project_name_mappings`
 - **用途**: **建案名稱標準化**。將實價登錄中混亂的原始名稱（如「甲山林帝寶」）映射到系統統一的標準名稱。
 
+### `public.[a-z]_projects` (建案索引表 - 按縣市分表)
+- **用途**: 儲存各縣市已發現的建案清單，與 `lvr_land` 交易資料結構同步。
+- **表格名稱**: `a_projects`, `b_projects` ... `z_projects`。
+- **關鍵欄位**:
+    - `project_name` (Text, PK/Unique): 標準化後的建案名稱。
+    - `raw_project_name` (Text): 第一次抓到該建案時的原始名稱。
+    - `is_new_case` (Boolean): 預設為 `true`，用於標記新發現建案。
+    - `last_seen_at` (Timestamp): 該建案最後一次出現在交易紀錄的時間。
+
 ### `public.project_parsing_rules_v2`
 - **用途**: **建案解析引擎核心**。儲存正規表達式 (Regex) 與解析邏輯。
 - **欄位**: `extraction_regex`, `parser_logic`, `confidence_score` (置信度)。

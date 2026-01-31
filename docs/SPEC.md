@@ -187,3 +187,38 @@ Detailed development documentation for each analysis report module is maintained
 - [ARCHITECTURE.md](docs/ARCHITECTURE.md)
 - [DATABASE_SCHEMA.md](docs/DATABASE_SCHEMA.md)
 - [AGENT_SKILLS_GUIDE.md](docs/AGENT_SKILLS_GUIDE.md)
+
+## 12. Project Indexing System
+- **Goal**: Maintain a canonical registry of all real estate projects (建案) across all counties.
+- **Architecture**: 
+    - **Single Unified Table**: `public.projects` is used instead of per-county tables to enable global search and simplified analytics.
+    - **Partitioning Strategy**: (Optional) Can be partitioned by `city_code` if volume exceeds 10M rows (unlikely for project names).
+- **Core Components**:
+    1.  **Database Table**: `public.projects`
+        -   `id` (UUID): Primary Key.
+        -   `city_code` (Char): Foreign Key to `county_codes`.
+        -   `project_name` (Text): The standardized project name.
+        -   `is_new_case` (Boolean): Default true, for flagging new discoveries.
+        -   `last_seen_at` (Timestamp): When this project was last encountered in transactions.
+    2.  **Edge Function**: `sync-projects`
+        -   **Trigger**: Scheduled (Cron) or Webhook.
+        -   **Logic**:
+            -   Scans `all_transactions_view` for distinct `建案名稱`.
+            -   Applies `project_name_mappings` (e.g., handles "帝寶?" -> "帝寶").
+            -   Upserts into `public.projects`.
+            -   Updates `last_seen_at` and `is_new_case`.
+    3.  **Parsing Rules**:
+        -   Refers to `project_parsing_rules_v2` for complex name extraction.
+        -   Refers to `project_name_mappings` for simple text replacement.
+
+## [UPDATE] 12. Project Indexing System
+- **Goal**: Maintain a registry of all real estate projects, partitioned by county to match transaction data structure.
+- **Architecture**: 
+    - **Per-County Tables**: Tables named `{code}_projects` (e.g., `a_projects`, `b_projects`).
+    - **Schema**: Each table contains `project_name`, `raw_project_name`, `is_new_case`, `last_seen_at`.
+- **Core Components**:
+    1.  **Database Tables**: `public.[code]_projects`
+    2.  **Edge Function**: `sync-projects`
+        -   Iterates through all supported county codes.
+        -   Syncs data from `all_transactions_view` (or source tables) to respective project tables.
+        -   Applies mapping and cleaning rules.
