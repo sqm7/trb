@@ -165,3 +165,19 @@ supabase functions deploy <function-name> --no-verify-jwt
 # 部署所有 functions
 supabase functions deploy --all
 ```
+### 4. 建案自動索引系統 (Project Indexing System)
+
+系統透過 Edge Function 定期掃描實價登錄預售屋資料 (`*_lvr_land_b`)，並將結果存入縣市建案表 (`*_projects`)。
+
+#### 運作邏輯 (Logic Flow):
+1.  **分頁掃描 (Scan)**: 遍歷全台 22 縣市成交紀錄，提取 `建案名稱`。
+2.  **回溯清理 (Retroactive Cleanup)**: 
+    *   比對現有建案表與 `project_name_mappings`。
+    *   若發現已存建案 (如 `Win?`) 現在出現在 Mapping 的 `old_name` 欄位，系統會**先刪除該舊紀錄**。
+    *   這確保後續存入正確名稱 (`WinMax`) 時不會產生重複或衝突。
+3.  **智慧清洗 (Standardize)**:
+    *   若案名有 Mapping 規則：轉換為標準化名稱。
+    *   若案名正常 (不在 Mapping 表)：保留原樣直通。
+4.  **自動建檔 (Upsert)**:
+    *   新案名：新增紀錄並標記 `is_new_case = true`。
+    *   舊案名：更新 `last_seen_at` 紀錄活躍狀態。
