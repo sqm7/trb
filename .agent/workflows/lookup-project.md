@@ -53,7 +53,7 @@ For each project in the list:
 
 ## Field List (Target Columns)
 1.  `project_name` (建案名稱)
-2.  `site_area` (基地規模)
+2.  `site_area` (基地規模 - 單位: 坪, 僅存數字)
 3.  `total_households` (總戶數)
 4.  `public_ratio` (公設比)
 5.  `total_floors` (總樓層數)

@@ -206,4 +206,4 @@ Detailed development documentation for each analysis report module is maintained
     2.  **Agent Command**: User triggers `/batch-enrich` in the chat.
     3.  **Strict Validation**: Agent performs deep searches and only marks as `done` if the 15/16 field threshold is met; otherwise, it marks as `pending`.
 - **Target Fields (16)**:
-    - 基地規模, 總戶數, 公設比, 總樓層數, 地下層數, 結構, 土地使用分區, 車位類型, 車位數量, 建設公司, 工程營造, 建築設計, 代銷企劃 (Optional), 關係企業, 建造號碼, 建案名稱 (Canonical).
+    - 基地規模(坪), 總戶數, 公設比, 總樓層數, 地下層數, 結構, 土地使用分區, 車位類型, 車位數量, 建設公司, 工程營造, 建築設計, 代銷企劃 (Optional), 關係企業, 建造號碼, 建案名稱 (Canonical).

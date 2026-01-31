@@ -341,7 +341,7 @@ export default function AdminProjectsPage() {
                                                     </div>
                                                     <div className="grid grid-cols-2 gap-3">
                                                         <div>
-                                                            <label className="text-[10px] text-zinc-600 font-bold block mb-1">基地規模</label>
+                                                            <label className="text-[10px] text-zinc-600 font-bold block mb-1">基地規模(坪)</label>
                                                             <input type="text" value={p.site_area || ''} onChange={e => setProjects(prev => prev.map(x => x.id === p.id ? { ...x, site_area: e.target.value } : x))} className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-1.5 text-xs text-zinc-300 outline-none" />
                                                         </div>
                                                         <div>

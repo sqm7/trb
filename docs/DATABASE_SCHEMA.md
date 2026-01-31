@@ -54,7 +54,7 @@
     - `is_new_case` (Boolean): 預設為 `true`，用於標記新發現建案。
     - `last_seen_at` (Timestamp): 該建案最後一次出現在交易紀錄的時間。
     - **建案規格與開發商資訊**:
-        - `site_area` (Text): 基地規模。
+        - `site_area` (Text): 基地規模(坪)。
         - `total_households` (Text): 總戶數。
         - `public_ratio` (Text): 公設比。
         - `total_floors` (Text): 總樓層數。
