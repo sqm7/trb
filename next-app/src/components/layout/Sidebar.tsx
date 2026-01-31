@@ -272,6 +272,18 @@ export function Sidebar() {
                                         <Users className="h-4 w-4" />
                                         會員管理
                                     </Link>
+                                    <Link
+                                        href="/admin/projects"
+                                        className={cn(
+                                            "flex items-center gap-2 rounded-md px-3 py-1.5 text-xs font-medium transition-colors",
+                                            pathname === '/admin/projects'
+                                                ? "bg-amber-500/10 text-amber-300"
+                                                : "text-zinc-400 hover:text-amber-300"
+                                        )}
+                                    >
+                                        <Building className="h-4 w-4" />
+                                        建案基本資料管理
+                                    </Link>
                                 </div>
                             )}
                         </div>

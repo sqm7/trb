@@ -171,11 +171,11 @@ supabase functions deploy --all
 
 #### 運作邏輯 (Logic Flow):
 1.  **分頁掃描 (Scan)**: 遍歷全台 22 縣市成交紀錄，提取 `建案名稱`。
-2.  **智慧清洗 (Standardize)**: 轉換為標準化名稱。
+2.  **智慧清洗 (Standardize)**: 轉換為標準化名稱並 Upsert 至 `{code}_projects`。
 3.  **深度補全與管理 (Enrich & Manage)**:
-    *   **Admin UI**: 管理者在 `/admin/projects` 篩選建案。
-    *   **三階狀態**: 標記為 `requested` (代辦) 時觸發 Agent 補全，`pending` (待補) 留供人工，`done` (完備) 為結束。
-    *   **Agent Workflow**: 利用 Agent 搜尋工具抓取 16 個詳細欄位（基地、規劃、建商等）。
-4.  **自動建檔 (Upsert)**:
-    *   新案名：新增紀錄並標記 `is_new_case = true`。
-    *   舊案名：更新活跃狀態與補全內容。
+    *   **Admin UI**: 管理者在 `/admin/projects` 指派建案進入 `requested` 隊列。
+    *   **Agent Workflow**: 執行 `/batch-enrich` 或 `/lookup-project`。
+    *   **嚴格判定**: 採用 **15/16 欄位完備規則**（除代銷外皆須補齊）判定為 `done`，否則退回 `pending`。
+4.  **數據閉環**:
+    *   `Requested` ➡ (Agent 搜尋一次) ➡ `Done` (達標) 或 `Pending` (不達標)。
+    *   `Pending` ➡ (人工審查/補足/存檔) ➡ `Done`。

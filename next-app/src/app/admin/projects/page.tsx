@@ -144,7 +144,7 @@ export default function AdminProjectsPage() {
             if (error) throw error;
 
             setProjects(prev => prev.map(p => ids.includes(p.id) ? { ...p, enrichment_status: 'requested' } : p));
-            alert(`已將 ${ids.length} 筆建案標記為「代辦」，Agent 將稍後處理。`);
+            alert(`已成功將 ${ids.length} 筆建案「委託」給 Agent。現在請在對話框輸入 /batch-enrich，我將會立刻開始處理！`);
         } catch (error: any) {
             alert('操作失敗：' + error.message);
         } finally {
@@ -190,8 +190,8 @@ export default function AdminProjectsPage() {
                         disabled={isEnriching}
                         className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold shadow-lg shadow-indigo-500/20 transition-all active:scale-95 disabled:opacity-50"
                     >
-                        {isEnriching ? <Loader2 className="h-4 w-4 animate-spin" /> : <SearchCode className="h-4 w-4" />}
-                        執行批次補全 (代辦 10 筆)
+                        {isEnriching ? <Loader2 className="h-4 w-4 animate-spin" /> : <Zap className="h-4 w-4" />}
+                        委託 Agent 補全數據 (下 10 筆)
                     </button>
                 </div>
 

@@ -53,6 +53,27 @@
     - `raw_project_name` (Text): 第一次抓到該建案時的原始名稱。
     - `is_new_case` (Boolean): 預設為 `true`，用於標記新發現建案。
     - `last_seen_at` (Timestamp): 該建案最後一次出現在交易紀錄的時間。
+    - **建案規格與開發商資訊**:
+        - `site_area` (Text): 基地規模。
+        - `total_households` (Text): 總戶數。
+        - `public_ratio` (Text): 公設比。
+        - `total_floors` (Text): 總樓層數。
+        - `basement_floors` (Text): 地下層數。
+        - `structure` (Text): 結構 (e.g., RC, SRC)。
+        - `land_usage_zone` (Text): 土地使用分區。
+        - `parking_type` (Text): 車位類型。
+        - `parking_count` (Text): 車位數量。
+        - `developer` (Text): 建設公司。
+        - `contractor` (Text): 工程營造。
+        - `architect` (Text): 建築設計。
+        - `sales_agent` (Text): 代銷企劃。
+        - `affiliated_companies` (Text): 關係企業。
+        - `construction_license` (Text): 建造號碼。
+        - `enrichment_status` (Text): 補全狀態。
+            - `requested`: 代辦 (Agent 執行中/待執行)。
+            - `pending`: 待補 (人工核對/資料殘缺待補)。
+            - `done`: 完備 (已達 15/16 欄位門檻或人工存檔)。
+        - `last_enriched_at` (Timestamp): 最後補全嘗試時間。
 
 ### `public.project_parsing_rules_v2`
 - **用途**: **建案解析引擎核心**。儲存正規表達式 (Regex) 與解析邏輯。

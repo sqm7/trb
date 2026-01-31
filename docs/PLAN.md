@@ -22,12 +22,14 @@
 - [x] Step 4: Configure Cron Job (pg_cron) to run sync hourly. <!-- id: idx-4 -->
 - [x] Step 5: Verify data populate in `projects` table (Final: 7,751 records). <!-- id: idx-5 -->
 - [x] Step 6: Implement Project Enrichment System & Admin UI (Expandable Rows). <!-- id: idx-6 -->
+- [x] Step 7: Refine logic with 3-state delegation (Requested/Pending/Done). <!-- id: idx-7 -->
+- [x] Step 8: Implement strict 15/16 field completion rule. <!-- id: idx-8 -->
 
 ## [Current Task] Project Table Schema Expansion
-- [x] Step 1: Update `docs/DATABASE_SCHEMA.md` with new detail columns. <!-- id: pex-1 -->
+- [x] Step 1: Update `docs/DATABASE_SCHEMA.md` with new detail columns & states. <!-- id: pex-1 -->
 - [x] Step 2: Create migration and standalone SQL to add columns to `*_projects` tables. <!-- id: pex-2 -->
-- [x] Step 3: Implement 3nd-State (代辦/待補/完備) logic and Admin Portal. <!-- id: pex-3 -->
-- [x] Step 4: Finalize documentation. <!-- id: pex-4 -->
+- [x] Step 3: Implement 3-State logic and Admin Portal refinements. <!-- id: pex-3 -->
+- [x] Step 4: Finalize cross-document synchronization (SPEC/ARCH/DB). <!-- id: pex-4 -->
 
 ## [Current Task] Recovery and Test Deployment
 - [x] Step 1: Commit uncommitted changes to local repository.

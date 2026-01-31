@@ -188,37 +188,22 @@ Detailed development documentation for each analysis report module is maintained
 - [DATABASE_SCHEMA.md](docs/DATABASE_SCHEMA.md)
 - [AGENT_SKILLS_GUIDE.md](docs/AGENT_SKILLS_GUIDE.md)
 
-## 12. Project Indexing System
-- **Goal**: Maintain a canonical registry of all real estate projects (建案) across all counties.
+## 12. Project Indexing & Enrichment System
+- **Goal**: Maintain a high-quality registry of real estate projects across all counties, enriched with 16 technical fields.
 - **Architecture**: 
-    - **Single Unified Table**: `public.projects` is used instead of per-county tables to enable global search and simplified analytics.
-    - **Partitioning Strategy**: (Optional) Can be partitioned by `city_code` if volume exceeds 10M rows (unlikely for project names).
-- **Core Components**:
-    1.  **Database Table**: `public.projects`
-        -   `id` (UUID): Primary Key.
-        -   `city_code` (Char): Foreign Key to `county_codes`.
-        -   `project_name` (Text): The standardized project name.
-        -   `is_new_case` (Boolean): Default true, for flagging new discoveries.
-        -   `last_seen_at` (Timestamp): When this project was last encountered in transactions.
-    2.  **Edge Function**: `sync-projects`
-        -   **Trigger**: Scheduled (Cron) or Webhook.
-        -   **Logic**:
-            -   Scans `all_transactions_view` for distinct `建案名稱`.
-            -   Applies `project_name_mappings` (e.g., handles "帝寶?" -> "帝寶").
-            -   Upserts into `public.projects`.
-            -   Updates `last_seen_at` and `is_new_case`.
-    3.  **Parsing Rules**:
-        -   Refers to `project_parsing_rules_v2` for complex name extraction.
-        -   Refers to `project_name_mappings` for simple text replacement.
-
-## [UPDATE] 12. Project Indexing System
-- **Goal**: Maintain a registry of all real estate projects, partitioned by county to match transaction data structure.
-- **Architecture**: 
-    - **Per-County Tables**: Tables named `{code}_projects` (e.g., `a_projects`, `b_projects`).
-    - **Schema**: Each table contains `project_name`, `raw_project_name`, `is_new_case`, `last_seen_at`.
-- **Core Components**:
-    1.  **Database Tables**: `public.[code]_projects`
-    2.  **Edge Function**: `sync-projects`
-        -   Iterates through all supported county codes.
-        -   Syncs data from `all_transactions_view` (or source tables) to respective project tables.
-        -   Applies mapping and cleaning rules.
+    - **Per-County Tables**: Named `{code}_projects` (e.g., `a_projects` for Taipei).
+    - **Logic Flow**: `Scan -> Requested -> Agent Enrichment -> (Done or Pending)`.
+- **Enrichment Logic (The "15/16 Rule")**:
+    - **Requested (代辦 - Agent)**: Initial state for new projects. Agent picks these up for automated search.
+    - **Pending (待補 - Manual/Retry)**:
+        - If Agent search results in **any core field missing** (except `sales_agent`).
+        - If manual review is required to verify conflicting data.
+    - **Done (完備)**:
+        - Automatically set by Agent **ONLY IF** all fields EXCEPT `sales_agent` are successfully filled.
+        - Manually set by Admin after verifying data correctness in the Admin UI.
+- **Data Delegation Workflow**:
+    1.  **Admin UI**: Admin identifies candidates for enrichment and clicks **"Delegate to Agent"**. This moves projects to `requested` status.
+    2.  **Agent Command**: User triggers `/batch-enrich` in the chat.
+    3.  **Strict Validation**: Agent performs deep searches and only marks as `done` if the 15/16 field threshold is met; otherwise, it marks as `pending`.
+- **Target Fields (16)**:
+    - 基地規模, 總戶數, 公設比, 總樓層數, 地下層數, 結構, 土地使用分區, 車位類型, 車位數量, 建設公司, 工程營造, 建築設計, 代銷企劃 (Optional), 關係企業, 建造號碼, 建案名稱 (Canonical).
