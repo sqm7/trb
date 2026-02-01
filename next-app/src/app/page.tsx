@@ -368,7 +368,14 @@ export default function LoginPage() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
-                className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-xs font-bold tracking-wider uppercase mb-2"
+                onClick={() => {
+                  setShowIntro(true);
+                  // Optional: Clear 'hasSeenIntro' if we want it to show on reload too, but for just replay, state toggle is enough.
+                  // sessionStorage.removeItem('hasSeenIntro'); 
+                }}
+                className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-xs font-bold tracking-wider uppercase mb-2 cursor-pointer hover:bg-cyan-500/20 hover:scale-105 transition-all"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
               >
                 <div className="relative h-4 w-4 mr-1 rounded-full overflow-hidden shadow-[0_0_10px_rgba(6,182,212,0.5)]">
                   <Image
