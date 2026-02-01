@@ -64,15 +64,15 @@ export const BrandImageIntro = ({ onComplete }: { onComplete: () => void }) => {
                             <motion.div
                                 key={`stream-${s.id}`}
                                 className={`absolute origin-left rounded-full ${s.color === 'white'
-                                        ? 'bg-gradient-to-r from-transparent via-white/40 to-white/70 shadow-[0_0_8px_white]'
-                                        : 'bg-gradient-to-r from-transparent via-cyan-500/40 to-cyan-400 shadow-[0_0_8px_cyan]'
+                                    ? 'bg-gradient-to-r from-transparent via-white/40 to-white/70 shadow-[0_0_8px_white]'
+                                    : 'bg-gradient-to-r from-transparent via-cyan-500/40 to-cyan-400 shadow-[0_0_8px_cyan]'
                                     }`}
                                 style={{
                                     height: s.thickness,
                                     width: s.width,
                                     left: '50%',
                                     top: '50%',
-                                    rotate: s.angle,
+                                    rotate: `${s.angle}deg`,
                                     // Hidden x-offset to start off-center
                                 }}
                                 initial={{ x: '150%', opacity: 0, scaleX: 0.1 }}
@@ -101,7 +101,7 @@ export const BrandImageIntro = ({ onComplete }: { onComplete: () => void }) => {
                                     top: '50%',
                                     // Polar transform
                                 }}
-                                initial={{ rotate: p.angle, x: p.distance * 2, opacity: 0, scale: 0 }}
+                                initial={{ rotate: `${p.angle}deg`, x: p.distance * 2, opacity: 0, scale: 0 }}
                                 animate={{
                                     x: 0,
                                     opacity: [0, 1, 0],
@@ -176,7 +176,7 @@ export const BrandImageIntro = ({ onComplete }: { onComplete: () => void }) => {
                         filter: 'blur(0px)'
                     } : {}}
                     transition={{ type: "spring", bounce: 0.35, duration: 1.2 }}
-                    className="relative z-30 flex flex-col items-center"
+                    className="relative z-50 flex flex-col items-center"
                 >
                     <div className="relative w-32 h-32 mb-8 p-1 rounded-3xl bg-gradient-to-b from-zinc-800 to-black border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5),0_0_20px_rgba(6,182,212,0.2)] overflow-hidden group">
                         <div className="absolute inset-0 bg-cyan-500/5 group-hover:bg-cyan-500/10 transition-colors" />
