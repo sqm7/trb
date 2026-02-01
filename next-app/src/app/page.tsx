@@ -32,6 +32,7 @@ export default function LoginPage() {
   const [mounted, setMounted] = useState(false);
   const [showPromo, setShowPromo] = useState(false);
   const [showIntro, setShowIntro] = useState(false);
+  const [pendingRedirect, setPendingRedirect] = useState<string | null>(null);
 
   useEffect(() => {
     const hasSeenIntro = sessionStorage.getItem('hasSeenIntro');
@@ -210,12 +211,50 @@ export default function LoginPage() {
           throw error;
         }
 
-        // Redirect to OA Callback to check friendship status
-        router.push('/auth/oa-callback');
+        // Helper to handle conditional redirect
+        const doRedirect = async (path: string) => {
+          // Optimization: Check friendship status here to potentially skip oa-callback
+          let finalPath = path;
+          try {
+            const liffModule = await import('@line/liff');
+            const liff = liffModule.default;
+            const liffId = getLiffId();
+
+            // Ensure LIFF is ready before checking friendship
+            if (liffId) {
+              await liff.init({ liffId });
+              if (liff.isLoggedIn()) {
+                const friendship = await liff.getFriendship();
+                if (friendship.friendFlag) {
+                  console.log('[Auth] User is already a friend, redirecting directly to dashboard');
+                  finalPath = '/dashboard';
+                }
+              }
+            }
+          } catch (e) {
+            console.error('[Auth] Friendship pre-check failed', e);
+          }
+
+          const hasSeenIntro = sessionStorage.getItem('hasSeenIntro');
+          if (!hasSeenIntro) {
+            console.log(`[Auth] Intro playing (based on storage), queuing redirect to ${finalPath}`);
+            setPendingRedirect(finalPath);
+          } else {
+            router.push(finalPath);
+          }
+        };
+
+        // Attempt redirect (optimization will happen inside doRedirect)
+        await doRedirect('/auth/oa-callback');
 
       } else if (data.user) {
-        // ...
-        router.push('/auth/oa-callback');
+        // ... (data.user case usually follows similar logic, but let's keep it simple or unify)
+        const hasSeenIntro = sessionStorage.getItem('hasSeenIntro');
+        if (!hasSeenIntro) {
+          setPendingRedirect('/auth/oa-callback');
+        } else {
+          router.push('/auth/oa-callback');
+        }
       }
 
     } catch (e: any) {
@@ -278,6 +317,10 @@ export default function LoginPage() {
           <BrandImageIntro onComplete={() => {
             setShowIntro(false);
             sessionStorage.setItem('hasSeenIntro', 'true');
+            if (pendingRedirect) {
+              console.log(`[Auth] Intro complete, processing pending redirect: ${pendingRedirect}`);
+              router.push(pendingRedirect);
+            }
           }} />
         )}
       </AnimatePresence>
