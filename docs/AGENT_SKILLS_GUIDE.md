@@ -24,6 +24,8 @@
 *   **/react-components**：將設計轉化為 React 組件。
 *   **/remotion**：Remotion 影片製作最佳實踐。
 *   **/webapp-testing**：使用 Playwright 進行網頁自動化測試。
+*   **/batch-enrich**：全台建案資料批量補全（支援自動爬蟲/Agent搜尋/人工fallback）。
+*   **/lookup-project**：搜尋特定建案並補全資料。
 *   **/doc-coauthoring**：引導您協同撰寫技術文件。
 *   **/skill-creator**：協助您建立新的 AI 技能包。
 *   **/pptx / /xlsx / /docx / /pdf**：處理各種辦公文件格式。
