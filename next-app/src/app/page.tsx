@@ -138,7 +138,7 @@ export default function LoginPage() {
 
       liff
         .init({ liffId })
-        .then(() => {
+        .then(async () => {
           console.log('LIFF initialized');
 
           // Check if we just logged out to prevent valid session from auto-re-login
@@ -146,6 +146,13 @@ export default function LoginPage() {
 
           // Handle redirect from Line Login
           if (liff.isLoggedIn() && !isLoggedOut) {
+            // Check if we are already logged in to Supabase (Landing Page Mode)
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session) {
+              console.log('[LIFF] User already has Supabase session, skipping auto-redirect.');
+              return;
+            }
+
             const idToken = liff.getIDToken();
             const decoded = liff.getDecodedIDToken();
 

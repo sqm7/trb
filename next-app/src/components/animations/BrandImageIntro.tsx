@@ -10,11 +10,11 @@ export const BrandImageIntro = ({ onComplete }: { onComplete: () => void }) => {
     useEffect(() => {
         const schedule = [
             { t: 0, p: 'gathering' },
-            { t: 1500, p: 'fusion' },
-            { t: 3000, p: 'explosion' },
-            { t: 3200, p: 'reveal' },
-            { t: 5500, p: 'exit' },
-            { t: 6500, fn: onComplete }
+            { t: 800, p: 'fusion' },
+            { t: 2000, p: 'explosion' },
+            { t: 2200, p: 'reveal' },
+            { t: 4500, p: 'exit' },
+            { t: 5500, fn: onComplete }
         ];
 
         const timeouts = schedule.map(s =>
@@ -56,9 +56,9 @@ export const BrandImageIntro = ({ onComplete }: { onComplete: () => void }) => {
                                     scaleX: [0.5, 2, 0]
                                 }}
                                 transition={{
-                                    duration: 1.5,
-                                    ease: "easeIn",
-                                    delay: Math.random() * 1
+                                    duration: 0.8,
+                                    ease: "circIn",
+                                    delay: Math.random() * 0.4
                                 }}
                                 style={{
                                     left: 0,
@@ -143,10 +143,15 @@ export const BrandImageIntro = ({ onComplete }: { onComplete: () => void }) => {
                             initial={{ y: 20, opacity: 0 }}
                             animate={{ y: 0, opacity: 1 }}
                             transition={{ delay: 0.2, duration: 0.8 }}
-                            className="text-4xl md:text-6xl font-black text-white tracking-widest uppercase mb-2"
+                            className="flex flex-col items-center gap-1 mb-2"
                         >
-                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-emerald-400">
-                                SQM Talk
+                            <span className="text-4xl md:text-5xl font-black text-white tracking-widest uppercase">
+                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-emerald-400">
+                                    SQM Talk
+                                </span>
+                            </span>
+                            <span className="text-2xl md:text-3xl font-bold text-zinc-100 tracking-wide mt-1">
+                                平米內參
                             </span>
                         </motion.h1>
                         <motion.div
