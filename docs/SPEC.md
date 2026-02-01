@@ -251,3 +251,15 @@ Detailed development documentation for each analysis report module is maintained
     - **Dynamic Fetching**: `query-data` Edge Function merges these details based on `countyCode`.
 - **Search Normalization**:
     - Queries for project names automatically normalize Bopomofo 'ㄧ' to CJK '一'.
+
+## 15. Branding & Entry Experience (2026-02-01)
+- **Data Hyperdrive Intro Animation**:
+    - **Visual**: A high-speed "Data Tunnel" effect featuring 70+ animated streams and particles in Cyan/White/Zinc-950.
+    - **Brand Reveal**: Cinematic logo reveal with metallic shine and dual-language branding ("SQMTalk" & "平米內參").
+    - **Timing**: Snappy transition: Gathering (0-1.2s) -> Fusion (1.2-2.5s) -> Explosion (2.5s+).
+    - **Trigger Logic**: 
+        - Auto-plays on first visit (session-based `hasSeenIntro`).
+        - Manual replay via the `SQMTALK.COM` logo badge on the landing page.
+- **Landing Page Persistence**:
+    - **No Auto-Redirect**: If a user is already logged in to the platform (Supabase session exists), visiting the landing/login page will NOT automatically redirect them to the dashboard. This allows authenticated users to review product features/pricing on the landing page.
+    - **Manual Entry**: Logged-in users enter the dashboard manually via the "Welcome Back" card or persistent sidebar links.

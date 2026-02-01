@@ -97,6 +97,11 @@
     - **Current Supported Components**: Ranking, Price Band, Unit Price Analysis, Sales Velocity (Trends, Heatmaps, Detail Tables), Heatmap (Grid, Stats, Comparison), Parking Stack 3D (Hybrid CSS 3D/2D Layering).
     - **Image Generation**: Uses `modern-screenshot` (replacing `html2canvas`) for better CSS support (oklab/oklch).
 
+- **`BrandImageIntro.tsx`**: High-performance cinematic intro animation.
+    - **Visual Tech**: Uses `framer-motion` for complex physics-based particle systems and coordinate transforms (Hyperdrive/Fusion effects).
+    - **Branding**: Displays dual-language metallic logos.
+    - **Lifecycle**: Integrated into `page.tsx` with parallel auth verification check to minimize perceived wait time.
+
 ## 5. 部署平台規則
 
 > ⚠️ **重要：變更部署平台前必須取得用戶同意**

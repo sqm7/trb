@@ -257,3 +257,11 @@
 - [x] Step 5: Update `DataListReport` UI to display new columns. <!-- id: adm-5 -->
 - [x] Step 6: Update `AdminProjectsPage` for field editing. <!-- id: adm-6 -->
 - [x] Step 7: Synchronize documentation (SPEC/PLAN/ARCH in `docs/`). <!-- id: adm-7 -->
+
+## [Current Task] Enhance Intro Animation & Login Experience (2026-02-01)
+- [x] Step 1: Implement "Data Alchemy" intro animation concept. <!-- id: intro-1 -->
+- [x] Step 2: Implement parallel verification (background auth during intro). <!-- id: intro-2 -->
+- [x] Step 3: Implement "Interactive Replay" via SQMTALK.COM badge. <!-- id: intro-3 -->
+- [x] Step 4: Fix Login Auto-Redirect (Keep logged-in users on landing page). <!-- id: intro-4 -->
+- [x] Step 5: Upgrade visual design to "Data Hyperdrive" (Black background, Chinese title). <!-- id: intro-5 -->
+- [x] Step 6: Deploy to Test (trb) and Production (main). <!-- id: intro-6 -->
