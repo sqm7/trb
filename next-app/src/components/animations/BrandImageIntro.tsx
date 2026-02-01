@@ -59,62 +59,76 @@ export const BrandImageIntro = ({ onComplete }: { onComplete: () => void }) => {
             {/* Phase 1: Gathering Data Hyperdrive */}
             <AnimatePresence>
                 {phase === 'gathering' && (
-                    <div className="absolute inset-0 z-10">
+                    <div className="absolute inset-0 z-10 flex items-center justify-center pointer-events-none">
                         {streams.map((s) => (
-                            <motion.div
-                                key={`stream-${s.id}`}
-                                className={`absolute origin-left rounded-full ${s.color === 'white'
-                                    ? 'bg-gradient-to-r from-transparent via-white/40 to-white/70 shadow-[0_0_8px_white]'
-                                    : 'bg-gradient-to-r from-transparent via-cyan-500/40 to-cyan-400 shadow-[0_0_8px_cyan]'
-                                    }`}
+                            // Container handles Rotation only
+                            <div
+                                key={`stream-container-${s.id}`}
+                                className="absolute flex items-center justify-start origin-center"
                                 style={{
-                                    height: s.thickness,
-                                    width: s.width,
-                                    left: '50%',
-                                    top: '50%',
+                                    width: 0,
+                                    height: 0,
                                     rotate: `${s.angle}deg`,
-                                    // Hidden x-offset to start off-center
                                 }}
-                                initial={{ x: '150%', opacity: 0, scaleX: 0.1 }}
-                                animate={{
-                                    x: '0%',
-                                    opacity: [0, 1, 0.5, 0],
-                                    scaleX: [0.1, 1.5, 2, 0.1]
-                                }}
-                                transition={{
-                                    duration: s.duration,
-                                    ease: "circIn",
-                                    delay: s.delay,
-                                    repeat: Infinity,
-                                    repeatDelay: Math.random() * 0.1
-                                }}
-                            />
+                            >
+                                {/* Child handles Motion along X axis */}
+                                <motion.div
+                                    className={`absolute rounded-full origin-left ${s.color === 'white'
+                                            ? 'bg-gradient-to-r from-transparent via-white/40 to-white/70 shadow-[0_0_8px_white]'
+                                            : 'bg-gradient-to-r from-transparent via-cyan-500/40 to-cyan-400 shadow-[0_0_8px_cyan]'
+                                        }`}
+                                    style={{
+                                        height: s.thickness,
+                                        width: s.width,
+                                        left: 0,
+                                        top: -s.thickness / 2, // Center vertically
+                                    }}
+                                    initial={{ x: 200, opacity: 0, scaleX: 0.1 }}
+                                    animate={{
+                                        x: 0, // Move to center (0)
+                                        opacity: [0, 1, 0.5, 0],
+                                        scaleX: [0.1, 1.5, 2, 0.1]
+                                    }}
+                                    transition={{
+                                        duration: s.duration,
+                                        ease: "circIn",
+                                        delay: s.delay,
+                                        repeat: Infinity,
+                                        repeatDelay: Math.random() * 0.1
+                                    }}
+                                />
+                            </div>
                         ))}
 
                         {/* Floating Data Particles */}
                         {particles.map((p) => (
-                            <motion.div
-                                key={`part-${p.id}`}
-                                className="absolute w-1 h-1 bg-white rounded-full shadow-[0_0_5px_white]"
+                            // Use same container strategy for particles
+                            <div
+                                key={`part-container-${p.id}`}
+                                className="absolute flex items-center justify-center origin-center"
                                 style={{
-                                    left: '50%',
-                                    top: '50%',
-                                    // Polar transform
+                                    width: 0,
+                                    height: 0,
+                                    rotate: `${p.angle}deg`,
                                 }}
-                                initial={{ rotate: `${p.angle}deg`, x: p.distance * 2, opacity: 0, scale: 0 }}
-                                animate={{
-                                    x: 0,
-                                    opacity: [0, 1, 0],
-                                    scale: [0, 1.2, 0]
-                                }}
-                                transition={{
-                                    duration: 0.6,
-                                    ease: "circIn",
-                                    delay: p.delay,
-                                    repeat: Infinity,
-                                    repeatDelay: Math.random() * 0.3
-                                }}
-                            />
+                            >
+                                <motion.div
+                                    className="absolute w-1 h-1 bg-white rounded-full shadow-[0_0_5px_white]"
+                                    initial={{ x: p.distance * 2, opacity: 0, scale: 0 }}
+                                    animate={{
+                                        x: 0,
+                                        opacity: [0, 1, 0],
+                                        scale: [0, 1.2, 0]
+                                    }}
+                                    transition={{
+                                        duration: 0.6,
+                                        ease: "circIn",
+                                        delay: p.delay,
+                                        repeat: Infinity,
+                                        repeatDelay: Math.random() * 0.3
+                                    }}
+                                />
+                            </div>
                         ))}
                     </div>
                 )}
