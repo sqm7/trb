@@ -32,11 +32,20 @@ export const metadata: Metadata = {
     siteName: "平米內參",
     locale: "zh_TW",
     type: "website",
+    images: [
+      {
+        url: "/logo-type-a.jpg",
+        width: 1200,
+        height: 1200,
+        alt: "平米內參 - 預售屋數據儀表板",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "平米內參 - 預售屋數據儀表板",
     description: "獨家預售屋銷控表與調價熱力圖分析。透過視覺化數據，精準掌握房市趨勢與建案真實價值。",
+    images: ["/logo-type-a.jpg"],
   },
   icons: {
     icon: "/icon.png",

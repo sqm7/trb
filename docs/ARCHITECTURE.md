@@ -24,7 +24,8 @@
 │   │   │   - `reports/builder/`: Custom Report Builder (Drag & Drop Canvas)
 │   │   │   - `auth/oa-callback/`: LINE OA Friendship Verification Page
 │   │   │   - `share/`: Public Read-Only Snapshot Viewer (Primary URL)
-│   │   │   - `icon.png`: Main site icon / logo
+│   │   │   - `apple-icon.png`: Apple touch icon (synced to new logo)
+│   │   │   - `icon.png`: Standard site icon (synced to new logo)
 │   │   ├── components/ # React Components
 │   │   │   - `ui/`: Reusable UI elements
 │   │   │   - `admin/`: Admin-specific pieces (PermissionTableModal.tsx)
@@ -101,6 +102,11 @@
     - **Visual Tech**: Uses `framer-motion` for complex physics-based particle systems and coordinate transforms (Hyperdrive/Fusion effects).
     - **Branding**: Displays dual-language metallic logos.
     - **Lifecycle**: Integrated into `page.tsx` with parallel auth verification check to minimize perceived wait time.
+
+### Brand Identity & Metadata
+- **Global Metadata**: Defined in `root/layout.tsx` using Next.js Metadata API.
+- **Social Previews**: Explicitly configured `openGraph` and `twitter` images pointing to `/logo-type-a.jpg` for consistent sharing previews on LINE, Messenger, and other platforms.
+- **Icon Synchronization**: All legacy icon files (`icon.png`, `apple-icon.png`, `favicon.ico`) are physically synchronized to the new brand logo to ensure fallback/legacy compatibility.
 
 ## 5. 部署平台規則
 

@@ -265,3 +265,4 @@
 - [x] Step 4: Fix Login Auto-Redirect (Keep logged-in users on landing page). <!-- id: intro-4 -->
 - [x] Step 5: Upgrade visual design to "Data Hyperdrive" (Black background, Chinese title). <!-- id: intro-5 -->
 - [x] Step 6: Deploy to Test (trb) and Production (main). <!-- id: intro-6 -->
+- [x] Step 7: **Social Metadata & Brand Icon Cleanup** - Explicitly set `og:image` metadata and synchronize all site icons to new logo. <!-- id: intro-7 -->

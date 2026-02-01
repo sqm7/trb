@@ -263,3 +263,7 @@ Detailed development documentation for each analysis report module is maintained
 - **Landing Page Persistence**:
     - **No Auto-Redirect**: If a user is already logged in to the platform (Supabase session exists), visiting the landing/login page will NOT automatically redirect them to the dashboard. This allows authenticated users to review product features/pricing on the landing page.
     - **Manual Entry**: Logged-in users enter the dashboard manually via the "Welcome Back" card or persistent sidebar links.
+
+### 15.2 Social Metadata & Brand Identity
+- **Open Graph (OG) / Twitter**: Explicitly configured `og:image` and `twitter:image` to utilize `/logo-type-a.jpg` for all sharing previews.
+- **Icon Synchronization**: Site icons (`icon.png`, `apple-icon.png`, `favicon.ico`) are synchronized to the new brand logo to ensure consistent identity across bookmarks, home screen shortcuts, and browser tabs.
