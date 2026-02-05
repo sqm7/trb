@@ -1,4 +1,4 @@
-"use strict";(self.webpackChunk_N_E=self.webpackChunk_N_E||[]).push([[916],{826:(e,t,a)=>{a.d(t,{B:()=>n});var s=a(95155),r=a(12115),i=a(97085);function n({data:e}){let t=(0,r.useMemo)(()=>e&&0!==e.length?[{name:"總價分佈",type:"boxPlot",data:e.map(e=>{let t=[e.minPrice,e.q1Price,e.medianPrice,e.q3Price,e.maxPrice];return t.some(e=>"number"!=typeof e||isNaN(e))?null:{x:null!==e.bathrooms?`${e.roomType}-${e.bathrooms}衛`:e.roomType,y:t.map(e=>Math.round(e))}}).filter(Boolean)}]:[],[e]),a=(0,r.useMemo)(()=>{if(0===t.length||0===t[0].data.length)return{};let e=t[0].data.flatMap(e=>e.y),a=Math.min(...e),s=Math.max(...e),r=s-a,i=0===r?Math.max(.1*a,100):.1*r;return{chart:{type:"boxPlot",height:450,background:"transparent",toolbar:{show:!1},zoom:{enabled:!1},foreColor:"#e5e7eb"},plotOptions:{boxPlot:{colors:{upper:"#06b6d4",lower:"#8b5cf6"},stroke:{colors:["#ffffff"],width:1.5}}},xaxis:{type:"category",labels:{style:{colors:"#9ca3af"},rotate:-45,offsetY:5}},yaxis:{min:Math.max(0,a-i),max:s+i,title:{text:"房屋總價 (萬)",style:{color:"#9ca3af"}},labels:{formatter:e=>`${Math.round(e).toLocaleString()} 萬`,style:{colors:"#9ca3af"}}},tooltip:{theme:"dark",cssClass:"custom-apex-tooltip",style:{fontSize:"12px"},x:{show:!1},marker:{show:!1},custom:function({seriesIndex:e,dataPointIndex:t,w:a}){let s=a.globals.initialSeries[e].data[t].y,r=a.globals.labels[t];if(Array.isArray(s)&&5===s.length){let[e,t,a,i,n]=s;return`
+"use strict";(self.webpackChunk_N_E=self.webpackChunk_N_E||[]).push([[916],{826:(e,t,a)=>{a.d(t,{B:()=>n});var s=a(95155),r=a(12115),i=a(97085);function n({data:e}){let t=(0,r.useMemo)(()=>e&&0!==e.length?[{name:"總價分佈",type:"boxPlot",data:e.map(e=>{let t=[e.minPrice,e.q1Price,e.medianPrice,e.q3Price,e.maxPrice];return t.some(e=>"number"!=typeof e||isNaN(e))?null:{x:null!==e.bathrooms?`${e.roomType}-${e.bathrooms}衛`:e.roomType,y:t.map(e=>Math.round(e))}}).filter(Boolean)}]:[],[e]),a=(0,r.useMemo)(()=>{if(0===t.length||0===t[0].data.length)return{};let e=t[0].data.flatMap(e=>e.y),a=Math.min(...e),s=Math.max(...e),r=s-a,i=0===r?Math.max(.1*a,100):.1*r;return{chart:{type:"boxPlot",height:450,background:"transparent",toolbar:{show:!1},zoom:{enabled:!1},foreColor:"#e5e7eb"},plotOptions:{boxPlot:{colors:{upper:"#06b6d4",lower:"#8b5cf6"},stroke:{colors:["#ffffff"],width:2.5}}},xaxis:{type:"category",labels:{style:{colors:"#9ca3af"},rotate:-45,offsetY:5}},yaxis:{min:Math.max(0,a-i),max:s+i,title:{text:"房屋總價 (萬)",style:{color:"#9ca3af"}},labels:{formatter:e=>`${Math.round(e).toLocaleString()} 萬`,style:{colors:"#9ca3af"}}},tooltip:{theme:"dark",cssClass:"custom-apex-tooltip",style:{fontSize:"12px"},x:{show:!1},marker:{show:!1},custom:function({seriesIndex:e,dataPointIndex:t,w:a}){let s=a.globals.initialSeries[e].data[t].y,r=a.globals.labels[t];if(Array.isArray(s)&&5===s.length){let[e,t,a,i,n]=s;return`
                             <div class="flex items-center gap-4 px-2 py-1 bg-transparent">
                                 <!-- Left: Room Type Label -->
                                 <span class="text-4xl font-black text-white italic tracking-tighter drop-shadow-[0_5px_8px_rgba(0,0,0,0.8)] leading-none" style="text-shadow: 0 0 30px rgba(255,255,255,0.4); font-family: ui-sans-serif, system-ui, sans-serif;">
@@ -23,7 +23,7 @@
                                     
                                     <!-- Q3 -->
                                     <div class="flex flex-col border-l-2 border-cyan-500 pl-2">
-                                        <span class="text-[9px] text-cyan-400 uppercase font-bold tracking-widest mb-0.5">高價區間 (藍)</span>
+                                        <span class="text-[9px] text-cyan-400 uppercase font-bold tracking-widest mb-0.5">中位數～Q3 (藍)</span>
                                         <span class="text-sm font-mono text-zinc-300">Q3: ${i.toLocaleString()}</span>
                                     </div>
                                     
@@ -35,7 +35,7 @@
 
                                     <!-- Q1 -->
                                     <div class="flex flex-col border-l-2 border-violet-500 pl-2">
-                                        <span class="text-[9px] text-violet-400 uppercase font-bold tracking-widest mb-0.5">低價區間 (紫)</span>
+                                        <span class="text-[9px] text-violet-400 uppercase font-bold tracking-widest mb-0.5">Q1～中位數 (紫)</span>
                                         <span class="text-sm font-mono text-zinc-300">Q1: ${t.toLocaleString()}</span>
                                     </div>
 
