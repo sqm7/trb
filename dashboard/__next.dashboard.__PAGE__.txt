@@ -1,9 +1,9 @@
 1:"$Sreact.fragment"
 2:I[61304,[],"ClientPageRoot"]
-3:I[39488,["4764","static/chunks/4764-31ea95b6b8869d84.js","5969","static/chunks/5969-4a7d3d1ef36bbba0.js","3242","static/chunks/3242-eaa4bf32ded5526b.js","6119","static/chunks/6119-038923257a87abfb.js","5772","static/chunks/5772-6c7cde6deed3894f.js","8398","static/chunks/8398-d643ac051df77c6d.js","6609","static/chunks/6609-5f743d5c58d6f934.js","8028","static/chunks/8028-85c60cf5487d57f5.js","3206","static/chunks/3206-da5e3d8eb90cb4c1.js","3509","static/chunks/3509-67399dae02e99eb4.js","8500","static/chunks/8500-c5001402747aedab.js","916","static/chunks/916-08a3cb3ea31b95f2.js","1007","static/chunks/1007-48460a36ce0e4df9.js","5679","static/chunks/5679-7792884b93c8861e.js","5105","static/chunks/app/dashboard/page-a9e56bc5a43af4d0.js"],"default"]
+3:I[39488,["4764","static/chunks/4764-31ea95b6b8869d84.js","5969","static/chunks/5969-4a7d3d1ef36bbba0.js","3242","static/chunks/3242-eaa4bf32ded5526b.js","6119","static/chunks/6119-038923257a87abfb.js","5772","static/chunks/5772-6c7cde6deed3894f.js","8215","static/chunks/8215-6cb630858076026d.js","6609","static/chunks/6609-5f743d5c58d6f934.js","8028","static/chunks/8028-85c60cf5487d57f5.js","3206","static/chunks/3206-da5e3d8eb90cb4c1.js","3509","static/chunks/3509-67399dae02e99eb4.js","8500","static/chunks/8500-c5001402747aedab.js","916","static/chunks/916-2724fdbe12f1cdfa.js","1007","static/chunks/1007-48460a36ce0e4df9.js","5679","static/chunks/5679-7792884b93c8861e.js","5105","static/chunks/app/dashboard/page-46e31e599741b1b2.js"],"default"]
 6:I[90484,[],"OutletBoundary"]
 7:"$Sreact.suspense"
-0:{"buildId":"YOVxNt5Tze0Qsaszdvz1o","rsc":["$","$1","c",{"children":[["$","$L2",null,{"Component":"$3","serverProvidedParams":{"searchParams":{},"params":{},"promises":["$@4","$@5"]}}],null,["$","$L6",null,{"children":["$","$7",null,{"name":"Next.MetadataOutlet","children":"$@8"}]}]]}],"loading":null,"isPartial":false}
+0:{"buildId":"PXC5aO5BQsHVB815InL1R","rsc":["$","$1","c",{"children":[["$","$L2",null,{"Component":"$3","serverProvidedParams":{"searchParams":{},"params":{},"promises":["$@4","$@5"]}}],null,["$","$L6",null,{"children":["$","$7",null,{"name":"Next.MetadataOutlet","children":"$@8"}]}]]}],"loading":null,"isPartial":false}
 4:{}
 5:"$0:rsc:props:children:0:props:serverProvidedParams:params"
 8:null
