@@ -1,2 +1,0 @@
-:HL["/trb/_next/static/css/9b27e5a76d4020a3.css","style"]
-0:{"buildId":"t3x52A58Ko2dkQ_r23dKh","tree":{"name":"","paramType":null,"paramKey":"","hasRuntimePrefetch":false,"slots":{"children":{"name":"alchemy","paramType":null,"paramKey":"alchemy","hasRuntimePrefetch":false,"slots":{"children":{"name":"__PAGE__","paramType":null,"paramKey":"__PAGE__","hasRuntimePrefetch":false,"slots":null,"isRootLayout":false}},"isRootLayout":false}},"isRootLayout":true},"staleTime":300}
