@@ -1,14 +1,14 @@
 {
   "contentTotals": {
+    "coverage": "all_synced",
+    "latestSnapshotAt": "2026-08-26T06:07:02.610Z",
+    "likes": 660,
     "postsCount": 17,
-    "views": 181228,
-    "likes": 701,
-    "replies": 195,
-    "reposts": 8,
     "quotes": 0,
-    "shares": 491,
-    "latestSnapshotAt": "2026-08-27T02:07:02.302Z",
-    "coverage": "all_synced"
+    "replies": 183,
+    "reposts": 6,
+    "shares": 461,
+    "views": 170081
   },
-  "syncedAt": "2026-08-27T02:15:55Z"
+  "syncedAt": "2026-08-26T07:06:16.179Z"
 }
